@@ -1,0 +1,29 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="safe-area" style="flex-grow: 1; position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
+        <ui:VisualElement name="content" style="flex-grow: 1; width: 100%; height: 100%; min-height: auto; align-items: flex-start; align-self: flex-start; flex-direction: column;">
+            <ui:VisualElement name="user-panel" style="flex-grow: 1; background-size: 100% 100%; width: 100%; height: 40%; align-items: center; align-self: flex-end; align-content: flex-start; min-height: auto; position: relative; background-color: rgba(255, 255, 255, 0); justify-content: flex-start; flex-direction: column; top: auto; left: auto; bottom: auto;">
+                <ui:VisualElement name="header-panel" style="flex-grow: 1; background-size: 100% 100%; width: 100%; height: 20%; align-items: center; align-self: center; align-content: flex-start; min-height: 0%; position: absolute; background-color: rgba(0, 0, 0, 0); justify-content: center; flex-direction: column;">
+                    <ui:VisualElement name="stage-panel" style="flex-grow: 1; position: absolute; width: 30%; height: auto; justify-content: center; align-self: center; top: auto; left: auto;">
+                        <ui:Label text="Stage" enable-rich-text="false" name="stage" style="-unity-font-style: bold; font-size: 50px; -unity-text-align: upper-center; margin-top: 25px; margin-bottom: 25px;"/>
+                        <ui:ProgressBar value="0" title="monster-hp" style="-unity-font-style: bold; font-size: 24px; -unity-text-align: upper-center; height: auto;"/>
+                    </ui:VisualElement>
+                    <ui:Button text="" name="setting" enable-rich-text="true" style="position: absolute; top: 25px; left: auto; right: 37px; font-size: 50px; -unity-font-style: bold; width: 5%; height: 50%;"/>
+                    <ui:Button text="" name="leaderboard" style="position: absolute; top: 25px; left: auto; right: 193px; font-size: 50px; -unity-font-style: bold; width: 5%; height: 50%;"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="profile-panel" style="flex-grow: 1; background-size: 100% 100%; width: 30%; height: 40%; align-items: center; align-self: flex-start; align-content: flex-start; min-height: 40%; position: absolute; background-color: rgba(0, 0, 0, 0); top: auto; left: auto; bottom: auto; right: auto; -unity-background-scale-mode: stretch-to-fill; max-height: 50%;">
+                    <ui:Image name="nametag" style="width: 70%; height: 80%; position: absolute; background-color: rgb(180, 180, 180); left: 200px; top: 20px; bottom: 125px; right: 0; padding-top: 15px; padding-right: 15px; padding-bottom: 15px; padding-left: 15px; align-self: flex-start;">
+                        <ui:Label text="Kinker2026" name="name" style="font-size: 30px; position: absolute; left: 60px; -unity-font-style: bold; flex-wrap: wrap; width: 80%; white-space: normal; padding-left: 6px;"/>
+                    </ui:Image>
+                    <ui:Image name="frame" style="width: 40%; height: 80%; background-color: rgb(192, 192, 192); align-self: flex-start; position: relative; top: 20px; left: 20px; min-width: 0%; min-height: auto; bottom: 30px; right: 347px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;">
+                        <ui:Image name="pic-icon" style="width: 100%; height: 100%; background-color: rgb(255, 255, 255); align-self: flex-start; position: relative; top: auto; left: auto; min-width: auto; min-height: auto; bottom: auto; right: auto; background-image: url(&quot;project://database/Assets/LeanTween/Examples/Textures/Dude2d.png?fileID=2800000&amp;guid=5f7fa9a7940a64e79b5a42d9f661d42c&amp;type=3#Dude2d&quot;);"/>
+                    </ui:Image>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="play-panel" style="flex-grow: 1; background-size: 100% 100%; width: 100%; height: 30%; align-items: center; align-self: flex-end; align-content: flex-start; min-height: auto; position: relative; background-color: rgba(255, 255, 255, 0); justify-content: flex-end; flex-direction: column; top: auto; left: auto; bottom: auto;">
+                <ui:VisualElement name="game-panel" style="flex-grow: 1; background-size: 100% 100%; width: 100%; height: 60%; align-items: center; align-self: flex-end; align-content: flex-start; min-height: 0%; position: absolute; background-color: rgb(58, 58, 58); justify-content: space-around; padding-top: 20px; padding-right: 20px; padding-bottom: 20px; padding-left: 20px;">
+                    <ui:Image style="position: relative; width: 300px; height: 415px; color: rgb(255, 255, 255); -unity-background-image-tint-color: rgb(255, 255, 255); background-color: rgb(255, 255, 255); min-height: 75%; max-height: 300px; max-width: 300px; min-width: 15%;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

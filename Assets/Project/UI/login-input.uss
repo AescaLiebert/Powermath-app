@@ -1,0 +1,39 @@
+.login-input {
+    width: 370px;
+    height: 42px;
+    margin-bottom: 8px;
+}
+
+/* Reserve identical space for Username and Password */
+.login-input > .unity-text-field__label {
+    width: 32%;
+    min-width: 32%;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+
+/* The actual editable input area */
+.login-input > .unity-text-field__input {
+    background-color: rgb(245, 245, 245);
+    color: rgb(30, 30, 30);
+
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+
+    border-left-color: rgb(100, 100, 100);
+    border-right-color: rgb(100, 100, 100);
+    border-top-color: rgb(100, 100, 100);
+    border-bottom-color: rgb(100, 100, 100);
+
+    border-radius: 10px;
+    padding-left: 12px;
+    font-size: 18px;
+}
+
+/* Placeholder appearance */
+.login-input .unity-base-text-field__input--placeholder {
+    color: rgb(130, 130, 130);
+}
