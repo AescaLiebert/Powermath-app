@@ -1,0 +1,388 @@
+.combat-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 125px;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    color: rgb(248, 248, 255);
+}
+
+.combat-hud {
+    position: absolute;
+    top: 0;
+    left: 32%;
+    right: 32%;
+    min-height: 142px;
+    padding: 10px 20px;
+    background-color: rgba(12, 20, 40, 0.92);
+    border-radius: 18px;
+    border-width: 2px;
+    border-color: rgba(107, 191, 255, 0.75);
+}
+
+.academic-rank-hud {
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top-width: 1px;
+    border-top-color: rgba(107, 191, 255, 0.55);
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.academic-rank-label {
+    font-size: 19px;
+    -unity-font-style: bold;
+    color: rgb(201, 221, 255);
+}
+
+.academic-rank-detail {
+    font-size: 15px;
+    color: rgb(198, 210, 231);
+}
+
+.combat-stage-label {
+    font-size: 26px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(255, 226, 129);
+}
+
+.combat-stage-progress {
+    height: 18px;
+    margin-top: 6px;
+}
+
+.combat-enemy-card {
+    position: absolute;
+    width: 440px;
+    height: 520px;
+    top: 100px;
+    align-items: center;
+    padding: 18px;
+    background-color: rgba(14, 19, 32, 0.86);
+    border-radius: 28px;
+    border-width: 3px;
+    border-color: rgba(255, 180, 74, 0.82);
+    transition-property: translate, scale, background-color;
+    transition-duration: 0.16s;
+}
+
+.combat-enemy--hit {
+    translate: -10px 0;
+    background-color: rgba(175, 54, 38, 0.90);
+}
+
+.combat-enemy--critical {
+    translate: -18px 0;
+    scale: 1.035 1.035;
+    background-color: rgba(231, 110, 24, 0.94);
+}
+
+.combat-enemy-name {
+    font-size: 31px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(255, 226, 167);
+}
+
+.combat-enemy-image {
+    width: 330px;
+    height: 330px;
+    margin-top: 6px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.combat-enemy-hp {
+    width: 100%;
+    height: 25px;
+    margin-top: 4px;
+}
+
+.combat-enemy-hp-label,
+.combat-cooldown,
+.combat-hearts {
+    font-size: 19px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-top: 5px;
+}
+
+.combat-cooldown--danger,
+.combat-timer--danger {
+    color: rgb(255, 97, 97);
+    scale: 1.08 1.08;
+}
+
+.combat-hearts {
+    color: rgb(255, 105, 128);
+}
+
+.combat-attack-button {
+    position: absolute;
+    right: 7%;
+    bottom: 12%;
+    width: 220px;
+    height: 86px;
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: white;
+    background-color: rgb(35, 91, 177);
+    border-radius: 22px;
+    border-width: 3px;
+    border-color: rgb(255, 210, 92);
+}
+
+.combat-simulation-badge {
+    position: absolute;
+    right: 22px;
+    top: 8px;
+    padding: 8px 14px;
+    background-color: rgb(129, 62, 20);
+    border-radius: 12px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(255, 236, 185);
+}
+
+.academic-local-badge {
+    position: absolute;
+    right: 22px;
+    top: 50px;
+    padding: 6px 12px;
+    background-color: rgb(67, 45, 113);
+    border-radius: 10px;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(235, 220, 255);
+}
+
+.combat-attempt-panel {
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    top: 35px;
+    bottom: 35px;
+    padding: 22px;
+    align-items: center;
+    background-color: rgba(5, 10, 24, 0.97);
+    border-radius: 30px;
+    border-width: 3px;
+    border-color: rgb(104, 181, 255);
+}
+
+.combat-attempt-title {
+    font-size: 20px;
+    color: rgb(255, 209, 95);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.academic-question-meta {
+    display: none;
+    margin-top: 4px;
+    font-size: 14px;
+    color: rgb(167, 185, 214);
+    -unity-text-align: middle-center;
+}
+
+.academic-question-prompt {
+    display: none;
+    margin-top: 5px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    background-color: rgba(76, 51, 121, 0.75);
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: rgb(244, 230, 255);
+    -unity-text-align: middle-center;
+}
+
+.combat-timer {
+    font-size: 64px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(126, 216, 255);
+    transition-property: scale, color;
+    transition-duration: 0.15s;
+}
+
+.combat-timer-caption {
+    font-size: 15px;
+    -unity-text-align: middle-center;
+    color: rgb(187, 202, 226);
+}
+
+.combat-answer-display {
+    width: 70%;
+    min-height: 60px;
+    margin: 10px 0;
+    padding: 10px 18px;
+    font-size: 34px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    background-color: rgb(238, 243, 255);
+    color: rgb(17, 28, 52);
+    border-radius: 14px;
+}
+
+.combat-answer--placeholder {
+    color: rgb(111, 122, 143);
+    -unity-font-style: normal;
+}
+
+.combat-numpad {
+    width: 440px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.combat-key {
+    width: 92px;
+    height: 64px;
+    margin: 5px;
+    font-size: 25px;
+    -unity-font-style: bold;
+    border-radius: 13px;
+}
+
+.combat-key--utility {
+    width: 143px;
+    font-size: 17px;
+}
+
+.combat-key--submit {
+    width: 196px;
+    background-color: rgb(38, 146, 89);
+    color: white;
+}
+
+.combat-result {
+    min-height: 34px;
+    margin-top: 8px;
+    font-size: 21px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.combat-result--positive {
+    color: rgb(103, 239, 152);
+}
+
+.combat-result--negative {
+    color: rgb(255, 127, 127);
+}
+
+.academic-currency-gain {
+    display: none;
+    min-height: 30px;
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: rgb(255, 221, 93);
+    -unity-text-align: middle-center;
+}
+
+.academic-rank-modal {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(4, 7, 16, 0.88);
+}
+
+.academic-rank-modal-card {
+    width: 560px;
+    min-height: 360px;
+    padding: 34px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(22, 31, 55);
+    border-width: 4px;
+    border-color: rgb(118, 175, 255);
+    border-radius: 30px;
+    transition-property: scale, opacity;
+    transition-duration: 0.22s;
+}
+
+.academic-rank-modal--promotion .academic-rank-modal-card {
+    border-color: rgb(255, 211, 83);
+    background-color: rgb(31, 43, 73);
+}
+
+.academic-rank-modal--adjustment .academic-rank-modal-card {
+    border-color: rgb(143, 183, 230);
+    background-color: rgb(30, 42, 61);
+}
+
+.academic-rank-modal-header {
+    font-size: 42px;
+    -unity-font-style: bold;
+    color: rgb(255, 224, 112);
+    -unity-text-align: middle-center;
+}
+
+.academic-rank-modal-route {
+    margin-top: 18px;
+    font-size: 34px;
+    -unity-font-style: bold;
+    color: white;
+    -unity-text-align: middle-center;
+}
+
+.academic-rank-modal-body,
+.academic-rank-modal-multiplier {
+    margin-top: 14px;
+    font-size: 19px;
+    color: rgb(213, 224, 244);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.academic-rank-continue-button {
+    width: 240px;
+    height: 64px;
+    margin-top: 26px;
+    font-size: 23px;
+    -unity-font-style: bold;
+    color: white;
+    background-color: rgb(44, 126, 202);
+    border-radius: 16px;
+}
+
+.combat-damage-label {
+    position: absolute;
+    top: 230px;
+    font-size: 82px;
+    -unity-font-style: bold;
+    color: rgb(255, 237, 99);
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: rgb(89, 16, 5);
+    opacity: 0;
+    scale: 0.65 0.65;
+    translate: 0 35px;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.22s;
+}
+
+.combat-damage--animate {
+    opacity: 1;
+    scale: 1.2 1.2;
+    translate: 0 -18px;
+}
+
+.combat-critical-label {
+    position: absolute;
+    top: 205px;
+    font-size: 28px;
+    -unity-font-style: bold;
+    color: rgb(255, 137, 35);
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: rgb(65, 11, 4);
+}

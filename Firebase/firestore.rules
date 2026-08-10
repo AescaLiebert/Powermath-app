@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Competition grade documents (competition/level1, competition/level2, competition/level3)
+    match /competition/{levelId} {
+      allow get: if levelId in ['level1', 'level2', 'level3'];
+
+      // Prototype repair/persistence path for updating student map fields.
+      allow update: if levelId in ['level1', 'level2', 'level3']
+        && request.resource.data.keys() == resource.data.keys()
+        && request.resource.data.diff(resource.data).affectedKeys().size() == 1;
+
+      allow list, create, delete: if false;
+    }
+
+    // Shared question catalog documents (question/silver, question/gold, question/diamond)
+    match /question/{questionId} {
+      allow get: if questionId in ['silver', 'gold', 'diamond'];
+      allow list, create, update, delete: if false;
+    }
+
+    // Legacy competition-2 document rules
+    match /competition-2/{levelId} {
+      allow get: if levelId in ['level-1', 'level-2', 'level-3'];
+
+      allow update: if levelId in ['level-1', 'level-2', 'level-3']
+        && request.resource.data.keys() == resource.data.keys()
+        && request.resource.data.diff(resource.data).affectedKeys().size() == 1;
+
+      allow list, create, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

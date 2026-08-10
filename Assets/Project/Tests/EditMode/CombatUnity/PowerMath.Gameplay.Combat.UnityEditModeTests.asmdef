@@ -1,0 +1,25 @@
+{
+  "name": "PowerMath.Gameplay.Combat.UnityEditModeTests",
+  "rootNamespace": "PowerMath.Gameplay.Combat.Unity.Tests",
+  "references": [
+    "PowerMath.Gameplay.Combat.Core",
+    "PowerMath.Gameplay.Combat.Unity",
+    "PowerMath.Gameplay.Academic.Core",
+    "PowerMath.Gameplay.Academic.Unity"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

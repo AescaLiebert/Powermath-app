@@ -1,0 +1,16 @@
+{
+  "name": "PowerMath.Gameplay.Academic.Unity",
+  "rootNamespace": "PowerMath.Gameplay.Academic.Unity",
+  "references": [
+    "PowerMath.Gameplay.Academic.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

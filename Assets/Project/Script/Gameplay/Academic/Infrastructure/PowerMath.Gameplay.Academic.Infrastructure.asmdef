@@ -1,0 +1,16 @@
+{
+  "name": "PowerMath.Gameplay.Academic.Infrastructure",
+  "rootNamespace": "PowerMath.Gameplay.Academic.Infrastructure",
+  "references": [
+    "PowerMath.Gameplay.Academic.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

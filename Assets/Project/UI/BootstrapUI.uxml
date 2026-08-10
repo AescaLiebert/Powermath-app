@@ -1,0 +1,12 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/BootstrapUI.uss?fileID=7433441132597879392&amp;guid=b1c37bb5143a2b449a126fe9eb28f005&amp;type=3#BootstrapUI" />
+    <ui:VisualElement name="safe-area" class="bootstrap-root">
+        <ui:VisualElement name="bootstrap-card" class="bootstrap-card">
+            <ui:Label text="PowerMath" name="bootstrap-title" class="bootstrap-title" />
+            <ui:Label text="Connecting to your account..." name="bootstrap-status" class="bootstrap-status" />
+            <ui:ProgressBar value="10" title="Loading" name="bootstrap-progress" class="bootstrap-progress" />
+            <ui:Label text="" name="bootstrap-detail" class="bootstrap-detail" />
+            <ui:Button text="Try Again" name="retry-button" class="retry-button" style="display: none;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,14 @@
+{
+  "name": "PowerMath.Gameplay.Academic.Core",
+  "rootNamespace": "PowerMath.Gameplay.Academic",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

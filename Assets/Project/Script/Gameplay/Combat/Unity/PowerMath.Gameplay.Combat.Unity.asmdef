@@ -1,0 +1,18 @@
+{
+  "name": "PowerMath.Gameplay.Combat.Unity",
+  "rootNamespace": "PowerMath.Gameplay.Combat.Unity",
+  "references": [
+    "PowerMath.Gameplay.Combat.Core",
+    "PowerMath.Gameplay.Academic.Core",
+    "PowerMath.Gameplay.Academic.Unity"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -500,6 +500,7 @@ GameObject:
   m_Component:
   - component: {fileID: 217135578}
   - component: {fileID: 217135579}
+  - component: {fileID: 217135580}
   m_Layer: 5
   m_Name: SafeArea
   m_TagString: Untagged
@@ -539,6 +540,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb5ce74a5a710714c80fd89aab50cc0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SafeAreaFitter
+--- !u!114 &217135580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217135577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 0}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 0}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
 --- !u!1 &230512170
 GameObject:
   m_ObjectHideFlags: 0
@@ -824,6 +848,9 @@ GameObject:
   - component: {fileID: 336529137}
   - component: {fileID: 336529136}
   - component: {fileID: 336529138}
+  - component: {fileID: 336529141}
+  - component: {fileID: 336529140}
+  - component: {fileID: 336529139}
   m_Layer: 0
   m_Name: UIDocument
   m_TagString: Untagged
@@ -881,6 +908,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb5ce74a5a710714c80fd89aab50cc0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SafeAreaController
+--- !u!114 &336529139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336529135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32fc9b801e179084ebd8ee53889d26eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.Authentication.AuthenticationPresenter
+  apiSettings: {fileID: 11400000, guid: b57952f14bb65b84398dd63712eda99f, type: 2}
+--- !u!114 &336529140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336529135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ccf15d1a0a067a4896892212342fe87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.Bootstrap.SceneFlowController
+--- !u!114 &336529141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336529135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 743f0c53af0329a4ab8f3e611412ff2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.Authentication.AuthenticationView
 --- !u!1 &399843231
 GameObject:
   m_ObjectHideFlags: 0
