@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e844c7cf79a3d9e49b89cf8d682f1859, type: 3}
+  m_Name: StageMapDefinition
+  m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.StageMapDefinition
+  catalogVersion: stage-map-v1
+  normalHpBaseline: 30
+  worldLevelGrowthBasisPoints: 1200
+  hpVariationBasisPoints: 500
+  biomes:
+  - {fileID: 11400000, guid: 0f03b5c6c46564a42bbb2548ebceab64, type: 2}
+  - {fileID: 11400000, guid: b0000000000000000000000000000002, type: 2}
+  - {fileID: 11400000, guid: b0000000000000000000000000000003, type: 2}
+  - {fileID: 11400000, guid: b0000000000000000000000000000004, type: 2}
+  - {fileID: 11400000, guid: b0000000000000000000000000000005, type: 2}
+  - {fileID: 11400000, guid: b0000000000000000000000000000006, type: 2}
+  - {fileID: 11400000, guid: b0000000000000000000000000000007, type: 2}
+  fixedEvents:
+  - stage: 7
+    eventDefinition: {fileID: 11400000, guid: 3c863e18786e25e4dbe8372ce29848a1, type: 2}

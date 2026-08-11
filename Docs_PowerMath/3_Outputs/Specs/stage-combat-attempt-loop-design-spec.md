@@ -281,3 +281,13 @@ Approve or request changes to:
 4. The feedback hierarchy and starting-value playtest plan.
 
 Architecture work may proceed. Implementation still requires the separate architecture checkpoint.
+
+## Response Damage Addendum
+
+Approved by the project owner on 2026-08-12 (`LGTM process`).
+
+- A correct answer's Response Score contributes `20%` final damage per point: score 1 is 20%, score 5 is 100%, and score 10 is 200%.
+- The response multiplier is applied after Effective ATK, Rank, Buff, and Critical contributions have been composed, with one final midpoint-away-from-zero rounding operation.
+- Correct-result feedback shows both the score and applied damage percentage before the damage number.
+- Incorrect and timeout outcomes continue to deal exactly zero damage.
+- Combat `ResponseDamageMultiplier` remains separate from the existing student-visible educational `Response Efficiency` percentage.

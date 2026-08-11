@@ -120,18 +120,21 @@ flowchart TD
 
 ### Simulation Score-to-Damage Policy
 
- nThe approved fallback generates a seeded integer response score from 1 through 10 after any 1non-empty, non-timeout submission. For this development scaffold only:
-
+The fallback and Firebase-backed attempt flow both produce a Response Score from 1 through 10 for a correct answer. Response Score is never substituted for Base ATK. `DamageCalculator` receives the immutable combat-stat snapshot and applies:
 
 ```text
-SimulationBaseATK = ResponseScore
-EffectiveATK = SimulationBaseATK
-RankMultiplier = 1
-BuffMultiplier = 1
-CriticalMultiplier = configured local critical result
-```,.
+ResponseDamageMultiplier = ResponseScore × 0.20
 
-`DamageCalculator` then applies the GDD formula. This produces visible score-to-damage variation without reading or mutating Rank. Production authority must use real player combat stats and must not treat response score as Base ATK.
+FinalDamage = round(
+    EffectiveATK
+    × RankMultiplier
+    × BuffMultiplier
+    × CriticalMultiplier
+    × ResponseDamageMultiplier
+)
+```
+
+Incorrect and timeout outcomes bypass the correct-answer calculator and deal exactly zero damage. `DamageResult` and `CombatResolution` expose the applied response multiplier so presentation and diagnostics do not recalculate it.
 
 > [!NOTE]
 > Damage midpoint rounding is explicit: `MidpointRounding.AwayFromZero`. The same policy must be adopted by a future backend contract to prevent client/server display drift.
@@ -151,8 +154,8 @@ CriticalMultiplier = configured local critical result
 | `AnswerWindow` | Value object | Preparation deadline, answer deadline, monotonic-time score calculation, one terminal resolution. |
 | `CombatSnapshot` | Immutable projection | Stage, enemy, player, attempt phase, runtime mode, and presentation status. |
 | `AttemptCommit` | Immutable result | Attempt ID, locked question presentation, and post-commit cooldown snapshot. |
-| `AttemptResolution` | Immutable result | Outcome, response score, damage/critical, before/after HP, cooldown, counterattack, defeat, Stage change, next enemy. |
-| `DamageInput` / `DamageResult` | Immutable values | Explicit ATK, multipliers, critical state, raw and rounded damage. |
+| `AttemptResolution` | Immutable result | Outcome, response score/multiplier, damage/critical, before/after HP, cooldown, counterattack, defeat, Stage change, next enemy. |
+| `DamageInput` / `DamageResult` | Immutable values | Explicit ATK, Rank/Buff/Critical/Response multipliers, critical state, raw and rounded damage. |
 | `CombatFailure` | Value object | Typed failure kind, safe player message key, retryability, and whether cooldown restoration is required. |
 
 ### Domain Services
@@ -160,7 +163,7 @@ CriticalMultiplier = configured local critical result
 | Service | Responsibility |
 |---|---|
 | `StageProgressionCalculator` | World Level and starting enemy HP formula, including injected deterministic ±5% roll. |
-| `DamageCalculator` | GDD damage formula, clamps, explicit rounding, and critical multiplier application. |
+| `DamageCalculator` | GDD damage formula, clamps, explicit rounding, and Critical/Response multiplier application. |
 | `LocalCombatEngine` | Applies commit, submit/timeout, damage-before-retaliation, cooldown reset, death, Stage advance, and Stage 200 lock rules. |
 | `SeededResponseScoreGenerator` | Generates reproducible simulation scores; never used by remote production authority. |
 | `SeededRandomSource` | Reproducible enemy HP, score, and critical rolls for QA scenarios. |

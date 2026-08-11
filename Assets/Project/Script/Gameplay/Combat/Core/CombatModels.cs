@@ -10,7 +10,8 @@ namespace PowerMath.Gameplay.Combat
         PresentingResult,
         RunDefeat,
         RunComplete,
-        Unavailable
+        Unavailable,
+        EventReady
     }
 
     public sealed class CombatSnapshot
@@ -27,6 +28,30 @@ namespace PowerMath.Gameplay.Combat
             int playerMaximumHearts,
             CombatPhase phase,
             bool isSimulation)
+            : this(stage, enemyId, enemyName, enemyCurrentHp, enemyMaximumHp,
+                enemyRemainingCooldown, enemyMaximumCooldown, playerCurrentHearts,
+                playerMaximumHearts, phase, isSimulation, string.Empty, string.Empty,
+                StageEncounterKind.NormalMonster, string.Empty, 0)
+        {
+        }
+
+        public CombatSnapshot(
+            StageId stage,
+            string enemyId,
+            string enemyName,
+            int enemyCurrentHp,
+            int enemyMaximumHp,
+            int enemyRemainingCooldown,
+            int enemyMaximumCooldown,
+            int playerCurrentHearts,
+            int playerMaximumHearts,
+            CombatPhase phase,
+            bool isSimulation,
+            string biomeId,
+            string biomeTitle,
+            StageEncounterKind encounterKind,
+            string questionDocumentId,
+            int eventAttemptOrdinal)
         {
             Stage = stage;
             EnemyId = enemyId;
@@ -39,6 +64,11 @@ namespace PowerMath.Gameplay.Combat
             PlayerMaximumHearts = playerMaximumHearts;
             Phase = phase;
             IsSimulation = isSimulation;
+            BiomeId = biomeId ?? string.Empty;
+            BiomeTitle = biomeTitle ?? string.Empty;
+            EncounterKind = encounterKind;
+            QuestionDocumentId = questionDocumentId ?? string.Empty;
+            EventAttemptOrdinal = eventAttemptOrdinal;
         }
 
         public StageId Stage { get; }
@@ -52,6 +82,12 @@ namespace PowerMath.Gameplay.Combat
         public int PlayerMaximumHearts { get; }
         public CombatPhase Phase { get; }
         public bool IsSimulation { get; }
+        public string BiomeId { get; }
+        public string BiomeTitle { get; }
+        public StageEncounterKind EncounterKind { get; }
+        public string QuestionDocumentId { get; }
+        public int EventAttemptOrdinal { get; }
+        public bool IsEvent => EncounterKind == StageEncounterKind.ChallengeEvent;
     }
 
     public sealed class CombatResolution
@@ -70,8 +106,32 @@ namespace PowerMath.Gameplay.Combat
             StageId resolvedStage,
             bool stageAdvanced,
             CombatSnapshot snapshot)
+            : this(responseScore, finalDamage, isCorrect, isCritical, timedOut,
+                enemyHpBefore, enemyHpAfter, enemyDefeated, enemyAttacked,
+                playerDefeated, resolvedStage, stageAdvanced, snapshot, false)
+        {
+        }
+
+        public CombatResolution(
+            int responseScore,
+            int finalDamage,
+            bool isCorrect,
+            bool isCritical,
+            bool timedOut,
+            int enemyHpBefore,
+            int enemyHpAfter,
+            bool enemyDefeated,
+            bool enemyAttacked,
+            bool playerDefeated,
+            StageId resolvedStage,
+            bool stageAdvanced,
+            CombatSnapshot snapshot,
+            bool biomeChanged)
         {
             ResponseScore = responseScore;
+            ResponseDamageMultiplier = isCorrect
+                ? ResponseDamagePolicy.GetMultiplier(responseScore)
+                : 0d;
             FinalDamage = finalDamage;
             IsCorrect = isCorrect;
             IsCritical = isCritical;
@@ -84,9 +144,14 @@ namespace PowerMath.Gameplay.Combat
             ResolvedStage = resolvedStage;
             StageAdvanced = stageAdvanced;
             Snapshot = snapshot;
+            BiomeChanged = biomeChanged;
         }
 
         public int ResponseScore { get; }
+        public double ResponseDamageMultiplier { get; }
+        public int ResponseDamagePercent => IsCorrect
+            ? ResponseDamagePolicy.GetPercent(ResponseScore)
+            : 0;
         public int FinalDamage { get; }
         public bool IsCorrect { get; }
         public bool IsCritical { get; }
@@ -99,5 +164,6 @@ namespace PowerMath.Gameplay.Combat
         public StageId ResolvedStage { get; }
         public bool StageAdvanced { get; }
         public CombatSnapshot Snapshot { get; }
+        public bool BiomeChanged { get; }
     }
 }

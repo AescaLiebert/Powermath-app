@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -31,6 +33,16 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _damageLabel;
         private readonly Label _criticalLabel;
         private readonly Label _simulationBadge;
+        private readonly Label _biomeLabel;
+        private readonly Button _mapButton;
+        private readonly VisualElement _mapModal;
+        private readonly VisualElement _mapRoute;
+        private readonly Button _mapClose;
+        private readonly VisualElement _biomeTransition;
+        private readonly Label _biomeTransitionTitle;
+        private readonly Dictionary<string, Label> _mapNodes = new Dictionary<string, Label>();
+        private Func<string, Texture2D> _backgroundResolver;
+        private Func<string, Texture2D> _encounterTextureResolver;
         private bool _bound;
 
         public CombatLobbyView(VisualElement root)
@@ -58,6 +70,13 @@ namespace PowerMath.Gameplay.Combat.Unity
             _damageLabel = Require<Label>("combat-damage-label");
             _criticalLabel = Require<Label>("combat-critical-label");
             _simulationBadge = Require<Label>("combat-simulation-badge");
+            _biomeLabel = Require<Label>("combat-biome-label");
+            _mapButton = Require<Button>("combat-map-button");
+            _mapModal = Require<VisualElement>("combat-map-modal");
+            _mapRoute = Require<VisualElement>("combat-map-route");
+            _mapClose = Require<Button>("combat-map-close");
+            _biomeTransition = Require<VisualElement>("combat-biome-transition");
+            _biomeTransitionTitle = Require<Label>("combat-biome-transition-title");
 
             _digitButtons = new Button[10];
             _digitHandlers = new Action[10];
@@ -88,6 +107,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             _submitButton.clicked += OnSubmit;
             _backspaceButton.clicked += OnBackspace;
             _clearButton.clicked += OnClear;
+            _mapButton.clicked += ShowMap;
+            _mapClose.clicked += HideMap;
             for (int digit = 0; digit <= 9; digit++)
             {
                 _digitButtons[digit].clicked += _digitHandlers[digit];
@@ -103,14 +124,21 @@ namespace PowerMath.Gameplay.Combat.Unity
             _stageLabel.text = $"STAGE {snapshot.Stage.Value} / {StageId.Final}";
             _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
             _enemyName.text = snapshot.EnemyName;
+            _biomeLabel.text = snapshot.BiomeTitle.ToUpperInvariant();
+            ApplyEncounterVisuals(snapshot);
+            foreach (KeyValuePair<string, Label> pair in _mapNodes)
+                pair.Value.EnableInClassList("combat-map-node--current",
+                    string.Equals(pair.Key, snapshot.BiomeId, StringComparison.Ordinal));
             EnemyMaximumHp = snapshot.EnemyMaximumHp;
             SetEnemyHp(snapshot.EnemyCurrentHp);
             _cooldownLabel.text = snapshot.EnemyRemainingCooldown <= 1
                 ? $"⚠ ATTACK IN {snapshot.EnemyRemainingCooldown}"
                 : $"Enemy attack: {snapshot.EnemyRemainingCooldown} / {snapshot.EnemyMaximumCooldown}";
+            if (snapshot.IsEvent)
+                _cooldownLabel.text = "CHALLENGE: WRONG ANSWER COSTS 1 HEART";
             _cooldownLabel.EnableInClassList(
                 "combat-cooldown--danger",
-                snapshot.EnemyRemainingCooldown <= 1
+                !snapshot.IsEvent && snapshot.EnemyRemainingCooldown <= 1
             );
             _heartsLabel.text = BuildHearts(
                 snapshot.PlayerCurrentHearts,
@@ -119,7 +147,40 @@ namespace PowerMath.Gameplay.Combat.Unity
             _simulationBadge.style.display = snapshot.IsSimulation
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
-            _attackButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady);
+            _attackButton.text = snapshot.IsEvent ? "START CHALLENGE" : "ATTACK";
+            _attackButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
+                snapshot.Phase == CombatPhase.EventReady);
+            _mapButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
+                snapshot.Phase == CombatPhase.EventReady);
+        }
+
+        public void ConfigureStageMap(StageMapData map,
+            Func<string, Texture2D> backgroundResolver,
+            Func<string, Texture2D> encounterTextureResolver)
+        {
+            if (map == null) throw new ArgumentNullException(nameof(map));
+            _backgroundResolver = backgroundResolver;
+            _encounterTextureResolver = encounterTextureResolver;
+            _mapRoute.Clear();
+            _mapNodes.Clear();
+            for (int index = 0; index < map.Biomes.Count; index++)
+            {
+                BiomeData biome = map.Biomes[index];
+                var node = new Label($"{index + 1}. {biome.Title}     STAGES {biome.FirstStage}-{biome.LastStage}");
+                node.AddToClassList("combat-map-node");
+                _mapRoute.Add(node);
+                _mapNodes.Add(biome.Id, node);
+            }
+        }
+
+        public IEnumerator PlayBiomeTransition(CombatSnapshot destination)
+        {
+            _biomeTransitionTitle.text = destination.BiomeTitle.ToUpperInvariant();
+            _biomeTransition.style.display = DisplayStyle.Flex;
+            yield return new WaitForSecondsRealtime(0.55f);
+            ApplyEncounterVisuals(destination);
+            yield return new WaitForSecondsRealtime(0.85f);
+            _biomeTransition.style.display = DisplayStyle.None;
         }
 
         public void SetEnemyTexture(Texture2D texture)
@@ -242,6 +303,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             _submitButton.clicked -= OnSubmit;
             _backspaceButton.clicked -= OnBackspace;
             _clearButton.clicked -= OnClear;
+            _mapButton.clicked -= ShowMap;
+            _mapClose.clicked -= HideMap;
             for (int digit = 0; digit <= 9; digit++)
             {
                 _digitButtons[digit].clicked -= _digitHandlers[digit];
@@ -267,6 +330,18 @@ namespace PowerMath.Gameplay.Combat.Unity
         private void OnAttack()
         {
             AttackRequested?.Invoke();
+        }
+
+        private void ShowMap() => _mapModal.style.display = DisplayStyle.Flex;
+        private void HideMap() => _mapModal.style.display = DisplayStyle.None;
+
+        private void ApplyEncounterVisuals(CombatSnapshot snapshot)
+        {
+            Texture2D background = _backgroundResolver?.Invoke(snapshot.BiomeId);
+            if (background != null)
+                _combatLayer.style.backgroundImage = new StyleBackground(background);
+            Texture2D encounter = _encounterTextureResolver?.Invoke(snapshot.EnemyId);
+            if (encounter != null) _enemyImage.image = encounter;
         }
 
         private void OnSubmit()

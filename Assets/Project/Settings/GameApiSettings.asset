@@ -16,6 +16,7 @@ MonoBehaviour:
   databaseId: (default)
   apiKey: AIzaSyBVQek0x3j7rZbIIQKAWFk83-qjdtmxXMU
   competitionCollection: competition-2
+  leaderboardPublicCollection: leaderboard-public
   levelDocumentIds:
   - level-1
   - level-2

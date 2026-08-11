@@ -282,6 +282,8 @@ namespace PowerMath.Session
             TryGetMapFromFields(gameData, "wallet", out JsonValue wallet);
             TryGetMapFromFields(gameData, "loadout", out JsonValue loadout);
             TryGetMapFromFields(gameData, "activeRun", out JsonValue activeRun);
+            TryGetMapFromFields(gameData, "economy", out JsonValue economy);
+            TryGetMapFromFields(gameData, "lastRunSettlement", out JsonValue lastRunSettlement);
 
             string displayName = ReadString(profile, "displayName", username);
             string iconId = ReadString(profile, "iconId", "avatar-default");
@@ -293,7 +295,9 @@ namespace PowerMath.Session
                 {
                     displayName = displayName,
                     gradeBand = gradeBand,
-                    iconId = iconId
+                    iconId = iconId,
+                    publicPlayerId = ReadString(profile, "publicPlayerId"),
+                    displayNameChangedAtUnixSeconds = ReadLong(profile, "displayNameChangedAtUnixSeconds")
                 },
                 progression = new PlayerSnapshot.ProgressionData
                 {
@@ -302,7 +306,10 @@ namespace PowerMath.Session
                     activeRank = ReadString(progression, "activeRank", "Silver"),
                     rankProgress = ReadInt(progression, "rankProgress"),
                     prestige = ReadInt(progression, "prestige"),
-                    firstStage200Reached = ReadBool(progression, "firstStage200Reached")
+                    firstStage200Reached = ReadBool(progression, "firstStage200Reached"),
+                    firstStage200ReachedAtUnixSeconds = ReadLong(progression, "firstStage200ReachedAtUnixSeconds"),
+                    totalDamage = ReadLong(progression, "totalDamage"),
+                    legacyAtkBonusBasisPoints = ReadLong(progression, "legacyAtkBonusBasisPoints")
                 },
                 wallet = new PlayerSnapshot.WalletData
                 {
@@ -323,6 +330,14 @@ namespace PowerMath.Session
                     runId = ReadString(activeRun, "runId"),
                     currentStage = ReadInt(activeRun, "currentStage"),
                     committedAttemptId = ReadString(activeRun, "committedAttemptId"),
+                    biomeId = ReadString(activeRun, "biomeId"),
+                    biomeTitle = ReadString(activeRun, "biomeTitle"),
+                    encounterKind = ReadString(activeRun, "encounterKind", "NormalMonster"),
+                    encounterId = ReadString(activeRun, "encounterId"),
+                    questionContentKind = ReadString(activeRun, "questionContentKind"),
+                    questionDocumentId = ReadString(activeRun, "questionDocumentId"),
+                    questionId = ReadLong(activeRun, "questionId"),
+                    eventAttemptOrdinal = ReadInt(activeRun, "eventAttemptOrdinal"),
                     enemyId = ReadString(activeRun, "enemyId"),
                     enemyCurrentHp = ReadInt(activeRun, "enemyCurrentHp"),
                     enemyMaximumHp = ReadInt(activeRun, "enemyMaximumHp"),
@@ -330,9 +345,30 @@ namespace PowerMath.Session
                     enemyMaximumCooldown = ReadInt(activeRun, "enemyMaximumCooldown"),
                     playerCurrentHearts = ReadInt(activeRun, "playerCurrentHearts"),
                     playerMaximumHearts = ReadInt(activeRun, "playerMaximumHearts"),
-                    phase = ReadString(activeRun, "phase", "EnemyReady")
+                    phase = ReadString(activeRun, "phase", "EnemyReady"),
+                    silverEarned = ReadLong(activeRun, "silverEarned"),
+                    goldEarned = ReadLong(activeRun, "goldEarned"),
+                    diamondEarned = ReadLong(activeRun, "diamondEarned"),
+                    bonusMultiplierBasisPoints = Math.Max(10000, ReadInt(activeRun, "bonusMultiplierBasisPoints"))
                 },
-                academic = MapAcademic(gameData)
+                academic = MapAcademic(gameData),
+                analytics = MapAnalytics(gameData),
+                economy = new PlayerSnapshot.EconomyData
+                {
+                    lastWeaponAscendTransactionId = ReadString(economy, "lastWeaponAscendTransactionId"),
+                    lastWeaponAscendLevel = ReadInt(economy, "lastWeaponAscendLevel"),
+                    lastWeaponAscendCost = ReadLong(economy, "lastWeaponAscendCost")
+                },
+                lastRunSettlement = new PlayerSnapshot.RunSettlementData
+                {
+                    runId = ReadString(lastRunSettlement, "runId"),
+                    type = ReadString(lastRunSettlement, "type"),
+                    stageReached = ReadInt(lastRunSettlement, "stageReached"),
+                    powerCoinsGranted = ReadLong(lastRunSettlement, "powerCoinsGranted"),
+                    legacyAtkBasisPointsGranted = ReadLong(lastRunSettlement, "legacyAtkBasisPointsGranted"),
+                    prestigeGranted = ReadInt(lastRunSettlement, "prestigeGranted"),
+                    resultingPowerCoins = ReadLong(lastRunSettlement, "resultingPowerCoins")
+                }
             };
             return true;
         }
@@ -348,6 +384,73 @@ namespace PowerMath.Session
                 silver = MapRankInventory(inventories, "silver"),
                 gold = MapRankInventory(inventories, "gold"),
                 diamond = MapRankInventory(inventories, "diamond")
+            };
+        }
+
+        private static PlayerSnapshot.AnalyticsData MapAnalytics(JsonValue gameData)
+        {
+            TryGetMapFromFields(gameData, "analytics", out JsonValue analytics);
+            TryGetMapFromFields(analytics, "byRank", out JsonValue byRank);
+            TryGetMapFromFields(analytics, "byQuestion", out JsonValue byQuestion);
+            return new PlayerSnapshot.AnalyticsData
+            {
+                totalQuestionsResolved = ReadLong(analytics, "totalQuestionsResolved"),
+                totalCorrect = ReadLong(analytics, "totalCorrect"),
+                totalIncorrect = ReadLong(analytics, "totalIncorrect"),
+                totalTimeout = ReadLong(analytics, "totalTimeout"),
+                totalAbandoned = ReadLong(analytics, "totalAbandoned"),
+                responseScoreSum = ReadLong(analytics, "responseScoreSum"),
+                responseEfficiencySum = ReadLong(analytics, "responseEfficiencySum"),
+                responseDurationMillisecondsSum = ReadLong(analytics, "responseDurationMillisecondsSum"),
+                responseScoreHistogram = ReadIntegerArray(analytics, "responseScoreHistogram"),
+                responseEfficiencyHistogram = ReadIntegerArray(analytics, "responseEfficiencyHistogram"),
+                responseDuration100msHistogram = ReadIntegerArray(analytics, "responseDuration100msHistogram"),
+                totalPlaySeconds = ReadLong(analytics, "totalPlaySeconds"),
+                lastAppliedAttemptId = ReadString(analytics, "lastAppliedAttemptId"),
+                silver = MapRankAnalytics(byRank, "silver"),
+                gold = MapRankAnalytics(byRank, "gold"),
+                diamond = MapRankAnalytics(byRank, "diamond"),
+                byQuestion = MapQuestionAnalytics(byQuestion)
+            };
+        }
+
+        private static PlayerSnapshot.QuestionAnalyticsData[] MapQuestionAnalytics(JsonValue values)
+        {
+            var result = new List<PlayerSnapshot.QuestionAnalyticsData>();
+            if (values?.Object == null) return result.ToArray();
+            foreach (KeyValuePair<string, JsonValue> pair in values.Object)
+            {
+                if (!FirestoreJsonNavigator.TryGetMapFields(pair.Value, out JsonValue fields)) continue;
+                long questionId = ReadLong(fields, "questionId");
+                if (questionId <= 0) continue;
+                result.Add(new PlayerSnapshot.QuestionAnalyticsData
+                {
+                    questionId = questionId,
+                    resolved = ReadLong(fields, "resolved"),
+                    correct = ReadLong(fields, "correct"),
+                    incorrect = ReadLong(fields, "incorrect"),
+                    timeout = ReadLong(fields, "timeout"),
+                    abandoned = ReadLong(fields, "abandoned"),
+                    responseScoreSum = ReadLong(fields, "responseScoreSum"),
+                    responseDurationMillisecondsSum = ReadLong(fields, "responseDurationMillisecondsSum"),
+                    responseEfficiencySum = ReadLong(fields, "responseEfficiencySum")
+                });
+            }
+            result.Sort((left, right) => left.questionId.CompareTo(right.questionId));
+            return result.ToArray();
+        }
+
+        private static PlayerSnapshot.RankAnalyticsData MapRankAnalytics(
+            JsonValue byRank,
+            string rank)
+        {
+            TryGetMapFromFields(byRank, rank, out JsonValue fields);
+            return new PlayerSnapshot.RankAnalyticsData
+            {
+                resolved = ReadLong(fields, "resolved"),
+                correct = ReadLong(fields, "correct"),
+                responseScoreSum = ReadLong(fields, "responseScoreSum"),
+                responseEfficiencySum = ReadLong(fields, "responseEfficiencySum")
             };
         }
 

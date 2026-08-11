@@ -1,16 +1,13 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Project/UI/CombatLobbyUI.uss?fileID=7433441132597879392&amp;guid=3ea5ee48f6afce54b8ee62c9ae496672&amp;type=3#CombatLobbyUI"/>
-    <ui:VisualElement name="safe-area" style="flex-grow: 1; position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
-        <ui:VisualElement name="content" style="flex-grow: 1; width: 100%; height: 100%; min-height: auto; align-items: flex-start; align-self: flex-start; flex-direction: column;">
+    <ui:VisualElement name="safe-area" enabled="true" style="flex-grow: 1; position: absolute; top: 0; left: 0; bottom: 0; right: 0; display: flex;">
+        <ui:VisualElement name="content" enabled="true" style="flex-grow: 1; width: 100%; height: 100%; min-height: auto; align-items: flex-start; align-self: flex-start; flex-direction: column; display: flex;">
             <ui:VisualElement name="user-panel" style="flex-grow: 1; background-size: 100% 100%; width: 100%; height: 40%; align-items: center; align-self: flex-end; align-content: flex-start; min-height: auto; position: relative; background-color: rgba(255, 255, 255, 0); justify-content: flex-start; flex-direction: column; top: auto; left: auto; bottom: auto;">
                 <ui:VisualElement name="header-panel" style="flex-grow: 1; background-size: 100% 100%; width: 100%; height: 20%; align-items: center; align-self: center; align-content: flex-start; min-height: 0%; position: absolute; background-color: rgba(0, 0, 0, 0); justify-content: center; flex-direction: column;">
-                    <ui:VisualElement name="stage-panel" style="flex-grow: 1; position: absolute; width: 30%; height: auto; justify-content: center; align-self: center; top: auto; left: auto;">
-                        <ui:Label text="Stage --" enable-rich-text="false" name="current-stage-label" style="-unity-font-style: bold; font-size: 50px; -unity-text-align: upper-center; margin-top: 25px; margin-bottom: 25px;"/>
-                        <ui:ProgressBar value="0" title="Progress" name="stage-progress" style="-unity-font-style: bold; font-size: 24px; -unity-text-align: upper-center; height: auto;"/>
-                        <ui:Label text="Power Coins: --" name="wallet-summary" style="font-size: 22px; -unity-font-style: bold; -unity-text-align: middle-center;"/>
-                    </ui:VisualElement>
                     <ui:Button text="" name="setting" enable-rich-text="true" style="position: absolute; top: 25px; left: auto; right: 37px; font-size: 50px; -unity-font-style: bold; width: 5%; height: auto;"/>
-                    <ui:Button text="" name="leaderboard" style="position: absolute; top: 25px; left: auto; right: 193px; font-size: 50px; -unity-font-style: bold; width: 5%; height: auto;"/>
+                    <ui:Button text="RANK" name="leaderboard" style="position: absolute; top: 25px; left: auto; right: 193px; font-size: 17px; -unity-font-style: bold; width: 100px; height: 52px; color: rgb(255, 255, 255); background-color: rgb(68, 114, 184);"/>
+                    <ui:Button text="REBIRTH" name="rebirth-button" style="position: absolute; top: 92px; right: 193px; width: 120px; height: 45px; -unity-font-style: bold; background-color: rgb(126, 82, 180); color: white;"/>
+                    <ui:Button text="PLAYER HUB" name="player-hub-button" style="position: absolute; top: 92px; right: 325px; width: 145px; height: 45px; -unity-font-style: bold; background-color: rgb(214, 135, 42); color: white;"/>
                     <ui:Button text="Log Out" name="logout-button" style="position: absolute; top: 25px; left: auto; right: 330px; min-width: 120px; height: 52px; color: rgb(255, 255, 255); background-color: rgb(91, 102, 136); font-size: 18px; -unity-font-style: bold;"/>
                     <ui:Label text="" name="session-status" style="position: absolute; top: 85px; right: 330px; width: 260px; color: rgb(255, 180, 180); font-size: 14px; white-space: normal; -unity-text-align: middle-right;"/>
                     <ui:Label name="combat-stage-label" text="STAGE 1 / 200" class="combat-stage-label"/>
@@ -19,6 +16,9 @@
                     <ui:Image name="nametag" style="width: 70%; height: 80%; position: absolute; background-color: rgb(180, 180, 180); left: 200px; top: 20px; bottom: 125px; right: 0; padding-top: 15px; padding-right: 15px; padding-bottom: 15px; padding-left: 15px; align-self: flex-start;">
                         <ui:Label text="Loading player..." name="player-display-name" style="font-size: 30px; position: absolute; left: 60px; -unity-font-style: bold; flex-wrap: wrap; width: 80%; white-space: normal; padding-left: 6px;"/>
                         <ui:Label text="" name="loadout-summary" style="font-size: 18px; position: absolute; left: 60px; top: 60px; width: 80%; white-space: normal;"/>
+                        <ui:Label text="Stage 1" name="current-stage-label" style="font-size: 17px; position: absolute; left: 60px; top: 92px; width: 80%; -unity-font-style: bold;"/>
+                        <ui:ProgressBar name="stage-progress" value="0" high-value="100" style="position: absolute; left: 60px; top: 119px; width: 72%; height: 20px;"/>
+                        <ui:Label text="" name="wallet-summary" style="font-size: 15px; position: absolute; left: 60px; top: 145px; width: 80%; white-space: normal;"/>
                     </ui:Image>
                     <ui:Image name="frame" style="width: 40%; height: 80%; background-color: rgb(192, 192, 192); align-self: flex-start; position: relative; top: 20px; left: 20px; min-width: 0%; min-height: auto; bottom: 30px; right: 347px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;">
                         <ui:Image name="pic-icon" style="width: 100%; height: 170px; background-color: rgb(255, 255, 255); align-self: flex-start; position: relative; top: auto; left: auto; min-width: auto; min-height: auto; bottom: auto; right: auto; background-image: url(&quot;project://database/Assets/Project/Material/images.jpg?fileID=2800000&amp;guid=1ef0bed95299d864a8b7b81120750fa2&amp;type=3#images&quot;); background-repeat: no-repeat no-repeat; -unity-background-scale-mode: scale-and-crop;"/>
@@ -31,9 +31,13 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="combat-layer" enabled="true" class="combat-layer">
+        <ui:VisualElement name="combat-layer" enabled="true" class="combat-layer" style="display: none;">
             <ui:VisualElement class="combat-hud">
                 <ui:ProgressBar name="combat-stage-progress" value="0.5" class="combat-stage-progress"/>
+                <ui:VisualElement class="combat-biome-row">
+                    <ui:Label name="combat-biome-label" text="BIOME 1" class="combat-biome-label"/>
+                    <ui:Button name="combat-map-button" text="WORLD MAP" class="combat-map-button"/>
+                </ui:VisualElement>
                 <ui:VisualElement class="academic-rank-hud">
                     <ui:Label name="academic-rank-label" text="RANK SILVER" class="academic-rank-label"/>
                     <ui:Label name="academic-rank-multiplier" text="Damage ×1.0" class="academic-rank-detail"/>
@@ -86,6 +90,124 @@
                     <ui:Label name="academic-rank-modal-multiplier" text="New damage multiplier: ×1.5" class="academic-rank-modal-multiplier"/>
                     <ui:Button name="academic-rank-continue-button" text="CONTINUE" class="academic-rank-continue-button"/>
                 </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="combat-biome-transition" class="combat-biome-transition">
+                <ui:Label name="combat-biome-transition-kicker" text="ENTERING" class="combat-biome-transition-kicker"/>
+                <ui:Label name="combat-biome-transition-title" text="BIOME" class="combat-biome-transition-title"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="combat-map-modal" class="combat-map-modal">
+                <ui:VisualElement class="combat-map-card">
+                    <ui:Label text="WORLD JOURNEY" class="combat-map-title"/>
+                    <ui:Label text="Your marker shows the current biome. The map is informational." class="combat-map-subtitle"/>
+                    <ui:VisualElement name="combat-map-route" class="combat-map-route"/>
+                    <ui:Button name="combat-map-close" text="BACK TO BATTLE" class="combat-map-close"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="run-settlement-modal" enabled="true" class="social-modal" style="display: flex;">
+            <ui:VisualElement class="social-modal-card settlement-card">
+                <ui:Label name="run-settlement-title" text="REBIRTH PREVIEW" class="social-title settlement-title"/>
+                <ui:Label name="run-settlement-stage" text="STAGE 50" class="settlement-stage"/>
+                <ui:VisualElement class="settlement-grid">
+                    <ui:VisualElement class="settlement-value-card">
+                        <ui:Label text="POWER COINS" class="settlement-value-title"/>
+                        <ui:Label name="run-settlement-coins" text="0 -&gt; 0" class="settlement-value"/>
+                        <ui:Label name="run-settlement-coins-gain" text="+0 POWER COINS" class="settlement-gain"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="settlement-value-card">
+                        <ui:Label text="LEGACY ATK" class="settlement-value-title"/>
+                        <ui:Label name="run-settlement-legacy" text="0.0% -&gt; 0.0%" class="settlement-value"/>
+                        <ui:Label name="run-settlement-legacy-gain" text="+0.0% PERMANENT ATK" class="settlement-gain"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label name="run-settlement-attack" text="EFFECTIVE ATK  0 -&gt; 0" class="settlement-result"/>
+                <ui:Label name="run-settlement-prestige" text="PRESTIGE  0 -&gt; 1" class="settlement-result"/>
+                <ui:Label text="RESET: Stage, hearts, temporary buffs, current audit and question queues&#10;KEEP: Rank, inventory, Power Coins and lifetime records" class="settlement-reset-note"/>
+                <ui:Label name="run-settlement-status" text="" class="social-status settlement-status"/>
+                <ui:VisualElement class="settlement-actions">
+                    <ui:Button name="run-settlement-close" text="BACK" class="social-close"/>
+                    <ui:Button name="run-settlement-confirm" text="CONFIRM" class="profile-name-save"/>
+                    <ui:Button name="run-settlement-continue" text="CONTINUE" class="profile-name-save"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="player-hub-modal" enabled="true" class="social-modal" style="display: flex;">
+            <ui:VisualElement class="social-modal-card player-hub-card">
+                <ui:VisualElement class="social-modal-header">
+                    <ui:VisualElement>
+                        <ui:Label text="PLAYER HUB" class="social-title"/>
+                        <ui:Label text="Your permanent combat power" class="social-subtitle"/>
+                    </ui:VisualElement>
+                    <ui:Button name="player-hub-close" text="CLOSE" class="social-close"/>
+                </ui:VisualElement>
+                <ui:ScrollView class="player-hub-scroll">
+                    <ui:VisualElement class="player-stat-card">
+                        <ui:Label text="CURRENT ATTACK" class="player-hub-section-title"/>
+                        <ui:Label name="player-hub-effective-atk" text="10 ATK" class="player-hub-effective-atk"/>
+                        <ui:Label name="player-hub-atk-breakdown" text="BASE 5 + WEAPON 5 = 10" class="player-hub-atk-breakdown"/>
+                        <ui:Label name="player-hub-legacy-bonus" text="+0.0% REBIRTH BONUS (+0 ATK)" class="player-hub-stat-bonus"/>
+                        <ui:Label name="player-hub-pet-status" text="PET ATK: NO STAT CONFIGURED" class="player-hub-pet-status"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="player-weapon-card">
+                        <ui:Label text="WEAPON ASCENSION" class="player-hub-section-title"/>
+                        <ui:Label name="player-hub-weapon-name" text="SWORD  LV.0" class="player-hub-weapon-name"/>
+                        <ui:Label name="player-hub-weapon-current" text="CURRENT   ATK 5   CR +0%   CD +0%" class="player-hub-weapon-stat"/>
+                        <ui:Label name="player-hub-weapon-next" text="NEXT   SWORD LV.1   ATK 6   CR +0%   CD +0%" class="player-hub-weapon-next"/>
+                        <ui:Label name="player-hub-weapon-cost" text="UPGRADE COST: 8 POWER COINS" class="player-hub-cost"/>
+                        <ui:Label name="player-hub-balance" text="YOUR POWER COINS: 0" class="player-hub-balance"/>
+                        <ui:Button name="player-hub-weapon-upgrade" text="UPGRADE FOR 8" class="player-hub-upgrade"/>
+                        <ui:Label name="player-hub-status" text="" class="social-status player-hub-status"/>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="profile-analytics-modal" enabled="true" class="social-modal" style="display: flex;">
+            <ui:VisualElement class="social-modal-card profile-card">
+                <ui:VisualElement class="social-modal-header">
+                    <ui:VisualElement>
+                        <ui:Label text="PROFILE ANALYTICS" class="social-title"/>
+                        <ui:Label text="Your adventure and learning journey" class="social-subtitle"/>
+                    </ui:VisualElement>
+                    <ui:Button name="profile-analytics-close" text="CLOSE" class="social-close"/>
+                </ui:VisualElement>
+                <ui:ScrollView class="profile-scroll">
+                    <ui:Label name="profile-summary" text="Student" class="profile-summary"/>
+                    <ui:VisualElement class="profile-grid">
+                        <ui:Label name="profile-adventure" text="Adventure" class="profile-stat-card profile-stat-card--blue"/>
+                        <ui:Label name="profile-economy" text="Economy" class="profile-stat-card profile-stat-card--gold"/>
+                        <ui:Label name="profile-learning" text="Learning" class="profile-stat-card profile-stat-card--green"/>
+                        <ui:Label name="profile-ranks" text="By Rank" class="profile-stat-card profile-stat-card--purple"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="profile-rename-card">
+                        <ui:Label text="DISPLAY NAME" class="profile-rename-title"/>
+                        <ui:Label text="Visible to your grade peers. You can change it once every 7 days." class="social-subtitle"/>
+                        <ui:VisualElement class="profile-rename-row">
+                            <ui:TextField name="profile-display-name-input" max-length="20" class="profile-name-input"/>
+                            <ui:Button name="profile-display-name-save" text="SAVE NAME" class="profile-name-save"/>
+                        </ui:VisualElement>
+                        <ui:Label name="profile-display-name-status" text="First change is available now." class="social-status"/>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="leaderboard-modal" enabled="true" class="social-modal" style="display: flex;">
+            <ui:VisualElement class="social-modal-card leaderboard-card">
+                <ui:VisualElement class="social-modal-header">
+                    <ui:VisualElement>
+                        <ui:Label text="GRADE LEADERBOARD" class="social-title"/>
+                        <ui:Label name="leaderboard-cohort" text="Your grade" class="social-subtitle"/>
+                    </ui:VisualElement>
+                    <ui:Button name="leaderboard-close" text="CLOSE" class="social-close"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="leaderboard-top">
+                    <ui:Label name="leaderboard-throne" text="No standings yet" class="leaderboard-throne"/>
+                    <ui:VisualElement class="leaderboard-tools">
+                        <ui:Label name="leaderboard-self" text="YOUR STANDING" class="leaderboard-self"/>
+                        <ui:Button name="leaderboard-refresh" text="REFRESH" class="leaderboard-refresh"/>
+                        <ui:Label name="leaderboard-status" text="Open to refresh" class="social-status"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:ScrollView name="leaderboard-list" class="leaderboard-list"/>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

@@ -23,6 +23,7 @@ namespace PowerMath.Session
 
         [Header("Competition Data Layout")]
         [SerializeField] private string competitionCollection = "competition";
+        [SerializeField] private string leaderboardPublicCollection = "leaderboard-public";
         [SerializeField] private string[] levelDocumentIds =
         {
             "level1",
@@ -141,6 +142,20 @@ namespace PowerMath.Session
             return true;
         }
 
+        public bool TryGetQuestionDocumentById(string documentId, out string url)
+        {
+            url = string.Empty;
+            documentId = documentId?.Trim();
+            if (!TryGetQuestionRoot(out string root) ||
+                string.IsNullOrWhiteSpace(questionCollection) ||
+                string.IsNullOrWhiteSpace(documentId))
+                return false;
+            url = AppendApiKey(
+                root + "/" + Encode(questionCollection) + "/" + Encode(documentId),
+                questionApiKey);
+            return true;
+        }
+
         public bool TryGetLevelDocumentById(string expectedDocumentId, out string url)
         {
             url = string.Empty;
@@ -154,6 +169,33 @@ namespace PowerMath.Session
                 }
             }
             return false;
+        }
+
+        public bool TryGetLeaderboardDocument(string levelDocumentId, out string url)
+        {
+            url = string.Empty;
+            string publicCollection = string.IsNullOrWhiteSpace(leaderboardPublicCollection)
+                ? "leaderboard-public"
+                : leaderboardPublicCollection.Trim();
+            if (!TryGetRoot(out string root) ||
+                string.IsNullOrWhiteSpace(levelDocumentId))
+                return false;
+            int cohortIndex = -1;
+            for (int index = 0; index < LevelDocumentCount; index++)
+            {
+                if (TryGetLevelDocument(index, out string candidate, out _, out _) &&
+                    string.Equals(candidate, levelDocumentId, StringComparison.Ordinal))
+                {
+                    cohortIndex = index;
+                    break;
+                }
+            }
+            if (cohortIndex < 0) return false;
+            string publicDocumentId = "level" + (cohortIndex + 1);
+            url = AppendApiKey(
+                root + "/" + Encode(publicCollection) + "/" + Encode(publicDocumentId),
+                apiKey);
+            return true;
         }
 
         private bool TryGetRoot(out string root)

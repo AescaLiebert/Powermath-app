@@ -12,17 +12,20 @@ namespace PowerMath.Gameplay.Academic
         private readonly MonoBehaviour _host;
         private readonly FirestoreAcademicProgressionStore _store;
         private readonly PlayerSnapshot _player;
+        private readonly FirestoreLeaderboardProjectionPublisher _publisher;
         private Coroutine _operation;
         private int _generation;
 
         public FirestoreGameplayPersistence(
             MonoBehaviour host,
             FirestoreAcademicProgressionStore store,
-            PlayerSnapshot player)
+            PlayerSnapshot player,
+            FirestoreLeaderboardProjectionPublisher publisher)
         {
             _host = host != null ? host : throw new ArgumentNullException(nameof(host));
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _player = player ?? throw new ArgumentNullException(nameof(player));
+            _publisher = publisher;
         }
 
         public void Save(
@@ -62,15 +65,26 @@ namespace PowerMath.Gameplay.Academic
                 message => failure = message);
 
             if (generation != _generation) yield break;
-            _operation = null;
             if (!succeeded)
             {
+                _operation = null;
                 failed?.Invoke(failure);
                 yield break;
             }
 
             Apply(request, revision);
             PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
+            if (_publisher != null)
+            {
+                string projectionFailure = string.Empty;
+                yield return _publisher.Publish(
+                    _player,
+                    () => { },
+                    message => projectionFailure = message);
+                if (!string.IsNullOrEmpty(projectionFailure))
+                    Debug.LogWarning(projectionFailure);
+            }
+            _operation = null;
             completed?.Invoke();
         }
 
@@ -81,6 +95,13 @@ namespace PowerMath.Gameplay.Academic
             _player.progression.highestStage = Math.Max(
                 _player.progression.highestStage,
                 request.Snapshot.Combat.Stage.Value);
+            _player.progression.firstStage200ReachedAtUnixSeconds =
+                _store.LastFirstStage200ReachedAtUnixSeconds;
+            _player.progression.firstStage200Reached =
+                _player.progression.firstStage200ReachedAtUnixSeconds > 0;
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved && request.Resolution != null)
+                _player.progression.totalDamage = checked(
+                    _player.progression.totalDamage + Math.Max(0, request.Resolution.Combat.FinalDamage));
             _player.progression.activeRank = request.Academic.ActiveRank.ToString();
             _player.wallet.silver = request.Academic.Balances.Silver;
             _player.wallet.gold = request.Academic.Balances.Gold;
@@ -89,6 +110,11 @@ namespace PowerMath.Gameplay.Academic
             _player.activeRun = _player.activeRun ?? new PlayerSnapshot.ActiveRunData();
             CombatSnapshot combat = request.Snapshot.Combat;
             _player.activeRun.currentStage = combat.Stage.Value;
+            _player.activeRun.biomeId = combat.BiomeId;
+            _player.activeRun.biomeTitle = combat.BiomeTitle;
+            _player.activeRun.encounterKind = combat.EncounterKind.ToString();
+            _player.activeRun.encounterId = combat.EnemyId;
+            _player.activeRun.eventAttemptOrdinal = combat.EventAttemptOrdinal;
             _player.activeRun.enemyId = combat.EnemyId;
             _player.activeRun.enemyCurrentHp = combat.EnemyCurrentHp;
             _player.activeRun.enemyMaximumHp = combat.EnemyMaximumHp;
@@ -100,6 +126,23 @@ namespace PowerMath.Gameplay.Academic
             _player.activeRun.committedAttemptId = request.ActiveQuestion == null
                 ? string.Empty
                 : request.TransactionId;
+            _player.activeRun.questionContentKind = request.ActiveQuestion == null
+                ? string.Empty : request.ActiveQuestion.ContentKind.ToString();
+            _player.activeRun.questionDocumentId = request.ActiveQuestion == null
+                ? string.Empty : request.ActiveQuestion.SourceId;
+            _player.activeRun.questionId = request.ActiveQuestion == null
+                ? 0 : request.ActiveQuestion.Id.Value;
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution != null && request.Resolution.IsAcademic)
+            {
+                long delta = Math.Max(0, request.Resolution.Academic.CurrencyDelta);
+                switch (request.Resolution.Academic.RankAtCommit.Tier)
+                {
+                    case AcademicRankTier.Gold: _player.activeRun.goldEarned = checked(_player.activeRun.goldEarned + delta); break;
+                    case AcademicRankTier.Diamond: _player.activeRun.diamondEarned = checked(_player.activeRun.diamondEarned + delta); break;
+                    default: _player.activeRun.silverEarned = checked(_player.activeRun.silverEarned + delta); break;
+                }
+            }
 
             _player.academic = _player.academic ?? new PlayerSnapshot.AcademicData();
             _player.academic.auditScore = request.Academic.AuditScore;
@@ -107,6 +150,9 @@ namespace PowerMath.Gameplay.Academic
             _player.academic.silver = ToPlayer(request.Academic.Silver);
             _player.academic.gold = ToPlayer(request.Academic.Gold);
             _player.academic.diamond = ToPlayer(request.Academic.Diamond);
+            PlayerAnalyticsUpdater.Apply(_player, request);
+            _player.analytics = _player.analytics ?? new PlayerSnapshot.AnalyticsData();
+            _player.analytics.totalPlaySeconds = _store.LastTotalPlaySeconds;
         }
 
         private static PlayerSnapshot.RankInventoryData ToPlayer(

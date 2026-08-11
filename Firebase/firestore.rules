@@ -14,6 +14,17 @@ service cloud.firestore {
       allow list, create, delete: if false;
     }
 
+    // Sanitized per-grade leaderboard projection. Documents must be pre-created
+    // with an immutable _meta field; one public player entry may change per write.
+    match /leaderboard-public/{levelId} {
+      allow get: if levelId in ['level1', 'level2', 'level3'];
+      allow update: if levelId in ['level1', 'level2', 'level3']
+        && request.resource.data._meta == resource.data._meta
+        && request.resource.data.keys().hasAll(resource.data.keys())
+        && request.resource.data.diff(resource.data).affectedKeys().size() == 1;
+      allow list, create, delete: if false;
+    }
+
     // Shared question catalog documents (question/silver, question/gold, question/diamond)
     match /question/{questionId} {
       allow get: if questionId in ['silver', 'gold', 'diamond'];
@@ -36,4 +47,3 @@ service cloud.firestore {
     }
   }
 }
-

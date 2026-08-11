@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using System.Text;
 using PowerMath.Gameplay.Combat;
+using PowerMath.PlayerData;
 using PowerMath.Session;
 using UnityEngine.Networking;
 
@@ -15,18 +17,32 @@ namespace PowerMath.Gameplay.Academic
         private readonly GameApiSettings _settings;
         private readonly string _levelDocumentId;
         private readonly string _username;
+        private readonly PlayerSnapshot _player;
+        private readonly ProfileActivityTracker _activity;
         private int _highestStage;
+        public long LastFirstStage200ReachedAtUnixSeconds { get; private set; }
 
         public FirestoreAcademicProgressionStore(
             GameApiSettings settings,
             string levelDocumentId,
             string username,
-            int highestStage)
+            PlayerSnapshot player,
+            ProfileActivityTracker activity)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _levelDocumentId = levelDocumentId ?? string.Empty;
             _username = username ?? string.Empty;
-            _highestStage = Math.Max(1, highestStage);
+            _player = player ?? throw new ArgumentNullException(nameof(player));
+            _activity = activity;
+            _highestStage = Math.Max(1, player.progression == null ? 1 : player.progression.highestStage);
+            LastFirstStage200ReachedAtUnixSeconds = player.progression == null
+                ? 0
+                : player.progression.firstStage200ReachedAtUnixSeconds;
+            player.activeRun = player.activeRun ?? new PlayerSnapshot.ActiveRunData();
+            if (string.IsNullOrWhiteSpace(player.activeRun.runId))
+                player.activeRun.runId = Guid.NewGuid().ToString("N");
+            if (player.activeRun.bonusMultiplierBasisPoints <= 0)
+                player.activeRun.bonusMultiplierBasisPoints = 10000;
         }
 
         public IEnumerator Save(
@@ -43,6 +59,7 @@ namespace PowerMath.Gameplay.Academic
             }
 
             string updateTime;
+            long serverSeconds = 0;
             using (UnityWebRequest get = UnityWebRequest.Get(url))
             {
                 get.timeout = _settings.RequestTimeoutSeconds;
@@ -56,9 +73,21 @@ namespace PowerMath.Gameplay.Academic
                     yield break;
                 }
                 updateTime = updateValue.Text;
+                DateTimeOffset serverTime;
+                string date = get.GetResponseHeader("Date");
+                if (DateTimeOffset.TryParse(date, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out serverTime))
+                    serverSeconds = serverTime.ToUnixTimeSeconds();
             }
 
-            FirestorePatchPlan plan = BuildPlan(request, nextRevision);
+            if (request.Snapshot.Combat.Stage.Value >= 200 &&
+                LastFirstStage200ReachedAtUnixSeconds <= 0 && serverSeconds <= 0)
+            {
+                failed?.Invoke("Could not verify the Stage 200 milestone time.");
+                yield break;
+            }
+            FirestorePatchPlan plan = BuildPlan(request, nextRevision, serverSeconds);
             var address = new StringBuilder(url);
             string separator = url.IndexOf('?') >= 0 ? "&" : "?";
             foreach (string path in plan.FieldPaths)
@@ -88,10 +117,21 @@ namespace PowerMath.Gameplay.Academic
             _highestStage = Math.Max(
                 _highestStage,
                 request.Snapshot.Combat.Stage.Value);
+            if (_highestStage >= 200 && LastFirstStage200ReachedAtUnixSeconds <= 0)
+                LastFirstStage200ReachedAtUnixSeconds = serverSeconds;
+            long committedPlaySeconds = _activity == null ? 0 : _activity.PendingWholeSeconds;
+            LastTotalPlaySeconds = checked(
+                (_player.analytics == null ? 0 : _player.analytics.totalPlaySeconds) + committedPlaySeconds);
+            _activity?.Commit(committedPlaySeconds);
             completed?.Invoke();
         }
 
-        private FirestorePatchPlan BuildPlan(GameplaySaveRequest request, long revision)
+        public long LastTotalPlaySeconds { get; private set; }
+
+        private FirestorePatchPlan BuildPlan(
+            GameplaySaveRequest request,
+            long revision,
+            long serverSeconds)
         {
             AcademicPersistenceSnapshot snapshot = request.Academic;
             CombatSnapshot combat = request.Snapshot.Combat;
@@ -103,6 +143,14 @@ namespace PowerMath.Gameplay.Academic
             builder.AddInteger(
                 Join(root, "progression", "highestStage"),
                 Math.Max(_highestStage, combat.Stage.Value));
+            long stage200At = LastFirstStage200ReachedAtUnixSeconds;
+            if (stage200At <= 0 && combat.Stage.Value >= 200) stage200At = serverSeconds;
+            builder.AddBoolean(Join(root, "progression", "firstStage200Reached"), stage200At > 0);
+            builder.AddInteger(Join(root, "progression", "firstStage200ReachedAtUnixSeconds"), stage200At);
+            long nextTotalDamage = _player.progression == null ? 0 : _player.progression.totalDamage;
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved && request.Resolution != null)
+                nextTotalDamage = checked(nextTotalDamage + Math.Max(0, request.Resolution.Combat.FinalDamage));
+            builder.AddInteger(Join(root, "progression", "totalDamage"), nextTotalDamage);
             builder.AddInteger(Join(root, "wallet", "silver"), snapshot.Balances.Silver);
             builder.AddInteger(Join(root, "wallet", "gold"), snapshot.Balances.Gold);
             builder.AddInteger(Join(root, "wallet", "diamond"), snapshot.Balances.Diamond);
@@ -112,6 +160,12 @@ namespace PowerMath.Gameplay.Academic
             AddInventory(builder, root, "gold", snapshot.Gold);
             AddInventory(builder, root, "diamond", snapshot.Diamond);
             builder.AddInteger(Join(root, "activeRun", "currentStage"), combat.Stage.Value);
+            builder.AddString(Join(root, "activeRun", "runId"), _player.activeRun.runId);
+            builder.AddString(Join(root, "activeRun", "biomeId"), combat.BiomeId);
+            builder.AddString(Join(root, "activeRun", "biomeTitle"), combat.BiomeTitle);
+            builder.AddString(Join(root, "activeRun", "encounterKind"), combat.EncounterKind.ToString());
+            builder.AddString(Join(root, "activeRun", "encounterId"), combat.EnemyId);
+            builder.AddInteger(Join(root, "activeRun", "eventAttemptOrdinal"), combat.EventAttemptOrdinal);
             builder.AddString(Join(root, "activeRun", "enemyId"), combat.EnemyId);
             builder.AddInteger(Join(root, "activeRun", "enemyCurrentHp"), combat.EnemyCurrentHp);
             builder.AddInteger(Join(root, "activeRun", "enemyMaximumHp"), combat.EnemyMaximumHp);
@@ -120,6 +174,25 @@ namespace PowerMath.Gameplay.Academic
             builder.AddInteger(Join(root, "activeRun", "playerCurrentHearts"), combat.PlayerCurrentHearts);
             builder.AddInteger(Join(root, "activeRun", "playerMaximumHearts"), combat.PlayerMaximumHearts);
             builder.AddString(Join(root, "activeRun", "phase"), combat.Phase.ToString());
+            long silverEarned = _player.activeRun.silverEarned;
+            long goldEarned = _player.activeRun.goldEarned;
+            long diamondEarned = _player.activeRun.diamondEarned;
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution != null && request.Resolution.IsAcademic)
+            {
+                long delta = Math.Max(0, request.Resolution.Academic.CurrencyDelta);
+                switch (request.Resolution.Academic.RankAtCommit.Tier)
+                {
+                    case AcademicRankTier.Gold: goldEarned = checked(goldEarned + delta); break;
+                    case AcademicRankTier.Diamond: diamondEarned = checked(diamondEarned + delta); break;
+                    default: silverEarned = checked(silverEarned + delta); break;
+                }
+            }
+            builder.AddInteger(Join(root, "activeRun", "silverEarned"), silverEarned);
+            builder.AddInteger(Join(root, "activeRun", "goldEarned"), goldEarned);
+            builder.AddInteger(Join(root, "activeRun", "diamondEarned"), diamondEarned);
+            builder.AddInteger(Join(root, "activeRun", "bonusMultiplierBasisPoints"),
+                Math.Max(10000, _player.activeRun.bonusMultiplierBasisPoints));
 
             bool hasActiveAttempt = request.ActiveQuestion != null &&
                 (request.SavePoint == GameplaySavePoint.AttemptCommitted ||
@@ -127,17 +200,182 @@ namespace PowerMath.Gameplay.Academic
             if (hasActiveAttempt)
             {
                 builder.AddString(Join(root, "activeRun", "committedAttemptId"), request.TransactionId);
-                builder.AddString(Join(root, "academic", "activeAttempt", "transactionId"), request.TransactionId);
-                builder.AddString(Join(root, "academic", "activeAttempt", "rank"), request.ActiveQuestion.Rank.ToString());
-                builder.AddInteger(Join(root, "academic", "activeAttempt", "questionId"), request.ActiveQuestion.Id.Value);
-                builder.AddString(Join(root, "academic", "activeAttempt", "state"), request.SavePoint.ToString());
+                builder.AddString(Join(root, "activeRun", "questionContentKind"),
+                    request.ActiveQuestion.ContentKind.ToString());
+                builder.AddString(Join(root, "activeRun", "questionDocumentId"),
+                    request.ActiveQuestion.SourceId);
+                builder.AddInteger(Join(root, "activeRun", "questionId"), request.ActiveQuestion.Id.Value);
+                if (request.ActiveQuestion.ContentKind == QuestionContentKind.RankQuestion)
+                {
+                    builder.AddString(Join(root, "academic", "activeAttempt", "transactionId"), request.TransactionId);
+                    builder.AddString(Join(root, "academic", "activeAttempt", "rank"), request.ActiveQuestion.Rank.ToString());
+                    builder.AddInteger(Join(root, "academic", "activeAttempt", "questionId"), request.ActiveQuestion.Id.Value);
+                    builder.AddString(Join(root, "academic", "activeAttempt", "state"), request.SavePoint.ToString());
+                }
+                else builder.AddNull(Join(root, "academic", "activeAttempt"));
             }
             else
             {
                 builder.AddString(Join(root, "activeRun", "committedAttemptId"), string.Empty);
+                builder.AddString(Join(root, "activeRun", "questionContentKind"), string.Empty);
+                builder.AddString(Join(root, "activeRun", "questionDocumentId"), string.Empty);
+                builder.AddInteger(Join(root, "activeRun", "questionId"), 0);
                 builder.AddNull(Join(root, "academic", "activeAttempt"));
             }
+            AddAnalytics(builder, root, request);
             return builder.Build();
+        }
+
+        private void AddAnalytics(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            GameplaySaveRequest request)
+        {
+            PlayerSnapshot.AnalyticsData analytics = _player.analytics ?? new PlayerSnapshot.AnalyticsData();
+            long resolved = analytics.totalQuestionsResolved;
+            long correct = analytics.totalCorrect;
+            long incorrect = analytics.totalIncorrect;
+            long timeout = analytics.totalTimeout;
+            long abandoned = analytics.totalAbandoned;
+            long scoreSum = analytics.responseScoreSum;
+            long efficiencySum = analytics.responseEfficiencySum;
+            long durationSum = analytics.responseDurationMillisecondsSum;
+            long[] scoreHistogram = EnsureHistogram(analytics.responseScoreHistogram, 11);
+            long[] efficiencyHistogram = EnsureHistogram(analytics.responseEfficiencyHistogram, 11);
+            long[] durationHistogram = EnsureHistogram(analytics.responseDuration100msHistogram, 102);
+            string appliedId = analytics.lastAppliedAttemptId ?? string.Empty;
+            var silver = Copy(analytics.silver);
+            var gold = Copy(analytics.gold);
+            var diamond = Copy(analytics.diamond);
+            string[] analyticsRoot = Join(root, "analytics");
+
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution != null &&
+                request.Resolution.IsAcademic &&
+                !string.Equals(appliedId, request.TransactionId, StringComparison.Ordinal))
+            {
+                AttemptResolution result = request.Resolution;
+                bool isCorrect = result.Academic.IsCorrect;
+                int score = Math.Max(0, Math.Min(10, result.Academic.ResponseScore));
+                resolved++;
+                if (isCorrect) correct++;
+                else if (result.Academic.Outcome == QuestionOutcome.Timeout) timeout++;
+                else if (result.Academic.Outcome == QuestionOutcome.Abandoned) abandoned++;
+                else incorrect++;
+                scoreSum += score;
+                efficiencySum += isCorrect ? score * 10 : 0;
+                durationSum += result.ResponseDurationMilliseconds;
+                scoreHistogram[score]++;
+                efficiencyHistogram[(isCorrect ? score * 10 : 0) / 10]++;
+                durationHistogram[Math.Min(101, result.ResponseDurationMilliseconds / 100)]++;
+                appliedId = request.TransactionId;
+                PlayerSnapshot.RankAnalyticsData rank = result.Academic.RankAtCommit == AcademicRank.Gold
+                    ? gold
+                    : result.Academic.RankAtCommit == AcademicRank.Diamond ? diamond : silver;
+                rank.resolved++;
+                if (isCorrect) rank.correct++;
+                rank.responseScoreSum += score;
+                rank.responseEfficiencySum += isCorrect ? score * 10 : 0;
+                AddQuestionAnalytics(builder, analyticsRoot, analytics, result, score, isCorrect);
+            }
+
+            builder.AddInteger(Join(analyticsRoot, "totalQuestionsResolved"), resolved);
+            builder.AddInteger(Join(analyticsRoot, "totalCorrect"), correct);
+            builder.AddInteger(Join(analyticsRoot, "totalIncorrect"), incorrect);
+            builder.AddInteger(Join(analyticsRoot, "totalTimeout"), timeout);
+            builder.AddInteger(Join(analyticsRoot, "totalAbandoned"), abandoned);
+            builder.AddInteger(Join(analyticsRoot, "responseScoreSum"), scoreSum);
+            builder.AddInteger(Join(analyticsRoot, "responseEfficiencySum"), efficiencySum);
+            builder.AddInteger(Join(analyticsRoot, "responseDurationMillisecondsSum"), durationSum);
+            builder.AddIntegerArray(Join(analyticsRoot, "responseScoreHistogram"), scoreHistogram);
+            builder.AddIntegerArray(Join(analyticsRoot, "responseEfficiencyHistogram"), efficiencyHistogram);
+            builder.AddIntegerArray(Join(analyticsRoot, "responseDuration100msHistogram"), durationHistogram);
+            builder.AddInteger(Join(analyticsRoot, "totalPlaySeconds"), checked(
+                analytics.totalPlaySeconds + (_activity == null ? 0 : _activity.PendingWholeSeconds)));
+            builder.AddString(Join(analyticsRoot, "lastAppliedAttemptId"), appliedId);
+            AddRankAnalytics(builder, analyticsRoot, "silver", silver);
+            AddRankAnalytics(builder, analyticsRoot, "gold", gold);
+            AddRankAnalytics(builder, analyticsRoot, "diamond", diamond);
+        }
+
+        private static PlayerSnapshot.RankAnalyticsData Copy(PlayerSnapshot.RankAnalyticsData source)
+        {
+            source = source ?? new PlayerSnapshot.RankAnalyticsData();
+            return new PlayerSnapshot.RankAnalyticsData
+            {
+                resolved = source.resolved,
+                correct = source.correct,
+                responseScoreSum = source.responseScoreSum,
+                responseEfficiencySum = source.responseEfficiencySum
+            };
+        }
+
+        private static long[] EnsureHistogram(long[] source, int length)
+        {
+            var result = new long[length];
+            if (source != null) Array.Copy(source, result, Math.Min(source.Length, length));
+            return result;
+        }
+
+        private static void AddRankAnalytics(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            string rank,
+            PlayerSnapshot.RankAnalyticsData value)
+        {
+            string[] prefix = Join(root, "byRank", rank);
+            builder.AddInteger(Join(prefix, "resolved"), value.resolved);
+            builder.AddInteger(Join(prefix, "correct"), value.correct);
+            builder.AddInteger(Join(prefix, "responseScoreSum"), value.responseScoreSum);
+            builder.AddInteger(Join(prefix, "responseEfficiencySum"), value.responseEfficiencySum);
+        }
+
+        private static void AddQuestionAnalytics(
+            FirestorePatchDocumentBuilder builder,
+            string[] analyticsRoot,
+            PlayerSnapshot.AnalyticsData analytics,
+            AttemptResolution result,
+            int score,
+            bool correct)
+        {
+            long questionId = result.Academic.QuestionId.Value;
+            PlayerSnapshot.QuestionAnalyticsData source = (analytics.byQuestion ??
+                Array.Empty<PlayerSnapshot.QuestionAnalyticsData>()).FirstOrDefault(value =>
+                    value != null && value.questionId == questionId);
+            var value = source == null ? new PlayerSnapshot.QuestionAnalyticsData() :
+                new PlayerSnapshot.QuestionAnalyticsData
+                {
+                    questionId = source.questionId,
+                    resolved = source.resolved,
+                    correct = source.correct,
+                    incorrect = source.incorrect,
+                    timeout = source.timeout,
+                    abandoned = source.abandoned,
+                    responseScoreSum = source.responseScoreSum,
+                    responseDurationMillisecondsSum = source.responseDurationMillisecondsSum,
+                    responseEfficiencySum = source.responseEfficiencySum
+                };
+            value.questionId = questionId;
+            value.resolved++;
+            if (correct) value.correct++;
+            else if (result.Academic.Outcome == QuestionOutcome.Timeout) value.timeout++;
+            else if (result.Academic.Outcome == QuestionOutcome.Abandoned) value.abandoned++;
+            else value.incorrect++;
+            value.responseScoreSum += score;
+            value.responseDurationMillisecondsSum += result.ResponseDurationMilliseconds;
+            value.responseEfficiencySum += correct ? score * 10 : 0;
+            string[] prefix = Join(analyticsRoot, "byQuestion", "q" +
+                questionId.ToString(CultureInfo.InvariantCulture));
+            builder.AddInteger(Join(prefix, "questionId"), value.questionId);
+            builder.AddInteger(Join(prefix, "resolved"), value.resolved);
+            builder.AddInteger(Join(prefix, "correct"), value.correct);
+            builder.AddInteger(Join(prefix, "incorrect"), value.incorrect);
+            builder.AddInteger(Join(prefix, "timeout"), value.timeout);
+            builder.AddInteger(Join(prefix, "abandoned"), value.abandoned);
+            builder.AddInteger(Join(prefix, "responseScoreSum"), value.responseScoreSum);
+            builder.AddInteger(Join(prefix, "responseDurationMillisecondsSum"),
+                value.responseDurationMillisecondsSum);
+            builder.AddInteger(Join(prefix, "responseEfficiencySum"), value.responseEfficiencySum);
         }
 
         private static void AddInventory(

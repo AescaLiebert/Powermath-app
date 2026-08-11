@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using PowerMath.PlayerData;
 
 namespace PowerMath.Session
 {
@@ -35,6 +36,10 @@ namespace PowerMath.Session
             Add(segments, PatchValue.EmptyArray());
         public void AddIntegerArray(IReadOnlyList<string> segments, IReadOnlyList<long> values) =>
             Add(segments, PatchValue.IntegerArray(values));
+        public void AddInventoryArray(
+            IReadOnlyList<string> segments,
+            IReadOnlyList<PlayerSnapshot.InventoryItemData> values) =>
+            Add(segments, PatchValue.InventoryArray(values));
         public void AddNull(IReadOnlyList<string> segments) =>
             Add(segments, PatchValue.Null());
 
@@ -123,6 +128,23 @@ namespace PowerMath.Session
                     }
                     builder.Append("]}}");
                     break;
+                case PatchValueKind.InventoryArray:
+                    builder.Append("{\"arrayValue\":{\"values\":[");
+                    for (int index = 0; index < value.Inventory.Count; index++)
+                    {
+                        if (index > 0) builder.Append(',');
+                        PlayerSnapshot.InventoryItemData item = value.Inventory[index];
+                        builder.Append("{\"mapValue\":{\"fields\":{")
+                            .Append("\"itemId\":{\"stringValue\":");
+                        WriteJsonString(builder, item.itemId ?? string.Empty);
+                        builder.Append("},\"upgradeLevel\":{\"integerValue\":\"")
+                            .Append(item.upgradeLevel.ToString(CultureInfo.InvariantCulture))
+                            .Append("\"},\"owned\":{\"booleanValue\":")
+                            .Append(item.owned ? "true" : "false")
+                            .Append("}}}}");
+                    }
+                    builder.Append("]}}");
+                    break;
                 case PatchValueKind.Null:
                     builder.Append("{\"nullValue\":null}");
                     break;
@@ -197,7 +219,7 @@ namespace PowerMath.Session
         }
     }
 
-    internal enum PatchValueKind { Map, String, Integer, Boolean, EmptyArray, IntegerArray, Null }
+    internal enum PatchValueKind { Map, String, Integer, Boolean, EmptyArray, IntegerArray, InventoryArray, Null }
 
     internal sealed class PatchValue
     {
@@ -208,6 +230,7 @@ namespace PowerMath.Session
         public long Integer { get; private set; }
         public bool Boolean { get; private set; }
         public IReadOnlyList<long> Integers { get; private set; }
+        public IReadOnlyList<PlayerSnapshot.InventoryItemData> Inventory { get; private set; }
         public static PatchValue MapValue(PatchMap map) => new PatchValue(PatchValueKind.Map) { Map = map };
         public static PatchValue String(string value) => new PatchValue(PatchValueKind.String) { Text = value };
         public static PatchValue FromInteger(long value) => new PatchValue(PatchValueKind.Integer) { Integer = value };
@@ -217,6 +240,13 @@ namespace PowerMath.Session
             new PatchValue(PatchValueKind.IntegerArray)
             {
                 Integers = values == null ? Array.Empty<long>() : values.ToArray()
+            };
+        public static PatchValue InventoryArray(IReadOnlyList<PlayerSnapshot.InventoryItemData> values) =>
+            new PatchValue(PatchValueKind.InventoryArray)
+            {
+                Inventory = values == null
+                    ? Array.Empty<PlayerSnapshot.InventoryItemData>()
+                    : values.Where(value => value != null).ToArray()
             };
         public static PatchValue Null() => new PatchValue(PatchValueKind.Null);
     }

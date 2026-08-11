@@ -43,7 +43,7 @@ namespace PowerMath.Gameplay.Combat
         public bool TryBeginAttempt(out AttemptCommit commit)
         {
             commit = null;
-            if (Phase != CombatPhase.EnemyReady)
+            if (Phase != CombatPhase.EnemyReady && Phase != CombatPhase.EventReady)
             {
                 return false;
             }

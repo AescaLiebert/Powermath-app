@@ -2,6 +2,7 @@ using System.Collections;
 using PowerMath.Bootstrap;
 using PowerMath.PlayerData;
 using PowerMath.Session;
+using PowerMath.UI.MainMenu.SocialProfile;
 using UnityEngine;
 
 namespace PowerMath.UI.MainMenu
@@ -31,6 +32,14 @@ namespace PowerMath.UI.MainMenu
                 // compatibility bridge isolated until the scene asset is resaved.
                 gameObject.AddComponent<CombatLobbyCompositionRoot>();
             }
+            if (GetComponent<SocialProfileCompositionRoot>() == null)
+            {
+                gameObject.AddComponent<SocialProfileCompositionRoot>();
+            }
+            if (GetComponent<ProfileActivityTracker>() == null)
+            {
+                gameObject.AddComponent<ProfileActivityTracker>();
+            }
         }
 
         private void OnEnable()
@@ -58,7 +67,7 @@ namespace PowerMath.UI.MainMenu
 
 #if UNITY_EDITOR
             _authenticationService = apiSettings.UseEditorSampleStudent
-                ? new EditorMockAuthenticationService()
+                ? (IAuthenticationService)new EditorMockAuthenticationService()
                 : new DirectFirestoreAuthenticationService(apiSettings);
 #else
             _authenticationService = new DirectFirestoreAuthenticationService(apiSettings);

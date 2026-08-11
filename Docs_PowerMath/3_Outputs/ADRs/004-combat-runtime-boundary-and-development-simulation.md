@@ -23,7 +23,7 @@ Create a ports-and-adapters combat feature with these boundaries:
 - `LocalSimulationCombatGateway` is scene-scoped, seeded, non-persistent, visibly labelled, and available only in Editor/development builds.
 - `UnavailableCombatGateway` fails closed when no production authority is available.
 - A future `RemoteAuthoritativeCombatGateway` may replace local simulation without changing combat UI or sequencing.
-- The current simulation maps its generated response score to `SimulationBaseATK`, uses Rank multiplier 1, and runs the GDD damage formula with explicit midpoint rounding away from zero.
+- The combat core keeps Response Score separate from Effective ATK and applies `ResponseDamageMultiplier = ResponseScore × 0.20` once at the final damage boundary, with explicit midpoint rounding away from zero.
 - UI Toolkit owns the combat presentation and reacts to immutable results; it does not calculate damage, mutate HP/cooldown/Stage, or call Firestore.
 - `PlayerSessionStore` supplies the initial Stage but receives no simulation mutation.
 - Audit, Rank changes, currencies, analytics, and authoritative persistence remain outside this feature.
@@ -54,7 +54,7 @@ Simulation selection is compile/build guarded. If a non-development build reques
 ### Negative / Trade-offs
 
 - The simulation Stage resets to the bootstrapped snapshot after scene reload.
-- Local response-score-to-Base-ATK mapping is scaffolding and is intentionally not a production combat rule.
+- Response Score affects combat only through the explicit 20%-per-point final multiplier; it is never substituted for Base ATK.
 - The new assembly split requires a small bridge in predefined `Assembly-CSharp` because it owns the existing `PlayerSnapshot`.
 - The current hybrid uGUI/UI Toolkit Lobby needs a controlled visual migration.
 - Remote gameplay integration still requires a later ADR, API contract, and authority/recovery E2E tests.

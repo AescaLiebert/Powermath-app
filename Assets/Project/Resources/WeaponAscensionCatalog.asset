@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8abd7420d1866af43a36524422b2de83, type: 3}
+  m_Name: WeaponAscensionCatalog
+  m_EditorClassIdentifier:
+  tiers:
+  - tierId: base-sword
+    unlockLevel: 0
+    localizedDisplayNameKey: weapon.base_sword
+    displayName: Base Sword
+    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    appearanceReference: base-sword
+    milestoneFeedbackKey: weapon-base
+    childFriendlyDescription: A trusty sword for starting your adventure.
+  - tierId: champion-sword
+    unlockLevel: 20
+    localizedDisplayNameKey: weapon.champion_sword
+    displayName: Champion Sword
+    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    appearanceReference: champion-sword
+    milestoneFeedbackKey: weapon-champion
+    childFriendlyDescription: Bright champion trim celebrates your progress.
+  - tierId: hero-sword
+    unlockLevel: 40
+    localizedDisplayNameKey: weapon.hero_sword
+    displayName: Hero Sword
+    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    appearanceReference: hero-sword
+    milestoneFeedbackKey: weapon-hero
+    childFriendlyDescription: A bold heroic sword with a larger silhouette.
+  - tierId: mythic-sword
+    unlockLevel: 60
+    localizedDisplayNameKey: weapon.mythic_sword
+    displayName: Mythic Sword
+    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    appearanceReference: mythic-sword
+    milestoneFeedbackKey: weapon-mythic
+    childFriendlyDescription: Magical glow and engravings mark a mythic milestone.
+  - tierId: legendary-sword
+    unlockLevel: 80
+    localizedDisplayNameKey: weapon.legendary_sword
+    displayName: Legendary Sword
+    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    appearanceReference: legendary-sword
+    milestoneFeedbackKey: weapon-legendary
+    childFriendlyDescription: A legendary aura rewards long-term effort.
+  - tierId: power-wisdom-sword
+    unlockLevel: 100
+    localizedDisplayNameKey: weapon.power_wisdom_sword
+    displayName: Power Wisdom Sword
+    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    appearanceReference: power-wisdom-sword
+    milestoneFeedbackKey: weapon-final
+    childFriendlyDescription: The final signature weapon for a Power Wisdom master.

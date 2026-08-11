@@ -37,7 +37,10 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
             else
             {
-                _view.SetResult($"CORRECT - SCORE {resolution.ResponseScore}", true);
+                _view.SetResult(
+                    $"CORRECT - SCORE {resolution.ResponseScore} - " +
+                    $"{resolution.ResponseDamagePercent}% DAMAGE",
+                    true);
                 _audio.PlaySuccess();
                 yield return new WaitForSecondsRealtime(0.35f);
 
@@ -83,7 +86,9 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
             else if (resolution.EnemyAttacked)
             {
-                _view.SetResult("ENEMY COUNTERATTACK - LOST 1 HEART", false);
+                _view.SetResult(resolution.Snapshot.IsEvent
+                    ? "CHALLENGE FAILED - LOST 1 HEART"
+                    : "ENEMY COUNTERATTACK - LOST 1 HEART", false);
                 yield return new WaitForSecondsRealtime(0.55f);
                 _audio.PlayEnemyAttack();
                 yield return new WaitForSecondsRealtime(0.35f);

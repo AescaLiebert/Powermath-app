@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b34fa13e2fa64c4490ce90a193620e2b, type: 3}
+  m_Name: Biome07
+  m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.BiomeDefinition
+  biomeId: biome-7
+  fallbackTitle: Biome 7
+  firstStage: 181
+  lastStage: 200
+  backgroundSprite: {fileID: 0}
+  mapLandmarkSprite: {fileID: 0}
+  normalizedMapPosition: {x: 1, y: 0.42}
+  normalMonsters:
+  - {fileID: 11400000, guid: c0000000000000000000000000000007, type: 2}
+  bossBindings:
+  - stage: 185
+    monster: {fileID: 11400000, guid: d0000000000000000000000000000007, type: 2}
+  - stage: 190
+    monster: {fileID: 11400000, guid: d0000000000000000000000000000007, type: 2}
+  - stage: 195
+    monster: {fileID: 11400000, guid: d0000000000000000000000000000007, type: 2}
+  - stage: 200
+    monster: {fileID: 11400000, guid: f0000000000000000000000000000200, type: 2}
+

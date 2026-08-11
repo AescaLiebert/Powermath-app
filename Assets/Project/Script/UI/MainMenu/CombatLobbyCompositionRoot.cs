@@ -1,9 +1,12 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Academic.Infrastructure;
 using PowerMath.Gameplay.Academic.Unity;
 using PowerMath.Gameplay.Combat;
 using PowerMath.Gameplay.Combat.Unity;
+using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
 using PowerMath.Session;
 using UnityEngine;
@@ -20,18 +23,35 @@ namespace PowerMath.UI.MainMenu
         [Tooltip("Data-defined enemy. A runtime placeholder is used until the asset is assigned.")]
         [SerializeField] private EnemyDefinition enemyDefinition;
 
+        [Tooltip("Seven-biome Stage Map. A complete development map is used until assigned.")]
+        [SerializeField] private StageMapDefinition stageMapDefinition;
+
         [Tooltip("Development simulation and answer-window settings.")]
         [SerializeField] private CombatRuntimeSettingsDefinition runtimeSettings;
 
         [Tooltip("Optional explicit enemy texture. The existing scene monster image is used when empty.")]
         [SerializeField] private Texture2D enemyTexture;
 
+        [Tooltip("Ordered visual/name milestones for the persistent Weapon Ascend system.")]
+        [SerializeField] private WeaponAscensionCatalogDefinition weaponAscensionCatalog;
+
         private CombatLobbyPresenter _presenter;
         private CombatLobbyView _view;
         private IQuestionCatalogRepository _questionCatalogRepository;
+        private FirestoreEventQuestionCatalogRepository _eventQuestionRepository;
+        private RunEconomyPanelController _runEconomyController;
 
         private void Start()
         {
+            if (stageMapDefinition == null)
+                stageMapDefinition = Resources.Load<StageMapDefinition>("StageMapDefinition");
+            if (enemyDefinition == null)
+                enemyDefinition = Resources.Load<EnemyDefinition>("EnemyDefinition");
+            if (runtimeSettings == null)
+                runtimeSettings = Resources.Load<CombatRuntimeSettingsDefinition>(
+                    "CombatRuntimeSettings");
+            if (weaponAscensionCatalog == null)
+                weaponAscensionCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
             UIDocument document = GetComponent<UIDocument>();
             if (document == null || document.rootVisualElement == null)
             {
@@ -74,6 +94,10 @@ namespace PowerMath.UI.MainMenu
             _presenter = null;
             _questionCatalogRepository?.Cancel();
             _questionCatalogRepository = null;
+            _eventQuestionRepository?.Cancel();
+            _eventQuestionRepository = null;
+            _runEconomyController?.Dispose();
+            _runEconomyController = null;
         }
 
         public void RunCombatRoutine(IEnumerator routine)
@@ -91,7 +115,7 @@ namespace PowerMath.UI.MainMenu
 
         private void InitializeSimulation(PlayerSnapshot snapshot)
         {
-            if (!TryLoadDevelopmentCatalog(out QuestionCatalog catalog))
+            if (!TryLoadDevelopmentCatalog(snapshot, out QuestionCatalog catalog))
             {
                 _view.SetUnavailable(
                     "Development question catalog is invalid. See the Unity Console."
@@ -102,6 +126,7 @@ namespace PowerMath.UI.MainMenu
             InitializeRuntime(
                 snapshot,
                 catalog,
+                BuildDevelopmentEventQuestions(catalog),
                 new SimulationQuestionPresentation(),
                 null
             );
@@ -111,7 +136,21 @@ namespace PowerMath.UI.MainMenu
         {
             if (settings == null)
             {
-                _view.SetUnavailable("Question service configuration is missing.");
+                _view.SetUnavailable("Firebase player configuration is missing.");
+                return;
+            }
+
+            FirestoreAcademicProgressionStore progressionStore =
+                TryCreateProgressionStore(settings, snapshot);
+            if (progressionStore == null)
+            {
+                _view.SetUnavailable("Firebase player saves could not be initialized.");
+                return;
+            }
+
+            if (!TryResolveStageMap(out StageMapData map, out string mapError))
+            {
+                _view.SetUnavailable(mapError);
                 return;
             }
 
@@ -122,35 +161,82 @@ namespace PowerMath.UI.MainMenu
                 {
                     if (result != null)
                     {
-                        foreach (string error in result.Errors) Debug.LogError($"Question catalog: {error}");
+                        foreach (string error in result.Errors)
+                            Debug.LogWarning($"Question catalog fallback: {error}");
                     }
-                    _view?.SetUnavailable("Questions could not be loaded. Please try again.");
+
+                    InitializeLiveQuestionFallback(snapshot, progressionStore, map);
                     return;
                 }
 
-                IQuestionPresentation presentation;
-#if UNITY_EDITOR
-                // Editor cannot host the browser DOM iframe. It still uses the
-                // live question catalog and player persistence for E2E testing.
-                presentation = new SimulationQuestionPresentation();
-#else
-                WebGlYouTubeQuestionPresentation webPresentation =
-                    GetComponent<WebGlYouTubeQuestionPresentation>();
-                if (webPresentation == null)
-                    webPresentation = gameObject.AddComponent<WebGlYouTubeQuestionPresentation>();
-                presentation = webPresentation;
-#endif
-                FirestoreAcademicProgressionStore progressionStore =
-                    TryCreateProgressionStore(settings, snapshot);
-                InitializeRuntime(snapshot, result.Catalog, presentation, progressionStore);
+                IQuestionPresentation presentation = CreateLiveQuestionPresentation();
+                _eventQuestionRepository = new FirestoreEventQuestionCatalogRepository(this, settings);
+                _eventQuestionRepository.Load(map.EventQuestionDocumentIds, (eventCatalog, eventError) =>
+                {
+                    if (eventCatalog == null)
+                    {
+                        Debug.LogWarning(
+                            $"Event question catalog fallback: {eventError}");
+                        eventCatalog = BuildDevelopmentEventQuestions(
+                            result.Catalog,
+                            map.EventQuestionDocumentIds);
+                    }
+
+                    InitializeRuntime(snapshot, result.Catalog, eventCatalog,
+                        presentation, progressionStore, map);
+                });
             });
+        }
+
+        private void InitializeLiveQuestionFallback(
+            PlayerSnapshot snapshot,
+            FirestoreAcademicProgressionStore progressionStore,
+            StageMapData map)
+        {
+            if (!TryLoadDevelopmentCatalog(snapshot, out QuestionCatalog catalog))
+            {
+                _view?.SetUnavailable(
+                    "Questions are offline and the development fallback is invalid.");
+                return;
+            }
+
+            Debug.LogWarning(
+                "Shared Question Firebase is unavailable. Using local development " +
+                "questions and simulated video while keeping Firebase player saves active.");
+            InitializeRuntime(
+                snapshot,
+                catalog,
+                BuildDevelopmentEventQuestions(catalog, map.EventQuestionDocumentIds),
+                new SimulationQuestionPresentation(),
+                progressionStore,
+                map,
+                "QUESTION FIREBASE OFFLINE - DEVELOPMENT QUESTIONS ACTIVE; PLAYER PROGRESS SAVES TO FIREBASE"
+            );
+        }
+
+        private IQuestionPresentation CreateLiveQuestionPresentation()
+        {
+#if UNITY_EDITOR
+            // Editor cannot host the browser DOM iframe. Catalog and persistence
+            // remain live while only the content presentation is simulated.
+            return new SimulationQuestionPresentation();
+#else
+            WebGlYouTubeQuestionPresentation presentation =
+                GetComponent<WebGlYouTubeQuestionPresentation>();
+            if (presentation == null)
+                presentation = gameObject.AddComponent<WebGlYouTubeQuestionPresentation>();
+            return presentation;
+#endif
         }
 
         private void InitializeRuntime(
             PlayerSnapshot snapshot,
             QuestionCatalog catalog,
+            EventQuestionCatalog eventQuestions,
             IQuestionPresentation questionPresentation,
-            FirestoreAcademicProgressionStore progressionStore)
+            FirestoreAcademicProgressionStore progressionStore,
+            StageMapData resolvedMap = null,
+            string startupNotice = "")
         {
 
             if (snapshot.progression == null ||
@@ -181,9 +267,12 @@ namespace PowerMath.UI.MainMenu
             }
 
             int startingStage = ResolveStartingStage(snapshot);
-            EnemyDefinitionData enemyData = enemyDefinition == null
-                ? new EnemyDefinitionData("rock-titan", "Rock Titan", 40, 3)
-                : enemyDefinition.ToDomainData();
+            if (resolvedMap == null && !TryResolveStageMap(out resolvedMap, out string mapError))
+            {
+                _view.SetUnavailable(mapError);
+                return;
+            }
+            var encounterResolver = new StageEncounterResolver(resolvedMap);
 
             int seed = runtimeSettings == null ? 1337 : runtimeSettings.RandomSeed;
             int maximumHearts = runtimeSettings == null
@@ -195,10 +284,32 @@ namespace PowerMath.UI.MainMenu
             double criticalDamage = runtimeSettings == null
                 ? 50d
                 : runtimeSettings.CriticalDamagePercent;
+            int baseAttack = runtimeSettings == null ? 5 : runtimeSettings.BaseAttack;
+            int baseWeaponAttack = runtimeSettings == null
+                ? WeaponAscensionPolicy.DefaultBaseWeaponAttack
+                : runtimeSettings.BaseWeaponAttack;
+            PlayerCombatStats combatStats;
+            try
+            {
+                combatStats = PlayerCombatStatsFactory.Create(
+                    snapshot,
+                    baseAttack,
+                    baseWeaponAttack,
+                    criticalRate,
+                    criticalDamage);
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogError($"Player combat stats are invalid: {exception.Message}");
+                _view.SetUnavailable("Saved weapon progression is invalid.");
+                return;
+            }
 
             var random = new SeededRandomSource(seed);
-            LocalCombatEngine engine;
-            if (TryBuildRestoredCombat(snapshot, enemyData, out CombatSnapshot restoredCombat))
+            string runId = ResolveRunId(snapshot);
+            ILocalEncounterEngine engine;
+            if (TryBuildRestoredCombat(snapshot, encounterResolver, runId,
+                out CombatSnapshot restoredCombat))
             {
                 if (restoredCombat.Phase == CombatPhase.Committed ||
                     restoredCombat.Phase == CombatPhase.Preparation ||
@@ -209,22 +320,13 @@ namespace PowerMath.UI.MainMenu
                         "An unfinished saved attempt needs recovery before combat can continue.");
                     return;
                 }
-                engine = new LocalCombatEngine(
-                    restoredCombat,
-                    enemyData,
-                    random,
-                    criticalRate,
-                    criticalDamage);
+                engine = new LocalRunEncounterEngine(restoredCombat, runId,
+                    encounterResolver, random, combatStats);
             }
             else
             {
-                engine = new LocalCombatEngine(
-                    new StageId(startingStage),
-                    enemyData,
-                    random,
-                    maximumHearts,
-                    criticalRate,
-                    criticalDamage);
+                engine = new LocalRunEncounterEngine(new StageId(startingStage),
+                    runId, encounterResolver, random, maximumHearts, combatStats);
             }
             var academicEngine = new AcademicProgressionEngine(catalog);
             AcademicProgressionState academicState;
@@ -255,13 +357,26 @@ namespace PowerMath.UI.MainMenu
                 academicState,
                 clock,
                 runtimeSettings == null ? 1d : runtimeSettings.PreparationSeconds,
-                runtimeSettings == null ? 10d : runtimeSettings.AnswerSeconds
+                runtimeSettings == null ? 10d : runtimeSettings.AnswerSeconds,
+                eventQuestions,
+                runId
             );
             var gateway = new LocalDevelopmentAttemptGateway(transactionEngine);
             var coordinator = new CombatAttemptCoordinator(gateway);
-            IGameplayPersistence persistence = progressionStore == null
-                ? new ImmediateGameplayPersistence()
-                : new FirestoreGameplayPersistence(this, progressionStore, snapshot);
+            IGameplayPersistence persistence;
+            if (progressionStore == null)
+            {
+                persistence = new ImmediateGameplayPersistence();
+            }
+            else
+            {
+                persistence = new FirestoreGameplayPersistence(
+                    this,
+                    progressionStore,
+                    snapshot,
+                    new FirestoreLeaderboardProjectionPublisher(
+                        GetComponent<MainMenuPresenter>()?.ApiSettings));
+            }
 
             AudioSource source = GetComponent<AudioSource>();
             if (source == null)
@@ -292,6 +407,8 @@ namespace PowerMath.UI.MainMenu
             );
             Texture2D resolvedTexture = ResolveEnemyTexture();
             _view.SetEnemyTexture(resolvedTexture);
+            _view.ConfigureStageMap(resolvedMap, ResolveBiomeTexture,
+                ResolveEncounterTexture);
 
             _presenter = new CombatLobbyPresenter(
                 _view,
@@ -305,13 +422,51 @@ namespace PowerMath.UI.MainMenu
                 transactionEngine
             );
             _presenter.Initialize();
+            if (!string.IsNullOrWhiteSpace(startupNotice))
+                _view.SetResult(startupNotice, true);
+            if (progressionStore != null)
+            {
+                try
+                {
+                    _runEconomyController = new RunEconomyPanelController(
+                        this,
+                        GetComponent<UIDocument>().rootVisualElement,
+                        GetComponent<MainMenuPresenter>()?.ApiSettings,
+                        snapshot,
+                        catalog,
+                        weaponAscensionCatalog,
+                        baseAttack,
+                        baseWeaponAttack,
+                        criticalRate,
+                        criticalDamage);
+                }
+                catch (System.Exception exception)
+                {
+                    Debug.LogError($"Run progression controls could not start: {exception.Message}");
+                }
+            }
+            else
+            {
+                GetComponent<UIDocument>().rootVisualElement.Q<Button>("rebirth-button").style.display = DisplayStyle.None;
+                GetComponent<UIDocument>().rootVisualElement.Q<Button>("player-hub-button").style.display = DisplayStyle.None;
+            }
         }
 
         private bool TryLoadDevelopmentCatalog(out QuestionCatalog catalog)
         {
+            return TryLoadDevelopmentCatalog(null, out catalog);
+        }
+
+        private bool TryLoadDevelopmentCatalog(
+            PlayerSnapshot snapshot,
+            out QuestionCatalog catalog)
+        {
             catalog = null;
             QuestionCatalogLoadResult loadResult = null;
-            _questionCatalogRepository = new InMemoryQuestionCatalogRepository();
+            _questionCatalogRepository = snapshot == null
+                ? new InMemoryQuestionCatalogRepository()
+                : new InMemoryQuestionCatalogRepository(
+                    BuildFallbackQuestionDocuments(snapshot));
             _questionCatalogRepository.Load(result => loadResult = result);
             if (loadResult == null || !loadResult.IsSuccess)
             {
@@ -328,6 +483,94 @@ namespace PowerMath.UI.MainMenu
 
             catalog = loadResult.Catalog;
             return true;
+        }
+
+        private static IEnumerable<RankedQuestionDocument>
+            BuildFallbackQuestionDocuments(PlayerSnapshot snapshot)
+        {
+            foreach (AcademicRank rank in new[]
+            {
+                AcademicRank.Silver,
+                AcademicRank.Gold,
+                AcademicRank.Diamond
+            })
+            {
+                PlayerSnapshot.RankInventoryData inventory = rank.Tier switch
+                {
+                    AcademicRankTier.Gold => snapshot.academic?.gold,
+                    AcademicRankTier.Diamond => snapshot.academic?.diamond,
+                    _ => snapshot.academic?.silver
+                };
+                var ids = new SortedSet<long>();
+                AddValidQuestionIds(ids, inventory?.pendingIds);
+                AddValidQuestionIds(ids, inventory?.failedIds);
+                AddValidQuestionIds(ids, inventory?.attemptedInAuditIds);
+                AddValidQuestionIds(ids, inventory?.clearedInCycleIds);
+                for (long candidate = 1; ids.Count < AuditWindow.RequiredResults; candidate++)
+                    ids.Add(candidate);
+
+                int ordinal = 0;
+                foreach (long id in ids)
+                {
+                    yield return new RankedQuestionDocument(
+                        rank,
+                        new QuestionDocumentDto
+                        {
+                            id = id,
+                            answer = 7 + ((int)rank.Tier * 5) + ordinal++,
+                            video_link = "https://www.youtube.com/watch?v=M7lc1UVf-VE"
+                        });
+                }
+            }
+        }
+
+        private static void AddValidQuestionIds(
+            ISet<long> destination,
+            IEnumerable<long> source)
+        {
+            foreach (long id in source ?? Enumerable.Empty<long>())
+            {
+                if (id >= 0) destination.Add(id);
+            }
+        }
+
+        private static EventQuestionCatalog BuildDevelopmentEventQuestions(
+            QuestionCatalog catalog,
+            IEnumerable<string> documentIds = null)
+        {
+            IReadOnlyList<QuestionDefinition> questions =
+                catalog.GetRankQuestions(AcademicRank.Diamond);
+            var documents = new Dictionary<string, IReadOnlyList<QuestionDefinition>>(
+                System.StringComparer.Ordinal)
+            {
+                { "challenge", questions }
+            };
+            foreach (string documentId in documentIds ?? Enumerable.Empty<string>())
+            {
+                string normalized = documentId?.Trim();
+                if (!string.IsNullOrEmpty(normalized) && !documents.ContainsKey(normalized))
+                    documents.Add(normalized, questions);
+            }
+
+            return new EventQuestionCatalog(
+                documents);
+        }
+
+        private bool TryResolveStageMap(out StageMapData map, out string error)
+        {
+            if (stageMapDefinition != null)
+                return stageMapDefinition.TryMap(out map, out error);
+            map = DevelopmentStageMapFactory.Create();
+            error = string.Empty;
+            return true;
+        }
+
+        private static string ResolveRunId(PlayerSnapshot snapshot)
+        {
+            snapshot.activeRun = snapshot.activeRun ?? new PlayerSnapshot.ActiveRunData();
+            if (string.IsNullOrWhiteSpace(snapshot.activeRun.runId))
+                snapshot.activeRun.runId = System.Guid.NewGuid().ToString("N");
+            return snapshot.activeRun.runId;
         }
 
         private Texture2D ResolveEnemyTexture()
@@ -360,6 +603,21 @@ namespace PowerMath.UI.MainMenu
             }
 
             return texture;
+        }
+
+        private Texture2D ResolveBiomeTexture(string biomeId)
+        {
+            Sprite sprite = stageMapDefinition?.FindBiome(biomeId)?.BackgroundSprite;
+            return sprite == null ? null : sprite.texture;
+        }
+
+        private Texture2D ResolveEncounterTexture(string encounterId)
+        {
+            EnemyDefinition monster = stageMapDefinition?.FindMonster(encounterId);
+            if (monster?.EnemySprite != null) return monster.EnemySprite.texture;
+            EventDefinition eventDefinition = stageMapDefinition?.FindEvent(encounterId);
+            if (eventDefinition?.EventSprite != null) return eventDefinition.EventSprite.texture;
+            return ResolveEnemyTexture();
         }
         private static int ResolveStartingStage(PlayerSnapshot snapshot)
         {
@@ -414,41 +672,55 @@ namespace PowerMath.UI.MainMenu
                 settings,
                 playerId.Substring(0, separator),
                 playerId.Substring(separator + 1),
-                snapshot.progression == null ? 1 : snapshot.progression.highestStage
+                snapshot,
+                Object.FindAnyObjectByType<ProfileActivityTracker>()
             );
         }
 
         private static bool TryBuildRestoredCombat(
             PlayerSnapshot snapshot,
-            EnemyDefinitionData enemy,
+            StageEncounterResolver resolver,
+            string runId,
             out CombatSnapshot restored)
         {
             restored = null;
             PlayerSnapshot.ActiveRunData run = snapshot?.activeRun;
             if (run == null || run.enemyMaximumHp <= 0 ||
-                !string.Equals(run.enemyId, enemy.EnemyId, System.StringComparison.Ordinal) ||
                 !System.Enum.TryParse(run.phase, true, out CombatPhase phase))
                 return false;
 
             try
             {
+                StageId stage = new StageId(run.currentStage);
+                EncounterSelection expected = resolver.Resolve(runId, stage);
+                string savedId = string.IsNullOrWhiteSpace(run.encounterId)
+                    ? run.enemyId : run.encounterId;
+                if (!string.Equals(savedId, expected.EncounterId,
+                    System.StringComparison.Ordinal)) return false;
                 restored = new CombatSnapshot(
-                    new StageId(run.currentStage),
-                    run.enemyId,
-                    enemy.DisplayName,
+                    stage,
+                    expected.EncounterId,
+                    expected.DisplayName,
                     run.enemyCurrentHp,
                     run.enemyMaximumHp,
                     run.enemyRemainingCooldown,
                     run.enemyMaximumCooldown > 0
                         ? run.enemyMaximumCooldown
-                        : enemy.MaximumCooldown,
+                        : expected.MaximumCooldown,
                     run.playerCurrentHearts,
                     run.playerMaximumHearts,
                     phase,
-                    false);
+                    false,
+                    expected.BiomeId,
+                    expected.BiomeTitle,
+                    expected.Kind,
+                    expected.QuestionDocumentId,
+                    run.eventAttemptOrdinal);
                 return true;
             }
-            catch (System.ArgumentOutOfRangeException)
+            catch (System.Exception exception) when (
+                exception is System.ArgumentOutOfRangeException ||
+                exception is System.InvalidOperationException)
             {
                 return false;
             }

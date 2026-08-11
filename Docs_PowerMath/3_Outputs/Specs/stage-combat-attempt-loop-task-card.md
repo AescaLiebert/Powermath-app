@@ -110,6 +110,7 @@ The student sees the current Stage and enemy state, commits one attack, watches 
 - [x] Significant results use visual and audio feedback; reduced-motion mode shortens movement without hiding semantic information.
 - [x] Existing authentication, bootstrap, logout, audit, and Rank behavior remain untouched.
 - [x] EditMode tests cover pure state, score/damage, stage, content recovery, and idempotency; PlayMode covers real-scene UI input through visible HP loss.
+- [x] Response Score applies the owner-approved 20%-200% final damage multiplier exactly once and is shown before hit feedback. Approved 2026-08-12.
 - [ ] Human WebGL and narrow mobile-aspect verification remains before release; the controls use UI Toolkit pointer events and keyboard input without platform-specific APIs.
 - [x] Follows `RULES_AND_POLICY.md` and `unity-conventions.md` for this implementation slice.
 

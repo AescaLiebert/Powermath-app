@@ -2,7 +2,7 @@ using System;
 
 namespace PowerMath.Gameplay.Combat
 {
-    public sealed class LocalCombatEngine
+    public sealed class LocalCombatEngine : ILocalEncounterEngine
     {
         private readonly EnemyDefinitionData _enemyDefinition;
         private readonly IRandomSource _random;
@@ -11,6 +11,7 @@ namespace PowerMath.Gameplay.Combat
         private readonly int _maximumHearts;
         private readonly double _criticalRate;
         private readonly double _criticalDamagePercent;
+        private readonly int _effectiveAttack;
 
         private StageId _stage;
         private EnemyState _enemy;
@@ -49,10 +50,23 @@ namespace PowerMath.Gameplay.Combat
             _currentHearts = maximumHearts;
             _criticalRate = criticalRate;
             _criticalDamagePercent = criticalDamagePercent;
+            _effectiveAttack = 5;
             _stageCalculator = new StageProgressionCalculator();
             _damageCalculator = new DamageCalculator();
             _phase = CombatPhase.EnemyReady;
             _enemy = SpawnEnemy();
+        }
+
+        public LocalCombatEngine(
+            StageId startingStage,
+            EnemyDefinitionData enemyDefinition,
+            IRandomSource random,
+            int maximumHearts,
+            PlayerCombatStats stats)
+            : this(startingStage, enemyDefinition, random, maximumHearts,
+                stats.CriticalRate, stats.CriticalDamagePercent)
+        {
+            _effectiveAttack = stats.EffectiveAttack;
         }
 
         public LocalCombatEngine(
@@ -78,6 +92,7 @@ namespace PowerMath.Gameplay.Combat
             _currentHearts = restored.PlayerCurrentHearts;
             _criticalRate = criticalRate;
             _criticalDamagePercent = criticalDamagePercent;
+            _effectiveAttack = 5;
             _stageCalculator = new StageProgressionCalculator();
             _damageCalculator = new DamageCalculator();
             _phase = restored.Phase == CombatPhase.PresentingResult
@@ -89,6 +104,17 @@ namespace PowerMath.Gameplay.Combat
                 restored.EnemyMaximumHp,
                 restored.EnemyCurrentHp,
                 restored.EnemyRemainingCooldown);
+        }
+
+        public LocalCombatEngine(
+            CombatSnapshot restored,
+            EnemyDefinitionData enemyDefinition,
+            IRandomSource random,
+            PlayerCombatStats stats)
+            : this(restored, enemyDefinition, random,
+                stats.CriticalRate, stats.CriticalDamagePercent)
+        {
+            _effectiveAttack = stats.EffectiveAttack;
         }
 
         public CombatSnapshot Snapshot => CreateSnapshot();
@@ -133,11 +159,12 @@ namespace PowerMath.Gameplay.Combat
             bool isCritical = _random.NextUnit() < _criticalRate;
             DamageResult damage = _damageCalculator.Calculate(
                 new DamageInput(
-                    responseScore,
+                    _effectiveAttack,
                     rankMultiplier,
                     1d,
                     _criticalDamagePercent,
-                    isCritical
+                    isCritical,
+                    responseScore
                 )
             );
 

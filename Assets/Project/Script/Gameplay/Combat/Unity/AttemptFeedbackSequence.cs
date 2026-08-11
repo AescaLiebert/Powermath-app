@@ -24,16 +24,16 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public IEnumerator Play(AttemptResolution resolution)
         {
-            _academic.ShowAttemptOutcome(resolution.Academic);
-            if (resolution.Academic.CurrencyDelta > 0)
+            if (resolution.IsAcademic)
             {
-                _academicAudio.PlayCurrency();
+                _academic.ShowAttemptOutcome(resolution.Academic);
+                if (resolution.Academic.CurrencyDelta > 0)
+                    _academicAudio.PlayCurrency();
             }
 
             yield return _combat.Play(resolution.Combat);
-            yield return _rankTransition.Play(
-                resolution.Academic.RankTransition
-            );
+            if (resolution.IsAcademic)
+                yield return _rankTransition.Play(resolution.Academic.RankTransition);
             _academic.Render(resolution.Snapshot.Academic);
         }
 

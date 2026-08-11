@@ -59,7 +59,7 @@ namespace PowerMath.Bootstrap
 
 #if UNITY_EDITOR
             _bootstrapService = apiSettings.UseEditorSampleStudent
-                ? new EditorMockPlayerBootstrapService()
+                ? (IPlayerBootstrapService)new EditorMockPlayerBootstrapService()
                 : new DirectFirestorePlayerBootstrapService(apiSettings);
 #else
             _bootstrapService = new DirectFirestorePlayerBootstrapService(apiSettings);

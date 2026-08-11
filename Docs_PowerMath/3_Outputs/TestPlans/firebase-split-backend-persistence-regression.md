@@ -20,6 +20,23 @@
 8. Repeat with incorrect answer, timeout, and content failure.
 9. Disconnect during each save checkpoint; confirm input stays locked and a save error is shown.
 
+## Question Firebase Fallback E2E
+
+1. Keep the player Firebase project valid and disable `Use Editor Sample Student`.
+2. Clear or invalidate only the Question Firebase configuration, then authenticate an
+   existing disposable student.
+3. Confirm the combat lobby remains playable and shows the development-question/
+   Firebase-save notice instead of the unavailable screen.
+4. Press Attack; confirm the simulated presentation exposes its QA target and the
+   numpad/timer/answer sequence resolves normally.
+5. Confirm every acknowledged attempt checkpoint increments the real player document
+   revision and persists combat, audit, Rank currency, analytics, and active-run state.
+6. Stop and restart Play Mode with Question Firebase still unavailable; confirm the
+   saved Stage, HP, cooldown, hearts, Rank, currency, audit, and FIFO state rehydrate.
+7. Die during fallback play; confirm death settlement writes once and reloads Stage 1.
+8. Restore Question Firebase and confirm its canonical catalog loads instead of the
+   fallback. Use a disposable account because fallback question IDs are prototype data.
+
 ## Expected Limitation
 
 Stopping during an unacknowledged request cannot guarantee a client write. Once a checkpoint is acknowledged and the UI advances, restart must reproduce that saved state.

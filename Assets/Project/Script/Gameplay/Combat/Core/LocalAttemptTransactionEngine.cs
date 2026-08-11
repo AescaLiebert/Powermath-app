@@ -6,22 +6,39 @@ namespace PowerMath.Gameplay.Combat
 {
     public sealed class LocalAttemptTransactionEngine : IGameplaySaveRequestFactory
     {
-        private readonly LocalCombatEngine _combat;
+        private readonly ILocalEncounterEngine _combat;
         private readonly AcademicProgressionEngine _academic;
         private readonly IMonotonicClock _clock;
         private readonly double _preparationSeconds;
         private readonly double _answerSeconds;
+        private readonly EventQuestionCatalog _eventQuestions;
+        private readonly string _runId;
 
         private AcademicProgressionState _academicState;
         private ActiveAttempt _activeAttempt;
+        private string _lastAttemptId = string.Empty;
 
         public LocalAttemptTransactionEngine(
-            LocalCombatEngine combat,
+            ILocalEncounterEngine combat,
             AcademicProgressionEngine academic,
             AcademicProgressionState academicState,
             IMonotonicClock clock,
             double preparationSeconds,
             double answerSeconds)
+            : this(combat, academic, academicState, clock, preparationSeconds,
+                answerSeconds, null, "legacy-run")
+        {
+        }
+
+        public LocalAttemptTransactionEngine(
+            ILocalEncounterEngine combat,
+            AcademicProgressionEngine academic,
+            AcademicProgressionState academicState,
+            IMonotonicClock clock,
+            double preparationSeconds,
+            double answerSeconds,
+            EventQuestionCatalog eventQuestions,
+            string runId)
         {
             _combat = combat ?? throw new ArgumentNullException(nameof(combat));
             _academic = academic ?? throw new ArgumentNullException(nameof(academic));
@@ -40,6 +57,8 @@ namespace PowerMath.Gameplay.Combat
 
             _preparationSeconds = preparationSeconds;
             _answerSeconds = answerSeconds;
+            _eventQuestions = eventQuestions;
+            _runId = string.IsNullOrWhiteSpace(runId) ? "local-run" : runId;
         }
 
         public GameplaySnapshot Snapshot => CreateSnapshot();
@@ -52,14 +71,17 @@ namespace PowerMath.Gameplay.Combat
         public GameplaySaveRequest CreateSaveRequest(
             GameplaySavePoint savePoint,
             QuestionPresentationDescriptor activeQuestion = null,
-            AnswerWindowReceipt? answerWindow = null)
+            AnswerWindowReceipt? answerWindow = null,
+            AttemptResolution resolution = null)
         {
             return new GameplaySaveRequest(
                 savePoint,
                 CreateSnapshot(),
                 _academicState.ExportPersistence(),
                 activeQuestion,
-                answerWindow
+                answerWindow,
+                resolution,
+                ResolveTransactionId()
             );
         }
 
@@ -70,11 +92,13 @@ namespace PowerMath.Gameplay.Combat
                 throw new InvalidOperationException("An attempt is already committed.");
             }
 
-            QuestionReservationResult reservation = _academic.TryReserve(_academicState);
-            if (!reservation.Success)
-            {
+            CombatSnapshot combatBefore = _combat.Snapshot;
+            bool isEvent = combatBefore.IsEvent;
+            QuestionReservationResult reservation = isEvent
+                ? default
+                : _academic.TryReserve(_academicState);
+            if (!isEvent && !reservation.Success)
                 throw new InvalidOperationException(reservation.Error);
-            }
 
             try
             {
@@ -82,22 +106,38 @@ namespace PowerMath.Gameplay.Combat
             }
             catch
             {
-                _academic.VoidReservation(
-                    reservation.State,
-                    reservation.Reservation
-                );
+                if (!isEvent)
+                    _academic.VoidReservation(reservation.State, reservation.Reservation);
                 throw;
             }
 
-            _academicState = reservation.State;
-            _activeAttempt = new ActiveAttempt(reservation.Reservation);
-            QuestionDefinition question = reservation.Reservation.Question;
+            QuestionDefinition question;
+            if (isEvent)
+            {
+                if (_eventQuestions == null)
+                {
+                    _combat.VoidContentFailure();
+                    throw new InvalidOperationException("Event question catalog is unavailable.");
+                }
+                question = _eventQuestions.Select(combatBefore.QuestionDocumentId,
+                    _runId, combatBefore.Stage, combatBefore.EventAttemptOrdinal);
+                _activeAttempt = ActiveAttempt.ForEvent(question, combatBefore.EnemyId,
+                    combatBefore.QuestionDocumentId);
+            }
+            else
+            {
+                _academicState = reservation.State;
+                question = reservation.Reservation.Question;
+                _activeAttempt = ActiveAttempt.ForAcademic(reservation.Reservation);
+            }
             var descriptor = new QuestionPresentationDescriptor(
                 question.Id,
-                reservation.Reservation.RankAtCommit,
+                isEvent ? question.Rank : reservation.Reservation.RankAtCommit,
                 question.VideoUri,
                 $"QA target answer: {question.CorrectAnswer}",
-                question.YouTubeVideoId
+                question.YouTubeVideoId,
+                isEvent ? QuestionContentKind.EventQuestion : QuestionContentKind.RankQuestion,
+                isEvent ? combatBefore.QuestionDocumentId : string.Empty
             );
             return new AttemptCommit(
                 descriptor,
@@ -109,7 +149,7 @@ namespace PowerMath.Gameplay.Combat
         public AnswerWindowReceipt OpenAnswerWindow(QuestionId questionId)
         {
             EnsureActiveAttempt();
-            if (_activeAttempt.Reservation.Question.Id != questionId)
+            if (_activeAttempt.Question.Id != questionId)
             {
                 throw new InvalidOperationException(
                     "The presented question does not match the committed question."
@@ -142,7 +182,7 @@ namespace PowerMath.Gameplay.Combat
                 out int submittedAnswer
             );
             bool correct = parsed &&
-                submittedAnswer == _activeAttempt.Reservation.Question.CorrectAnswer;
+                submittedAnswer == _activeAttempt.Question.CorrectAnswer;
             if (!correct)
             {
                 return Resolve(QuestionOutcome.Incorrect, 0);
@@ -171,11 +211,11 @@ namespace PowerMath.Gameplay.Combat
         public GameplaySnapshot VoidContentFailure()
         {
             EnsureActiveAttempt();
-            _academicState = _academic.VoidReservation(
-                _academicState,
-                _activeAttempt.Reservation
-            );
+            if (_activeAttempt.IsAcademic)
+                _academicState = _academic.VoidReservation(
+                    _academicState, _activeAttempt.Reservation);
             _combat.VoidContentFailure();
+            _lastAttemptId = _activeAttempt.AttemptId;
             _activeAttempt = null;
             return CreateSnapshot();
         }
@@ -190,24 +230,42 @@ namespace PowerMath.Gameplay.Combat
             QuestionOutcome outcome,
             int responseScore)
         {
-            QuestionReservation reservation = _activeAttempt.Reservation;
+            int responseDurationMilliseconds = (int)Math.Max(0d, Math.Min(
+                int.MaxValue,
+                Math.Round((_clock.NowSeconds -
+                    (_activeAttempt.PreparationEndsAt - _preparationSeconds)) * 1000d)));
+            ActiveAttempt active = _activeAttempt;
             bool correct = outcome == QuestionOutcome.Correct;
             CombatResolution combat = correct
                 ? _combat.ResolveCorrect(
                     responseScore,
-                    reservation.RankAtCommit.DamageMultiplier
+                    active.IsAcademic
+                        ? active.Reservation.RankAtCommit.DamageMultiplier
+                        : 1d
                 )
                 : _combat.ResolveIncorrect(outcome == QuestionOutcome.Timeout);
-            AcademicMutationResult academic = _academic.Resolve(
-                _academicState,
-                reservation,
-                outcome,
-                responseScore
-            );
-            _academicState = academic.State;
+            AcademicAttemptResult academicResult = null;
+            EventAttemptResult eventResult = null;
+            if (active.IsAcademic)
+            {
+                AcademicMutationResult academic = _academic.Resolve(
+                    _academicState, active.Reservation, outcome, responseScore);
+                _academicState = academic.State;
+                academicResult = academic.Attempt;
+            }
+            else
+            {
+                eventResult = new EventAttemptResult(active.EventId,
+                    active.QuestionDocumentId, active.Question.Id, outcome, responseScore);
+            }
+            _lastAttemptId = active.AttemptId;
             _activeAttempt = null;
             GameplaySnapshot snapshot = CreateSnapshot();
-            return new AttemptResolution(academic.Attempt, combat, snapshot);
+            return active.IsAcademic
+                ? new AttemptResolution(academicResult, combat, snapshot,
+                    responseDurationMilliseconds)
+                : new AttemptResolution(eventResult, combat, snapshot,
+                    responseDurationMilliseconds);
         }
 
         private GameplaySnapshot CreateSnapshot()
@@ -237,12 +295,30 @@ namespace PowerMath.Gameplay.Combat
 
         private sealed class ActiveAttempt
         {
-            public ActiveAttempt(QuestionReservation reservation)
+            private ActiveAttempt(QuestionDefinition question,
+                QuestionReservation? reservation, string eventId,
+                string questionDocumentId)
             {
-                Reservation = reservation;
+                Question = question ?? throw new ArgumentNullException(nameof(question));
+                _reservation = reservation;
+                EventId = eventId ?? string.Empty;
+                QuestionDocumentId = questionDocumentId ?? string.Empty;
+                AttemptId = Guid.NewGuid().ToString("N");
             }
 
-            public QuestionReservation Reservation { get; }
+            public static ActiveAttempt ForAcademic(QuestionReservation reservation) =>
+                new ActiveAttempt(reservation.Question, reservation, string.Empty, string.Empty);
+            public static ActiveAttempt ForEvent(QuestionDefinition question,
+                string eventId, string documentId) =>
+                new ActiveAttempt(question, null, eventId, documentId);
+
+            public QuestionDefinition Question { get; }
+            public QuestionReservation Reservation => _reservation.Value;
+            public bool IsAcademic => _reservation.HasValue;
+            public string EventId { get; }
+            public string QuestionDocumentId { get; }
+            public string AttemptId { get; }
+            private readonly QuestionReservation? _reservation;
             public bool WindowOpen { get; private set; }
             public double PreparationEndsAt { get; private set; }
             public double AnswerEndsAt { get; private set; }
@@ -255,6 +331,13 @@ namespace PowerMath.Gameplay.Combat
                 AnswerEndsAt = answerEndsAt;
                 WindowOpen = true;
             }
+        }
+
+        private string ResolveTransactionId()
+        {
+            if (_activeAttempt != null) return _activeAttempt.AttemptId;
+            if (!string.IsNullOrEmpty(_lastAttemptId)) return _lastAttemptId;
+            return Guid.NewGuid().ToString("N");
         }
     }
 }

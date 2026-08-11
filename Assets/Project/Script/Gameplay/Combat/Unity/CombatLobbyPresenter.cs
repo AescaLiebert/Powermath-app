@@ -216,7 +216,9 @@ namespace PowerMath.Gameplay.Combat.Unity
             _view.SetAnswerInputEnabled(false);
             _view.SetResult("SAVING RESULT...", true);
             Save(
-                _saveRequests.CreateSaveRequest(GameplaySavePoint.AttemptResolved),
+                _saveRequests.CreateSaveRequest(
+                    GameplaySavePoint.AttemptResolved,
+                    resolution: resolution),
                 () => _runner.RunCombatRoutine(ResolutionRoutine(resolution)));
         }
 
@@ -236,6 +238,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         private IEnumerator ResolutionRoutine(AttemptResolution resolution)
         {
             yield return _feedback.Play(resolution);
+            if (resolution.Combat.BiomeChanged)
+                yield return _view.PlayBiomeTransition(resolution.Snapshot.Combat);
             GameplaySnapshot snapshot = _coordinator.CompletePresentation();
             bool saved = false;
             Save(

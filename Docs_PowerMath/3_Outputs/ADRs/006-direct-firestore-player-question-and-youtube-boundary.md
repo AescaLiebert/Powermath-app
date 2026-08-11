@@ -25,7 +25,12 @@ The direct-Firestore prototype now needs to initialize missing fields for existi
 - Keep question content shared and player audit/FIFO/history state inside the student's `gamedata.academic` map.
 - Gate each local attempt checkpoint with Firestore persistence and revisioned transaction receipts. Content, answer input, result feedback, and the next Attack remain blocked until the corresponding mutation is acknowledged or fails closed.
 - Embed the official YouTube IFrame Player over the Unity WebGL canvas through a project-owned `.jslib`; use Editor mocks and no third-party package.
-- Do not silently substitute development fixtures in production.
+- If shared Question Firebase cannot be configured or loaded after an authenticated
+  player snapshot exists, explicitly fall back to the bundled development question
+  catalog and simulated video presentation. Keep player attempts, combat, academic
+  progression, settlement, and economy writes on the real player Firebase project.
+- Surface the fallback through a player-visible startup notice and a diagnostic warning;
+  never present simulated question content as live Question Firebase content.
 
 ## Alternatives Considered
 
@@ -37,6 +42,8 @@ The direct-Firestore prototype now needs to initialize missing fields for existi
 | Native Unity `VideoPlayer` with YouTube watch URL | Unity-rendered texture | Watch URLs are webpages, not direct media resources |
 | External YouTube tab | Simplest and Editor-compatible | Breaks flow and cannot receive reliable ended/error events |
 | **Shallow REST adapter plus IFrame bridge** | No new package; exact schema; in-game video events | WebGL-specific DOM overlay and custom bridge tests required |
+| Fail closed when Question Firebase is offline | Protects canonical content identity | Blocks authenticated player and persistence testing |
+| **Explicit local-content/real-save fallback** | Keeps the full player save path testable without the content project | Development question results can enter the prototype academic history |
 
 ## Consequences
 
@@ -47,6 +54,8 @@ The direct-Firestore prototype now needs to initialize missing fields for existi
 - Numeric Rank-scoped IDs match the approved content authoring model.
 - YouTube completion/error can participate in the committed attempt state machine.
 - Parser, mapper, and patch policy are deterministic and fake-transport testable.
+- Authenticated Firebase users can exercise authoritative saves when the separate
+  Question Firebase project is absent or temporarily unavailable.
 
 ### Negative / Trade-offs
 
@@ -54,6 +63,8 @@ The direct-Firestore prototype now needs to initialize missing fields for existi
 - Shared level documents create contention; precondition retry mitigates but does not remove it.
 - Three Rank documents have Firestore document-size limits and whole-document read cost.
 - The YouTube DOM element is visually over the Unity canvas, not a Unity texture, and Editor cannot render it.
+- Fallback attempts use development answers and can update the prototype player's
+  academic queues, Rank, currency, and analytics in the real player project.
 - Attempt gateway/presenter contracts require asynchronous migration.
 - Legacy `game1` data remains until a separately approved cleanup.
 

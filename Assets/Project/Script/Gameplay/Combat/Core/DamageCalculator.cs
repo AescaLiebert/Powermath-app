@@ -2,6 +2,31 @@ using System;
 
 namespace PowerMath.Gameplay.Combat
 {
+    public static class ResponseDamagePolicy
+    {
+        public const int MinimumScore = 1;
+        public const int MaximumScore = 10;
+        public const int PercentPerPoint = 20;
+
+        public static double GetMultiplier(int responseScore)
+        {
+            Validate(responseScore);
+            return responseScore * PercentPerPoint / 100d;
+        }
+
+        public static int GetPercent(int responseScore)
+        {
+            Validate(responseScore);
+            return checked(responseScore * PercentPerPoint);
+        }
+
+        private static void Validate(int responseScore)
+        {
+            if (responseScore < MinimumScore || responseScore > MaximumScore)
+                throw new ArgumentOutOfRangeException(nameof(responseScore));
+        }
+    }
+
     public readonly struct DamageInput
     {
         public DamageInput(
@@ -9,7 +34,8 @@ namespace PowerMath.Gameplay.Combat
             double rankMultiplier,
             double buffMultiplier,
             double criticalDamagePercent,
-            bool isCritical)
+            bool isCritical,
+            int responseScore)
         {
             if (effectiveAttack < 0)
             {
@@ -30,6 +56,9 @@ namespace PowerMath.Gameplay.Combat
             BuffMultiplier = buffMultiplier;
             CriticalDamagePercent = criticalDamagePercent;
             IsCritical = isCritical;
+            ResponseScore = responseScore;
+            ResponseDamageMultiplier =
+                ResponseDamagePolicy.GetMultiplier(responseScore);
         }
 
         public int EffectiveAttack { get; }
@@ -41,15 +70,24 @@ namespace PowerMath.Gameplay.Combat
         public double CriticalDamagePercent { get; }
 
         public bool IsCritical { get; }
+
+        public int ResponseScore { get; }
+
+        public double ResponseDamageMultiplier { get; }
     }
 
     public readonly struct DamageResult
     {
-        public DamageResult(int finalDamage, double unroundedDamage, bool isCritical)
+        public DamageResult(
+            int finalDamage,
+            double unroundedDamage,
+            bool isCritical,
+            double responseDamageMultiplier)
         {
             FinalDamage = finalDamage;
             UnroundedDamage = unroundedDamage;
             IsCritical = isCritical;
+            ResponseDamageMultiplier = responseDamageMultiplier;
         }
 
         public int FinalDamage { get; }
@@ -57,6 +95,8 @@ namespace PowerMath.Gameplay.Combat
         public double UnroundedDamage { get; }
 
         public bool IsCritical { get; }
+
+        public double ResponseDamageMultiplier { get; }
     }
 
     public sealed class DamageCalculator
@@ -70,14 +110,19 @@ namespace PowerMath.Gameplay.Combat
             double unrounded = input.EffectiveAttack *
                 input.RankMultiplier *
                 input.BuffMultiplier *
-                criticalMultiplier;
+                criticalMultiplier *
+                input.ResponseDamageMultiplier;
 
             int rounded = (int)Math.Round(
                 unrounded,
                 MidpointRounding.AwayFromZero
             );
 
-            return new DamageResult(Math.Max(1, rounded), unrounded, input.IsCritical);
+            return new DamageResult(
+                Math.Max(1, rounded),
+                unrounded,
+                input.IsCritical,
+                input.ResponseDamageMultiplier);
         }
     }
 }

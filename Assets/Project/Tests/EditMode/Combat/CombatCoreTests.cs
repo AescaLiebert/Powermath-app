@@ -33,11 +33,46 @@ namespace PowerMath.Gameplay.Combat.Tests
         {
             DamageCalculator calculator = new DamageCalculator();
             DamageResult result = calculator.Calculate(
-                new DamageInput(5, 1d, 1d, 50d, true)
+                new DamageInput(5, 1d, 1d, 50d, true, 5)
             );
 
             Assert.That(result.UnroundedDamage, Is.EqualTo(7.5d));
             Assert.That(result.FinalDamage, Is.EqualTo(8));
+        }
+
+        [TestCase(1, 20, 10)]
+        [TestCase(2, 40, 20)]
+        [TestCase(3, 60, 30)]
+        [TestCase(4, 80, 40)]
+        [TestCase(5, 100, 50)]
+        [TestCase(6, 120, 60)]
+        [TestCase(7, 140, 70)]
+        [TestCase(8, 160, 80)]
+        [TestCase(9, 180, 90)]
+        [TestCase(10, 200, 100)]
+        public void DamageCalculator_AppliesResponseScoreMultiplier(
+            int responseScore,
+            int expectedPercent,
+            int expectedDamage)
+        {
+            DamageResult result = new DamageCalculator().Calculate(
+                new DamageInput(50, 1d, 1d, 0d, false, responseScore));
+
+            Assert.That(
+                ResponseDamagePolicy.GetPercent(responseScore),
+                Is.EqualTo(expectedPercent));
+            Assert.That(result.FinalDamage, Is.EqualTo(expectedDamage));
+            Assert.That(
+                result.ResponseDamageMultiplier,
+                Is.EqualTo(expectedPercent / 100d));
+        }
+
+        [TestCase(0)]
+        [TestCase(11)]
+        public void DamageCalculator_RejectsInvalidCorrectResponseScore(int responseScore)
+        {
+            Assert.Throws<System.ArgumentOutOfRangeException>(() =>
+                new DamageInput(50, 1d, 1d, 0d, false, responseScore));
         }
 
         [Test]
@@ -156,6 +191,8 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(result.Academic.IsCorrect, Is.True);
             Assert.That(result.Academic.CurrencyDelta, Is.EqualTo(1));
             Assert.That(result.Snapshot.Academic.Balances.Gold, Is.EqualTo(1));
+            Assert.That(result.Combat.ResponseScore, Is.EqualTo(10));
+            Assert.That(result.Combat.ResponseDamagePercent, Is.EqualTo(200));
             Assert.That(result.Combat.FinalDamage, Is.EqualTo(15));
         }
 

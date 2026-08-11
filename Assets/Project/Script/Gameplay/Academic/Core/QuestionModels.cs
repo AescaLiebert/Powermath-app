@@ -3,6 +3,12 @@ using System.Globalization;
 
 namespace PowerMath.Gameplay.Academic
 {
+    public enum QuestionContentKind
+    {
+        RankQuestion,
+        EventQuestion
+    }
+
     public readonly struct QuestionId : IEquatable<QuestionId>
     {
         private readonly long _value;
@@ -119,12 +125,27 @@ namespace PowerMath.Gameplay.Academic
             Uri videoUri,
             string developmentPrompt,
             string youtubeVideoId = "")
+            : this(id, rank, videoUri, developmentPrompt, youtubeVideoId,
+                QuestionContentKind.RankQuestion, string.Empty)
+        {
+        }
+
+        public QuestionPresentationDescriptor(
+            QuestionId id,
+            AcademicRank rank,
+            Uri videoUri,
+            string developmentPrompt,
+            string youtubeVideoId,
+            QuestionContentKind contentKind,
+            string sourceId)
         {
             Id = id;
             Rank = rank;
             VideoUri = videoUri ?? throw new ArgumentNullException(nameof(videoUri));
             DevelopmentPrompt = developmentPrompt ?? string.Empty;
             YouTubeVideoId = youtubeVideoId ?? string.Empty;
+            ContentKind = contentKind;
+            SourceId = sourceId ?? string.Empty;
         }
 
         public QuestionId Id { get; }
@@ -132,5 +153,7 @@ namespace PowerMath.Gameplay.Academic
         public Uri VideoUri { get; }
         public string DevelopmentPrompt { get; }
         public string YouTubeVideoId { get; }
+        public QuestionContentKind ContentKind { get; }
+        public string SourceId { get; }
     }
 }

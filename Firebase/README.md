@@ -19,6 +19,11 @@ question                            collection
   silver                            document -> Silver Rank questions
   gold                              document -> Gold Rank questions
   diamond                           document -> Diamond Rank questions
+
+leaderboard-public                  sanitized projection collection
+  level1                            document -> Grade 4 public entries
+  level2                            document -> Grade 5 public entries
+  level3                            document -> Grade 6 public entries
 ```
 
 The username note above means the account username is a string; it does not need to be numeric. Passwords such as `001234` must remain Firestore strings so leading zeroes survive.
@@ -32,18 +37,27 @@ An empty `game1` map is valid and opens Main Menu with safe defaults: the userna
 These optional fields match the current Unity `PlayerSnapshot`:
 
 - `revision`: integer
-- `profile`: map containing `displayName` and `iconId` strings
-- `progression`: map containing `currentStage`, `highestStage`, `activeRank`, `rankProgress`, `prestige`, and `firstStage200Reached`
+- `profile`: map containing `displayName`, `iconId`, `publicPlayerId`, and integer `displayNameChangedAtUnixSeconds`
+- `progression`: map containing `currentStage`, lifetime `highestStage`, `activeRank`, `rankProgress`, `prestige`, `legacyAtkBonusBasisPoints`, `firstStage200Reached`, integer `firstStage200ReachedAtUnixSeconds`, and integer `totalDamage`
 - `wallet`: map containing integer `silver`, `gold`, `diamond`, and `powerCoins`
 - `inventory`: array of maps containing `itemId`, `owned`, and `upgradeLevel`
 - `loadout`: map containing `petId`, `weaponId`, and `avatarId`
-- `activeRun`: map containing `runId`, `currentStage`, and `committedAttemptId`
+- `activeRun`: map containing `runId`, `currentStage`, biome/encounter identity, encounter kind and HP/cooldown state, Event question source/attempt ordinal, `committedAttemptId`, run-only `silverEarned`/`goldEarned`/`diamondEarned`, and `bonusMultiplierBasisPoints`
+- `economy`: last accepted Weapon Ascend transaction ID, resulting level, and cost receipt
+- `lastRunSettlement`: idempotency receipt containing the settled run ID, settlement type, Stage/rewards, and resulting Power Coin balance
+- `analytics`: map containing resolved outcome totals, response score/efficiency sums, play time, last applied attempt ID, and per-Rank aggregates
 
-`game2`, `temp`, and all leaderboard behavior are intentionally out of scope.
+`game2` and `temp` remain out of scope.
+
+## Public leaderboard projection
+
+Pre-create `leaderboard-public/level1`, `level2`, and `level3` with an immutable `_meta` map. Unity adds or replaces one map field keyed by the player's opaque `publicPlayerId`. Each player entry contains only `displayName`, avatar/pet/weapon IDs, current/highest stage, silver/gold/diamond balances, `weightedCurrencyScore`, `totalDamage`, and `entryRevision`. Never copy usernames, passwords, audit scores, or private analytics into this collection.
+
+Unity reads exactly the signed-in student's level document when the leaderboard opens or the student presses Refresh. It does not poll. Ranking orders highest stage first, then `silver*5 + gold*7 + diamond*10`, with shared competition ranks for exact score ties. The sanitized projection also includes Weapon Ascend level for the leaderboard loadout display.
 
 ## Firestore rules
 
-Review and manually publish `Firebase/firestore.rules` in **Firestore Database > Rules**. The rules allow unauthenticated GET requests for the three grade documents and allow an update only when it changes exactly one existing top-level student map without adding or removing student keys. Lists, creates, and deletes remain denied.
+Review and manually publish `Firebase/firestore.rules` in **Firestore Database > Rules**. This repository update does not publish rules. The rules allow unauthenticated GET requests for the three private grade documents and three sanitized leaderboard documents. Private grade updates may change only one existing student map. Public leaderboard updates may add or replace one public-player map while preserving `_meta`. Lists, document creates, and deletes remain denied.
 
 The update rule supports the ADR-006 missing-default repair and player persistence flow. It is still prototype-only authorization: because the client does not use Firebase Authentication and students are dynamic fields inside shared grade documents, Firestore rules cannot prove that an anonymous caller owns the one student map being changed.
 
