@@ -357,7 +357,13 @@ namespace PowerMath.Session
                 {
                     lastWeaponAscendTransactionId = ReadString(economy, "lastWeaponAscendTransactionId"),
                     lastWeaponAscendLevel = ReadInt(economy, "lastWeaponAscendLevel"),
-                    lastWeaponAscendCost = ReadLong(economy, "lastWeaponAscendCost")
+                    lastWeaponAscendCost = ReadLong(economy, "lastWeaponAscendCost"),
+                    lastPetGachaTransactionId = ReadString(economy, "lastPetGachaTransactionId"),
+                    lastPetGachaCatalogVersion = ReadString(economy, "lastPetGachaCatalogVersion"),
+                    lastPetGachaPetId = ReadString(economy, "lastPetGachaPetId"),
+                    lastPetGachaWasNew = ReadBool(economy, "lastPetGachaWasNew"),
+                    lastPetGachaCost = ReadLong(economy, "lastPetGachaCost"),
+                    lastPetGachaResultingPowerCoins = ReadLong(economy, "lastPetGachaResultingPowerCoins")
                 },
                 lastRunSettlement = new PlayerSnapshot.RunSettlementData
                 {

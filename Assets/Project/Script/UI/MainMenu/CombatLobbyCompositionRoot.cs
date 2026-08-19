@@ -6,6 +6,7 @@ using PowerMath.Gameplay.Academic.Infrastructure;
 using PowerMath.Gameplay.Academic.Unity;
 using PowerMath.Gameplay.Combat;
 using PowerMath.Gameplay.Combat.Unity;
+using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
 using PowerMath.Session;
@@ -35,6 +36,9 @@ namespace PowerMath.UI.MainMenu
         [Tooltip("Ordered visual/name milestones for the persistent Weapon Ascend system.")]
         [SerializeField] private WeaponAscensionCatalogDefinition weaponAscensionCatalog;
 
+        [Tooltip("Versioned rarity rates and production pet presentation for Pet Gacha.")]
+        [SerializeField] private PetGachaCatalogDefinition petGachaCatalog;
+
         private CombatLobbyPresenter _presenter;
         private CombatLobbyView _view;
         private IQuestionCatalogRepository _questionCatalogRepository;
@@ -52,6 +56,8 @@ namespace PowerMath.UI.MainMenu
                     "CombatRuntimeSettings");
             if (weaponAscensionCatalog == null)
                 weaponAscensionCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
+            if (petGachaCatalog == null)
+                petGachaCatalog = Resources.Load<PetGachaCatalogDefinition>("PetGachaCatalog");
             UIDocument document = GetComponent<UIDocument>();
             if (document == null || document.rootVisualElement == null)
             {
@@ -435,10 +441,13 @@ namespace PowerMath.UI.MainMenu
                         snapshot,
                         catalog,
                         weaponAscensionCatalog,
+                        petGachaCatalog,
                         baseAttack,
                         baseWeaponAttack,
                         criticalRate,
-                        criticalDamage);
+                        criticalDamage,
+                        source,
+                        runtimeSettings != null && runtimeSettings.ReducedMotion);
                 }
                 catch (System.Exception exception)
                 {
@@ -449,6 +458,7 @@ namespace PowerMath.UI.MainMenu
             {
                 GetComponent<UIDocument>().rootVisualElement.Q<Button>("rebirth-button").style.display = DisplayStyle.None;
                 GetComponent<UIDocument>().rootVisualElement.Q<Button>("player-hub-button").style.display = DisplayStyle.None;
+                GetComponent<UIDocument>().rootVisualElement.Q<Button>("pet-gacha-button").style.display = DisplayStyle.None;
             }
         }
 

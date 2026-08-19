@@ -1,0 +1,16 @@
+{
+  "name": "PowerMath.Gameplay.Pets.Unity",
+  "rootNamespace": "PowerMath.Gameplay.Pets",
+  "references": [
+    "PowerMath.Gameplay.Pets.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,23 @@
+{
+  "name": "PowerMath.Gameplay.Pets.UnityEditModeTests",
+  "rootNamespace": "PowerMath.Gameplay.Pets.Unity.Tests",
+  "references": [
+    "PowerMath.Gameplay.Pets.Core",
+    "PowerMath.Gameplay.Pets.Unity"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

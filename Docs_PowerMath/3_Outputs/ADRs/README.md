@@ -13,6 +13,7 @@ graph TD
     ADR007["ADR-007: Direct Firestore Social Projection and Private Analytics Boundary"]
     ADR008["ADR-008: Atomic Run Settlement and Weapon Ascension"]
     ADR009["ADR-009: Data-Driven Stage Map and Encounter Runtime"]
+    ADR010["ADR-010: Direct-Firestore Pet Gacha Prototype"]
     ADR002 -- "supersedes" --> ADR001
     ADR003 -- "supersedes" --> ADR002
     ADR004 -- "extends prototype composition" --> ADR003
@@ -26,6 +27,8 @@ graph TD
     ADR009 -- "adds separate Event question path" --> ADR005
     ADR009 -- "extends encounter persistence" --> ADR006
     ADR009 -- "preserves run settlement contract" --> ADR008
+    ADR010 -- "extends direct persistence" --> ADR006
+    ADR010 -- "shares atomic Power Coin boundary" --> ADR008
 ```
 
 Update this diagram as ADRs are added. Show which decisions depend on others.
@@ -43,6 +46,7 @@ Update this diagram as ADRs are added. Show which decisions depend on others.
 | [007](007-direct-firestore-social-profile-projection.md) | Direct Firestore Social Projection and Private Analytics Boundary | **Accepted** | Social/profile data | One-read cohort projection, private owner analytics, manual refresh |
 | [008](008-atomic-run-settlement-and-weapon-ascension.md) | Atomic Run Settlement and Weapon Ascension | **Accepted** | Run reset/economy | Shared stat projection, Player Hub, and structured Rebirth preview implemented |
 | [009](009-data-driven-stage-map-and-encounter-runtime.md) | Data-Driven Stage Map and Encounter Runtime | **Accepted** | Stage/encounter infrastructure | Architecture approved; implementation in progress |
+| [010](010-direct-firestore-pet-gacha-prototype.md) | Direct-Firestore Pet Gacha Prototype | **Accepted** | Pet ownership/economy | Client RNG limitation accepted for prototype; production catalog pending |
 
 ## Phase Mapping
 

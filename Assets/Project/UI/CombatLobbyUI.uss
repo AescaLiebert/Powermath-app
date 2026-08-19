@@ -447,6 +447,228 @@
     -unity-text-align: middle-center;
 }
 
+.pet-gacha-card {
+    width: 820px;
+    max-width: 92%;
+    height: 90%;
+    border-left-color: rgb(91, 208, 169);
+    border-right-color: rgb(91, 208, 169);
+    border-top-color: rgb(91, 208, 169);
+    border-bottom-color: rgb(91, 208, 169);
+}
+
+.pet-gacha-wallet-row {
+    margin-top: 15px;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.pet-gacha-wallet {
+    width: 32%;
+    min-height: 62px;
+    padding: 12px;
+    color: white;
+    background-color: rgb(45, 67, 103);
+    border-radius: 12px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.pet-gacha-wallet--projected {
+    background-color: rgb(42, 101, 78);
+}
+
+.pet-gacha-catalog-status {
+    margin-top: 14px;
+    color: rgb(193, 224, 255);
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-odds-list {
+    flex-grow: 1;
+    margin-top: 8px;
+    padding: 10px;
+    background-color: rgba(13, 22, 42, 0.65);
+    border-radius: 14px;
+}
+
+.pet-gacha-rarity-header {
+    margin-top: 8px;
+    padding: 9px 12px;
+    color: rgb(255, 223, 130);
+    background-color: rgb(55, 66, 98);
+    border-radius: 9px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-odds-row {
+    min-height: 42px;
+    padding: 8px 12px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(177, 198, 229, 0.28);
+}
+
+.pet-gacha-pet-unowned,
+.pet-gacha-pet-owned,
+.pet-gacha-probability {
+    color: white;
+    font-size: 16px;
+}
+
+.pet-gacha-pet-owned {
+    color: rgb(180, 191, 211);
+}
+
+.pet-gacha-probability {
+    -unity-font-style: bold;
+}
+
+.pet-gacha-warning {
+    margin-top: 10px;
+    padding: 10px;
+    color: rgb(255, 222, 157);
+    background-color: rgb(91, 58, 40);
+    border-radius: 10px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-status {
+    min-height: 24px;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-pull {
+    min-width: 190px;
+    height: 54px;
+    margin-top: 9px;
+    align-self: center;
+    color: white;
+    background-color: rgb(39, 139, 102);
+    border-radius: 14px;
+    font-size: 19px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(5, 10, 25, 0.92);
+}
+
+.pet-gacha-confirmation-card,
+.pet-gacha-result-card {
+    width: 560px;
+    max-width: 88%;
+    padding: 28px;
+    align-items: center;
+    background-color: rgb(34, 50, 82);
+    border-width: 3px;
+    border-color: rgb(94, 204, 169);
+    border-radius: 22px;
+}
+
+.pet-gacha-overlay-title {
+    color: white;
+    font-size: 29px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-confirmation-summary {
+    margin-top: 15px;
+    color: rgb(221, 231, 247);
+    font-size: 18px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-actions {
+    margin-top: 16px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.pet-gacha-actions > Button {
+    margin-left: 7px;
+    margin-right: 7px;
+}
+
+.pet-gacha-confirm {
+    margin-top: 0;
+}
+
+.pet-gacha-result-card {
+    transition-property: scale, opacity;
+    transition-duration: 0.18s;
+}
+
+.pet-gacha-result--reveal .pet-gacha-result-card {
+    scale: 1.04 1.04;
+}
+
+.pet-gacha-result--new .pet-gacha-result-card {
+    border-color: rgb(255, 211, 92);
+    background-color: rgb(55, 66, 105);
+}
+
+.pet-gacha-result--duplicate .pet-gacha-result-card {
+    border-color: rgb(135, 154, 186);
+    background-color: rgb(46, 56, 78);
+}
+
+.pet-gacha-result-rarity {
+    color: rgb(255, 223, 130);
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-result-icon {
+    width: 190px;
+    height: 190px;
+    margin-top: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+    background-color: rgba(12, 21, 41, 0.72);
+    border-radius: 22px;
+}
+
+.pet-gacha-result-name {
+    margin-top: 12px;
+    color: white;
+    font-size: 32px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-result-state {
+    margin-top: 8px;
+    color: rgb(110, 241, 154);
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-result--duplicate .pet-gacha-result-state {
+    color: rgb(210, 219, 235);
+}
+
+.pet-gacha-result-balance {
+    margin-top: 8px;
+    color: rgb(255, 221, 111);
+    font-size: 17px;
+    -unity-font-style: bold;
+}
+
 .combat-hud {
     position: absolute;
     top: 0;

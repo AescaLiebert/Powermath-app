@@ -8,6 +8,7 @@
                     <ui:Button text="RANK" name="leaderboard" style="position: absolute; top: 25px; left: auto; right: 193px; font-size: 17px; -unity-font-style: bold; width: 100px; height: 52px; color: rgb(255, 255, 255); background-color: rgb(68, 114, 184);"/>
                     <ui:Button text="REBIRTH" name="rebirth-button" style="position: absolute; top: 92px; right: 193px; width: 120px; height: 45px; -unity-font-style: bold; background-color: rgb(126, 82, 180); color: white;"/>
                     <ui:Button text="PLAYER HUB" name="player-hub-button" style="position: absolute; top: 92px; right: 325px; width: 145px; height: 45px; -unity-font-style: bold; background-color: rgb(214, 135, 42); color: white;"/>
+                    <ui:Button text="PET GACHA" name="pet-gacha-button" style="position: absolute; top: 92px; right: 482px; width: 135px; height: 45px; -unity-font-style: bold; background-color: rgb(75, 145, 122); color: white;"/>
                     <ui:Button text="Log Out" name="logout-button" style="position: absolute; top: 25px; left: auto; right: 330px; min-width: 120px; height: 52px; color: rgb(255, 255, 255); background-color: rgb(91, 102, 136); font-size: 18px; -unity-font-style: bold;"/>
                     <ui:Label text="" name="session-status" style="position: absolute; top: 85px; right: 330px; width: 260px; color: rgb(255, 180, 180); font-size: 14px; white-space: normal; -unity-text-align: middle-right;"/>
                     <ui:Label name="combat-stage-label" text="STAGE 1 / 200" class="combat-stage-label"/>
@@ -159,6 +160,47 @@
                         <ui:Label name="player-hub-status" text="" class="social-status player-hub-status"/>
                     </ui:VisualElement>
                 </ui:ScrollView>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="pet-gacha-modal" enabled="true" class="social-modal" style="display: none;">
+            <ui:VisualElement class="social-modal-card pet-gacha-card">
+                <ui:VisualElement class="social-modal-header">
+                    <ui:VisualElement>
+                        <ui:Label text="PET GACHA" class="social-title"/>
+                        <ui:Label text="Review every current probability before spending." class="social-subtitle"/>
+                    </ui:VisualElement>
+                    <ui:Button name="pet-gacha-close" text="CLOSE" class="social-close"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="pet-gacha-wallet-row">
+                    <ui:Label name="pet-gacha-balance" text="YOUR POWER COINS: 0" class="pet-gacha-wallet"/>
+                    <ui:Label name="pet-gacha-cost" text="ONE PULL: 25 POWER COINS" class="pet-gacha-wallet"/>
+                    <ui:Label name="pet-gacha-projected-balance" text="AFTER PULL: 0" class="pet-gacha-wallet pet-gacha-wallet--projected"/>
+                </ui:VisualElement>
+                <ui:Label name="pet-gacha-catalog-status" text="CURRENT ODDS" class="pet-gacha-catalog-status"/>
+                <ui:ScrollView name="pet-gacha-odds-list" class="pet-gacha-odds-list"/>
+                <ui:Label name="pet-gacha-warning" text="Owned pets can be empty duplicates." class="pet-gacha-warning"/>
+                <ui:Label name="pet-gacha-status" text="" class="social-status pet-gacha-status"/>
+                <ui:Button name="pet-gacha-pull" text="PULL FOR 25" class="pet-gacha-pull"/>
+                <ui:VisualElement name="pet-gacha-confirmation" class="pet-gacha-overlay" style="display: none;">
+                    <ui:VisualElement class="pet-gacha-confirmation-card">
+                        <ui:Label text="CONFIRM YOUR PULL" class="pet-gacha-overlay-title"/>
+                        <ui:Label name="pet-gacha-confirmation-summary" text="Spend 25 Power Coins?" class="pet-gacha-confirmation-summary"/>
+                        <ui:VisualElement class="pet-gacha-actions">
+                            <ui:Button name="pet-gacha-cancel" text="CANCEL" class="social-close"/>
+                            <ui:Button name="pet-gacha-confirm" text="CONFIRM PULL" class="pet-gacha-pull pet-gacha-confirm"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="pet-gacha-result" class="pet-gacha-overlay pet-gacha-result" style="display: none;">
+                    <ui:VisualElement class="pet-gacha-result-card">
+                        <ui:Label name="pet-gacha-result-rarity" text="RARITY" class="pet-gacha-result-rarity"/>
+                        <ui:VisualElement name="pet-gacha-result-icon" class="pet-gacha-result-icon"/>
+                        <ui:Label name="pet-gacha-result-name" text="PET" class="pet-gacha-result-name"/>
+                        <ui:Label name="pet-gacha-result-state" text="NEW PET" class="pet-gacha-result-state"/>
+                        <ui:Label name="pet-gacha-result-balance" text="POWER COINS: 0" class="pet-gacha-result-balance"/>
+                        <ui:Button name="pet-gacha-continue" text="CONTINUE" class="pet-gacha-pull"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="profile-analytics-modal" enabled="true" class="social-modal" style="display: flex;">

@@ -90,5 +90,42 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(root.Q<VisualElement>("audit-score"), Is.Null);
             Assert.That(root.Q<VisualElement>("audit-count"), Is.Null);
         }
+
+        [Test]
+        public void MainMenuAsset_ContainsPetGachaInteractionContract()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml);
+            Assert.That(asset, Is.Not.Null);
+
+            VisualElement root = asset.CloneTree();
+            foreach (string name in new[]
+            {
+                "pet-gacha-button",
+                "pet-gacha-modal",
+                "pet-gacha-balance",
+                "pet-gacha-odds-list",
+                "pet-gacha-warning",
+                "pet-gacha-pull",
+                "pet-gacha-confirmation",
+                "pet-gacha-confirm",
+                "pet-gacha-result",
+                "pet-gacha-result-state",
+                "pet-gacha-continue"
+            })
+            {
+                Assert.That(root.Q<VisualElement>(name), Is.Not.Null, name);
+            }
+
+            Assert.That(
+                root.Q<Label>("pet-gacha-warning").text,
+                Does.Contain("duplicate").IgnoreCase);
+            Assert.That(
+                root.Q<VisualElement>("pet-gacha-confirmation").style.display.value,
+                Is.EqualTo(DisplayStyle.None));
+            Assert.That(
+                root.Q<VisualElement>("pet-gacha-result").style.display.value,
+                Is.EqualTo(DisplayStyle.None));
+        }
     }
 }

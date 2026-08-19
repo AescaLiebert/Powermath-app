@@ -101,6 +101,12 @@ namespace PowerMath.PlayerData
             public string lastWeaponAscendTransactionId;
             public int lastWeaponAscendLevel;
             public long lastWeaponAscendCost;
+            public string lastPetGachaTransactionId;
+            public string lastPetGachaCatalogVersion;
+            public string lastPetGachaPetId;
+            public bool lastPetGachaWasNew;
+            public long lastPetGachaCost;
+            public long lastPetGachaResultingPowerCoins;
         }
 
         [Serializable]
