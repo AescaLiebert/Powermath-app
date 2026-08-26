@@ -1,0 +1,137 @@
+.mw-card {
+    background-color: rgb(255, 249, 232);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(222, 199, 157);
+    border-right-color: rgb(222, 199, 157);
+    border-top-color: rgb(222, 199, 157);
+    border-bottom-color: rgb(222, 199, 157);
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+}
+
+.mw-button {
+    min-height: 58px;
+    padding-left: 24px;
+    padding-right: 24px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(222, 199, 157);
+    border-right-color: rgb(222, 199, 157);
+    border-top-color: rgb(222, 199, 157);
+    border-bottom-color: rgb(222, 199, 157);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    font-size: 19px;
+    -unity-font-style: bold;
+    transition-duration: 0.1s;
+    transition-property: scale, background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
+}
+
+.mw-button:hover,
+.mw-button:focus {
+    border-left-color: rgb(32, 92, 183);
+    border-right-color: rgb(32, 92, 183);
+    border-top-color: rgb(32, 92, 183);
+    border-bottom-color: rgb(32, 92, 183);
+}
+
+.mw-button:active {
+    scale: 0.98 0.98;
+}
+
+.mw-button:disabled {
+    opacity: 0.55;
+}
+
+.mw-button--primary {
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 184, 68);
+    border-left-color: rgb(218, 120, 38);
+    border-right-color: rgb(218, 120, 38);
+    border-top-color: rgb(218, 120, 38);
+    border-bottom-color: rgb(218, 120, 38);
+}
+
+.mw-button--primary:hover,
+.mw-button--primary:focus {
+    background-color: rgb(255, 197, 82);
+    border-left-color: rgb(20, 48, 91);
+    border-right-color: rgb(20, 48, 91);
+    border-top-color: rgb(20, 48, 91);
+    border-bottom-color: rgb(20, 48, 91);
+}
+
+.mw-status {
+    min-height: auto;
+    padding: 12px;
+    color: rgb(77, 101, 134);
+    background-color: rgba(217, 239, 239, 0.55);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    font-size: 16px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    translate: 0 0;
+}
+
+.mw-field {
+    margin-bottom: 16px;
+    color: rgb(20, 48, 91);
+    font-size: 17px;
+    display: flex;
+}
+
+.mw-field > .unity-text-field__label {
+    width: auto;
+    min-width: auto;
+    flex-grow: 0;
+    flex-shrink: 0;
+    color: rgb(20, 48, 91);
+    font-size: 20px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    display: flex;
+    -unity-text-auto-size: none;
+    -unity-text-generator: advanced;
+    align-self: auto;
+}
+
+.mw-field > .unity-text-field__input {
+    min-height: 54px;
+    padding-left: 16px;
+    padding-right: 16px;
+    color: rgb(20, 48, 91);
+    background-color: rgba(255, 255, 250, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-left-color: rgba(216, 199, 167, 0);
+    border-right-color: rgba(216, 199, 167, 0);
+    border-top-color: rgba(216, 199, 167, 0);
+    border-bottom-color: rgba(216, 199, 167, 0);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.mw-field > .unity-text-field__input:focus {
+    border-left-color: rgb(32, 92, 183);
+    border-right-color: rgb(32, 92, 183);
+    border-top-color: rgb(32, 92, 183);
+    border-bottom-color: rgb(32, 92, 183);
+}

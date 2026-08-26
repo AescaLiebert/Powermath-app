@@ -1,0 +1,38 @@
+.mw-brand {
+    color: rgb(255, 249, 232);
+    font-size: 34px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+}
+
+.mw-kicker {
+    color: rgb(32, 92, 183);
+    font-size: 24px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+}
+
+.mw-display-title {
+    color: rgb(20, 48, 91);
+    font-size: 48px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.mw-title {
+    color: rgb(20, 48, 91);
+    font-size: 34px;
+    -unity-font-style: bold;
+}
+
+.mw-subtitle {
+    color: rgb(77, 101, 134);
+    font-size: 18px;
+    white-space: normal;
+}
+
+.mw-caption {
+    color: rgb(77, 101, 134);
+    font-size: 13px;
+    white-space: normal;
+}

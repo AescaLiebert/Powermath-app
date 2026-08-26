@@ -21,6 +21,7 @@ namespace PowerMath.UI.MainMenu
         private readonly AudioSource _audio;
         private readonly bool _reducedMotion;
         private readonly string _unavailableReason;
+        private readonly IMainMenuPanelHost _panelHost;
         private readonly PetGachaProbabilityCalculator _calculator =
             new PetGachaProbabilityCalculator();
 
@@ -62,7 +63,8 @@ namespace PowerMath.UI.MainMenu
             FirestoreLeaderboardProjectionPublisher publisher,
             AudioSource audio,
             bool reducedMotion,
-            string unavailableReason)
+            string unavailableReason,
+            IMainMenuPanelHost panelHost)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
@@ -73,6 +75,7 @@ namespace PowerMath.UI.MainMenu
             _audio = audio;
             _reducedMotion = reducedMotion;
             _unavailableReason = unavailableReason ?? string.Empty;
+            _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
 
             _open = Require<Button>(root, "pet-gacha-button");
             _modal = Require<VisualElement>(root, "pet-gacha-modal");
@@ -106,7 +109,8 @@ namespace PowerMath.UI.MainMenu
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
 
-            _open.text = "PET GACHA";
+            _open.tooltip = "Pet Gacha";
+            _modal.EnableInClassList("is-reduced-motion", _reducedMotion);
             CloseImmediate();
             RefreshAvailability();
         }
@@ -121,6 +125,8 @@ namespace PowerMath.UI.MainMenu
             _cancel.clicked -= CancelConfirmation;
             _confirm.clicked -= Confirm;
             _continue.clicked -= Continue;
+            if (_panelHost.OpenPanel == MainMenuPanelId.PetGacha)
+                _panelHost.TryClose(MainMenuPanelId.PetGacha, _open);
         }
 
         private bool IsConfigured => _definition != null && _catalog != null && _store != null;
@@ -150,12 +156,16 @@ namespace PowerMath.UI.MainMenu
         private void Open()
         {
             if (!IsConfigured || _busy) return;
-            _modal.style.display = DisplayStyle.Flex;
+            if (!_panelHost.TryOpen(
+                    MainMenuPanelId.PetGacha,
+                    _modal,
+                    _open)) return;
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
             _status.text = string.Empty;
             _committed = false;
             _pendingTransactionId = string.Empty;
+            SetSemanticState();
             RenderPreview();
         }
 
@@ -167,11 +177,18 @@ namespace PowerMath.UI.MainMenu
 
         private void CloseImmediate()
         {
-            _modal.style.display = DisplayStyle.None;
+            if (_panelHost.OpenPanel == MainMenuPanelId.PetGacha)
+                _panelHost.TryClose(MainMenuPanelId.PetGacha, _open);
+            else
+            {
+                _modal.EnableInClassList("is-hidden", true);
+                _modal.style.display = DisplayStyle.None;
+            }
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
             _pendingTransactionId = string.Empty;
             _committed = false;
+            SetSemanticState();
         }
 
         private void RenderPreview()
@@ -266,10 +283,12 @@ namespace PowerMath.UI.MainMenu
                 "Duplicates grant no pet changes or compensation.";
             _confirmation.style.display = DisplayStyle.Flex;
             _result.style.display = DisplayStyle.None;
+            _confirmation.Focus();
             _confirm.text = "CONFIRM PULL";
             _confirm.SetEnabled(true);
             _cancel.SetEnabled(true);
             _status.text = string.Empty;
+            SetSemanticState("is-confirming");
         }
 
         private void CancelConfirmation()
@@ -277,6 +296,7 @@ namespace PowerMath.UI.MainMenu
             if (_busy || _committed) return;
             _confirmation.style.display = DisplayStyle.None;
             _pendingTransactionId = string.Empty;
+            SetSemanticState();
             RenderPreview();
         }
 
@@ -330,6 +350,9 @@ namespace PowerMath.UI.MainMenu
             _cancel.SetEnabled(false);
             _confirm.SetEnabled(false);
             _status.text = "Saving this pull to Firebase...";
+            _confirmationSummary.text =
+                "Saving this pull…\nYour result will appear after the transaction is accepted.";
+            SetSemanticState("is-busy");
             Play(_definition?.CommitClip);
 
             PetGachaReceipt receipt = default;
@@ -378,6 +401,7 @@ namespace PowerMath.UI.MainMenu
         {
             Play(_definition?.ErrorClip);
             _status.text = failure.Message;
+            SetSemanticState("is-error");
             if (failure.Code == PetGachaFailureCode.RecoverableTransport)
             {
                 _committed = true;
@@ -406,6 +430,8 @@ namespace PowerMath.UI.MainMenu
         private void ShowResult(PetGachaReceipt receipt)
         {
             _result.style.display = DisplayStyle.Flex;
+            _result.Focus();
+            SetSemanticState("is-success");
             _result.EnableInClassList("pet-gacha-result--new", receipt.WasNew);
             _result.EnableInClassList("pet-gacha-result--duplicate", !receipt.WasNew);
             _continue.SetEnabled(false);
@@ -457,7 +483,16 @@ namespace PowerMath.UI.MainMenu
         {
             if (_busy || _committed) return;
             _result.style.display = DisplayStyle.None;
+            SetSemanticState();
             RenderPreview();
+        }
+
+        private void SetSemanticState(string state = null)
+        {
+            _modal.EnableInClassList("is-confirming", state == "is-confirming");
+            _modal.EnableInClassList("is-busy", state == "is-busy");
+            _modal.EnableInClassList("is-error", state == "is-error");
+            _modal.EnableInClassList("is-success", state == "is-success");
         }
 
         private HashSet<string> GetOwnedPetIds()

@@ -1,0 +1,43 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="leaderboard-modal" enabled="true" focusable="true" class="social-modal leaderboard-modal is-hidden">
+        <ui:VisualElement class="leaderboard-backdrop leaderboard-backdrop--cyan" picking-mode="Ignore"/>
+        <ui:VisualElement class="leaderboard-backdrop leaderboard-backdrop--cobalt" picking-mode="Ignore"/>
+        <ui:Label text="RANK" class="leaderboard-watermark" picking-mode="Ignore"/>
+        <ui:VisualElement class="leaderboard-shell">
+            <ui:VisualElement class="leaderboard-header">
+                <ui:VisualElement class="leaderboard-heading">
+                    <ui:Label text="LEADERBOARD" class="leaderboard-title"/>
+                    <ui:Label text="Best Stage first, then weighted Rank Currency" class="leaderboard-rule"/>
+                </ui:VisualElement>
+                <ui:Label name="leaderboard-cohort" text="YOUR GRADE" tooltip="Leaderboard cohort is locked to your authenticated grade." class="leaderboard-cohort"/>
+                <ui:VisualElement class="leaderboard-header-actions">
+                    <ui:Label name="leaderboard-status" text="Open to refresh" class="social-status leaderboard-status"/>
+                    <ui:Button name="leaderboard-refresh" text="↻" tooltip="Refresh standings" class="leaderboard-icon-button leaderboard-refresh"/>
+                    <ui:Button name="leaderboard-close" text="×" tooltip="Close Leaderboard" class="leaderboard-icon-button leaderboard-close"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="leaderboard-content">
+                <ui:VisualElement class="leaderboard-showcase">
+                    <ui:Label text="FIRST PLACE" class="leaderboard-showcase-kicker"/>
+                    <ui:Label text="♛" class="leaderboard-crown" picking-mode="Ignore"/>
+                    <ui:Label name="leaderboard-throne" text="No standings yet" class="leaderboard-throne"/>
+                    <ui:Label text="Public progression and equipped loadout only" class="leaderboard-public-note"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="leaderboard-standing-column">
+                    <ui:VisualElement class="leaderboard-self-card">
+                        <ui:Label text="YOUR STANDING · YOU" class="leaderboard-self-kicker"/>
+                        <ui:Label name="leaderboard-self" text="Rank updating…" class="leaderboard-self"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="leaderboard-column-headings">
+                        <ui:Label text="RANK / PLAYER" class="leaderboard-column-heading leaderboard-column-heading--player"/>
+                        <ui:Label text="STAGE" class="leaderboard-column-heading"/>
+                        <ui:Label text="RANK CURRENCY" class="leaderboard-column-heading"/>
+                        <ui:Label text="LOADOUT" class="leaderboard-column-heading"/>
+                        <ui:Label text="TOTAL DAMAGE" class="leaderboard-column-heading"/>
+                    </ui:VisualElement>
+                    <ui:ScrollView name="leaderboard-list" class="leaderboard-list"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

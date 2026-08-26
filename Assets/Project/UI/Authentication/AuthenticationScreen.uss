@@ -1,0 +1,404 @@
+.auth-root {
+    background-color: rgb(49, 183, 220);
+}
+
+.auth-sky-disc {
+    position: absolute;
+    width: 1180px;
+    height: 1180px;
+    left: -300px;
+    top: -380px;
+    background-color: rgb(112, 220, 229);
+    border-top-left-radius: 590px;
+    border-top-right-radius: 590px;
+    border-bottom-left-radius: 590px;
+    border-bottom-right-radius: 590px;
+}
+
+.auth-orbit {
+    position: absolute;
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-left-color: rgba(255, 249, 232, 0.42);
+    border-right-color: rgba(255, 249, 232, 0.42);
+    border-top-color: rgba(255, 249, 232, 0.42);
+    border-bottom-color: rgba(255, 249, 232, 0.42);
+    border-top-left-radius: 600px;
+    border-top-right-radius: 600px;
+    border-bottom-left-radius: 600px;
+    border-bottom-right-radius: 600px;
+}
+
+.auth-orbit--one {
+    width: 1100px;
+    height: 530px;
+    left: 90px;
+    top: 280px;
+    rotate: -10deg;
+}
+
+.auth-orbit--two {
+    width: 820px;
+    height: 820px;
+    right: -330px;
+    bottom: -420px;
+    border-left-color: rgba(32, 92, 183, 0.35);
+    border-right-color: rgba(32, 92, 183, 0.35);
+    border-top-color: rgba(32, 92, 183, 0.35);
+    border-bottom-color: rgba(32, 92, 183, 0.35);
+}
+
+.auth-dot-field {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    right: 60px;
+    top: 70px;
+    opacity: 0.18;
+    background-color: rgb(20, 48, 91);
+    border-top-left-radius: 140px;
+    border-top-right-radius: 140px;
+    border-bottom-left-radius: 140px;
+    border-bottom-right-radius: 140px;
+}
+
+.auth-safe-area {
+    padding-left: 74px;
+    padding-right: 74px;
+    padding-top: 44px;
+    padding-bottom: 34px;
+}
+
+.auth-brand-row {
+    height: 64px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.auth-brand-mark {
+    width: 50px;
+    height: 50px;
+    margin-right: 14px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(255, 184, 68);
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+    border-left-width: 3px;
+    border-right-width: 3px;
+    border-top-width: 3px;
+    border-bottom-width: 3px;
+    border-left-color: rgb(255, 249, 232);
+    border-right-color: rgb(255, 249, 232);
+    border-top-color: rgb(255, 249, 232);
+    border-bottom-color: rgb(255, 249, 232);
+}
+
+.auth-brand-star {
+    color: rgb(20, 48, 91);
+    font-size: 28px;
+    -unity-font-style: bold;
+}
+
+.auth-layout {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-story {
+    display: none;
+    width: 48%;
+    min-width: 520px;
+    padding-left: 46px;
+    padding-right: 50px;
+    justify-content: center;
+}
+
+.auth-story-kicker {
+    margin-bottom: 8px;
+    color: rgb(255, 249, 232);
+    font-size: 20px;
+    -unity-font-style: bold;
+    letter-spacing: 4px;
+}
+
+.auth-story-title {
+    max-width: 650px;
+    color: rgb(20, 48, 91);
+    font-size: 62px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.auth-story-copy {
+    max-width: 600px;
+    margin-top: 18px;
+    color: rgb(255, 249, 232);
+    font-size: 20px;
+    white-space: normal;
+}
+
+.auth-compass {
+    width: 136px;
+    height: 136px;
+    margin-top: 34px;
+    margin-left: 80px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(32, 92, 183);
+    border-top-left-radius: 68px;
+    border-top-right-radius: 68px;
+    border-bottom-left-radius: 68px;
+    border-bottom-right-radius: 68px;
+    border-left-width: 8px;
+    border-right-width: 8px;
+    border-top-width: 8px;
+    border-bottom-width: 8px;
+    border-left-color: rgb(255, 249, 232);
+    border-right-color: rgb(255, 249, 232);
+    border-top-color: rgb(255, 249, 232);
+    border-bottom-color: rgb(255, 249, 232);
+}
+
+.auth-compass-star {
+    color: rgb(255, 184, 68);
+    font-size: 78px;
+    -unity-font-style: bold;
+}
+
+.auth-animo-row {
+    position: absolute;
+    left: 270px;
+    bottom: 36px;
+    height: 90px;
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.auth-animo {
+    width: 74px;
+    height: 74px;
+    margin-right: 16px;
+    align-items: center;
+    justify-content: center;
+    color: rgb(255, 249, 232);
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-left-color: rgb(20, 48, 91);
+    border-right-color: rgb(20, 48, 91);
+    border-top-color: rgb(20, 48, 91);
+    border-bottom-color: rgb(20, 48, 91);
+    font-size: 34px;
+    -unity-font-style: bold;
+}
+
+.auth-animo--drop {
+    background-color: rgb(95, 211, 225);
+    border-top-left-radius: 37px;
+    border-top-right-radius: 37px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+}
+
+.auth-animo--cube {
+    background-color: rgb(32, 92, 183);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.auth-animo--round {
+    background-color: rgb(244, 111, 83);
+    border-top-left-radius: 37px;
+    border-top-right-radius: 37px;
+    border-bottom-left-radius: 37px;
+    border-bottom-right-radius: 37px;
+}
+
+.auth-card {
+    width: 440px;
+    min-width: 360px;
+    padding-left: 36px;
+    padding-right: 36px;
+    padding-top: 32px;
+    padding-bottom: 28px;
+    background-color: rgba(255, 255, 255, 0.96);
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgba(255, 245, 225, 0.85);
+    border-right-color: rgba(255, 245, 225, 0.85);
+    border-top-color: rgba(255, 245, 225, 0.85);
+    border-bottom-color: rgba(255, 245, 225, 0.85);
+}
+
+.auth-star-header {
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+
+.auth-card-star {
+    color: rgb(255, 195, 75);
+    font-size: 26px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.auth-title {
+    margin-top: 2px;
+    margin-bottom: 18px;
+    color: rgb(24, 52, 96);
+    font-size: 32px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    -unity-text-align: middle-center;
+}
+
+.login-input.mw-field {
+    min-height: 56px;
+    margin-bottom: 14px;
+    padding-left: 18px;
+    padding-right: 18px;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(244, 246, 249);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-color: rgb(232, 236, 242);
+    border-right-color: rgb(232, 236, 242);
+    border-top-color: rgb(232, 236, 242);
+    border-bottom-color: rgb(232, 236, 242);
+    transition-duration: 0.15s;
+    transition-property: border-left-color, border-right-color, border-top-color, border-bottom-color, background-color;
+}
+
+.login-input.mw-field:focus-within {
+    border-left-color: rgb(255, 160, 48);
+    border-right-color: rgb(255, 160, 48);
+    border-top-color: rgb(255, 160, 48);
+    border-bottom-color: rgb(255, 160, 48);
+    background-color: rgb(255, 255, 255);
+}
+
+.login-input > .unity-text-field__label {
+    width: auto;
+    min-width: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
+    margin: 0;
+    margin-right: 12px;
+    padding: 0;
+    font-size: 22px;
+    color: rgb(140, 153, 170);
+    -unity-text-align: middle-center;
+}
+
+.login-input > .unity-text-field__input {
+    flex-grow: 1;
+    min-height: 48px;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    color: rgb(20, 48, 91);
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.login-input > .unity-text-field__input:focus {
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+}
+
+.remember-toggle {
+    margin-top: 2px;
+    color: rgb(20, 48, 91);
+    font-size: 16px;
+}
+
+.auth-status {
+    margin-top: 10px;
+    margin-bottom: 4px;
+    display: flex;
+}
+
+.login-button {
+    min-height: 56px;
+    margin-top: 14px;
+    background-color: rgb(255, 145, 45);
+    color: rgb(255, 255, 255);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    font-size: 20px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    -unity-text-align: middle-center;
+}
+
+.login-button:hover,
+.login-button:focus {
+    background-color: rgb(255, 165, 65);
+}
+
+.auth-guest-link {
+    margin-top: 18px;
+    color: rgb(24, 52, 96);
+    font-size: 16px;
+    -unity-font-style: bold;
+    letter-spacing: 1.5px;
+    -unity-text-align: middle-center;
+}
+
+.auth-star-footer {
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.auth-card-star-bottom {
+    color: rgb(255, 195, 75);
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.auth-footer {
+    height: 28px;
+    color: rgba(255, 249, 232, 0.86);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    -unity-text-align: middle-center;
+}

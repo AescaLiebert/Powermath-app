@@ -1,0 +1,26 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="combat-map-modal" focusable="true" class="combat-map-modal navigator-modal is-hidden">
+        <ui:VisualElement class="navigator-backdrop-disc" picking-mode="Ignore"/>
+        <ui:VisualElement class="mw-card combat-map-card navigator-card">
+            <ui:VisualElement class="navigator-header">
+                <ui:VisualElement>
+                    <ui:Label text="NAVIGATOR" class="mw-kicker navigator-kicker"/>
+                    <ui:Label text="WORLD JOURNEY" class="combat-map-title navigator-title"/>
+                    <ui:Label text="Your marker shows the current biome. This map is informational." class="combat-map-subtitle navigator-subtitle"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="navigator-compass"><ui:Label text="✦"/></ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="navigator-legend">
+                <ui:VisualElement class="navigator-current-dot"/>
+                <ui:Label text="CURRENT BIOME"/>
+                <ui:Label text="ROUTE PREVIEW — NO FAST TRAVEL" class="navigator-readonly"/>
+            </ui:VisualElement>
+            <ui:ScrollView class="navigator-scroll">
+                <ui:VisualElement name="combat-map-route" class="combat-map-route navigator-route">
+                    <ui:Label text="Preparing your saved route..." class="navigator-empty"/>
+                </ui:VisualElement>
+            </ui:ScrollView>
+            <ui:Button name="combat-map-close" text="BACK TO BATTLE" class="mw-button mw-button--primary combat-map-close navigator-close"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

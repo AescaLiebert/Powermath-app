@@ -1,0 +1,25 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
+    <ui:VisualElement name="login-screen" data-source="project://database/Assets/Project/Settings/GameApiSettings.asset?fileID=11400000&amp;guid=b57952f14bb65b84398dd63712eda99f&amp;type=2#GameApiSettings" class="mw-screen auth-root is-ready" style="background-image: none;">
+        <ui:VisualElement name="bg" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Project/Material/exec-7e516501-4ebc-45cc-9d61-230e6d2e0de0.png?fileID=2800000&amp;guid=de8f445260a7db74b87e0d49ce0ab46c&amp;type=3#exec-7e516501-4ebc-45cc-9d61-230e6d2e0de0&quot;);"/>
+        <ui:VisualElement name="safe-area" class="mw-safe-area auth-safe-area">
+            <ui:VisualElement name="VisualElement" class="auth-layout" style="display: flex; justify-content: center; flex-direction: column; flex-shrink: 0; translate: 0 -50px; -unity-text-align: upper-left;">
+                <ui:VisualElement name="brand" style="display: flex; background-image: url(&quot;project://database/Assets/Project/Material/math-world-logo-simple-v6.png?fileID=2800000&amp;guid=2df4eb23f3ba311429150f7eeae77a6f&amp;type=3#math-world-logo-simple-v6&quot;); width: 50%; height: 30%; flex-shrink: 0; flex-grow: 0; top: 0; scale: 0.75 0.75 0.75; margin-bottom: -40px;"/>
+                <ui:VisualElement name="login-panel" class="mw-card auth-card" style="flex-shrink: 0; flex-grow: 0; flex-basis: auto;">
+                    <ui:Label text="SIGN IN" name="auth-title" class="mw-title auth-title"/>
+                    <ui:VisualElement class="auth-divider"/>
+                    <ui:TextField label="" name="username-field" max-length="64" class="mw-field login-input" style="left: 0;"/>
+                    <ui:TextField label="" name="password-field" password="true" max-length="6" keyboard-type="NumberPad" class="mw-field login-input" style="background-image: none;"/>
+                    <ui:Toggle text="Remember this device" name="remember-device-toggle" value="false" class="remember-toggle"/>
+                    <ui:Label text="Private device only. Remembering this device stores your school login details in this browser." class="shared-device-warning" style="display: flex; flex-wrap: nowrap; white-space: normal; font-size: 10px; -unity-font-style: italic; margin-top: 6px;"/>
+                    <ui:Label text="Enter the account details provided by your school." name="auth-status" class="mw-status auth-status" style="flex-shrink: 1; background-color: rgba(217, 239, 239, 0); font-size: 10px; -unity-font-style: bold; margin-top: 0; margin-bottom: -10px; flex-basis: 0; justify-content: flex-start; bottom: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; translate: 0 0; display: flex;"/>
+                    <ui:Button text="SIGN IN  →" name="login-button" class="mw-button mw-button--primary login-button" style="margin-bottom: -5px;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label text="Brand / Version Control" style="position: absolute; bottom: 17px; color: rgb(255, 255, 255); flex-direction: column; left: 28px;"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,18 +1,9 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Project/UI/login-input.uss?fileID=7433441132597879392&amp;guid=a43d7931af01ba24aa3126dc4826d6e1&amp;type=3#login-input"/>
-    <ui:VisualElement name="login-screen" data-source="project://database/Assets/Project/Settings/GameApiSettings.asset?fileID=11400000&amp;guid=b57952f14bb65b84398dd63712eda99f&amp;type=2#GameApiSettings" class="auth-root">
-        <ui:VisualElement name="safe-area" class="auth-safe-area">
-            <ui:VisualElement name="login-panel" class="auth-card">
-                <ui:Label text="PowerMath" name="auth-title" class="auth-title"/>
-                <ui:Label text="Sign in to continue your adventure" class="auth-subtitle"/>
-                <ui:TextField label="Username" name="username-field" max-length="64" class="login-input"/>
-                <ui:TextField label="Password" name="password-field" password="true" max-length="6" keyboard-type="NumberPad" class="login-input"/>
-                <ui:Toggle text="Remember this device" name="remember-device-toggle" value="false" class="remember-toggle"/>
-                <ui:Label text="Private device only: Remember this device stores these login details in this browser." class="shared-device-warning" style="font-size: 12px;"/>
-                <ui:Label text="Enter the account details provided by your school." name="auth-status" class="auth-status"/>
-                <ui:Button text="Sign In" name="login-button" class="login-button"/>
-                <ui:Label text="" name="editor-sample-hint" class="editor-sample-hint" style="display: none;"/>
-            </ui:VisualElement>
-        </ui:VisualElement>
-    </ui:VisualElement>
+    <ui:Template name="AuthenticationScreen" src="project://database/Assets/Project/UI/Authentication/AuthenticationScreen.uxml"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss"/>
+    <Style src="project://database/Assets/Project/UI/Authentication/AuthenticationScreen.uss"/>
+    <ui:Instance template="AuthenticationScreen" class="mw-template-fill"/>
 </ui:UXML>

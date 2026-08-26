@@ -1,5 +1,6 @@
 using System;
 using PowerMath.Session;
+using PowerMath.UI.Shared;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -32,7 +33,6 @@ namespace PowerMath.UI.Authentication
         private Toggle _rememberToggle;
         private Button _loginButton;
         private Label _statusLabel;
-        private Label _editorHintLabel;
         private VisualElement _root;
         private bool _eventsBound;
         private bool _bindingErrorLogged;
@@ -45,6 +45,7 @@ namespace PowerMath.UI.Authentication
             }
 
             SetInteractive(true);
+            _root.SetSemanticState(UiSemanticState.Ready);
             _statusLabel.text = "Enter the account details provided by your school.";
             _statusLabel.RemoveFromClassList("auth-status--error");
             _statusLabel.RemoveFromClassList("auth-status--success");
@@ -59,6 +60,7 @@ namespace PowerMath.UI.Authentication
             }
 
             SetInteractive(false);
+            _root.SetSemanticState(UiSemanticState.Busy);
             _statusLabel.text = "Signing in...";
             _statusLabel.RemoveFromClassList("auth-status--error");
             _statusLabel.RemoveFromClassList("auth-status--success");
@@ -72,6 +74,7 @@ namespace PowerMath.UI.Authentication
             }
 
             SetInteractive(true);
+            _root.SetSemanticState(UiSemanticState.Error);
             _statusLabel.text = playerMessage;
             _statusLabel.AddToClassList("auth-status--error");
             _statusLabel.RemoveFromClassList("auth-status--success");
@@ -92,22 +95,10 @@ namespace PowerMath.UI.Authentication
 
             _passwordField.value = string.Empty;
             SetInteractive(false);
+            _root.SetSemanticState(UiSemanticState.Success);
             _statusLabel.text = "Signed in. Loading your progress...";
             _statusLabel.RemoveFromClassList("auth-status--error");
             _statusLabel.AddToClassList("auth-status--success");
-        }
-
-        public void SetEditorHint(string hint)
-        {
-            if (!TryBindElements())
-            {
-                return;
-            }
-
-            _editorHintLabel.text = hint ?? string.Empty;
-            _editorHintLabel.style.display = string.IsNullOrWhiteSpace(hint)
-                ? DisplayStyle.None
-                : DisplayStyle.Flex;
         }
 
         private bool TryBindElements()
@@ -125,13 +116,11 @@ namespace PowerMath.UI.Authentication
                 _rememberToggle = _root.Q<Toggle>("remember-device-toggle");
                 _loginButton = _root.Q<Button>("login-button");
                 _statusLabel = _root.Q<Label>("auth-status");
-                _editorHintLabel = _root.Q<Label>("editor-sample-hint");
             }
 
             bool isBound = _root != null && _usernameField != null &&
                 _passwordField != null && _rememberToggle != null &&
-                _loginButton != null && _statusLabel != null &&
-                _editorHintLabel != null;
+                _loginButton != null && _statusLabel != null;
 
             if (isBound && !_eventsBound)
             {
@@ -208,7 +197,7 @@ namespace PowerMath.UI.Authentication
             _passwordField.SetEnabled(interactive);
             _rememberToggle.SetEnabled(interactive);
             _loginButton.SetEnabled(interactive);
-            _loginButton.text = interactive ? "Sign In" : "Please Wait...";
+            _loginButton.text = interactive ? "ENTER  →" : "PLEASE WAIT...";
         }
     }
 }

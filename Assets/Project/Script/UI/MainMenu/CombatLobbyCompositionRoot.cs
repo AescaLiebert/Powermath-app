@@ -41,9 +41,13 @@ namespace PowerMath.UI.MainMenu
 
         private CombatLobbyPresenter _presenter;
         private CombatLobbyView _view;
+        private IMainMenuPanelHost _panelHost;
         private IQuestionCatalogRepository _questionCatalogRepository;
         private FirestoreEventQuestionCatalogRepository _eventQuestionRepository;
         private RunEconomyPanelController _runEconomyController;
+        private LegacyImage _sceneBackground;
+        private LegacyImage _sceneEnemy;
+        private Sprite _runtimeEnemySprite;
 
         private void Start()
         {
@@ -67,7 +71,15 @@ namespace PowerMath.UI.MainMenu
 
             try
             {
-                _view = new CombatLobbyView(document.rootVisualElement);
+                MainMenuPanelHostProvider provider =
+                    GetComponent<MainMenuPanelHostProvider>();
+                if (provider == null)
+                    provider = gameObject.AddComponent<MainMenuPanelHostProvider>();
+                _panelHost = provider.Host;
+                _view = new CombatLobbyView(
+                    document.rootVisualElement,
+                    _panelHost
+                );
             }
             catch (System.InvalidOperationException exception)
             {
@@ -104,6 +116,13 @@ namespace PowerMath.UI.MainMenu
             _eventQuestionRepository = null;
             _runEconomyController?.Dispose();
             _runEconomyController = null;
+            _panelHost?.ForceCloseAll();
+            _panelHost = null;
+            if (_runtimeEnemySprite != null)
+            {
+                Destroy(_runtimeEnemySprite);
+                _runtimeEnemySprite = null;
+            }
         }
 
         public void RunCombatRoutine(IEnumerator routine)
@@ -411,10 +430,9 @@ namespace PowerMath.UI.MainMenu
                 academicAudio,
                 rankFeedback
             );
-            Texture2D resolvedTexture = ResolveEnemyTexture();
-            _view.SetEnemyTexture(resolvedTexture);
-            _view.ConfigureStageMap(resolvedMap, ResolveBiomeTexture,
-                ResolveEncounterTexture);
+            BindSceneCanvas();
+            _view.ConfigureStageMap(resolvedMap, RenderBiomeOnCanvas,
+                RenderEncounterOnCanvas);
 
             _presenter = new CombatLobbyPresenter(
                 _view,
@@ -447,7 +465,8 @@ namespace PowerMath.UI.MainMenu
                         criticalRate,
                         criticalDamage,
                         source,
-                        runtimeSettings != null && runtimeSettings.ReducedMotion);
+                        runtimeSettings != null && runtimeSettings.ReducedMotion,
+                        _panelHost);
                 }
                 catch (System.Exception exception)
                 {
@@ -583,51 +602,55 @@ namespace PowerMath.UI.MainMenu
             return snapshot.activeRun.runId;
         }
 
-        private Texture2D ResolveEnemyTexture()
+        private void BindSceneCanvas()
+        {
+            _sceneBackground = GameObject.Find("bg")?.GetComponent<LegacyImage>();
+            _sceneEnemy = GameObject.Find("monsterPrefab")?.GetComponent<LegacyImage>();
+            if (_sceneBackground != null) _sceneBackground.raycastTarget = false;
+            if (_sceneEnemy != null)
+            {
+                _sceneEnemy.raycastTarget = false;
+                _sceneEnemy.gameObject.SetActive(true);
+            }
+        }
+
+        private void RenderBiomeOnCanvas(string biomeId)
+        {
+            Sprite sprite = stageMapDefinition?.FindBiome(biomeId)?.BackgroundSprite;
+            if (_sceneBackground != null && sprite != null)
+                _sceneBackground.overrideSprite = sprite;
+        }
+
+        private void RenderEncounterOnCanvas(string encounterId)
+        {
+            EnemyDefinition monster = stageMapDefinition?.FindMonster(encounterId);
+            Sprite sprite = monster?.EnemySprite;
+            EventDefinition eventDefinition = stageMapDefinition?.FindEvent(encounterId);
+            if (sprite == null) sprite = eventDefinition?.EventSprite;
+            if (sprite == null) sprite = ResolveFallbackEnemySprite();
+            if (_sceneEnemy != null && sprite != null)
+            {
+                _sceneEnemy.overrideSprite = sprite;
+                _sceneEnemy.gameObject.SetActive(true);
+            }
+        }
+
+        private Sprite ResolveFallbackEnemySprite()
         {
             if (enemyTexture != null)
             {
-                return enemyTexture;
+                if (_runtimeEnemySprite == null)
+                {
+                    _runtimeEnemySprite = Sprite.Create(
+                        enemyTexture,
+                        new Rect(0f, 0f, enemyTexture.width, enemyTexture.height),
+                        new Vector2(0.5f, 0.5f));
+                }
+                return _runtimeEnemySprite;
             }
-
-            if (enemyDefinition != null && enemyDefinition.EnemySprite != null)
-            {
-                return enemyDefinition.EnemySprite.texture;
-            }
-
-            GameObject legacyEnemy = GameObject.Find("monsterPrefab");
-            if (legacyEnemy == null)
-            {
-                return null;
-            }
-
-            LegacyImage image = legacyEnemy.GetComponent<LegacyImage>();
-            Texture2D texture = image != null && image.sprite != null
-                ? image.sprite.texture
-                : null;
-
-            if (texture != null)
-            {
-                // The scene image is a compatibility source, not a second enemy view.
-                legacyEnemy.SetActive(false);
-            }
-
-            return texture;
-        }
-
-        private Texture2D ResolveBiomeTexture(string biomeId)
-        {
-            Sprite sprite = stageMapDefinition?.FindBiome(biomeId)?.BackgroundSprite;
-            return sprite == null ? null : sprite.texture;
-        }
-
-        private Texture2D ResolveEncounterTexture(string encounterId)
-        {
-            EnemyDefinition monster = stageMapDefinition?.FindMonster(encounterId);
-            if (monster?.EnemySprite != null) return monster.EnemySprite.texture;
-            EventDefinition eventDefinition = stageMapDefinition?.FindEvent(encounterId);
-            if (eventDefinition?.EventSprite != null) return eventDefinition.EventSprite.texture;
-            return ResolveEnemyTexture();
+            if (enemyDefinition?.EnemySprite != null)
+                return enemyDefinition.EnemySprite;
+            return _sceneEnemy?.overrideSprite;
         }
         private static int ResolveStartingStage(PlayerSnapshot snapshot)
         {

@@ -1,0 +1,323 @@
+.settlement-modal {
+    background-color: rgba(20, 48, 91, 0.92);
+}
+
+.settlement-backdrop-ring {
+    position: absolute;
+    border-left-width: 6px;
+    border-right-width: 6px;
+    border-top-width: 6px;
+    border-bottom-width: 6px;
+    border-left-color: rgba(255, 184, 68, 0.34);
+    border-right-color: rgba(255, 184, 68, 0.34);
+    border-top-color: rgba(255, 184, 68, 0.34);
+    border-bottom-color: rgba(255, 184, 68, 0.34);
+    border-top-left-radius: 50%;
+    border-top-right-radius: 50%;
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
+}
+
+.settlement-backdrop-ring--one {
+    width: 760px;
+    height: 760px;
+    left: -320px;
+    top: -360px;
+}
+
+.settlement-backdrop-ring--two {
+    width: 620px;
+    height: 620px;
+    right: -250px;
+    bottom: -300px;
+    border-left-color: rgba(95, 211, 225, 0.3);
+    border-right-color: rgba(95, 211, 225, 0.3);
+    border-top-color: rgba(95, 211, 225, 0.3);
+    border-bottom-color: rgba(95, 211, 225, 0.3);
+}
+
+.settlement-card {
+    width: 1080px;
+    max-width: 92%;
+    height: 850px;
+    max-height: 90%;
+    padding: 27px 32px 28px 32px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-left-color: rgb(244, 111, 83);
+    border-right-color: rgb(244, 111, 83);
+    border-top-color: rgb(244, 111, 83);
+    border-bottom-color: rgb(244, 111, 83);
+}
+
+.settlement-header {
+    min-height: 92px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.settlement-heading {
+    flex-grow: 1;
+}
+
+.settlement-kicker,
+.settlement-section-title,
+.settlement-value-title {
+    color: rgb(32, 92, 183);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1.4px;
+}
+
+.settlement-title {
+    color: rgb(20, 48, 91);
+    font-size: 37px;
+    -unity-text-align: upper-left;
+}
+
+.settlement-subtitle {
+    margin-top: 3px;
+    color: rgb(77, 101, 134);
+}
+
+.settlement-stage {
+    min-width: 170px;
+    height: 60px;
+    margin-top: 0;
+    padding: 12px 20px;
+    align-items: center;
+    justify-content: center;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 184, 68);
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.settlement-scroll {
+    flex-grow: 1;
+    margin-top: 10px;
+}
+
+.settlement-grid {
+    min-height: 132px;
+    margin-top: 7px;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.settlement-value-card {
+    width: 49%;
+    min-height: 128px;
+    padding: 17px 19px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: rgb(232, 242, 239);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(166, 199, 195);
+    border-right-color: rgb(166, 199, 195);
+    border-top-color: rgb(166, 199, 195);
+    border-bottom-color: rgb(166, 199, 195);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+}
+
+.settlement-value-card--coins {
+    margin-right: 10px;
+    background-color: rgb(255, 239, 195);
+    border-left-color: rgb(255, 184, 68);
+    border-right-color: rgb(255, 184, 68);
+    border-top-color: rgb(255, 184, 68);
+    border-bottom-color: rgb(255, 184, 68);
+}
+
+.settlement-value-icon {
+    width: 66px;
+    height: 66px;
+    margin-right: 16px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(32, 184, 193);
+    border-top-left-radius: 33px;
+    border-top-right-radius: 33px;
+    border-bottom-left-radius: 33px;
+    border-bottom-right-radius: 33px;
+}
+
+.settlement-value-icon--coins {
+    background-color: rgb(255, 184, 68);
+}
+
+.settlement-value-symbol {
+    color: rgb(20, 48, 91);
+    font-size: 36px;
+    -unity-font-style: bold;
+}
+
+.settlement-value-copy {
+    flex-grow: 1;
+}
+
+.settlement-value {
+    margin-top: 3px;
+    color: rgb(20, 48, 91);
+    font-size: 24px;
+    -unity-font-style: bold;
+    -unity-text-align: upper-left;
+}
+
+.settlement-gain {
+    margin-top: 3px;
+    color: rgb(18, 112, 81);
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-text-align: upper-left;
+}
+
+.settlement-result-row {
+    min-height: 64px;
+    margin-top: 11px;
+    flex-direction: row;
+}
+
+.settlement-result {
+    min-height: 58px;
+    margin-top: 0;
+    padding: 13px 15px;
+    flex-grow: 1;
+    color: rgb(255, 249, 232);
+    background-color: rgb(32, 92, 183);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    font-size: 17px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.settlement-result--attack {
+    margin-right: 10px;
+}
+
+.settlement-result--prestige {
+    background-color: rgb(244, 111, 83);
+}
+
+.settlement-section-title--rules {
+    margin-top: 17px;
+}
+
+.settlement-rules {
+    min-height: 164px;
+    margin-top: 7px;
+    flex-direction: row;
+}
+
+.settlement-rule-card {
+    width: 49%;
+    min-height: 156px;
+    padding: 16px 18px;
+    background-color: rgb(232, 242, 239);
+    border-left-width: 5px;
+    border-left-color: rgb(32, 184, 193);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.settlement-rule-card--keep {
+    margin-right: 10px;
+}
+
+.settlement-rule-card--reset {
+    background-color: rgb(255, 232, 219);
+    border-left-color: rgb(244, 111, 83);
+}
+
+.settlement-rule-title {
+    margin-bottom: 7px;
+    color: rgb(18, 112, 81);
+    font-size: 18px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.settlement-rule-title--reset {
+    color: rgb(151, 54, 58);
+}
+
+.settlement-rule-line {
+    min-height: 30px;
+    color: rgb(20, 48, 91);
+    font-size: 14px;
+    white-space: normal;
+}
+
+.settlement-reset-note {
+    margin-top: 9px;
+    padding: 7px;
+    color: rgb(77, 101, 134);
+    background-color: rgba(0, 0, 0, 0);
+    font-size: 12px;
+    -unity-text-align: middle-center;
+}
+
+.settlement-status {
+    min-height: 44px;
+    margin-top: 8px;
+    -unity-text-align: middle-center;
+}
+
+.settlement-actions {
+    min-height: 58px;
+    margin-top: 10px;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.settlement-actions > Button {
+    width: 205px;
+    height: 56px;
+    margin-left: 10px;
+    margin-right: 0;
+}
+
+.settlement-back {
+    color: rgb(20, 48, 91);
+    background-color: rgb(232, 242, 239);
+}
+
+.settlement-confirm,
+.settlement-continue {
+    color: rgb(20, 48, 91);
+}
+
+.settlement-modal.is-busy .settlement-card {
+    border-left-color: rgb(32, 184, 193);
+    border-right-color: rgb(32, 184, 193);
+    border-top-color: rgb(32, 184, 193);
+    border-bottom-color: rgb(32, 184, 193);
+}
+
+.settlement-modal.is-success .settlement-status {
+    color: rgb(18, 99, 68);
+    background-color: rgb(219, 241, 218);
+}
+
+.settlement-modal.is-error .settlement-status {
+    color: rgb(151, 54, 58);
+    background-color: rgb(255, 224, 214);
+}

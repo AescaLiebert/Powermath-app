@@ -1,0 +1,384 @@
+.player-hub-modal {
+    background-color: rgba(20, 48, 91, 0.9);
+}
+
+.player-hub-backdrop-disc {
+    position: absolute;
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-top-width: 5px;
+    border-bottom-width: 5px;
+    border-left-color: rgba(95, 211, 225, 0.36);
+    border-right-color: rgba(95, 211, 225, 0.36);
+    border-top-color: rgba(95, 211, 225, 0.36);
+    border-bottom-color: rgba(95, 211, 225, 0.36);
+    border-top-left-radius: 50%;
+    border-top-right-radius: 50%;
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
+}
+
+.player-hub-backdrop-disc--one {
+    width: 680px;
+    height: 680px;
+    left: -270px;
+    bottom: -310px;
+}
+
+.player-hub-backdrop-disc--two {
+    width: 520px;
+    height: 520px;
+    right: -180px;
+    top: -220px;
+    border-left-color: rgba(255, 184, 68, 0.34);
+    border-right-color: rgba(255, 184, 68, 0.34);
+    border-top-color: rgba(255, 184, 68, 0.34);
+    border-bottom-color: rgba(255, 184, 68, 0.34);
+}
+
+.player-hub-card {
+    width: 1160px;
+    max-width: 92%;
+    height: 780px;
+    max-height: 86%;
+    padding: 28px 32px 32px 32px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-left-color: rgb(255, 184, 68);
+    border-right-color: rgb(255, 184, 68);
+    border-top-color: rgb(255, 184, 68);
+    border-bottom-color: rgb(255, 184, 68);
+}
+
+.player-hub-header {
+    min-height: 92px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.player-hub-heading {
+    flex-grow: 1;
+}
+
+.player-hub-kicker,
+.player-hub-section-title,
+.player-hub-comparison-label,
+.player-hub-chip-title {
+    color: rgb(32, 92, 183);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1.4px;
+}
+
+.player-hub-title {
+    margin-top: 2px;
+    color: rgb(20, 48, 91);
+    font-size: 38px;
+}
+
+.player-hub-subtitle,
+.player-hub-section-copy {
+    margin-top: 4px;
+    color: rgb(77, 101, 134);
+    white-space: normal;
+}
+
+.player-hub-close {
+    width: 128px;
+    height: 48px;
+    min-height: 48px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(232, 242, 239);
+}
+
+.player-hub-scroll {
+    flex-grow: 1;
+    margin-top: 14px;
+}
+
+.player-hub-layout {
+    min-height: 545px;
+    flex-direction: row;
+}
+
+.player-hub-column {
+    min-height: 530px;
+    padding: 24px;
+    border-top-left-radius: 22px;
+    border-top-right-radius: 22px;
+    border-bottom-left-radius: 22px;
+    border-bottom-right-radius: 22px;
+}
+
+.player-hub-column--stats {
+    width: 37%;
+    margin-right: 18px;
+    align-items: center;
+    background-color: rgb(32, 92, 183);
+}
+
+.player-hub-column--stats .player-hub-section-title {
+    color: rgb(95, 211, 225);
+}
+
+.player-hub-power-mark {
+    width: 104px;
+    height: 104px;
+    margin-top: 26px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(255, 184, 68);
+    border-left-width: 6px;
+    border-right-width: 6px;
+    border-top-width: 6px;
+    border-bottom-width: 6px;
+    border-left-color: rgb(255, 249, 232);
+    border-right-color: rgb(255, 249, 232);
+    border-top-color: rgb(255, 249, 232);
+    border-bottom-color: rgb(255, 249, 232);
+    border-top-left-radius: 52px;
+    border-top-right-radius: 52px;
+    border-bottom-left-radius: 52px;
+    border-bottom-right-radius: 52px;
+}
+
+.player-hub-power-symbol {
+    color: rgb(20, 48, 91);
+    font-size: 66px;
+    -unity-font-style: bold;
+}
+
+.player-hub-metric-label {
+    margin-top: 18px;
+    color: rgba(255, 249, 232, 0.78);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1.4px;
+}
+
+.player-hub-effective-atk {
+    margin-top: 2px;
+    color: rgb(255, 249, 232);
+    font-size: 43px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-atk-breakdown {
+    min-height: 56px;
+    margin-top: 7px;
+    color: rgba(255, 249, 232, 0.86);
+    font-size: 16px;
+    -unity-font-style: bold;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-stat-strip {
+    width: 100%;
+    margin-top: 17px;
+}
+
+.player-hub-stat-chip {
+    min-height: 78px;
+    margin-top: 9px;
+    padding: 12px 14px;
+    justify-content: center;
+    background-color: rgba(20, 48, 91, 0.52);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.player-hub-stat-chip .player-hub-chip-title {
+    color: rgb(95, 211, 225);
+}
+
+.player-hub-stat-bonus,
+.player-hub-pet-status {
+    margin-top: 4px;
+    color: rgb(255, 249, 232);
+    font-size: 15px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.player-hub-column--weapon {
+    flex-grow: 1;
+    background-color: rgb(246, 235, 210);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(222, 199, 157);
+    border-right-color: rgb(222, 199, 157);
+    border-top-color: rgb(222, 199, 157);
+    border-bottom-color: rgb(222, 199, 157);
+}
+
+.player-hub-weapon-heading,
+.player-hub-weapon-identity,
+.player-hub-comparison,
+.player-hub-purchase-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.player-hub-weapon-heading {
+    justify-content: space-between;
+}
+
+.player-hub-balance {
+    min-width: 220px;
+    padding: 10px 14px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 220, 151);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-weapon-identity {
+    min-height: 92px;
+    margin-top: 17px;
+    padding: 14px;
+    background-color: rgb(20, 48, 91);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+}
+
+.player-hub-weapon-icon {
+    width: 58px;
+    height: 58px;
+    margin-right: 15px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(244, 111, 83);
+    border-top-left-radius: 29px;
+    border-top-right-radius: 29px;
+    border-bottom-left-radius: 29px;
+    border-bottom-right-radius: 29px;
+}
+
+.player-hub-weapon-symbol {
+    color: rgb(255, 249, 232);
+    font-size: 38px;
+    -unity-font-style: bold;
+}
+
+.player-hub-weapon-name {
+    color: rgb(255, 249, 232);
+    font-size: 26px;
+    -unity-font-style: bold;
+}
+
+.player-hub-comparison {
+    min-height: 158px;
+    margin-top: 15px;
+}
+
+.player-hub-comparison-card {
+    height: 150px;
+    padding: 15px;
+    flex-grow: 1;
+    justify-content: center;
+    background-color: rgb(255, 249, 232);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(222, 199, 157);
+    border-right-color: rgb(222, 199, 157);
+    border-top-color: rgb(222, 199, 157);
+    border-bottom-color: rgb(222, 199, 157);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.player-hub-comparison-card--next {
+    border-left-color: rgb(32, 184, 193);
+    border-right-color: rgb(32, 184, 193);
+    border-top-color: rgb(32, 184, 193);
+    border-bottom-color: rgb(32, 184, 193);
+    background-color: rgb(232, 242, 239);
+}
+
+.player-hub-comparison-arrow {
+    width: 42px;
+    color: rgb(244, 111, 83);
+    font-size: 31px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-weapon-stat,
+.player-hub-weapon-next {
+    margin-top: 9px;
+    padding: 0;
+    color: rgb(20, 48, 91);
+    background-color: rgba(0, 0, 0, 0);
+    font-size: 16px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.player-hub-weapon-next {
+    color: rgb(22, 119, 126);
+}
+
+.player-hub-purchase-row {
+    min-height: 72px;
+    margin-top: 14px;
+    justify-content: space-between;
+}
+
+.player-hub-cost-block {
+    flex-grow: 1;
+}
+
+.player-hub-cost {
+    margin-top: 3px;
+    color: rgb(20, 48, 91);
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.player-hub-upgrade {
+    width: 230px;
+    height: 58px;
+    margin-top: 0;
+    color: rgb(20, 48, 91);
+}
+
+.player-hub-status {
+    min-height: 44px;
+    margin-top: 10px;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-modal.is-busy .player-hub-card {
+    border-left-color: rgb(32, 184, 193);
+    border-right-color: rgb(32, 184, 193);
+    border-top-color: rgb(32, 184, 193);
+    border-bottom-color: rgb(32, 184, 193);
+}
+
+.player-hub-modal.is-success .player-hub-status {
+    color: rgb(18, 99, 68);
+    background-color: rgb(219, 241, 218);
+}
+
+.player-hub-modal.is-error .player-hub-status {
+    color: rgb(151, 54, 58);
+    background-color: rgb(255, 224, 214);
+}

@@ -1,0 +1,17 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <ui:VisualElement name="bootstrap-screen" class="mw-screen bootstrap-root is-busy" style="background-image: url(&quot;&quot;);">
+        <ui:VisualElement name="bg" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Project/Material/loading-pet-garden-v8.png?fileID=2800000&amp;guid=b5257ab23fd26c6409c8af2ca1134de8&amp;type=3#loading-pet-garden-v8&quot;);"/>
+        <ui:VisualElement name="safe-area" class="mw-safe-area bootstrap-safe-area">
+            <ui:VisualElement name="bootstrap-card" class="mw-card bootstrap-card" style="-unity-background-image-tint-color: rgb(255, 255, 255); flex-direction: column; translate: 0 0; align-content: flex-start; align-self: center; justify-content: center; width: 80%; background-color: rgba(255, 249, 232, 0); border-left-color: rgba(222, 199, 157, 0); border-right-color: rgba(222, 199, 157, 0); border-top-color: rgba(222, 199, 157, 0); border-bottom-color: rgba(222, 199, 157, 0); bottom: -80%;">
+                <ui:Label text="Connecting to your account..." name="bootstrap-status" class="mw-title bootstrap-status" style="align-self: center; font-size: 24px;"/>
+                <ui:ProgressBar value="10" title="LOADING" name="bootstrap-progress" class="bootstrap-progress" style="background-image: none;"/>
+                <ui:Label text="" name="bootstrap-detail" class="mw-subtitle bootstrap-detail"/>
+                <ui:Button text="TRY AGAIN" name="retry-button" class="mw-button mw-button--primary retry-button is-hidden"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

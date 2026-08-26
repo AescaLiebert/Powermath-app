@@ -26,6 +26,10 @@ namespace PowerMath.UI.MainMenu
             _view = GetComponent<MainMenuView>();
             _sceneFlow = GetComponent<SceneFlowController>();
 
+            if (GetComponent<MainMenuPanelHostProvider>() == null)
+            {
+                gameObject.AddComponent<MainMenuPanelHostProvider>();
+            }
             if (GetComponent<CombatLobbyCompositionRoot>() == null)
             {
                 // Existing scenes predate ADR-004; runtime attachment keeps the

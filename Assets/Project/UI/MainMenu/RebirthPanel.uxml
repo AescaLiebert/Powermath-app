@@ -1,0 +1,67 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="run-settlement-modal" enabled="true" focusable="true" class="social-modal settlement-modal is-hidden">
+        <ui:VisualElement class="settlement-backdrop-ring settlement-backdrop-ring--one" picking-mode="Ignore"/>
+        <ui:VisualElement class="settlement-backdrop-ring settlement-backdrop-ring--two" picking-mode="Ignore"/>
+        <ui:VisualElement class="social-modal-card settlement-card mw-card">
+            <ui:VisualElement class="settlement-header">
+                <ui:VisualElement class="settlement-heading">
+                    <ui:Label text="RUN RESET" class="mw-kicker settlement-kicker"/>
+                    <ui:Label name="run-settlement-title" text="REBIRTH PREVIEW" class="social-title settlement-title"/>
+                    <ui:Label text="Review the permanent rewards before beginning again." class="social-subtitle settlement-subtitle"/>
+                </ui:VisualElement>
+                <ui:Label name="run-settlement-stage" text="STAGE —" class="settlement-stage"/>
+            </ui:VisualElement>
+            <ui:ScrollView class="settlement-scroll">
+                <ui:Label text="PERMANENT REWARDS" class="settlement-section-title"/>
+                <ui:VisualElement class="settlement-grid">
+                    <ui:VisualElement class="settlement-value-card settlement-value-card--coins">
+                        <ui:VisualElement class="settlement-value-icon settlement-value-icon--coins">
+                            <ui:Label text="✦" class="settlement-value-symbol"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settlement-value-copy">
+                            <ui:Label text="POWER COINS" class="settlement-value-title"/>
+                            <ui:Label name="run-settlement-coins" text="— → —" class="settlement-value"/>
+                            <ui:Label name="run-settlement-coins-gain" text="Preparing reward…" class="settlement-gain"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="settlement-value-card settlement-value-card--legacy">
+                        <ui:VisualElement class="settlement-value-icon settlement-value-icon--legacy">
+                            <ui:Label text="↑" class="settlement-value-symbol"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settlement-value-copy">
+                            <ui:Label text="LEGACY ATK" class="settlement-value-title"/>
+                            <ui:Label name="run-settlement-legacy" text="— → —" class="settlement-value"/>
+                            <ui:Label name="run-settlement-legacy-gain" text="Preparing reward…" class="settlement-gain"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="settlement-result-row">
+                    <ui:Label name="run-settlement-attack" text="EFFECTIVE ATK  — → —" class="settlement-result settlement-result--attack"/>
+                    <ui:Label name="run-settlement-prestige" text="PRESTIGE  —" class="settlement-result settlement-result--prestige"/>
+                </ui:VisualElement>
+                <ui:Label text="WHAT HAPPENS NEXT" class="settlement-section-title settlement-section-title--rules"/>
+                <ui:VisualElement class="settlement-rules">
+                    <ui:VisualElement class="settlement-rule-card settlement-rule-card--keep">
+                        <ui:Label text="KEEP" class="settlement-rule-title settlement-rule-title--keep"/>
+                        <ui:Label text="✓ Active Rank and lifetime records" class="settlement-rule-line"/>
+                        <ui:Label text="✓ Power Coins, pets, weapons, and upgrades" class="settlement-rule-line"/>
+                        <ui:Label text="✓ Profile analytics and highest Stage" class="settlement-rule-line"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="settlement-rule-card settlement-rule-card--reset">
+                        <ui:Label text="RESET" class="settlement-rule-title settlement-rule-title--reset"/>
+                        <ui:Label text="• Return to Stage 1" class="settlement-rule-line"/>
+                        <ui:Label text="• Hearts, temporary buffs, and run state" class="settlement-rule-line"/>
+                        <ui:Label text="• Current audit and question queue runtime" class="settlement-rule-line"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="KEEP and RESET follow the authoritative run-settlement rules shown above." class="settlement-reset-note"/>
+            </ui:ScrollView>
+            <ui:Label name="run-settlement-status" text="" class="social-status mw-status settlement-status"/>
+            <ui:VisualElement class="settlement-actions">
+                <ui:Button name="run-settlement-close" text="BACK" class="social-close mw-button settlement-back"/>
+                <ui:Button name="run-settlement-confirm" text="CONFIRM" class="profile-name-save mw-button mw-button--primary settlement-confirm"/>
+                <ui:Button name="run-settlement-continue" text="CONTINUE" class="profile-name-save mw-button mw-button--primary settlement-continue"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

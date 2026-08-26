@@ -1,0 +1,38 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="content" picking-mode="Ignore" class="main-shell">
+        <ui:VisualElement name="profile-panel" focusable="true" tooltip="Open Profile Analytics" class="hud-profile-panel">
+            <ui:VisualElement class="hud-profile-icon"><ui:Label text="P" picking-mode="Ignore"/></ui:VisualElement>
+            <ui:VisualElement class="hud-profile-copy" picking-mode="Ignore">
+                <ui:Label text="Loading player..." name="player-display-name" class="hud-profile-name"/>
+                <ui:VisualElement class="hud-rank-currencies">
+                    <ui:VisualElement tooltip="Silver Rank Currency" class="hud-rank-currency"><ui:Label text="S" class="hud-rank-icon hud-rank-icon--silver"/><ui:Label name="profile-silver-value" text="—"/></ui:VisualElement>
+                    <ui:VisualElement tooltip="Gold Rank Currency" class="hud-rank-currency"><ui:Label text="G" class="hud-rank-icon hud-rank-icon--gold"/><ui:Label name="profile-gold-value" text="—"/></ui:VisualElement>
+                    <ui:VisualElement tooltip="Diamond Rank Currency" class="hud-rank-currency"><ui:Label text="D" class="hud-rank-icon hud-rank-icon--diamond"/><ui:Label name="profile-diamond-value" text="—"/></ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="main-navigator" class="hud-navigator">
+            <ui:Button name="combat-map-button" text="◆" tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome"/>
+            <ui:Button name="leaderboard" text="★" tooltip="Leaderboard" class="hud-icon-button hud-icon-button--leaderboard"/>
+            <ui:Button name="setting" text="⚙" tooltip="Settings (coming soon)" enabled="false" class="hud-icon-button hud-icon-button--settings"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="player-menu" class="hud-player-menu">
+            <ui:Button name="player-menu-toggle" text="‹" tooltip="Close Player Menu" class="hud-player-menu-toggle"/>
+            <ui:VisualElement name="player-menu-content" class="hud-player-menu-content">
+                <ui:VisualElement class="hud-player-resources">
+                    <ui:VisualElement tooltip="Power Coins" class="hud-player-resource"><ui:Label text="●" class="hud-player-resource-icon hud-player-resource-icon--coin"/><ui:Label name="player-menu-power-coins" text="—"/></ui:VisualElement>
+                    <ui:VisualElement tooltip="Current Attack" class="hud-player-resource"><ui:Label text="◆" class="hud-player-resource-icon hud-player-resource-icon--attack"/><ui:Label name="player-menu-atk" text="—"/></ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Button name="player-hub-button" text="⌂" tooltip="Player Hub" class="hud-player-menu-button"/>
+                <ui:Button name="pet-gacha-button" text="★" tooltip="Pet Gacha" class="hud-player-menu-button"/>
+                <ui:Button name="rebirth-button" text="↻" tooltip="Rebirth" class="hud-player-menu-button hud-player-menu-button--rebirth"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label text="" name="session-status" class="mw-status hud-session-status is-hidden"/>
+        <ui:Label text="Stage 1" name="current-stage-label" class="hud-compat-hidden"/>
+        <ui:ProgressBar name="stage-progress" value="0" high-value="100" class="hud-compat-hidden"/>
+        <ui:Label text="" name="wallet-summary" class="hud-compat-hidden"/>
+        <ui:Label text="" name="loadout-summary" class="hud-compat-hidden"/>
+        <ui:Button text="Log out" name="logout-button" class="hud-compat-hidden"/>
+    </ui:VisualElement>
+</ui:UXML>

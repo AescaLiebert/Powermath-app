@@ -13,12 +13,45 @@ namespace PowerMath.UI.MainMenu
             float stageProgress,
             string walletText,
             string loadoutText)
+            : this(
+                displayName,
+                stageText,
+                stageProgress,
+                walletText,
+                loadoutText,
+                "—",
+                "—",
+                "—",
+                "—",
+                "None",
+                "None")
+        {
+        }
+
+        public MainMenuViewModel(
+            string displayName,
+            string stageText,
+            float stageProgress,
+            string walletText,
+            string loadoutText,
+            string silverText,
+            string goldText,
+            string diamondText,
+            string powerCoinText,
+            string weaponText,
+            string petText)
         {
             DisplayName = displayName;
             StageText = stageText;
             StageProgress = stageProgress;
             WalletText = walletText;
             LoadoutText = loadoutText;
+            SilverText = silverText;
+            GoldText = goldText;
+            DiamondText = diamondText;
+            PowerCoinText = powerCoinText;
+            WeaponText = weaponText;
+            PetText = petText;
         }
 
         public string DisplayName { get; }
@@ -31,6 +64,18 @@ namespace PowerMath.UI.MainMenu
 
         public string LoadoutText { get; }
 
+        public string SilverText { get; }
+
+        public string GoldText { get; }
+
+        public string DiamondText { get; }
+
+        public string PowerCoinText { get; }
+
+        public string WeaponText { get; }
+
+        public string PetText { get; }
+
         public static MainMenuViewModel From(PlayerSnapshot snapshot)
         {
             int currentStage = ResolveCurrentStage(snapshot);
@@ -41,6 +86,18 @@ namespace PowerMath.UI.MainMenu
             string walletText = snapshot.wallet == null
                 ? "Power Coins: --"
                 : $"Power Coins: {snapshot.wallet.powerCoins}";
+            string silverText = snapshot.wallet == null
+                ? "—"
+                : snapshot.wallet.silver.ToString("N0");
+            string goldText = snapshot.wallet == null
+                ? "—"
+                : snapshot.wallet.gold.ToString("N0");
+            string diamondText = snapshot.wallet == null
+                ? "—"
+                : snapshot.wallet.diamond.ToString("N0");
+            string powerCoinText = snapshot.wallet == null
+                ? "—"
+                : snapshot.wallet.powerCoins.ToString("N0");
 
             string weapon = ResolveItemName(
                 snapshot.loadout == null ? null : snapshot.loadout.weaponId
@@ -55,7 +112,13 @@ namespace PowerMath.UI.MainMenu
                 stageText,
                 stageProgress,
                 walletText,
-                loadoutText
+                loadoutText,
+                silverText,
+                goldText,
+                diamondText,
+                powerCoinText,
+                weapon,
+                pet
             );
         }
 

@@ -18,6 +18,7 @@ namespace PowerMath.UI.MainMenu
         private readonly int _baseWeaponAttack;
         private readonly double _baseCriticalRate;
         private readonly double _baseCriticalDamagePercent;
+        private readonly IMainMenuPanelHost _panelHost;
         private readonly VisualElement _modal;
         private readonly Label _title;
         private readonly Label _stage;
@@ -45,7 +46,8 @@ namespace PowerMath.UI.MainMenu
             int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
-            double baseCriticalDamagePercent)
+            double baseCriticalDamagePercent,
+            IMainMenuPanelHost panelHost)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
@@ -55,6 +57,7 @@ namespace PowerMath.UI.MainMenu
             _baseWeaponAttack = baseWeaponAttack;
             _baseCriticalRate = baseCriticalRate;
             _baseCriticalDamagePercent = baseCriticalDamagePercent;
+            _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
             _modal = Require<VisualElement>(root, "run-settlement-modal");
             _title = Require<Label>(root, "run-settlement-title");
             _stage = Require<Label>(root, "run-settlement-stage");
@@ -76,7 +79,7 @@ namespace PowerMath.UI.MainMenu
             _continue.clicked += ReloadScene;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
-            Close();
+            HideInitially();
             RefreshButton();
             OnPlayerChanged(_player);
         }
@@ -89,6 +92,8 @@ namespace PowerMath.UI.MainMenu
             _confirm.clicked -= Confirm;
             _close.clicked -= Close;
             _continue.clicked -= ReloadScene;
+            if (_panelHost.OpenPanel == MainMenuPanelId.Rebirth)
+                _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth);
         }
 
         private void OnPlayerChanged(PlayerSnapshot player)
@@ -106,13 +111,14 @@ namespace PowerMath.UI.MainMenu
             {
                 _title.text = "RUN ENDED";
                 _status.text = error;
-                Show(true, false);
+                Show(true, false, true);
+                SetSemanticState("is-error");
                 return;
             }
 
             RenderPreview(_pendingPreview, "RUN ENDED");
             _status.text = "Saving this run and preparing Stage 1...";
-            Show(false, false);
+            Show(false, false, true);
             _host.StartCoroutine(Settle(RunSettlementType.Death));
         }
 
@@ -126,11 +132,17 @@ namespace PowerMath.UI.MainMenu
             }
 
             _pendingSettlement = RunSettlementType.Rebirth;
+            if (!Show(true, false))
+            {
+                _pendingSettlement = null;
+                _pendingPreview = default;
+                return;
+            }
+            SetSemanticState();
             RenderPreview(_pendingPreview, "REBIRTH PREVIEW");
             _status.text =
                 "Your Rank and lifetime records stay. Questions and the current audit restart.";
             _confirm.text = "REBIRTH";
-            Show(true, false);
         }
 
         private bool TryBuildPreview(
@@ -211,6 +223,7 @@ namespace PowerMath.UI.MainMenu
         private IEnumerator Settle(RunSettlementType type)
         {
             _busy = true;
+            SetSemanticState("is-busy");
             _status.text = "Saving to Firebase...";
             SetControls(false);
             RunSettlementAward award = default;
@@ -230,6 +243,7 @@ namespace PowerMath.UI.MainMenu
                 _status.text = failure;
                 _confirm.text = "RETRY SAVE";
                 Show(true, false);
+                SetSemanticState("is-error");
                 yield break;
             }
 
@@ -245,6 +259,7 @@ namespace PowerMath.UI.MainMenu
             _status.text =
                 "Saved. Your Rank and lifetime leaderboard values were preserved.";
             Show(false, true);
+            SetSemanticState("is-success");
             RefreshButton();
         }
 
@@ -291,9 +306,17 @@ namespace PowerMath.UI.MainMenu
             _rebirth.SetEnabled(eligible);
         }
 
-        private void Show(bool confirm, bool continueButton)
+        private bool Show(
+            bool confirm,
+            bool continueButton,
+            bool forceOpen = false)
         {
-            _modal.style.display = DisplayStyle.Flex;
+            if (forceOpen && _panelHost.OpenPanel != MainMenuPanelId.Rebirth)
+                _panelHost.ForceCloseAll();
+            if (!_panelHost.TryOpen(
+                    MainMenuPanelId.Rebirth,
+                    _modal,
+                    _rebirth)) return false;
             _confirm.style.display = confirm ? DisplayStyle.Flex : DisplayStyle.None;
             _continue.style.display = continueButton
                 ? DisplayStyle.Flex
@@ -303,6 +326,7 @@ namespace PowerMath.UI.MainMenu
                 ? DisplayStyle.None
                 : DisplayStyle.Flex;
             SetControls(!_busy);
+            return true;
         }
 
         private void SetControls(bool enabled)
@@ -315,10 +339,14 @@ namespace PowerMath.UI.MainMenu
         private void Close()
         {
             if (_busy) return;
-            _modal.style.display = DisplayStyle.None;
+            if (_panelHost.OpenPanel == MainMenuPanelId.Rebirth)
+                _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth);
+            else if (_panelHost.OpenPanel == MainMenuPanelId.None)
+                HideInitially();
             _pendingSettlement = null;
             _pendingPreview = default;
             _confirm.text = "CONFIRM";
+            SetSemanticState();
         }
 
         private static string FormatPercent(long basisPoints)
@@ -336,6 +364,19 @@ namespace PowerMath.UI.MainMenu
         {
             return root.Q<T>(name) ?? throw new InvalidOperationException(
                 $"Main Menu UI is missing '{name}'.");
+        }
+
+        private void HideInitially()
+        {
+            _modal.EnableInClassList("is-hidden", true);
+            _modal.style.display = DisplayStyle.None;
+        }
+
+        private void SetSemanticState(string state = null)
+        {
+            _modal.EnableInClassList("is-busy", state == "is-busy");
+            _modal.EnableInClassList("is-success", state == "is-success");
+            _modal.EnableInClassList("is-error", state == "is-error");
         }
 
         private readonly struct SettlementPreview

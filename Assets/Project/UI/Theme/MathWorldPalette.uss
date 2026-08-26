@@ -1,0 +1,64 @@
+.mw-screen {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    color: rgb(20, 48, 91);
+    background-color: rgb(54, 184, 222);
+    display: flex;
+}
+
+.mw-template-fill {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+}
+
+.mw-safe-area {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.mw-cream-surface {
+    background-color: rgb(255, 249, 232);
+    border-left-color: rgb(222, 199, 157);
+    border-right-color: rgb(222, 199, 157);
+    border-top-color: rgb(222, 199, 157);
+    border-bottom-color: rgb(222, 199, 157);
+}
+
+.mw-navy {
+    color: rgb(20, 48, 91);
+}
+
+.mw-muted {
+    color: rgb(77, 101, 134);
+}
+
+.mw-cyan-surface {
+    background-color: rgb(95, 211, 225);
+}
+
+.mw-cobalt-surface {
+    background-color: rgb(32, 92, 183);
+}
+
+.mw-coral-surface {
+    background-color: rgb(244, 111, 83);
+}
+
+.mw-gold-surface {
+    background-color: rgb(255, 184, 68);
+}
+
+.is-hidden {
+    display: none;
+}

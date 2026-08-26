@@ -42,9 +42,6 @@ namespace PowerMath.UI.Authentication
             if (apiSettings.UseEditorSampleStudent)
             {
                 _authenticationService = new EditorMockAuthenticationService();
-                _view.SetEditorHint(
-                    "Editor sample: sample-student / 123456"
-                );
             }
             else
             {

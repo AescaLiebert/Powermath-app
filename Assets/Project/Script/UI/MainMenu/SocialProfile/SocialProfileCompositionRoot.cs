@@ -16,18 +16,22 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             UIDocument document = GetComponent<UIDocument>();
             PlayerSessionStore session = PlayerSessionStore.Instance;
             MainMenuPresenter presenter = GetComponent<MainMenuPresenter>();
+            MainMenuPanelHostProvider provider =
+                GetComponent<MainMenuPanelHostProvider>();
             if (document == null || document.rootVisualElement == null ||
                 session == null || !session.IsReady || session.Snapshot == null ||
-                presenter == null || presenter.ApiSettings == null)
+                presenter == null || presenter.ApiSettings == null || provider == null)
             {
                 Debug.LogError("Leaderboard and Profile Analytics require a loaded player session and API settings.");
                 return;
             }
 
             _leaderboard = new LeaderboardPanelController(
-                document.rootVisualElement, this, presenter.ApiSettings, session.Snapshot);
+                document.rootVisualElement, this, presenter.ApiSettings,
+                session.Snapshot, provider.Host);
             _profile = new ProfileAnalyticsPanelController(
-                document.rootVisualElement, this, presenter.ApiSettings, session.Snapshot);
+                document.rootVisualElement, this, presenter.ApiSettings,
+                session.Snapshot, provider.Host);
             if (!_leaderboard.IsValid || !_profile.IsValid)
             {
                 Debug.LogError("Main Menu social/profile UI elements are missing.");

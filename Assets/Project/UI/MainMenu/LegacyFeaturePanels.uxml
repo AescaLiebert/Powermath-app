@@ -1,0 +1,12 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="RebirthPanel" src="project://database/Assets/Project/UI/MainMenu/RebirthPanel.uxml"/>
+    <ui:Template name="PlayerHubPanel" src="project://database/Assets/Project/UI/MainMenu/PlayerHubPanel.uxml"/>
+    <ui:Template name="PetGachaPanel" src="project://database/Assets/Project/UI/MainMenu/PetGachaPanel.uxml"/>
+    <ui:Template name="LeaderboardPanel" src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uxml"/>
+    <ui:Template name="ProfileAnalyticsPanel" src="project://database/Assets/Project/UI/MainMenu/ProfileAnalyticsPanel.uxml"/>
+    <ui:Instance template="RebirthPanel" picking-mode="Ignore" class="mw-template-fill"/>
+    <ui:Instance template="PlayerHubPanel" picking-mode="Ignore" class="mw-template-fill"/>
+    <ui:Instance template="PetGachaPanel" picking-mode="Ignore" class="mw-template-fill"/>
+    <ui:Instance template="LeaderboardPanel" picking-mode="Ignore" class="mw-template-fill"/>
+    <ui:Instance template="ProfileAnalyticsPanel" picking-mode="Ignore" class="mw-template-fill"/>
+</ui:UXML>

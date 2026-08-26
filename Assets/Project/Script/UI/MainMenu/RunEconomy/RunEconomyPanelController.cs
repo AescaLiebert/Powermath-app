@@ -29,11 +29,13 @@ namespace PowerMath.UI.MainMenu
             double baseCriticalRate,
             double baseCriticalDamagePercent,
             AudioSource audioSource,
-            bool reducedMotion)
+            bool reducedMotion,
+            IMainMenuPanelHost panelHost)
         {
             if (host == null) throw new ArgumentNullException(nameof(host));
             if (root == null) throw new ArgumentNullException(nameof(root));
             if (player == null) throw new ArgumentNullException(nameof(player));
+            if (panelHost == null) throw new ArgumentNullException(nameof(panelHost));
 
             var store = new FirestoreProgressionCommandStore(
                 settings,
@@ -50,7 +52,8 @@ namespace PowerMath.UI.MainMenu
                 baseAttack,
                 baseWeaponAttack,
                 baseCriticalRate,
-                baseCriticalDamagePercent);
+                baseCriticalDamagePercent,
+                panelHost);
             _playerHub = new PlayerHubPanelController(
                 host,
                 root,
@@ -61,7 +64,8 @@ namespace PowerMath.UI.MainMenu
                 baseAttack,
                 baseWeaponAttack,
                 baseCriticalRate,
-                baseCriticalDamagePercent);
+                baseCriticalDamagePercent,
+                panelHost);
 
             PetGachaCatalog petCatalog = null;
             IPetGachaCommandStore petStore = null;
@@ -94,7 +98,8 @@ namespace PowerMath.UI.MainMenu
                 publisher,
                 audioSource,
                 reducedMotion,
-                unavailableReason);
+                unavailableReason,
+                panelHost);
         }
 
         public void Dispose()

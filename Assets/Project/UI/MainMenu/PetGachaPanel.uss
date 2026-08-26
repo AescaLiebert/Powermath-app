@@ -1,0 +1,533 @@
+.pet-gacha-modal {
+    color: rgb(20, 48, 91);
+    background-color: rgb(95, 211, 225);
+}
+
+.pet-gacha-backdrop {
+    position: absolute;
+}
+
+.pet-gacha-backdrop--aqua {
+    left: -12%;
+    top: -20%;
+    width: 70%;
+    height: 145%;
+    background-color: rgb(95, 211, 225);
+    border-radius: 50%;
+}
+
+.pet-gacha-backdrop--blue {
+    right: -16%;
+    top: -28%;
+    width: 71%;
+    height: 155%;
+    background-color: rgb(32, 92, 183);
+    border-radius: 50%;
+    border-width: 18px;
+    border-color: rgba(255, 249, 232, 0.72);
+}
+
+.pet-gacha-watermark {
+    position: absolute;
+    color: rgba(20, 48, 91, 0.1);
+    font-size: 190px;
+    -unity-font-style: bold;
+    letter-spacing: -7px;
+}
+
+.pet-gacha-watermark--left {
+    left: -15px;
+    top: -48px;
+}
+
+.pet-gacha-watermark--right {
+    right: -10px;
+    bottom: -56px;
+    color: rgba(255, 249, 232, 0.1);
+}
+
+.pet-gacha-shell {
+    position: absolute;
+    left: 34px;
+    right: 34px;
+    top: 24px;
+    bottom: 24px;
+}
+
+.pet-gacha-topbar {
+    height: 66px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.pet-gacha-balance-pill {
+    min-width: 270px;
+    height: 54px;
+    padding: 7px 20px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(255, 249, 232);
+    border-radius: 27px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+}
+
+.pet-gacha-coin-icon {
+    width: 34px;
+    height: 34px;
+    margin-right: 10px;
+    color: rgb(218, 120, 38);
+    background-color: rgb(255, 184, 68);
+    border-radius: 17px;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-balance {
+    color: rgb(20, 48, 91);
+    font-size: 17px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-close {
+    min-width: 54px;
+    width: 54px;
+    min-height: 54px;
+    height: 54px;
+    margin-left: 14px;
+    padding: 0;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 15px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+    font-size: 37px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-main {
+    flex-grow: 1;
+    min-height: 0;
+    padding: 18px 18px 10px;
+    flex-direction: row;
+}
+
+.pet-gacha-info-column {
+    width: 48%;
+    padding: 18px 30px 12px 16px;
+}
+
+.pet-gacha-kicker {
+    color: rgb(32, 92, 183);
+    font-size: 14px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+}
+
+.pet-gacha-title {
+    margin-top: 2px;
+    color: rgb(20, 48, 91);
+    font-size: 54px;
+    -unity-font-style: bold;
+    letter-spacing: -1px;
+}
+
+.pet-gacha-subtitle {
+    width: 88%;
+    margin-top: 5px;
+    color: rgb(46, 84, 122);
+    font-size: 17px;
+    white-space: normal;
+}
+
+.pet-gacha-catalog-status {
+    margin-top: 19px;
+    padding: 9px 14px;
+    color: rgb(255, 249, 232);
+    background-color: rgb(32, 92, 183);
+    border-radius: 10px 10px 0 0;
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.pet-gacha-odds-list {
+    flex-grow: 1;
+    min-height: 260px;
+    margin-top: 0;
+    padding: 6px 12px 8px;
+    background-color: rgba(255, 249, 232, 0.94);
+    border-radius: 0 0 15px 15px;
+    border-width: 2px;
+    border-top-width: 0;
+    border-color: rgb(32, 92, 183);
+}
+
+.pet-gacha-rarity-header {
+    min-height: 34px;
+    margin-top: 7px;
+    padding: 7px 10px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(232, 242, 239);
+    border-radius: 9px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 0.6px;
+}
+
+.pet-gacha-odds-row {
+    min-height: 34px;
+    padding: 6px 9px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(32, 92, 183, 0.17);
+}
+
+.pet-gacha-pet-unowned,
+.pet-gacha-pet-owned,
+.pet-gacha-probability {
+    color: rgb(20, 48, 91);
+    font-size: 13px;
+}
+
+.pet-gacha-pet-owned {
+    color: rgb(151, 54, 58);
+    -unity-font-style: bold;
+}
+
+.pet-gacha-probability {
+    color: rgb(32, 92, 183);
+    -unity-font-style: bold;
+}
+
+.pet-gacha-warning {
+    min-height: 42px;
+    margin-top: 9px;
+    padding: 8px 12px;
+    color: rgb(139, 81, 28);
+    background-color: rgba(255, 230, 181, 0.95);
+    border-radius: 10px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.pet-gacha-call-column {
+    flex-grow: 1;
+    padding: 15px 22px 16px 32px;
+    align-items: center;
+    justify-content: center;
+}
+
+.pet-gacha-orbit {
+    width: 390px;
+    height: 390px;
+    align-items: center;
+    justify-content: center;
+}
+
+.pet-gacha-orbit-ring {
+    position: absolute;
+    width: 330px;
+    height: 330px;
+    background-color: rgba(255, 249, 232, 0.16);
+    border-radius: 50%;
+    border-width: 4px;
+    border-color: rgba(255, 249, 232, 0.76);
+}
+
+.pet-gacha-call-mark,
+.pet-gacha-confirmation-mark {
+    width: 210px;
+    height: 210px;
+    color: rgb(32, 92, 183);
+    background-color: rgb(255, 249, 232);
+    border-radius: 50%;
+    border-width: 8px;
+    border-color: rgb(95, 211, 225);
+    font-size: 116px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    transition-property: scale, opacity;
+    transition-duration: 0.18s;
+}
+
+.pet-gacha-capsule {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    color: rgb(255, 249, 232);
+    background-color: rgb(32, 184, 193);
+    border-radius: 18px;
+    border-width: 4px;
+    border-color: rgb(255, 249, 232);
+    font-size: 34px;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-capsule--one { left: 8px; top: 160px; }
+.pet-gacha-capsule--two { right: 8px; top: 160px; }
+.pet-gacha-capsule--three { left: 160px; top: 8px; }
+.pet-gacha-capsule--four { left: 160px; bottom: 8px; }
+
+.pet-gacha-wallet-row {
+    width: 100%;
+    margin-top: 2px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.pet-gacha-wallet {
+    width: 46%;
+    min-height: 52px;
+    margin: 0 5px;
+    padding: 9px 12px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 13px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.pet-gacha-wallet--projected {
+    color: rgb(18, 99, 68);
+    background-color: rgb(219, 241, 218);
+}
+
+.pet-gacha-pull {
+    min-width: 270px;
+    height: 64px;
+    margin-top: 14px;
+    align-self: center;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 184, 68);
+    border-radius: 18px;
+    border-width: 3px;
+    border-color: rgb(218, 120, 38);
+    font-size: 21px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-pull:hover,
+.pet-gacha-pull:focus {
+    scale: 1.035 1.035;
+    background-color: rgb(255, 200, 92);
+}
+
+.pet-gacha-status {
+    min-height: 42px;
+    margin: 0 18px;
+    padding: 8px 12px;
+    color: rgb(20, 48, 91);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.pet-gacha-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(20, 48, 91, 0.94);
+}
+
+.pet-gacha-confirmation-orbit {
+    position: absolute;
+    width: 560px;
+    height: 560px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border-width: 4px;
+    border-color: rgba(95, 211, 225, 0.5);
+}
+
+.pet-gacha-confirmation-card {
+    width: 590px;
+    max-width: 88%;
+    padding: 30px 34px;
+    align-items: center;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 24px;
+    border-width: 4px;
+    border-color: rgb(255, 184, 68);
+}
+
+.pet-gacha-overlay-title {
+    color: rgb(20, 48, 91);
+    font-size: 31px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-confirmation-summary {
+    margin-top: 14px;
+    color: rgb(77, 101, 134);
+    font-size: 17px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-actions {
+    margin-top: 18px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.pet-gacha-cancel {
+    width: 150px;
+    height: 56px;
+    margin-right: 8px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(232, 242, 239);
+}
+
+.pet-gacha-confirm {
+    min-width: 230px;
+    height: 56px;
+    margin: 0 0 0 8px;
+}
+
+.pet-gacha-modal.is-busy .pet-gacha-confirmation-mark {
+    scale: 1.12 1.12;
+    opacity: 0.72;
+}
+
+.pet-gacha-modal.is-busy .pet-gacha-confirmation-card {
+    border-color: rgb(95, 211, 225);
+}
+
+.pet-gacha-result {
+    flex-direction: row;
+    background-color: rgb(95, 211, 225);
+}
+
+.pet-gacha-result-copy {
+    width: 44%;
+    height: 100%;
+    padding: 12% 4% 8% 7%;
+    justify-content: center;
+}
+
+.pet-gacha-result-showcase {
+    flex-grow: 1;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(32, 92, 183);
+    border-radius: 50% 0 0 50%;
+}
+
+.pet-gacha-result-halo {
+    position: absolute;
+    width: 470px;
+    height: 470px;
+    background-color: rgb(255, 249, 232);
+    border-radius: 50%;
+    border-width: 12px;
+    border-color: rgba(255, 184, 68, 0.75);
+    transition-property: scale, opacity;
+    transition-duration: 0.22s;
+}
+
+.pet-gacha-result-icon {
+    width: 390px;
+    height: 390px;
+    -unity-background-scale-mode: scale-to-fit;
+    transition-property: scale, opacity;
+    transition-duration: 0.22s;
+}
+
+.pet-gacha-result-state {
+    align-self: flex-start;
+    min-height: 42px;
+    padding: 8px 17px;
+    color: white;
+    background-color: rgb(244, 111, 83);
+    border-radius: 20px;
+    font-size: 17px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.pet-gacha-result-rarity {
+    margin-top: 22px;
+    color: rgb(32, 92, 183);
+    font-size: 19px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+}
+
+.pet-gacha-result-name {
+    margin-top: 3px;
+    color: rgb(20, 48, 91);
+    font-size: 45px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.pet-gacha-result-divider {
+    width: 90%;
+    height: 2px;
+    margin-top: 15px;
+    background-color: rgb(32, 92, 183);
+}
+
+.pet-gacha-result-balance {
+    margin-top: 15px;
+    color: rgb(20, 48, 91);
+    font-size: 17px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-continue {
+    align-self: flex-start;
+    min-width: 220px;
+    margin-top: 22px;
+}
+
+.pet-gacha-result--new .pet-gacha-result-state {
+    color: white;
+    background-color: rgb(244, 111, 83);
+}
+
+.pet-gacha-result--duplicate .pet-gacha-result-state {
+    color: rgb(20, 48, 91);
+    background-color: rgb(222, 199, 157);
+}
+
+.pet-gacha-result--duplicate .pet-gacha-result-halo {
+    opacity: 0.62;
+    border-color: rgb(166, 199, 195);
+}
+
+.pet-gacha-result--reveal .pet-gacha-result-icon {
+    scale: 1.08 1.08;
+}
+
+.pet-gacha-result--reveal .pet-gacha-result-halo {
+    scale: 1.05 1.05;
+}
+
+.pet-gacha-modal.is-error .pet-gacha-status {
+    color: rgb(151, 54, 58);
+    background-color: rgb(255, 224, 214);
+}
+
+.pet-gacha-modal.is-success .pet-gacha-status {
+    color: rgb(34, 105, 78);
+    background-color: rgb(207, 240, 213);
+}
+
+.pet-gacha-modal.is-reduced-motion .pet-gacha-call-mark,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-result-icon,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-result-halo {
+    transition-duration: 0s;
+}

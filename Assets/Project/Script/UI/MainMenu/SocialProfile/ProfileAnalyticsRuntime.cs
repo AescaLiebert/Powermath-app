@@ -197,10 +197,13 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private readonly VisualElement _attemptPanel;
         private readonly PlayerSnapshot _player;
         private readonly FirestoreDisplayNameStore _store;
+        private readonly IMainMenuPanelHost _panelHost;
         private bool _bound;
+        private bool _busy;
 
         public ProfileAnalyticsPanelController(VisualElement root, MonoBehaviour host,
-            GameApiSettings settings, PlayerSnapshot player)
+            GameApiSettings settings, PlayerSnapshot player,
+            IMainMenuPanelHost panelHost)
         {
             _open = root.Q<VisualElement>("profile-panel");
             _modal = root.Q<VisualElement>("profile-analytics-modal");
@@ -216,6 +219,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _attemptPanel = root.Q<VisualElement>("combat-attempt-panel");
             _player = player;
             _store = new FirestoreDisplayNameStore(host, settings, player);
+            _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
         }
 
         public bool IsValid => _open != null && _modal != null && _close != null &&
@@ -238,6 +242,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _close.clicked -= Close;
             _save.clicked -= Save;
             _store.Cancel();
+            if (_panelHost.OpenPanel == MainMenuPanelId.ProfileAnalytics)
+                _panelHost.TryClose(MainMenuPanelId.ProfileAnalytics, _open);
             _bound = false;
         }
 
@@ -245,22 +251,50 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         {
             if (_attemptPanel != null && _attemptPanel.resolvedStyle.display != DisplayStyle.None)
                 return;
+            if (!_panelHost.TryOpen(
+                    MainMenuPanelId.ProfileAnalytics,
+                    _modal,
+                    _open)) return;
             Render();
-            _modal.BringToFront();
-            _modal.style.display = DisplayStyle.Flex;
+            SetSemanticState();
         }
-        private void Close() { _store.Cancel(); _modal.style.display = DisplayStyle.None; _save.SetEnabled(true); }
+        private void Close()
+        {
+            if (_busy) return;
+            _panelHost.TryClose(MainMenuPanelId.ProfileAnalytics, _open);
+            _save.SetEnabled(true);
+            SetSemanticState();
+        }
 
         private void Save()
         {
             if (!DisplayNamePolicy.TryNormalize(_name.value, out string value, out string error))
-            { _status.text = error; return; }
+            { _status.text = error; SetSemanticState("is-error"); return; }
             if (string.Equals(value, _player.profile.displayName, StringComparison.Ordinal))
-            { _status.text = "That is already your display name."; return; }
+            { _status.text = "That is already your display name."; SetSemanticState("is-error"); return; }
+            _busy = true;
             _save.SetEnabled(false);
+            _close.SetEnabled(false);
             _status.text = "Saving…";
-            _store.Save(value, message => { _save.SetEnabled(true); Render(); _status.text = message; },
-                message => { _save.SetEnabled(true); _status.text = message; });
+            SetSemanticState("is-busy");
+            _store.Save(value,
+                message =>
+                {
+                    _busy = false;
+                    _save.SetEnabled(true);
+                    _close.SetEnabled(true);
+                    Render();
+                    _status.text = message;
+                    SetSemanticState("is-success");
+                },
+                message =>
+                {
+                    _busy = false;
+                    _save.SetEnabled(true);
+                    _close.SetEnabled(true);
+                    _status.text = message;
+                    SetSemanticState("is-error");
+                });
         }
 
         private void Render()
@@ -366,6 +400,13 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             if (seconds <= 0) return "No recorded time yet";
             TimeSpan value = TimeSpan.FromSeconds(seconds);
             return ((int)value.TotalHours).ToString(CultureInfo.CurrentCulture) + "h " + value.Minutes + "m";
+        }
+
+        private void SetSemanticState(string state = null)
+        {
+            _modal.EnableInClassList("is-busy", state == "is-busy");
+            _modal.EnableInClassList("is-success", state == "is-success");
+            _modal.EnableInClassList("is-error", state == "is-error");
         }
     }
 }

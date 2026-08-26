@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using PowerMath.UI.MainMenu;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,15 +10,16 @@ namespace PowerMath.Gameplay.Combat.Unity
     public sealed class CombatLobbyView : IDisposable
     {
         private readonly VisualElement _root;
+        private readonly IMainMenuPanelHost _panelHost;
         private readonly VisualElement _combatLayer;
         private readonly VisualElement _enemyCard;
-        private readonly Image _enemyImage;
         private readonly Label _stageLabel;
         private readonly ProgressBar _stageProgress;
         private readonly Label _enemyName;
         private readonly ProgressBar _enemyHpBar;
         private readonly Label _enemyHpLabel;
         private readonly Label _cooldownLabel;
+        private readonly VisualElement _enemyActions;
         private readonly Label _heartsLabel;
         private readonly Button _attackButton;
         private readonly VisualElement _attemptPanel;
@@ -41,22 +43,25 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly VisualElement _biomeTransition;
         private readonly Label _biomeTransitionTitle;
         private readonly Dictionary<string, Label> _mapNodes = new Dictionary<string, Label>();
-        private Func<string, Texture2D> _backgroundResolver;
-        private Func<string, Texture2D> _encounterTextureResolver;
+        private Action<string> _backgroundRenderer;
+        private Action<string> _encounterRenderer;
         private bool _bound;
 
-        public CombatLobbyView(VisualElement root)
+        public CombatLobbyView(
+            VisualElement root,
+            IMainMenuPanelHost panelHost = null)
         {
             _root = root ?? throw new ArgumentNullException(nameof(root));
+            _panelHost = panelHost ?? new MainMenuPanelHost();
             _combatLayer = Require<VisualElement>("combat-layer");
             _enemyCard = Require<VisualElement>("combat-enemy-card");
-            _enemyImage = Require<Image>("combat-enemy-image");
             _stageLabel = Require<Label>("combat-stage-label");
-            _stageProgress = Require<ProgressBar>("combat-stage-progress");
+            _stageProgress = _root.Q<ProgressBar>("combat-stage-progress");
             _enemyName = Require<Label>("combat-enemy-name");
             _enemyHpBar = Require<ProgressBar>("combat-enemy-hp");
             _enemyHpLabel = Require<Label>("combat-enemy-hp-label");
-            _cooldownLabel = Require<Label>("combat-cooldown-label");
+            _cooldownLabel = _root.Q<Label>("combat-cooldown-label");
+            _enemyActions = Require<VisualElement>("combat-enemy-actions");
             _heartsLabel = Require<Label>("combat-hearts-label");
             _attackButton = Require<Button>("combat-attack-button");
             _attemptPanel = Require<VisualElement>("combat-attempt-panel");
@@ -107,8 +112,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             _submitButton.clicked += OnSubmit;
             _backspaceButton.clicked += OnBackspace;
             _clearButton.clicked += OnClear;
-            _mapButton.clicked += ShowMap;
-            _mapClose.clicked += HideMap;
+            _mapButton.clicked += OnShowMap;
+            _mapClose.clicked += OnHideMap;
             for (int digit = 0; digit <= 9; digit++)
             {
                 _digitButtons[digit].clicked += _digitHandlers[digit];
@@ -122,7 +127,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             _combatLayer.style.display = DisplayStyle.Flex;
             _stageLabel.text = $"STAGE {snapshot.Stage.Value} / {StageId.Final}";
-            _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
+            if (_stageProgress != null)
+                _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
             _enemyName.text = snapshot.EnemyName;
             _biomeLabel.text = snapshot.BiomeTitle.ToUpperInvariant();
             ApplyEncounterVisuals(snapshot);
@@ -131,15 +137,19 @@ namespace PowerMath.Gameplay.Combat.Unity
                     string.Equals(pair.Key, snapshot.BiomeId, StringComparison.Ordinal));
             EnemyMaximumHp = snapshot.EnemyMaximumHp;
             SetEnemyHp(snapshot.EnemyCurrentHp);
-            _cooldownLabel.text = snapshot.EnemyRemainingCooldown <= 1
-                ? $"⚠ ATTACK IN {snapshot.EnemyRemainingCooldown}"
-                : $"Enemy attack: {snapshot.EnemyRemainingCooldown} / {snapshot.EnemyMaximumCooldown}";
-            if (snapshot.IsEvent)
-                _cooldownLabel.text = "CHALLENGE: WRONG ANSWER COSTS 1 HEART";
-            _cooldownLabel.EnableInClassList(
-                "combat-cooldown--danger",
-                !snapshot.IsEvent && snapshot.EnemyRemainingCooldown <= 1
-            );
+            if (_cooldownLabel != null)
+            {
+                _cooldownLabel.text = snapshot.EnemyRemainingCooldown <= 1
+                    ? $"⚠ ATTACK IN {snapshot.EnemyRemainingCooldown}"
+                    : $"Enemy attack: {snapshot.EnemyRemainingCooldown} / {snapshot.EnemyMaximumCooldown}";
+                if (snapshot.IsEvent)
+                    _cooldownLabel.text = "CHALLENGE: WRONG ANSWER COSTS 1 HEART";
+                _cooldownLabel.EnableInClassList(
+                    "combat-cooldown--danger",
+                    !snapshot.IsEvent && snapshot.EnemyRemainingCooldown <= 1
+                );
+            }
+            RenderEnemyActions(snapshot);
             _heartsLabel.text = BuildHearts(
                 snapshot.PlayerCurrentHearts,
                 snapshot.PlayerMaximumHearts
@@ -147,7 +157,10 @@ namespace PowerMath.Gameplay.Combat.Unity
             _simulationBadge.style.display = snapshot.IsSimulation
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
-            _attackButton.text = snapshot.IsEvent ? "START CHALLENGE" : "ATTACK";
+            _attackButton.text = "⚔";
+            _attackButton.tooltip = snapshot.IsEvent
+                ? "Start Challenge"
+                : "Attack";
             _attackButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
                 snapshot.Phase == CombatPhase.EventReady);
             _mapButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
@@ -155,12 +168,12 @@ namespace PowerMath.Gameplay.Combat.Unity
         }
 
         public void ConfigureStageMap(StageMapData map,
-            Func<string, Texture2D> backgroundResolver,
-            Func<string, Texture2D> encounterTextureResolver)
+            Action<string> backgroundRenderer,
+            Action<string> encounterRenderer)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
-            _backgroundResolver = backgroundResolver;
-            _encounterTextureResolver = encounterTextureResolver;
+            _backgroundRenderer = backgroundRenderer;
+            _encounterRenderer = encounterRenderer;
             _mapRoute.Clear();
             _mapNodes.Clear();
             for (int index = 0; index < map.Biomes.Count; index++)
@@ -181,14 +194,6 @@ namespace PowerMath.Gameplay.Combat.Unity
             ApplyEncounterVisuals(destination);
             yield return new WaitForSecondsRealtime(0.85f);
             _biomeTransition.style.display = DisplayStyle.None;
-        }
-
-        public void SetEnemyTexture(Texture2D texture)
-        {
-            if (texture != null)
-            {
-                _enemyImage.image = texture;
-            }
         }
 
         public void SetEnemyHp(int currentHp)
@@ -303,14 +308,15 @@ namespace PowerMath.Gameplay.Combat.Unity
             _submitButton.clicked -= OnSubmit;
             _backspaceButton.clicked -= OnBackspace;
             _clearButton.clicked -= OnClear;
-            _mapButton.clicked -= ShowMap;
-            _mapClose.clicked -= HideMap;
+            _mapButton.clicked -= OnShowMap;
+            _mapClose.clicked -= OnHideMap;
             for (int digit = 0; digit <= 9; digit++)
             {
                 _digitButtons[digit].clicked -= _digitHandlers[digit];
             }
 
             _root.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+            _panelHost.ForceCloseAll();
             _bound = false;
         }
 
@@ -332,16 +338,58 @@ namespace PowerMath.Gameplay.Combat.Unity
             AttackRequested?.Invoke();
         }
 
-        private void ShowMap() => _mapModal.style.display = DisplayStyle.Flex;
-        private void HideMap() => _mapModal.style.display = DisplayStyle.None;
+        private void OnShowMap()
+        {
+            _panelHost.TryOpen(
+                MainMenuPanelId.WorldMap,
+                _mapModal,
+                _mapButton
+            );
+        }
+
+        private void OnHideMap()
+        {
+            _panelHost.TryClose(MainMenuPanelId.WorldMap, _mapButton);
+        }
 
         private void ApplyEncounterVisuals(CombatSnapshot snapshot)
         {
-            Texture2D background = _backgroundResolver?.Invoke(snapshot.BiomeId);
-            if (background != null)
-                _combatLayer.style.backgroundImage = new StyleBackground(background);
-            Texture2D encounter = _encounterTextureResolver?.Invoke(snapshot.EnemyId);
-            if (encounter != null) _enemyImage.image = encounter;
+            _backgroundRenderer?.Invoke(snapshot.BiomeId);
+            _encounterRenderer?.Invoke(snapshot.EnemyId);
+        }
+
+        private void RenderEnemyActions(CombatSnapshot snapshot)
+        {
+            _enemyActions.Clear();
+            if (snapshot.IsEvent)
+            {
+                var challenge = new Label("!");
+                challenge.pickingMode = PickingMode.Ignore;
+                challenge.AddToClassList("hud-enemy-action");
+                challenge.AddToClassList("hud-enemy-action--attack");
+                _enemyActions.Add(challenge);
+                return;
+            }
+
+            int maximum = Mathf.Max(1, snapshot.EnemyMaximumCooldown);
+            int remaining = Mathf.Clamp(
+                snapshot.EnemyRemainingCooldown,
+                0,
+                maximum);
+            int consumed = maximum - remaining;
+            for (int index = 0; index < maximum; index++)
+            {
+                bool attackTurn = index == maximum - 1;
+                var slot = new Label(attackTurn ? "⚔" : "•");
+                slot.pickingMode = PickingMode.Ignore;
+                slot.AddToClassList("hud-enemy-action");
+                slot.EnableInClassList("hud-enemy-action--spent", index < consumed);
+                slot.EnableInClassList("hud-enemy-action--attack", attackTurn);
+                slot.EnableInClassList(
+                    "hud-enemy-action--danger",
+                    attackTurn && remaining <= 1);
+                _enemyActions.Add(slot);
+            }
         }
 
         private void OnSubmit()

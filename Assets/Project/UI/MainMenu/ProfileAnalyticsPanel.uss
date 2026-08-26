@@ -1,0 +1,274 @@
+.profile-analytics-modal {
+    color: rgb(20, 48, 91);
+    background-color: rgb(95, 211, 225);
+}
+
+.profile-backdrop {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.profile-backdrop--cyan {
+    left: -19%;
+    top: -35%;
+    width: 65%;
+    height: 138%;
+    background-color: rgb(95, 211, 225);
+}
+
+.profile-backdrop--blue {
+    right: -18%;
+    top: -31%;
+    width: 66%;
+    height: 142%;
+    background-color: rgb(32, 92, 183);
+    border-width: 16px;
+    border-color: rgba(255, 249, 232, 0.68);
+}
+
+.profile-watermark {
+    position: absolute;
+    left: -18px;
+    top: -54px;
+    color: rgba(20, 48, 91, 0.08);
+    font-size: 180px;
+    -unity-font-style: bold;
+    letter-spacing: -6px;
+}
+
+.profile-shell {
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    top: 6%;
+    bottom: 6%;
+    padding: 24px 30px;
+    background-color: rgb(255, 249, 232);
+    border-radius: 28px;
+    border-width: 4px;
+    border-color: rgb(20, 48, 91);
+}
+
+.profile-header {
+    min-height: 75px;
+    padding-bottom: 13px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom-width: 2px;
+    border-bottom-color: rgb(222, 199, 157);
+}
+
+.profile-title {
+    color: rgb(20, 48, 91);
+    font-size: 42px;
+    -unity-font-style: bold;
+}
+
+.profile-subtitle {
+    color: rgb(46, 84, 122);
+    font-size: 15px;
+}
+
+.profile-close {
+    min-width: 55px;
+    width: 55px;
+    min-height: 55px;
+    height: 55px;
+    padding: 0;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 15px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+    font-size: 34px;
+    -unity-font-style: bold;
+}
+
+.profile-scroll {
+    flex-grow: 1;
+    min-height: 0;
+    margin-top: 12px;
+}
+
+.profile-identity-row {
+    min-height: 128px;
+    padding: 13px 16px;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(232, 242, 239);
+    border-radius: 18px;
+}
+
+.profile-avatar-placeholder {
+    width: 92px;
+    height: 92px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(32, 92, 183);
+    border-radius: 46px;
+    border-width: 5px;
+    border-color: rgb(95, 211, 225);
+}
+
+.profile-avatar-mark {
+    color: rgb(255, 249, 232);
+    font-size: 46px;
+}
+
+.profile-summary {
+    width: 36%;
+    margin-left: 20px;
+    padding: 0;
+    color: rgb(20, 48, 91);
+    background-color: transparent;
+    border-radius: 0;
+    font-size: 27px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.profile-privacy-card {
+    flex-grow: 1;
+    min-height: 86px;
+    padding: 14px 18px;
+    background-color: rgb(219, 241, 246);
+    border-radius: 14px;
+    border-width: 2px;
+    border-color: rgb(32, 184, 193);
+}
+
+.profile-privacy-title {
+    color: rgb(20, 105, 111);
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.profile-privacy-copy {
+    margin-top: 5px;
+    color: rgb(46, 84, 122);
+    font-size: 13px;
+    white-space: normal;
+}
+
+.profile-grid {
+    margin-top: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.profile-stat-card {
+    width: 49.25%;
+    min-height: 260px;
+    margin-bottom: 12px;
+    padding: 18px 20px;
+    border-radius: 18px;
+    border-width: 3px;
+}
+
+.profile-stat-card--blue {
+    background-color: rgb(219, 241, 246);
+    border-color: rgb(32, 92, 183);
+}
+
+.profile-stat-card--gold {
+    background-color: rgb(255, 239, 196);
+    border-color: rgb(218, 120, 38);
+}
+
+.profile-stat-card--green {
+    background-color: rgb(219, 241, 218);
+    border-color: rgb(34, 126, 82);
+}
+
+.profile-stat-card--purple {
+    background-color: rgb(238, 228, 248);
+    border-color: rgb(116, 75, 164);
+}
+
+.profile-stat-heading {
+    color: rgb(20, 48, 91);
+    font-size: 16px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.profile-stat-copy {
+    margin-top: 10px;
+    color: rgb(20, 48, 91);
+    font-size: 15px;
+    white-space: normal;
+}
+
+.profile-rename-card {
+    margin-bottom: 10px;
+    padding: 18px 20px;
+    background-color: rgb(32, 92, 183);
+    border-radius: 18px;
+}
+
+.profile-rename-copy {
+    width: 100%;
+}
+
+.profile-rename-title {
+    color: white;
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.profile-rename-help {
+    margin-top: 4px;
+    color: rgb(219, 241, 246);
+    font-size: 13px;
+    white-space: normal;
+}
+
+.profile-rename-controls {
+    margin-top: 12px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.profile-name-input {
+    flex-grow: 1;
+    min-height: 51px;
+    margin-right: 12px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 12px;
+}
+
+.profile-name-save {
+    min-width: 170px;
+    min-height: 51px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 184, 68);
+    border-radius: 14px;
+    border-width: 3px;
+    border-color: rgb(218, 120, 38);
+    font-size: 15px;
+    -unity-font-style: bold;
+}
+
+.profile-name-status {
+    min-height: 28px;
+    margin-top: 8px;
+    color: white;
+    white-space: normal;
+}
+
+.profile-analytics-modal.is-busy .profile-rename-card {
+    border-width: 4px;
+    border-color: rgb(95, 211, 225);
+}
+
+.profile-analytics-modal.is-error .profile-name-status {
+    color: rgb(255, 193, 177);
+}
+
+.profile-analytics-modal.is-success .profile-name-status {
+    color: rgb(185, 245, 202);
+}

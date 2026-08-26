@@ -18,6 +18,7 @@ namespace PowerMath.UI.MainMenu
         private readonly int _baseWeaponAttack;
         private readonly double _baseCriticalRate;
         private readonly double _baseCriticalDamagePercent;
+        private readonly IMainMenuPanelHost _panelHost;
         private readonly VisualElement _modal;
         private readonly Button _open;
         private readonly Button _close;
@@ -32,6 +33,7 @@ namespace PowerMath.UI.MainMenu
         private readonly Label _weaponCost;
         private readonly Label _balance;
         private readonly Label _status;
+        private readonly Label _summaryAttack;
         private string _pendingTransactionId;
         private bool _busy;
 
@@ -45,7 +47,8 @@ namespace PowerMath.UI.MainMenu
             int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
-            double baseCriticalDamagePercent)
+            double baseCriticalDamagePercent,
+            IMainMenuPanelHost panelHost)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
@@ -56,6 +59,7 @@ namespace PowerMath.UI.MainMenu
             _baseWeaponAttack = baseWeaponAttack;
             _baseCriticalRate = baseCriticalRate;
             _baseCriticalDamagePercent = baseCriticalDamagePercent;
+            _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
             _modal = Require<VisualElement>(root, "player-hub-modal");
             _open = Require<Button>(root, "player-hub-button");
             _close = Require<Button>(root, "player-hub-close");
@@ -70,14 +74,15 @@ namespace PowerMath.UI.MainMenu
             _weaponCost = Require<Label>(root, "player-hub-weapon-cost");
             _balance = Require<Label>(root, "player-hub-balance");
             _status = Require<Label>(root, "player-hub-status");
+            _summaryAttack = root.Q<Label>("player-menu-atk");
 
             _open.clicked += Open;
             _close.clicked += Close;
             _upgrade.clicked += Upgrade;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
-            _open.text = "PLAYER HUB";
-            Close();
+            _open.tooltip = "Player Hub";
+            HideInitially();
             OnPlayerChanged(_player);
         }
 
@@ -88,23 +93,40 @@ namespace PowerMath.UI.MainMenu
             _open.clicked -= Open;
             _close.clicked -= Close;
             _upgrade.clicked -= Upgrade;
+            if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub)
+                _panelHost.TryClose(MainMenuPanelId.PlayerHub, _open);
         }
 
         private void OnPlayerChanged(PlayerSnapshot player)
         {
             if (player == null || _busy) return;
+            try
+            {
+                RenderSummary(ProjectStats());
+            }
+            catch (Exception exception) when (
+                exception is InvalidOperationException ||
+                exception is ArgumentOutOfRangeException ||
+                exception is OverflowException)
+            {
+                if (_summaryAttack != null) _summaryAttack.text = "—";
+            }
             _open.SetEnabled(!string.Equals(
                 player.activeRun?.phase,
                 "RunDefeat",
                 StringComparison.Ordinal));
-            if (_modal.resolvedStyle.display != DisplayStyle.None)
+            if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub)
                 Render();
         }
 
         private void Open()
         {
             if (_busy) return;
-            _modal.style.display = DisplayStyle.Flex;
+            if (!_panelHost.TryOpen(
+                    MainMenuPanelId.PlayerHub,
+                    _modal,
+                    _open)) return;
+            SetSemanticState();
             _status.text = string.Empty;
             Render();
         }
@@ -112,7 +134,10 @@ namespace PowerMath.UI.MainMenu
         private void Close()
         {
             if (_busy) return;
-            _modal.style.display = DisplayStyle.None;
+            if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub)
+                _panelHost.TryClose(MainMenuPanelId.PlayerHub, _open);
+            else if (_panelHost.OpenPanel == MainMenuPanelId.None)
+                HideInitially();
             _pendingTransactionId = string.Empty;
         }
 
@@ -147,6 +172,7 @@ namespace PowerMath.UI.MainMenu
 
         private void RenderStats(PlayerStatProjection stats)
         {
+            RenderSummary(stats);
             _effectiveAttack.text = $"{stats.EffectiveAttack:N0} ATK";
             _attackBreakdown.text = stats.HasConfiguredPetStats
                 ? $"BASE {stats.BaseAttack:N0} + WEAPON {stats.Weapon.Attack:N0} + " +
@@ -159,6 +185,12 @@ namespace PowerMath.UI.MainMenu
             _petStatus.text = stats.HasConfiguredPetStats
                 ? $"PET ATK +{stats.PetAttack:N0}"
                 : "PET ATK: NO STAT CONFIGURED";
+        }
+
+        private void RenderSummary(PlayerStatProjection stats)
+        {
+            if (_summaryAttack != null)
+                _summaryAttack.text = stats.EffectiveAttack.ToString("N0");
         }
 
         private void RenderWeapon(WeaponAscensionStats current)
@@ -251,6 +283,7 @@ namespace PowerMath.UI.MainMenu
         private IEnumerator Ascend()
         {
             _busy = true;
+            SetSemanticState("is-busy");
             _status.text = "Saving weapon upgrade to Firebase...";
             _upgrade.SetEnabled(false);
             _close.SetEnabled(false);
@@ -271,6 +304,7 @@ namespace PowerMath.UI.MainMenu
             {
                 Render();
                 _status.text = failure;
+                SetSemanticState("is-error");
                 yield break;
             }
 
@@ -281,6 +315,7 @@ namespace PowerMath.UI.MainMenu
             string name = _catalog?.Resolve(stats.Level)?.displayName ?? "Sword";
             _status.text =
                 $"Saved: {name} reached Lv.{stats.Level} with {stats.Attack} Weapon ATK.";
+            SetSemanticState("is-success");
         }
 
         private IEnumerator Publish()
@@ -298,6 +333,19 @@ namespace PowerMath.UI.MainMenu
         {
             return root.Q<T>(name) ?? throw new InvalidOperationException(
                 $"Main Menu UI is missing '{name}'.");
+        }
+
+        private void HideInitially()
+        {
+            _modal.EnableInClassList("is-hidden", true);
+            _modal.style.display = DisplayStyle.None;
+        }
+
+        private void SetSemanticState(string state = null)
+        {
+            _modal.EnableInClassList("is-busy", state == "is-busy");
+            _modal.EnableInClassList("is-success", state == "is-success");
+            _modal.EnableInClassList("is-error", state == "is-error");
         }
     }
 }

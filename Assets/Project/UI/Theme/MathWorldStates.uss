@@ -1,0 +1,30 @@
+.is-ready .mw-status {
+    color: rgb(50, 89, 112);
+    background-color: rgba(217, 239, 239, 0.65);
+}
+
+.is-busy .mw-status {
+    color: rgb(31, 73, 134);
+    background-color: rgba(195, 229, 244, 0.8);
+}
+
+.is-error .mw-status,
+.auth-status--error {
+    color: rgb(151, 54, 58);
+    background-color: rgba(255, 220, 208, 0.82);
+}
+
+.is-success .mw-status,
+.auth-status--success {
+    color: rgb(34, 105, 78);
+    background-color: rgba(207, 240, 213, 0.82);
+}
+
+.is-blocked .mw-status {
+    color: rgb(139, 81, 28);
+    background-color: rgba(255, 230, 181, 0.84);
+}
+
+.is-reduced-motion .mw-button {
+    transition-duration: 0s;
+}

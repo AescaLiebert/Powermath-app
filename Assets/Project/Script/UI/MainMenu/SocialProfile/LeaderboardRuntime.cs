@@ -230,14 +230,17 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private readonly FirestoreLeaderboardRepository _repository;
         private readonly PlayerSnapshot _player;
         private readonly string _levelId;
+        private readonly IMainMenuPanelHost _panelHost;
         private List<RankedLeaderboardEntry> _cached;
         private bool _bound;
+        private bool _loading;
 
         public LeaderboardPanelController(
             VisualElement root,
             MonoBehaviour host,
             GameApiSettings settings,
-            PlayerSnapshot player)
+            PlayerSnapshot player,
+            IMainMenuPanelHost panelHost)
         {
             _open = root.Q<Button>("leaderboard");
             _modal = root.Q<VisualElement>("leaderboard-modal");
@@ -252,6 +255,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _repository = new FirestoreLeaderboardRepository(host, settings);
             _player = player;
             _levelId = ResolveLevel(player == null ? null : player.playerId);
+            _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
         }
 
         public bool IsValid => _open != null && _modal != null && _close != null &&
@@ -274,6 +278,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _close.clicked -= Close;
             _refresh.clicked -= Load;
             _repository.Cancel();
+            if (_panelHost.OpenPanel == MainMenuPanelId.Leaderboard)
+                _panelHost.TryClose(MainMenuPanelId.Leaderboard, _open);
             _bound = false;
         }
 
@@ -281,8 +287,10 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         {
             if (_attemptPanel != null && _attemptPanel.resolvedStyle.display != DisplayStyle.None)
                 return;
-            _modal.BringToFront();
-            _modal.style.display = DisplayStyle.Flex;
+            if (!_panelHost.TryOpen(
+                    MainMenuPanelId.Leaderboard,
+                    _modal,
+                    _open)) return;
             _cohort.text = (_player?.profile?.gradeBand ?? "Your Grade") + " · " + _levelId.ToUpperInvariant();
             if (_cached != null) Render(_cached, "Showing saved standings · refreshing…");
             else
@@ -296,18 +304,24 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private void Close()
         {
             _repository.Cancel();
-            _modal.style.display = DisplayStyle.None;
+            _loading = false;
+            _panelHost.TryClose(MainMenuPanelId.Leaderboard, _open);
             _refresh.SetEnabled(true);
+            SetSemanticState();
         }
 
         private void Load()
         {
+            if (_loading) return;
+            _loading = true;
             _refresh.SetEnabled(false);
             _status.text = "Refreshing…";
+            SetSemanticState("is-loading");
             _repository.Load(
                 _levelId,
                 entries =>
                 {
+                    _loading = false;
                     _refresh.SetEnabled(true);
                     try
                     {
@@ -315,17 +329,21 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                             entries,
                             _player?.profile?.publicPlayerId ?? string.Empty);
                         Render(_cached, "Updated " + DateTime.Now.ToString("t", CultureInfo.CurrentCulture));
+                        SetSemanticState("is-ready");
                     }
                     catch (Exception exception)
                     {
                         Debug.LogError("Leaderboard ranking failed: " + exception.Message);
                         _status.text = "Leaderboard values are invalid.";
+                        SetSemanticState("is-error");
                     }
                 },
                 message =>
                 {
+                    _loading = false;
                     _refresh.SetEnabled(true);
                     _status.text = _cached == null ? message : "Showing saved standings · " + message;
+                    SetSemanticState("is-error");
                 });
         }
 
@@ -356,13 +374,41 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             else if (ranked.Rank == 3) row.AddToClassList("leaderboard-row--silver");
             if (ranked.IsSelf) row.AddToClassList("leaderboard-row--self");
             string tied = ranked.IsTied ? " TIED" : string.Empty;
-            row.Add(new Label("#" + ranked.Rank + tied));
-            row.Add(new Label((ranked.IsSelf ? "YOU · " : string.Empty) + ranked.Entry.DisplayName));
-            row.Add(new Label("Current " + ranked.Entry.CurrentStage + " · Best " + ranked.Entry.HighestStage));
-            row.Add(new Label("S " + ranked.Entry.Silver + "  G " + ranked.Entry.Gold + "  D " + ranked.Entry.Diamond));
-            row.Add(new Label("Pet: " + DisplayItem(ranked.Entry.PetId) + "  Weapon: " + DisplayWeapon(ranked.Entry)));
-            row.Add(new Label("Damage " + ranked.Entry.TotalDamage.ToString("N0", CultureInfo.CurrentCulture)));
+            row.Add(CreateCell("#" + ranked.Rank + tied, "leaderboard-row-rank"));
+            row.Add(CreateCell(
+                (ranked.IsSelf ? "YOU · " : string.Empty) + ranked.Entry.DisplayName,
+                "leaderboard-row-player"));
+            row.Add(CreateCell(
+                "CURRENT " + ranked.Entry.CurrentStage + "\nBEST " + ranked.Entry.HighestStage,
+                "leaderboard-row-stage"));
+            row.Add(CreateCell(
+                "S " + ranked.Entry.Silver.ToString("N0", CultureInfo.CurrentCulture) +
+                "\nG " + ranked.Entry.Gold.ToString("N0", CultureInfo.CurrentCulture) +
+                "\nD " + ranked.Entry.Diamond.ToString("N0", CultureInfo.CurrentCulture),
+                "leaderboard-row-currency"));
+            row.Add(CreateCell(
+                "Avatar: " + DisplayItem(ranked.Entry.AvatarId) +
+                "\nPet: " + DisplayItem(ranked.Entry.PetId) +
+                "\nWeapon: " + DisplayWeapon(ranked.Entry),
+                "leaderboard-row-loadout"));
+            row.Add(CreateCell(
+                ranked.Entry.TotalDamage.ToString("N0", CultureInfo.CurrentCulture),
+                "leaderboard-row-damage"));
             return row;
+        }
+
+        private static Label CreateCell(string text, string className)
+        {
+            var label = new Label(text);
+            label.AddToClassList(className);
+            return label;
+        }
+
+        private void SetSemanticState(string state = null)
+        {
+            _modal.EnableInClassList("is-loading", state == "is-loading");
+            _modal.EnableInClassList("is-ready", state == "is-ready");
+            _modal.EnableInClassList("is-error", state == "is-error");
         }
 
         private static string DisplayItem(string id)

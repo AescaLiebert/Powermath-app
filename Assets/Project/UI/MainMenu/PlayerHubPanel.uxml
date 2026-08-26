@@ -1,0 +1,73 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="player-hub-modal" enabled="true" focusable="true" class="social-modal player-hub-modal is-hidden">
+        <ui:VisualElement class="player-hub-backdrop-disc player-hub-backdrop-disc--one" picking-mode="Ignore"/>
+        <ui:VisualElement class="player-hub-backdrop-disc player-hub-backdrop-disc--two" picking-mode="Ignore"/>
+        <ui:VisualElement class="social-modal-card player-hub-card mw-card">
+            <ui:VisualElement class="social-modal-header player-hub-header">
+                <ui:VisualElement class="player-hub-heading">
+                    <ui:Label text="PERMANENT POWER" class="mw-kicker player-hub-kicker"/>
+                    <ui:Label text="PLAYER HUB" class="social-title player-hub-title"/>
+                    <ui:Label text="Review the power that follows you into every run." class="social-subtitle player-hub-subtitle"/>
+                </ui:VisualElement>
+                <ui:Button name="player-hub-close" text="CLOSE" class="social-close mw-button player-hub-close"/>
+            </ui:VisualElement>
+            <ui:ScrollView class="player-hub-scroll">
+                <ui:VisualElement class="player-hub-layout">
+                    <ui:VisualElement class="player-stat-card player-hub-column player-hub-column--stats">
+                        <ui:Label text="COMBAT SNAPSHOT" class="player-hub-section-title"/>
+                        <ui:VisualElement class="player-hub-power-mark">
+                            <ui:Label text="+" class="player-hub-power-symbol"/>
+                        </ui:VisualElement>
+                        <ui:Label text="EFFECTIVE ATTACK" class="player-hub-metric-label"/>
+                        <ui:Label name="player-hub-effective-atk" text="— ATK" class="player-hub-effective-atk"/>
+                        <ui:Label name="player-hub-atk-breakdown" text="Preparing attack breakdown…" class="player-hub-atk-breakdown"/>
+                        <ui:VisualElement class="player-hub-stat-strip">
+                            <ui:VisualElement class="player-hub-stat-chip player-hub-stat-chip--legacy">
+                                <ui:Label text="REBIRTH LEGACY" class="player-hub-chip-title"/>
+                                <ui:Label name="player-hub-legacy-bonus" text="Preparing…" class="player-hub-stat-bonus"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="player-hub-stat-chip player-hub-stat-chip--pet">
+                                <ui:Label text="ACTIVE PET" class="player-hub-chip-title"/>
+                                <ui:Label name="player-hub-pet-status" text="Preparing…" class="player-hub-pet-status"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="player-weapon-card player-hub-column player-hub-column--weapon">
+                        <ui:VisualElement class="player-hub-weapon-heading">
+                            <ui:VisualElement>
+                                <ui:Label text="WEAPON ASCENSION" class="player-hub-section-title"/>
+                                <ui:Label text="Spend Power Coins on a permanent upgrade." class="player-hub-section-copy"/>
+                            </ui:VisualElement>
+                            <ui:Label name="player-hub-balance" text="YOUR POWER COINS: —" class="player-hub-balance"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="player-hub-weapon-identity">
+                            <ui:VisualElement class="player-hub-weapon-icon">
+                                <ui:Label text="↑" class="player-hub-weapon-symbol"/>
+                            </ui:VisualElement>
+                            <ui:Label name="player-hub-weapon-name" text="WEAPON  LV.—" class="player-hub-weapon-name"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="player-hub-comparison">
+                            <ui:VisualElement class="player-hub-comparison-card player-hub-comparison-card--current">
+                                <ui:Label text="CURRENT" class="player-hub-comparison-label"/>
+                                <ui:Label name="player-hub-weapon-current" text="Preparing current stats…" class="player-hub-weapon-stat"/>
+                            </ui:VisualElement>
+                            <ui:Label text="→" class="player-hub-comparison-arrow"/>
+                            <ui:VisualElement class="player-hub-comparison-card player-hub-comparison-card--next">
+                                <ui:Label text="AFTER UPGRADE" class="player-hub-comparison-label"/>
+                                <ui:Label name="player-hub-weapon-next" text="Preparing next stats…" class="player-hub-weapon-next"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="player-hub-purchase-row">
+                            <ui:VisualElement class="player-hub-cost-block">
+                                <ui:Label text="COST" class="player-hub-chip-title"/>
+                                <ui:Label name="player-hub-weapon-cost" text="Preparing…" class="player-hub-cost"/>
+                            </ui:VisualElement>
+                            <ui:Button name="player-hub-weapon-upgrade" text="UPGRADE" class="player-hub-upgrade mw-button mw-button--primary"/>
+                        </ui:VisualElement>
+                        <ui:Label name="player-hub-status" text="" class="social-status mw-status player-hub-status"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

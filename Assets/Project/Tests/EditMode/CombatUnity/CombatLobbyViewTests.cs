@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Linq;
 using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Academic.Unity;
 using UnityEditor;
@@ -60,8 +61,18 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(root.Q<Label>("combat-stage-label").text, Is.EqualTo("STAGE 6 / 200"));
             Assert.That(root.Q<Label>("combat-enemy-name").text, Is.EqualTo("Rock Titan"));
             Assert.That(root.Q<Label>("combat-enemy-hp-label").text, Is.EqualTo("23 / 40 HP"));
-            Assert.That(root.Q<Label>("combat-cooldown-label").text, Does.Contain("1"));
             Assert.That(root.Q<Label>("combat-hearts-label").text, Is.EqualTo("♥ ♥ ♡"));
+            VisualElement actions = root.Q<VisualElement>("combat-enemy-actions");
+            Assert.That(actions.childCount, Is.EqualTo(3));
+            Assert.That(
+                actions[0].ClassListContains("hud-enemy-action--spent"),
+                Is.True);
+            Assert.That(
+                actions[2].ClassListContains("hud-enemy-action--attack"),
+                Is.True);
+            Assert.That(
+                actions[2].ClassListContains("hud-enemy-action--danger"),
+                Is.True);
             Assert.That(root.Q<Button>("combat-attack-button").enabledSelf, Is.True);
             Assert.That(
                 root.Q<Label>("combat-simulation-badge").style.display.value,
@@ -121,11 +132,29 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 root.Q<Label>("pet-gacha-warning").text,
                 Does.Contain("duplicate").IgnoreCase);
             Assert.That(
-                root.Q<VisualElement>("pet-gacha-confirmation").style.display.value,
-                Is.EqualTo(DisplayStyle.None));
+                root.Q<VisualElement>("pet-gacha-confirmation")
+                    .ClassListContains("is-hidden"),
+                Is.True);
             Assert.That(
-                root.Q<VisualElement>("pet-gacha-result").style.display.value,
-                Is.EqualTo(DisplayStyle.None));
+                root.Q<VisualElement>("pet-gacha-result")
+                    .ClassListContains("is-hidden"),
+                Is.True);
+            VisualElement modal = root.Q<VisualElement>("pet-gacha-modal");
+            Assert.That(modal.focusable, Is.True);
+            Assert.That(modal.ClassListContains("pet-gacha-modal"), Is.True);
+            Assert.That(root.Q<VisualElement>(className: "pet-gacha-orbit"), Is.Not.Null);
+            Assert.That(root.Q<VisualElement>(className: "pet-gacha-result-copy"), Is.Not.Null);
+            Assert.That(root.Q<VisualElement>(className: "pet-gacha-result-showcase"), Is.Not.Null);
+
+            string[] unsupportedButtonText = root.Query<Button>().ToList()
+                .Select(button => button.text?.ToUpperInvariant() ?? string.Empty)
+                .Where(text => text.Contains("X10") || text.Contains("HISTORY") ||
+                    text.Contains("GUARANTEE") || text.Contains("DETAILS"))
+                .ToArray();
+            Assert.That(
+                unsupportedButtonText,
+                Is.Empty,
+                "Slice 4 must remain the approved one-pull experience.");
         }
     }
 }
