@@ -245,7 +245,8 @@ namespace PowerMath.Session
         private static bool TryParseDocument(string json, out JsonValue document)
         {
             return FirestoreJsonNavigator.TryParse(json, out document, out _) &&
-                FirestoreJsonNavigator.TryGetDocumentFields(document, out _);
+                document != null &&
+                document.Kind == JsonValueKind.Object;
         }
 
         private static bool TryGetStudent(JsonValue document, string username, out JsonValue student)

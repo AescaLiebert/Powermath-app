@@ -136,10 +136,11 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private static bool TryMap(string json, out List<LeaderboardEntry> entries)
         {
             entries = new List<LeaderboardEntry>();
-            if (!FirestoreJsonNavigator.TryParse(json, out JsonValue document, out _) ||
-                !FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) ||
-                fields.Object == null)
+            if (!FirestoreJsonNavigator.TryParse(json, out JsonValue document, out _))
                 return false;
+            if (!FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) ||
+                fields.Object == null)
+                return true;
             foreach (KeyValuePair<string, JsonValue> pair in fields.Object)
             {
                 if (pair.Key == "_meta") continue;
