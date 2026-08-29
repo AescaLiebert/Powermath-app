@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using PowerMath.Gameplay.Combat;
+using PowerMath.Gameplay.Pets;
 using PowerMath.PlayerData;
 
 namespace PowerMath.Gameplay.Progression
@@ -57,6 +58,25 @@ namespace PowerMath.Gameplay.Progression
             double baseCriticalDamagePercent,
             long additionalLegacyBasisPoints = 0)
         {
+            return Create(
+                player,
+                baseAttack,
+                baseWeaponAttack,
+                baseCriticalRate,
+                baseCriticalDamagePercent,
+                null,
+                additionalLegacyBasisPoints);
+        }
+
+        public static PlayerStatProjection Create(
+            PlayerSnapshot player,
+            int baseAttack,
+            int baseWeaponAttack,
+            double baseCriticalRate,
+            double baseCriticalDamagePercent,
+            PetGachaCatalog petCatalog,
+            long additionalLegacyBasisPoints = 0)
+        {
             if (additionalLegacyBasisPoints < 0)
                 throw new ArgumentOutOfRangeException(nameof(additionalLegacyBasisPoints));
 
@@ -72,8 +92,11 @@ namespace PowerMath.Gameplay.Progression
                 baseWeaponAttack);
 
             int resolvedBaseAttack = Math.Max(1, baseAttack);
-            int petAttack = 0;
-            bool hasConfiguredPetStats = false;
+            ResolveEquippedPetStats(
+                player,
+                petCatalog,
+                out int petAttack,
+                out bool hasConfiguredPetStats);
             long legacyBasisPoints = checked(
                 Math.Max(0, player?.progression?.legacyAtkBonusBasisPoints ?? 0) +
                 additionalLegacyBasisPoints);
@@ -95,6 +118,27 @@ namespace PowerMath.Gameplay.Progression
                     baseCriticalRate + weapon.CriticalRatePercent / 100d)),
                 Math.Max(0d,
                     baseCriticalDamagePercent + weapon.CriticalDamagePercent));
+        }
+
+        private static void ResolveEquippedPetStats(
+            PlayerSnapshot player,
+            PetGachaCatalog petCatalog,
+            out int petAttack,
+            out bool hasConfiguredPetStats)
+        {
+            PetOwnershipRecord[] records =
+                (player?.inventory ?? Array.Empty<PlayerSnapshot.InventoryItemData>())
+                .Where(item => item != null)
+                .Select(item => new PetOwnershipRecord(
+                    item.itemId,
+                    item.owned,
+                    item.upgradeLevel))
+                .ToArray();
+            petAttack = EquippedPetAttackPolicy.Resolve(
+                player?.loadout?.petId,
+                petCatalog,
+                records,
+                out hasConfiguredPetStats);
         }
     }
 }

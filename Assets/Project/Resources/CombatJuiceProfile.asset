@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 124e4d262db84e7e9a31e554bde1c8a4, type: 3}
+  m_Name: CombatJuiceProfile
+  m_EditorClassIdentifier: 
+  playerAttackSeconds: 0.55
+  enemyAttackSeconds: 0.6
+  failedAttackSeconds: 0.3
+  takeDamageSeconds: 0.3
+  walkSeconds: 0.32
+  appearSeconds: 0.45
+  dieSeconds: 0.9
+  rebirthSeconds: 0.85
+  reducedMotionSeconds: 0.12
+  attackTravel: 56
+  failedAttackDrop: 12
+  damageReactionTravel: 12
+  walkTravel: 18
+  walkBounce: 5
+  deathDrop: 72
+  deathRotation: 45
+  rebirthRise: 58
+  criticalImpulseSeconds: 0.18
+  criticalImpulseAmplitude: 14
+  criticalImpulseOscillations: 2
+  hitFlashRed: {r: 1, g: 0.2, b: 0.2, a: 1}
+  hitFlashWhite: {r: 1, g: 1, b: 1, a: 1}
+  hitFlashCycles: 3
+  hitFlashIntensity: 1
+  dieHoldThreshold: 0.4
+  dieWhiteFlashThreshold: 0.55
+  dieDisappearThreshold: 0.75
+  rewardPopSeconds: 0.3
+  rewardMagnetFlightSeconds: 0.48
+  rewardStaggerSeconds: 0.06
+  rewardTargetBounceScale: 1.35
+  rewardTargetBounceSeconds: 0.22

@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
 using PowerMath.Gameplay.Progression;
+using PowerMath.Gameplay.Pets;
+using PowerMath.Gameplay.Combat.Presentation;
+using PowerMath.Gameplay.Combat.Unity;
 using PowerMath.PlayerData;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -18,6 +21,7 @@ namespace PowerMath.UI.MainMenu
         private readonly int _baseWeaponAttack;
         private readonly double _baseCriticalRate;
         private readonly double _baseCriticalDamagePercent;
+        private readonly PetGachaCatalog _petCatalog;
         private readonly IMainMenuPanelHost _panelHost;
         private readonly VisualElement _modal;
         private readonly Label _title;
@@ -29,6 +33,8 @@ namespace PowerMath.UI.MainMenu
         private readonly Label _attack;
         private readonly Label _prestige;
         private readonly Label _status;
+        private readonly ProgressBar _progressBar;
+        private readonly Label _progressLabel;
         private readonly Button _rebirth;
         private readonly Button _confirm;
         private readonly Button _close;
@@ -36,6 +42,11 @@ namespace PowerMath.UI.MainMenu
         private RunSettlementType? _pendingSettlement;
         private SettlementPreview _pendingPreview;
         private bool _busy;
+        private readonly IMainMenuInteractionGate _interactionGate;
+        private readonly ActorPresentationController _playerActor;
+        private readonly bool _reducedMotion;
+        private IInteractionLock _terminalLock;
+        private readonly UiToolkitLifecycleController _lifecycle;
 
         public RunSettlementPanelController(
             MonoBehaviour host,
@@ -47,7 +58,11 @@ namespace PowerMath.UI.MainMenu
             int baseWeaponAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent,
-            IMainMenuPanelHost panelHost)
+            PetGachaCatalog petCatalog,
+            IMainMenuPanelHost panelHost,
+            IMainMenuInteractionGate interactionGate = null,
+            ActorPresentationController playerActor = null,
+            bool reducedMotion = false)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
@@ -57,7 +72,11 @@ namespace PowerMath.UI.MainMenu
             _baseWeaponAttack = baseWeaponAttack;
             _baseCriticalRate = baseCriticalRate;
             _baseCriticalDamagePercent = baseCriticalDamagePercent;
+            _petCatalog = petCatalog;
             _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
+            _interactionGate = interactionGate;
+            _playerActor = playerActor;
+            _reducedMotion = reducedMotion;
             _modal = Require<VisualElement>(root, "run-settlement-modal");
             _title = Require<Label>(root, "run-settlement-title");
             _stage = Require<Label>(root, "run-settlement-stage");
@@ -68,20 +87,29 @@ namespace PowerMath.UI.MainMenu
             _attack = Require<Label>(root, "run-settlement-attack");
             _prestige = Require<Label>(root, "run-settlement-prestige");
             _status = Require<Label>(root, "run-settlement-status");
+            _progressBar = root.Q<ProgressBar>("run-settlement-progress");
+            _progressLabel = root.Q<Label>("run-settlement-progress-label");
             _rebirth = Require<Button>(root, "rebirth-button");
             _confirm = Require<Button>(root, "run-settlement-confirm");
             _close = Require<Button>(root, "run-settlement-close");
             _continue = Require<Button>(root, "run-settlement-continue");
+            _lifecycle = new UiToolkitLifecycleController(_modal);
 
             _rebirth.clicked += OpenRebirth;
             _confirm.clicked += Confirm;
             _close.clicked += Close;
-            _continue.clicked += ReloadScene;
+            _continue.clicked += AcknowledgeAndReload;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
             HideInitially();
             RefreshButton();
             OnPlayerChanged(_player);
+            if (HasPendingSettlementPresentation(_player))
+                _host.StartCoroutine(RecoverPendingSettlement());
+            else if (string.Equals(_player.activeRun?.phase, "RunDefeat",
+                         StringComparison.Ordinal) &&
+                     _player.activeRun?.pendingPresentation == null)
+                _host.StartCoroutine(RecoverUnsettledDeath());
         }
 
         public void Dispose()
@@ -91,7 +119,10 @@ namespace PowerMath.UI.MainMenu
             _rebirth.clicked -= OpenRebirth;
             _confirm.clicked -= Confirm;
             _close.clicked -= Close;
-            _continue.clicked -= ReloadScene;
+            _continue.clicked -= AcknowledgeAndReload;
+            _terminalLock?.Dispose();
+            _terminalLock = null;
+            _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
             if (_panelHost.OpenPanel == MainMenuPanelId.Rebirth)
                 _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth);
         }
@@ -111,14 +142,29 @@ namespace PowerMath.UI.MainMenu
             {
                 _title.text = "RUN ENDED";
                 _status.text = error;
-                Show(true, false, true);
                 SetSemanticState("is-error");
                 return;
             }
 
             RenderPreview(_pendingPreview, "RUN ENDED");
-            _status.text = "Saving this run and preparing Stage 1...";
-            Show(false, false, true);
+            _status.text = "Waiting for the defeat presentation to finish...";
+        }
+
+        public void NotifyDeathPresentationCompleted()
+        {
+            if (_busy) return;
+            _pendingSettlement = RunSettlementType.Death;
+            if (!TryBuildPreview(RunSettlementType.Death, out _pendingPreview,
+                    out string error))
+            {
+                AcquireTerminalLock();
+                _title.text = "RUN ENDED";
+                _status.text = error;
+                Show(true, false, true);
+                SetSemanticState("is-error");
+                return;
+            }
+            AcquireTerminalLock();
             _host.StartCoroutine(Settle(RunSettlementType.Death));
         }
 
@@ -140,9 +186,19 @@ namespace PowerMath.UI.MainMenu
             }
             SetSemanticState();
             RenderPreview(_pendingPreview, "REBIRTH PREVIEW");
-            _status.text =
-                "Your Rank and lifetime records stay. Questions and the current audit restart.";
-            _confirm.text = "REBIRTH";
+            bool canSettle = RunSettlementPolicy.CanSettle(_player, RunSettlementType.Rebirth, out string reason);
+            if (canSettle)
+            {
+                _status.text =
+                    "Your Rank and lifetime records stay. Questions and the current audit restart.";
+                _confirm.text = "REBIRTH";
+            }
+            else
+            {
+                _status.text = reason;
+                _confirm.text = "LOCKED";
+            }
+            _confirm.SetEnabled(canSettle);
         }
 
         private bool TryBuildPreview(
@@ -152,8 +208,11 @@ namespace PowerMath.UI.MainMenu
         {
             preview = default;
             error = string.Empty;
-            if (!RunSettlementPolicy.CanSettle(_player, type, out error))
+            if (_player?.progression == null || _player.activeRun == null)
+            {
+                error = "Player run data is unavailable.";
                 return false;
+            }
 
             try
             {
@@ -193,6 +252,7 @@ namespace PowerMath.UI.MainMenu
                 _baseWeaponAttack,
                 _baseCriticalRate,
                 _baseCriticalDamagePercent,
+                _petCatalog,
                 additionalLegacy);
         }
 
@@ -212,11 +272,20 @@ namespace PowerMath.UI.MainMenu
             _prestige.text = preview.Award.Prestige > 0
                 ? $"PRESTIGE  {preview.CurrentPrestige}  ->  {preview.ResultingPrestige}   (+1)"
                 : $"PRESTIGE  {preview.CurrentPrestige}  (unchanged)";
+            UpdateProgressBar(preview.Award.StageReached);
         }
 
         private void Confirm()
         {
             if (_busy || !_pendingSettlement.HasValue) return;
+            if (_pendingSettlement == RunSettlementType.Rebirth &&
+                !RunSettlementPolicy.CanSettle(_player, RunSettlementType.Rebirth, out string reason))
+            {
+                _status.text = reason;
+                _confirm.SetEnabled(false);
+                return;
+            }
+            AcquireTerminalLock();
             _host.StartCoroutine(Settle(_pendingSettlement.Value));
         }
 
@@ -229,8 +298,12 @@ namespace PowerMath.UI.MainMenu
             RunSettlementAward award = default;
             bool success = false;
             string failure = string.Empty;
+            var presentation = new RunSettlementPresentationValues(
+                _pendingPreview.CurrentAttack,
+                _pendingPreview.ResultingAttack);
             yield return _store.Settle(
                 type,
+                presentation,
                 value =>
                 {
                     award = value;
@@ -249,9 +322,15 @@ namespace PowerMath.UI.MainMenu
 
             yield return Publish();
             PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
+            if (type == RunSettlementType.Rebirth && _playerActor != null)
+            {
+                if (_playerActor.State == ActorVisualState.Hidden)
+                    _playerActor.CancelAndApply(ActorVisualState.Idle);
+                yield return _playerActor.Play(PresentationActionKind.PlayerRebirth);
+            }
             string acceptedTitle = type == RunSettlementType.Rebirth
                 ? "REBIRTH COMPLETE"
-                : "NEW RUN READY";
+                : "RUN ENDED";
             if (_pendingPreview.Award.StageReached == award.StageReached)
                 RenderPreview(_pendingPreview, acceptedTitle);
             else
@@ -285,6 +364,7 @@ namespace PowerMath.UI.MainMenu
                 ? $"PRESTIGE  {Math.Max(0, resultingPrestige - award.Prestige)}  ->  " +
                     $"{resultingPrestige}   (+1)"
                 : $"PRESTIGE  {resultingPrestige}  (unchanged)";
+            UpdateProgressBar(award.StageReached);
         }
 
         private IEnumerator Publish()
@@ -299,11 +379,16 @@ namespace PowerMath.UI.MainMenu
 
         private void RefreshButton()
         {
-            bool eligible = !_busy && RunSettlementPolicy.CanSettle(
-                _player,
-                RunSettlementType.Rebirth,
-                out _);
-            _rebirth.SetEnabled(eligible);
+            bool canAccess = !_busy && !string.Equals(
+                _player.activeRun?.phase,
+                "RunDefeat",
+                StringComparison.Ordinal);
+            _rebirth.SetEnabled(canAccess);
+
+            int stage = Math.Min(200, Math.Max(1,
+                Math.Max(_player.progression?.currentStage ?? 1, _player.activeRun?.currentStage ?? 1)));
+            bool isReady = canAccess && stage >= RunSettlementPolicy.MinimumRebirthStage;
+            _rebirth.EnableInClassList("is-ready", isReady);
         }
 
         private bool Show(
@@ -325,13 +410,16 @@ namespace PowerMath.UI.MainMenu
                 _pendingSettlement == RunSettlementType.Death
                 ? DisplayStyle.None
                 : DisplayStyle.Flex;
-            SetControls(!_busy);
+            SetControls(false);
+            _lifecycle.Enter(() => SetControls(!_busy));
             return true;
         }
 
         private void SetControls(bool enabled)
         {
-            _confirm.SetEnabled(enabled);
+            bool canConfirm = enabled && (_pendingSettlement != RunSettlementType.Rebirth ||
+                RunSettlementPolicy.CanSettle(_player, RunSettlementType.Rebirth, out _));
+            _confirm.SetEnabled(canConfirm);
             _close.SetEnabled(enabled);
             _continue.SetEnabled(enabled);
         }
@@ -340,23 +428,177 @@ namespace PowerMath.UI.MainMenu
         {
             if (_busy) return;
             if (_panelHost.OpenPanel == MainMenuPanelId.Rebirth)
-                _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth);
+            {
+                _lifecycle.Exit(() =>
+                    _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth));
+            }
             else if (_panelHost.OpenPanel == MainMenuPanelId.None)
-                HideInitially();
+                _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
             _pendingSettlement = null;
             _pendingPreview = default;
             _confirm.text = "CONFIRM";
             SetSemanticState();
         }
 
+        private IEnumerator RecoverPendingSettlement()
+        {
+            PlayerSnapshot.RunSettlementData receipt = _player.lastRunSettlement;
+            if (receipt == null || receipt.presentationVersion != 1 ||
+                !Enum.TryParse(receipt.presentationCause, true,
+                    out RunSettlementType type))
+            {
+                AcquireTerminalLock();
+                _status.text = "This saved run result requires a newer PowerMath version.";
+                Show(false, false, true);
+                SetSemanticState("is-error");
+                yield break;
+            }
+
+            _pendingSettlement = type;
+            AcquireTerminalLock();
+            _panelHost.ForceCloseAll();
+            if (_playerActor != null)
+            {
+                if (_playerActor.State == ActorVisualState.Hidden)
+                    _playerActor.CancelAndApply(ActorVisualState.Idle);
+                if (type == RunSettlementType.Death)
+                {
+                    yield return _playerActor.Play(
+                        PresentationActionKind.PlayerTakeDamage);
+                    yield return _playerActor.Play(PresentationActionKind.PlayerDie);
+                }
+                else
+                {
+                    yield return _playerActor.Play(
+                        PresentationActionKind.PlayerRebirth);
+                }
+            }
+            else if (!_reducedMotion)
+            {
+                yield return new WaitForSecondsRealtime(
+                    type == RunSettlementType.Death ? 0.90f : 0.85f);
+            }
+
+            RenderSavedSettlement(receipt, type);
+            _status.text = "Saved result recovered. Continue to acknowledge it.";
+            Show(false, true, true);
+            SetSemanticState("is-success");
+        }
+
+        private IEnumerator RecoverUnsettledDeath()
+        {
+            AcquireTerminalLock();
+            if (_playerActor != null)
+            {
+                if (_playerActor.State == ActorVisualState.Hidden)
+                    _playerActor.CancelAndApply(ActorVisualState.Idle);
+                yield return _playerActor.Play(
+                    PresentationActionKind.PlayerTakeDamage);
+                yield return _playerActor.Play(PresentationActionKind.PlayerDie);
+            }
+            else if (!_reducedMotion)
+            {
+                yield return new WaitForSecondsRealtime(0.90f);
+            }
+            NotifyDeathPresentationCompleted();
+        }
+
+        private void RenderSavedSettlement(
+            PlayerSnapshot.RunSettlementData value,
+            RunSettlementType type)
+        {
+            _title.text = type == RunSettlementType.Death
+                ? "RUN ENDED"
+                : "REBIRTH COMPLETE";
+            _stage.text = $"STAGE {value.stageReached}";
+            _coins.text = $"{value.sourcePowerCoins:N0}  ->  {value.resultingPowerCoins:N0}";
+            _coinsGain.text = $"+{value.powerCoinsGranted:N0} POWER COINS";
+            long resultingLegacy = checked(
+                value.sourceLegacyAtkBasisPoints + value.legacyAtkBasisPointsGranted);
+            _legacy.text = $"{FormatPercent(value.sourceLegacyAtkBasisPoints)}  ->  " +
+                FormatPercent(resultingLegacy);
+            _legacyGain.text =
+                $"+{FormatPercent(value.legacyAtkBasisPointsGranted)} PERMANENT ATK";
+            _attack.text = $"EFFECTIVE ATK  {value.sourceEffectiveAttack:N0}  ->  " +
+                $"{value.resultingEffectiveAttack:N0}";
+            _prestige.text = value.prestigeGranted > 0
+                ? $"PRESTIGE  {value.sourcePrestige}  ->  " +
+                    $"{value.sourcePrestige + value.prestigeGranted}   (+1)"
+                : $"PRESTIGE  {value.sourcePrestige}  (unchanged)";
+            UpdateProgressBar(value.stageReached);
+        }
+
+        private void UpdateProgressBar(int stageReached)
+        {
+            if (_progressBar == null) return;
+            int target = RunSettlementPolicy.MinimumRebirthStage;
+            int clampedValue = Math.Min(target, Math.Max(0, stageReached));
+            _progressBar.lowValue = 0;
+            _progressBar.highValue = target;
+            _progressBar.value = clampedValue;
+            _progressBar.title = stageReached >= target
+                ? $"REQUIREMENT MET ({stageReached}/{target})"
+                : $"STAGE {stageReached} / {target}";
+            _progressBar.EnableInClassList("settlement-progress-bar--ready", stageReached >= target);
+
+            if (_progressLabel != null)
+            {
+                _progressLabel.text = stageReached >= target
+                    ? $"STAGE {stageReached} / {target} — READY"
+                    : $"STAGE {stageReached} / {target} (UNLOCKS AT STAGE {target})";
+            }
+        }
+
+        private void AcknowledgeAndReload()
+        {
+            if (_busy) return;
+            string sourceRunId = _player.lastRunSettlement?.runId ?? string.Empty;
+            _host.StartCoroutine(AcknowledgeAndReloadRoutine(sourceRunId));
+        }
+
+        private IEnumerator AcknowledgeAndReloadRoutine(string sourceRunId)
+        {
+            _busy = true;
+            _status.text = "Acknowledging result...";
+            SetControls(false);
+            bool success = false;
+            string failure = string.Empty;
+            yield return _store.AcknowledgeSettlementPresentation(
+                sourceRunId,
+                () => success = true,
+                message => failure = message);
+            _busy = false;
+            if (!success)
+            {
+                _status.text = string.IsNullOrWhiteSpace(failure)
+                    ? "Result acknowledgement failed. Try again."
+                    : failure;
+                SetControls(true);
+                SetSemanticState("is-error");
+                yield break;
+            }
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        private void AcquireTerminalLock()
+        {
+            if (_terminalLock != null || _interactionGate == null) return;
+            _terminalLock = _interactionGate.Acquire(
+                "run-settlement:" + (_player.activeRun?.runId ??
+                    _player.lastRunSettlement?.runId ?? "unknown"),
+                InteractionScope.All & ~InteractionScope.TerminalAction);
+        }
+
+        private static bool HasPendingSettlementPresentation(PlayerSnapshot player)
+        {
+            return player?.lastRunSettlement != null &&
+                string.Equals(player.lastRunSettlement.presentationStatus,
+                    "Pending", StringComparison.Ordinal);
+        }
+
         private static string FormatPercent(long basisPoints)
         {
             return $"{basisPoints / 100d:0.0}%";
-        }
-
-        private static void ReloadScene()
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         private static T Require<T>(VisualElement root, string name)
@@ -368,8 +610,7 @@ namespace PowerMath.UI.MainMenu
 
         private void HideInitially()
         {
-            _modal.EnableInClassList("is-hidden", true);
-            _modal.style.display = DisplayStyle.None;
+            _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
         }
 
         private void SetSemanticState(string state = null)

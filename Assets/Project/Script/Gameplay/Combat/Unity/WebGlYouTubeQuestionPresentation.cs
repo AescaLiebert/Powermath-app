@@ -24,6 +24,9 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         [DllImport("__Internal")]
         private static extern void PowerMathYouTubeHide();
+
+        [DllImport("__Internal")]
+        private static extern void PowerMathYouTubeSetAnswerMode();
 #endif
 
         public void Begin(
@@ -51,6 +54,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             _generation++;
             _completed = null;
+            Dismiss();
+        }
+
+        public void Dismiss()
+        {
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathYouTubeHide();
 #endif
@@ -61,13 +69,14 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             if (!TryMatchGeneration(generationText, out int generation)) return;
 #if UNITY_WEBGL && !UNITY_EDITOR
-            PowerMathYouTubeHide();
+            PowerMathYouTubeSetAnswerMode();
 #endif
             Action<QuestionPresentationResult> completed = _completed;
             _completed = null;
             completed?.Invoke(new QuestionPresentationResult(
                 QuestionPresentationStatus.Ready,
-                "Enter your answer."
+                "Enter your answer.",
+                true
             ));
         }
 

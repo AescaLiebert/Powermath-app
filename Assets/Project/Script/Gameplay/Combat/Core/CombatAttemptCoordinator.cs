@@ -26,11 +26,14 @@ namespace PowerMath.Gameplay.Combat
         private AttemptCommit _commit;
         private AnswerWindowReceipt _window;
         private bool _resolutionStarted;
+        private string _pendingPresentationId = string.Empty;
 
         public CombatAttemptCoordinator(IAttemptAuthorityGateway gateway)
         {
             _gateway = gateway ?? throw new ArgumentNullException(nameof(gateway));
             Phase = gateway.Snapshot.Combat.Phase;
+            _pendingPresentationId = gateway.PendingPresentation?.PresentationId ??
+                string.Empty;
         }
 
         public event Action<GameplaySnapshot> SnapshotChanged;
@@ -39,6 +42,8 @@ namespace PowerMath.Gameplay.Combat
 
         public CombatPhase Phase { get; private set; }
         public GameplaySnapshot Snapshot => _gateway.Snapshot;
+        public AttemptPresentationReceipt PendingPresentation =>
+            _gateway.PendingPresentation;
 
         public bool TryBeginAttempt(out AttemptCommit commit)
         {
@@ -181,6 +186,7 @@ namespace PowerMath.Gameplay.Combat
                 CombatCommandId.New(),
                 normalized
             );
+            _pendingPresentationId = resolution.Presentation?.PresentationId ?? string.Empty;
             Phase = resolution.Snapshot.Combat.Phase;
             AttemptResolved?.Invoke(resolution);
             return true;
@@ -188,8 +194,11 @@ namespace PowerMath.Gameplay.Combat
 
         public GameplaySnapshot CompletePresentation()
         {
+            if (string.IsNullOrWhiteSpace(_pendingPresentationId))
+                throw new InvalidOperationException("No accepted presentation is pending completion.");
             GameplaySnapshot snapshot = _gateway.CompletePresentation(
-                CombatCommandId.New()
+                CombatCommandId.New(),
+                _pendingPresentationId
             );
             ResetAttemptState();
             Phase = snapshot.Combat.Phase;
@@ -209,6 +218,7 @@ namespace PowerMath.Gameplay.Combat
             AttemptResolution resolution = _gateway.ResolveTimeout(
                 CombatCommandId.New()
             );
+            _pendingPresentationId = resolution.Presentation?.PresentationId ?? string.Empty;
             Phase = resolution.Snapshot.Combat.Phase;
             AttemptResolved?.Invoke(resolution);
         }
@@ -231,6 +241,7 @@ namespace PowerMath.Gameplay.Combat
             _commit = null;
             _answerBuffer = new AnswerBuffer(1);
             _resolutionStarted = false;
+            _pendingPresentationId = string.Empty;
         }
     }
 }

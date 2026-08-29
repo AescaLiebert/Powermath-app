@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e13a1c9d31959844b9b3ac3e62ae18d7, type: 3}
-  m_Name: Biome01_Normal
+  m_Name: Biome01_N_Toxic-Slime
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
-  enemyId: rock-titan
-  displayName: Rock Titan
+  enemyId: toxic-slime
+  displayName: Toxic Slime
   biomeId: biome-1
   encounterKind: 0
   baseHp: 30
-  maximumCooldown: 10
+  maximumCooldown: 5
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 6168284790962690088, guid: db85b48d301cf4e4f8baef5a4709d725, type: 3}

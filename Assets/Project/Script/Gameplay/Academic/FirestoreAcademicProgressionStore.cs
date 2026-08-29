@@ -222,8 +222,70 @@ namespace PowerMath.Gameplay.Academic
                 builder.AddInteger(Join(root, "activeRun", "questionId"), 0);
                 builder.AddNull(Join(root, "academic", "activeAttempt"));
             }
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution?.Presentation != null)
+            {
+                AddPendingPresentation(
+                    builder, root, request.Resolution.Presentation);
+            }
+            else if (request.SavePoint == GameplaySavePoint.PresentationCompleted ||
+                     request.SavePoint == GameplaySavePoint.AttemptCommitted)
+            {
+                builder.AddNull(Join(root, "activeRun", "pendingPresentation"));
+            }
             AddAnalytics(builder, root, request);
             return builder.Build();
+        }
+
+        private static void AddPendingPresentation(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            AttemptPresentationReceipt receipt)
+        {
+            string[] receiptRoot = Join(root, "activeRun", "pendingPresentation");
+            builder.AddInteger(Join(receiptRoot, "version"), receipt.Version);
+            builder.AddString(Join(receiptRoot, "presentationId"), receipt.PresentationId);
+            builder.AddString(Join(receiptRoot, "attemptId"), receipt.AttemptId);
+            builder.AddString(Join(receiptRoot, "outcome"), receipt.Outcome.ToString());
+            builder.AddInteger(Join(receiptRoot, "responseScore"), receipt.ResponseScore);
+            builder.AddInteger(Join(receiptRoot, "finalDamage"), receipt.FinalDamage);
+            builder.AddBoolean(Join(receiptRoot, "isCritical"), receipt.IsCritical);
+            builder.AddInteger(Join(receiptRoot, "resolvedEnemyHpAfter"),
+                receipt.ResolvedEnemyHpAfter);
+            builder.AddBoolean(Join(receiptRoot, "enemyDefeated"), receipt.EnemyDefeated);
+            builder.AddBoolean(Join(receiptRoot, "enemyAttacked"), receipt.EnemyAttacked);
+            builder.AddBoolean(Join(receiptRoot, "playerDefeated"), receipt.PlayerDefeated);
+            builder.AddBoolean(Join(receiptRoot, "stageAdvanced"), receipt.StageAdvanced);
+            builder.AddBoolean(Join(receiptRoot, "biomeChanged"), receipt.BiomeChanged);
+            builder.AddString(Join(receiptRoot, "previousRank"),
+                receipt.RankTransition.Previous.ToString());
+            builder.AddString(Join(receiptRoot, "currentRank"),
+                receipt.RankTransition.Current.ToString());
+            AddPresentationSnapshot(builder, Join(receiptRoot, "source"), receipt.Source);
+            AddPresentationSnapshot(builder, Join(receiptRoot, "destination"),
+                receipt.Destination);
+        }
+
+        private static void AddPresentationSnapshot(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            CombatPresentationSnapshot snapshot)
+        {
+            builder.AddInteger(Join(root, "stage"), snapshot.Stage.Value);
+            builder.AddString(Join(root, "biomeId"), snapshot.BiomeId);
+            builder.AddString(Join(root, "encounterId"), snapshot.EncounterId);
+            builder.AddString(Join(root, "encounterKind"), snapshot.EncounterKind.ToString());
+            builder.AddInteger(Join(root, "enemyCurrentHp"), snapshot.EnemyCurrentHp);
+            builder.AddInteger(Join(root, "enemyMaximumHp"), snapshot.EnemyMaximumHp);
+            builder.AddInteger(Join(root, "enemyRemainingCooldown"),
+                snapshot.EnemyRemainingCooldown);
+            builder.AddInteger(Join(root, "enemyMaximumCooldown"),
+                snapshot.EnemyMaximumCooldown);
+            builder.AddInteger(Join(root, "playerCurrentHearts"),
+                snapshot.PlayerCurrentHearts);
+            builder.AddInteger(Join(root, "playerMaximumHearts"),
+                snapshot.PlayerMaximumHearts);
+            builder.AddString(Join(root, "phase"), snapshot.Phase.ToString());
         }
 
         private void AddAnalytics(

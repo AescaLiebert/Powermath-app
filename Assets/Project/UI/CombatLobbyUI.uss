@@ -35,6 +35,9 @@
     border-top-color: rgb(100, 195, 255);
     border-bottom-color: rgb(100, 195, 255);
     background-color: rgb(31, 45, 78);
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-back;
 }
 
 .social-modal-header,
@@ -72,6 +75,29 @@
     color: white;
     background-color: rgb(68, 114, 184);
     -unity-font-style: bold;
+    border-radius: 12px;
+    transition-property: scale, translate, background-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.social-close:hover,
+.leaderboard-refresh:hover,
+.profile-name-save:hover,
+.social-close:focus,
+.leaderboard-refresh:focus,
+.profile-name-save:focus {
+    scale: 1.04 1.04;
+    translate: 0 -2px;
+    background-color: rgb(85, 136, 215);
+}
+
+.social-close:active,
+.leaderboard-refresh:active,
+.profile-name-save:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
 }
 
 .leaderboard-top {
@@ -735,10 +761,25 @@
     color: white;
     background-color: rgb(40, 91, 139);
     border-radius: 10px;
+    transition-property: scale, translate, background-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
 
-.combat-map-modal,
-.combat-biome-transition {
+.combat-map-button:hover,
+.combat-map-button:focus {
+    scale: 1.05 1.05;
+    translate: 0 -1px;
+    background-color: rgb(55, 115, 175);
+}
+
+.combat-map-button:active {
+    scale: 0.95 0.95;
+    translate: 0 1px;
+    transition-duration: 0.08s;
+}
+
+.combat-map-modal {
     position: absolute;
     left: 0;
     right: 0;
@@ -748,10 +789,47 @@
     align-items: center;
     justify-content: center;
     background-color: rgba(5, 10, 23, 0.88);
+    z-index: 120;
 }
 
-.combat-map-modal { z-index: 120; }
-.combat-biome-transition { z-index: 110; }
+.combat-biome-transition {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+    background-color: transparent;
+    transition-property: opacity;
+    transition-duration: 320ms;
+    transition-timing-function: ease-out;
+}
+
+.combat-biome-transition-backdrop {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(6, 14, 28, 0.40);
+}
+
+.combat-biome-transition-card {
+    align-items: center;
+    justify-content: center;
+    min-width: 480px;
+    padding: 36px 64px;
+    background-color: rgba(12, 22, 42, 0.76);
+    border-radius: 24px;
+    border-width: 2px;
+    border-color: rgba(255, 218, 110, 0.70);
+    transition-property: opacity, scale, translate;
+    transition-duration: 420ms;
+    transition-timing-function: ease-out-back;
+}
 
 .combat-map-card {
     width: 78%;
@@ -761,21 +839,49 @@
     border-width: 3px;
     border-color: rgb(244, 190, 78);
     border-radius: 24px;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-back;
 }
 
-.combat-map-title,
-.combat-biome-transition-title {
+.combat-map-title {
     color: rgb(255, 222, 130);
     font-size: 36px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
 
-.combat-map-subtitle,
-.combat-biome-transition-kicker {
+.combat-biome-transition-title {
+    color: rgb(255, 235, 145);
+    font-size: 52px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: 2px;
+    margin-top: 6px;
+    margin-bottom: 8px;
+    text-shadow: 0 4px 18px rgba(0, 0, 0, 0.85);
+}
+
+.combat-map-subtitle {
     color: rgb(195, 220, 242);
     font-size: 17px;
     -unity-text-align: middle-center;
+}
+
+.combat-biome-transition-kicker {
+    color: rgb(165, 220, 255);
+    font-size: 19px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: 4px;
+}
+
+.combat-biome-transition-accent {
+    width: 160px;
+    height: 3px;
+    background-color: rgb(255, 207, 75);
+    border-radius: 2px;
+    margin-top: 8px;
 }
 
 .combat-map-route { margin-top: 20px; margin-bottom: 20px; }
@@ -804,6 +910,22 @@
     border-radius: 14px;
     font-size: 18px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.combat-map-close:hover,
+.combat-map-close:focus {
+    scale: 1.04 1.04;
+    translate: 0 -2px;
+    background-color: rgb(60, 125, 205);
+}
+
+.combat-map-close:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
 }
 
 .combat-enemy-card {
@@ -818,7 +940,8 @@
     border-width: 3px;
     border-color: rgba(255, 180, 74, 0.82);
     transition-property: translate, scale, background-color;
-    transition-duration: 0.16s;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-back;
 }
 
 .combat-enemy--hit {
@@ -884,30 +1007,23 @@
     border-radius: 22px;
     border-width: 3px;
     border-color: rgb(255, 210, 92);
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
 
-.combat-simulation-badge {
-    position: absolute;
-    right: 22px;
-    top: 8px;
-    padding: 8px 14px;
-    background-color: rgb(129, 62, 20);
-    border-radius: 12px;
-    font-size: 15px;
-    -unity-font-style: bold;
-    color: rgb(255, 236, 185);
+.combat-attack-button:hover,
+.combat-attack-button:focus {
+    scale: 1.06 1.06;
+    translate: 0 -3px;
+    background-color: rgb(48, 115, 215);
+    border-color: rgb(255, 226, 112);
 }
 
-.academic-local-badge {
-    position: absolute;
-    right: 22px;
-    top: 50px;
-    padding: 6px 12px;
-    background-color: rgb(67, 45, 113);
-    border-radius: 10px;
-    font-size: 13px;
-    -unity-font-style: bold;
-    color: rgb(235, 220, 255);
+.combat-attack-button:active {
+    scale: 0.93 0.93;
+    translate: 0 2px;
+    transition-duration: 0.08s;
 }
 
 .combat-attempt-panel {
@@ -998,6 +1114,21 @@
     font-size: 25px;
     -unity-font-style: bold;
     border-radius: 13px;
+    transition-property: scale, translate, background-color;
+    transition-duration: 0.14s;
+    transition-timing-function: ease-out-back;
+}
+
+.combat-key:hover,
+.combat-key:focus {
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+}
+
+.combat-key:active {
+    scale: 0.92 0.92;
+    translate: 0 2px;
+    transition-duration: 0.08s;
 }
 
 .combat-key--utility {
@@ -1045,66 +1176,210 @@
     bottom: 0;
     align-items: center;
     justify-content: center;
-    background-color: rgba(4, 7, 16, 0.88);
+    background-color: rgba(3, 7, 18, 0.88);
+    transition-property: opacity;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out;
 }
 
-.academic-rank-modal-card {
-    width: 560px;
-    min-height: 360px;
-    padding: 34px;
+.academic-rank-aura {
+    position: absolute;
+    width: 620px;
+    height: 620px;
+    border-radius: 310px;
+    background-color: rgba(255, 198, 65, 0.18);
+    opacity: 0;
+    scale: 0.4 0.4;
+    transition-property: opacity, scale;
+    transition-duration: 0.4s;
+    transition-timing-function: ease-out-back;
+}
+
+.academic-rank-modal--promotion .academic-rank-aura {
+    background-color: rgba(255, 204, 77, 0.24);
+}
+
+.academic-rank-modal--adjustment .academic-rank-aura {
+    background-color: rgba(105, 223, 242, 0.20);
+}
+
+.academic-rank-modal--entering .academic-rank-aura,
+.academic-rank-modal--revealed .academic-rank-aura {
+    opacity: 1;
+    scale: 1.0 1.0;
+}
+
+.academic-rank-notification {
     align-items: center;
     justify-content: center;
-    background-color: rgb(22, 31, 55);
+    scale: 0.35 0.35;
+    opacity: 0;
+    translate: 0 20px;
+    transition-property: scale, opacity, translate;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-out-back;
+}
+
+.academic-rank-modal--entering .academic-rank-notification,
+.academic-rank-modal--revealed .academic-rank-notification {
+    scale: 1.0 1.0;
+    opacity: 1;
+    translate: 0 0;
+}
+
+.academic-rank-banner {
+    min-width: 520px;
+    height: 96px;
+    padding: 12px 42px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 28px;
     border-width: 4px;
-    border-color: rgb(118, 175, 255);
-    border-radius: 30px;
-    transition-property: scale, opacity;
-    transition-duration: 0.22s;
+    border-color: rgb(255, 215, 80);
+    background-color: rgb(32, 40, 68);
+    overflow: hidden;
 }
 
-.academic-rank-modal--promotion .academic-rank-modal-card {
-    border-color: rgb(255, 211, 83);
-    background-color: rgb(31, 43, 73);
+.academic-rank-modal--promotion .academic-rank-banner {
+    border-color: rgb(255, 215, 80);
+    background-color: rgb(38, 44, 76);
 }
 
-.academic-rank-modal--adjustment .academic-rank-modal-card {
-    border-color: rgb(143, 183, 230);
-    background-color: rgb(30, 42, 61);
+.academic-rank-modal--adjustment .academic-rank-banner {
+    border-color: rgb(130, 190, 245);
+    background-color: rgb(24, 36, 56);
 }
 
 .academic-rank-modal-header {
-    font-size: 42px;
+    font-size: 44px;
+    -unity-font-style: bold;
+    color: rgb(255, 225, 100);
+    -unity-text-align: middle-center;
+    letter-spacing: 2px;
+}
+
+.academic-rank-modal--adjustment .academic-rank-modal-header {
+    color: rgb(200, 230, 255);
+}
+
+.academic-rank-route-container {
+    margin-top: 28px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    translate: 0 16px;
+    transition-property: opacity, translate;
+    transition-duration: 0.28s;
+    transition-timing-function: ease-out-back;
+}
+
+.academic-rank-route-container.academic-rank-route--revealed {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.academic-rank-route-badges {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.academic-rank-badge {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    min-width: 170px;
+    height: 64px;
+    padding: 8px 24px;
+    border-radius: 20px;
+    border-width: 3px;
+    border-color: rgb(194, 208, 226);
+    background-color: rgba(18, 30, 56, 0.95);
+}
+
+.academic-rank-badge--silver {
+    border-color: rgb(194, 208, 226);
+}
+
+.academic-rank-badge--gold {
+    border-color: rgb(255, 198, 65);
+}
+
+.academic-rank-badge--diamond {
+    border-color: rgb(105, 223, 242);
+}
+
+.academic-rank-badge-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 19px;
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-right: 12px;
+}
+
+.academic-rank-badge-name {
+    font-size: 24px;
+    -unity-font-style: bold;
+    color: white;
+    -unity-text-align: middle-center;
+}
+
+.academic-rank-arrow {
+    margin: 0 24px;
+    font-size: 38px;
     -unity-font-style: bold;
     color: rgb(255, 224, 112);
     -unity-text-align: middle-center;
 }
 
-.academic-rank-modal-route {
-    margin-top: 18px;
-    font-size: 34px;
-    -unity-font-style: bold;
-    color: white;
-    -unity-text-align: middle-center;
+.academic-rank-modal--adjustment .academic-rank-arrow {
+    color: rgb(150, 210, 255);
 }
 
-.academic-rank-modal-body,
-.academic-rank-modal-multiplier {
-    margin-top: 14px;
-    font-size: 19px;
-    color: rgb(213, 224, 244);
-    white-space: normal;
+.academic-rank-tap-prompt {
+    margin-top: 24px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: rgba(210, 230, 255, 0.75);
     -unity-text-align: middle-center;
+    letter-spacing: 1px;
 }
 
-.academic-rank-continue-button {
-    width: 240px;
-    height: 64px;
-    margin-top: 26px;
-    font-size: 23px;
-    -unity-font-style: bold;
-    color: white;
-    background-color: rgb(44, 126, 202);
-    border-radius: 16px;
+.academic-rank-touch-surface {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.001);
+    border-width: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.academic-rank-modal--dismissing .academic-rank-route-container {
+    opacity: 0;
+    translate: 0 10px;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-in;
+}
+
+.academic-rank-modal--dismissing .academic-rank-notification {
+    opacity: 0;
+    translate: 0 -90px;
+    scale: 0.95 0.95;
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.24s;
+    transition-timing-function: ease-in-back;
+}
+
+.academic-rank-modal--dismissing .academic-rank-aura {
+    opacity: 0;
+    scale: 0.6 0.6;
+    transition-duration: 0.20s;
 }
 
 .combat-damage-label {
@@ -1116,16 +1391,17 @@
     -unity-text-outline-width: 3px;
     -unity-text-outline-color: rgb(89, 16, 5);
     opacity: 0;
-    scale: 0.65 0.65;
+    scale: 0.55 0.55;
     translate: 0 35px;
     transition-property: opacity, scale, translate;
-    transition-duration: 0.22s;
+    transition-duration: 0.26s;
+    transition-timing-function: ease-out-back;
 }
 
 .combat-damage--animate {
     opacity: 1;
-    scale: 1.2 1.2;
-    translate: 0 -18px;
+    scale: 1.28 1.28;
+    translate: 0 -24px;
 }
 
 .combat-critical-label {

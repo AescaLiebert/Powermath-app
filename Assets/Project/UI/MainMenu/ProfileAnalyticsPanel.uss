@@ -47,6 +47,9 @@
     border-radius: 28px;
     border-width: 4px;
     border-color: rgb(20, 48, 91);
+    transition-property: scale, opacity, translate;
+    transition-duration: 0.24s;
+    transition-timing-function: ease-out-back;
 }
 
 .profile-header {
@@ -83,6 +86,23 @@
     border-color: rgb(222, 199, 157);
     font-size: 34px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.profile-close:hover,
+.profile-close:focus {
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+    border-color: rgb(255, 194, 64);
+    background-color: white;
+}
+
+.profile-close:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
 }
 
 .profile-scroll {
@@ -166,6 +186,14 @@
     padding: 18px 20px;
     border-radius: 18px;
     border-width: 3px;
+    transition-property: scale, translate;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.profile-stat-card:hover {
+    scale: 1.02 1.02;
+    translate: 0 -2px;
 }
 
 .profile-stat-card--blue {
@@ -251,6 +279,22 @@
     border-color: rgb(218, 120, 38);
     font-size: 15px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.profile-name-save:hover,
+.profile-name-save:focus {
+    scale: 1.04 1.04;
+    translate: 0 -2px;
+    background-color: rgb(255, 200, 92);
+}
+
+.profile-name-save:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
 }
 
 .profile-name-status {

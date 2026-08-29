@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6301559756f93bc45a8954ae0fc3c193, type: 3}
+  m_Name: UiMotionProfile
+  m_EditorClassIdentifier:
+  enterSeconds: 0.22
+  exitSeconds: 0.16
+  enterScale: 0.9
+  enterOffsetY: 12
+  exitScale: 0.96
+  exitOffsetY: -6
+  hoverSeconds: 0.16
+  pressSeconds: 0.08
+  hoverScale: 1.035
+  hoverOffsetY: -2
+  pressScale: 0.94
+  pressOffsetY: 2
+  idleSeconds: 1.6
+  reducedCrossfadeSeconds: 0.12

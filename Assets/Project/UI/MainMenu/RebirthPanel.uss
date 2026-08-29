@@ -48,6 +48,9 @@
     border-right-color: rgb(244, 111, 83);
     border-top-color: rgb(244, 111, 83);
     border-bottom-color: rgb(244, 111, 83);
+    transition-property: scale, opacity, translate;
+    transition-duration: 0.24s;
+    transition-timing-function: ease-out-back;
 }
 
 .settlement-header {
@@ -97,11 +100,92 @@
     font-size: 22px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
+    transition-property: scale;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-back;
 }
 
 .settlement-scroll {
     flex-grow: 1;
     margin-top: 10px;
+}
+
+.settlement-progress-section {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    background-color: rgb(232, 242, 239);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(166, 199, 195);
+    border-right-color: rgb(166, 199, 195);
+    border-top-color: rgb(166, 199, 195);
+    border-bottom-color: rgb(166, 199, 195);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.settlement-progress-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.settlement-progress-title {
+    color: rgb(32, 92, 183);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1.4px;
+}
+
+.settlement-progress-label {
+    color: rgb(20, 48, 91);
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.settlement-progress-bar {
+    height: 24px;
+    margin: 0;
+}
+
+.settlement-progress-bar .unity-progress-bar__background {
+    background-color: rgb(215, 228, 225);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+}
+
+.settlement-progress-bar .unity-progress-bar__progress {
+    background-color: rgb(32, 184, 193);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    transition-property: width;
+    transition-duration: 0.28s;
+    transition-timing-function: ease-out;
+}
+
+.settlement-progress-bar--ready .unity-progress-bar__progress {
+    background-color: rgb(244, 111, 83);
+}
+
+.settlement-progress-bar .unity-progress-bar__title {
+    color: rgb(20, 48, 91);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
 }
 
 .settlement-grid {
@@ -293,6 +377,33 @@
     height: 56px;
     margin-left: 10px;
     margin-right: 0;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.settlement-actions > Button:hover,
+.settlement-actions > Button:focus {
+    scale: 1.04 1.04;
+    translate: 0 -2px;
+}
+
+.settlement-actions > Button:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
+}
+
+.settlement-actions > Button:disabled {
+    opacity: 0.52;
+    scale: 1 1;
+    translate: 0 0;
+    background-color: rgb(215, 224, 222);
+    border-left-color: rgb(184, 196, 194);
+    border-right-color: rgb(184, 196, 194);
+    border-top-color: rgb(184, 196, 194);
+    border-bottom-color: rgb(184, 196, 194);
+    color: rgb(120, 140, 160);
 }
 
 .settlement-back {

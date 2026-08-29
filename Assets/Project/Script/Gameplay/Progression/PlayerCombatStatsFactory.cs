@@ -1,4 +1,5 @@
 using PowerMath.Gameplay.Combat;
+using PowerMath.Gameplay.Pets;
 using PowerMath.PlayerData;
 
 namespace PowerMath.Gameplay.Progression
@@ -32,6 +33,23 @@ namespace PowerMath.Gameplay.Progression
                 baseWeaponAttack,
                 baseCriticalRate,
                 baseCriticalDamagePercent).ToCombatStats();
+        }
+
+        public static PlayerCombatStats Create(
+            PlayerSnapshot player,
+            int baseAttack,
+            int baseWeaponAttack,
+            double baseCriticalRate,
+            double baseCriticalDamagePercent,
+            PetGachaCatalog petCatalog)
+        {
+            return PlayerStatProjectionFactory.Create(
+                player,
+                baseAttack,
+                baseWeaponAttack,
+                baseCriticalRate,
+                baseCriticalDamagePercent,
+                petCatalog).ToCombatStats();
         }
     }
 }

@@ -13,14 +13,17 @@ namespace PowerMath.Gameplay.Combat
     {
         public QuestionPresentationResult(
             QuestionPresentationStatus status,
-            string playerMessage)
+            string playerMessage,
+            bool retainsPresentationSurface = false)
         {
             Status = status;
             PlayerMessage = playerMessage ?? string.Empty;
+            RetainsPresentationSurface = retainsPresentationSurface;
         }
 
         public QuestionPresentationStatus Status { get; }
         public string PlayerMessage { get; }
+        public bool RetainsPresentationSurface { get; }
         public bool IsReady => Status == QuestionPresentationStatus.Ready;
     }
 
@@ -30,6 +33,7 @@ namespace PowerMath.Gameplay.Combat
             QuestionPresentationDescriptor question,
             Action<QuestionPresentationResult> completed
         );
+        void Dismiss();
         void Cancel();
     }
 }

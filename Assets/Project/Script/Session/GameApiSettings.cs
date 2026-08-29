@@ -55,6 +55,11 @@ namespace PowerMath.Session
         [Min(1)]
         [SerializeField] private int requestTimeoutSeconds = 30;
 
+        [Header("Version & Updates")]
+        [Tooltip("Relative or absolute URL to version.json manifest. Defaults to version.json for WebGL root.")]
+        [SerializeField] private string versionManifestUrl = "version.json";
+        [SerializeField] private bool enableVersionCheck = true;
+
         [Header("Scene Flow")]
         [SerializeField] private string bootstrapSceneName = "BootstrapScene";
         [SerializeField] private string authenticationSceneName = "AuthenticationScene";
@@ -70,6 +75,8 @@ namespace PowerMath.Session
 #endif
 
         public int RequestTimeoutSeconds => requestTimeoutSeconds;
+        public string VersionManifestUrl => versionManifestUrl;
+        public bool EnableVersionCheck => enableVersionCheck;
         public string BootstrapSceneName => bootstrapSceneName;
         public string AuthenticationSceneName => authenticationSceneName;
         public string MainMenuSceneName => mainMenuSceneName;

@@ -82,5 +82,67 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(host.OpenPanel, Is.EqualTo(MainMenuPanelId.Rebirth));
             Assert.That(settlement.ClassListContains("is-hidden"), Is.False);
         }
+
+        [Test]
+        public void TryClose_AcceptedPanel_PublishesClosedIdentityOnce()
+        {
+            var host = new MainMenuPanelHost();
+            var panel = new VisualElement();
+            MainMenuPanelId closed = MainMenuPanelId.None;
+            int closeCount = 0;
+            host.PanelClosed += panelId =>
+            {
+                closed = panelId;
+                closeCount++;
+            };
+
+            Assert.That(
+                host.TryOpen(MainMenuPanelId.Leaderboard, panel, null),
+                Is.True);
+            Assert.That(
+                host.TryClose(MainMenuPanelId.Leaderboard, null),
+                Is.True);
+            Assert.That(
+                host.TryClose(MainMenuPanelId.Leaderboard, null),
+                Is.False);
+
+            Assert.That(closed, Is.EqualTo(MainMenuPanelId.Leaderboard));
+            Assert.That(closeCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SharedBackContract_PublishesOpenAndClosesCurrentPanel()
+        {
+            var host = new MainMenuPanelHost();
+            var panel = new VisualElement();
+            MainMenuPanelId opened = MainMenuPanelId.None;
+            host.PanelOpened += panelId => opened = panelId;
+
+            Assert.That(host.TryOpen(
+                MainMenuPanelId.PlayerHub,
+                panel,
+                null), Is.True);
+            Assert.That(opened, Is.EqualTo(MainMenuPanelId.PlayerHub));
+            Assert.That(host.TryCloseCurrent(), Is.True);
+            Assert.That(host.OpenPanel, Is.EqualTo(MainMenuPanelId.None));
+            Assert.That(panel.ClassListContains("is-hidden"), Is.True);
+        }
+
+        [Test]
+        public void ForceCloseAll_DoesNotPublishSessionReturnSignal()
+        {
+            var host = new MainMenuPanelHost();
+            var panel = new VisualElement();
+            int closeCount = 0;
+            host.PanelClosed += _ => closeCount++;
+
+            Assert.That(
+                host.TryOpen(MainMenuPanelId.PetGacha, panel, null),
+                Is.True);
+            host.ForceCloseAll();
+
+            Assert.That(closeCount, Is.Zero);
+            Assert.That(host.OpenPanel, Is.EqualTo(MainMenuPanelId.None));
+        }
     }
 }

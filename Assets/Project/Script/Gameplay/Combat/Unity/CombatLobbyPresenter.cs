@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Academic.Unity;
+using PowerMath.UI.MainMenu;
 
 namespace PowerMath.Gameplay.Combat.Unity
 {
@@ -25,6 +26,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         private bool _bound;
         private bool _saveInFlight;
         private QuestionPresentationDescriptor _activeQuestion;
+        private readonly IMainMenuInteractionGate _interactionGate;
+        private IInteractionLock _attemptLock;
+        private IInteractionLock _resolutionLock;
+
+        public event Action<CombatPhase> TerminalPresentationCompleted;
 
         public CombatLobbyPresenter(
             CombatLobbyView view,
@@ -35,7 +41,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             IQuestionPresentation questionPresentation,
             ICombatCoroutineRunner runner,
             IGameplayPersistence persistence,
-            IGameplaySaveRequestFactory saveRequests)
+            IGameplaySaveRequestFactory saveRequests,
+            IMainMenuInteractionGate interactionGate = null)
         {
             _view = view;
             _academic = academic;
@@ -47,6 +54,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _runner = runner;
             _persistence = persistence ?? throw new ArgumentNullException(nameof(persistence));
             _saveRequests = saveRequests ?? throw new ArgumentNullException(nameof(saveRequests));
+            _interactionGate = interactionGate;
         }
 
         public void Initialize()
@@ -69,6 +77,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _academic.Initialize(_coordinator.Snapshot.Academic);
             _view.ShowAttempt(false);
             _view.HideDamage();
+            _view.HideBattleBanner();
             _bound = true;
         }
 
@@ -93,20 +102,44 @@ namespace PowerMath.Gameplay.Combat.Unity
             _coordinator.AttemptResolved -= OnAttemptResolved;
             _academic.Dispose();
             _view.Dispose();
+            _resolutionLock?.Dispose();
+            _resolutionLock = null;
+            _attemptLock?.Dispose();
+            _attemptLock = null;
             _bound = false;
+        }
+
+        public bool RecoverPendingPresentation()
+        {
+            AttemptPresentationReceipt receipt = _coordinator.PendingPresentation;
+            if (!_bound || receipt == null || _saveInFlight) return false;
+            _resolutionLock = _interactionGate?.Acquire(
+                "combat-recovery:" + receipt.PresentationId,
+                InteractionScope.All);
+            _view.SetAnswerInputEnabled(false);
+            _view.ShowAttempt(false);
+            _runner.RunCombatRoutine(RecoveryRoutine(receipt));
+            return true;
         }
 
         private void OnAttack()
         {
-            if (_saveInFlight) return;
+            if (_saveInFlight || (_interactionGate != null &&
+                !_interactionGate.IsAllowed(InteractionScope.Lobby))) return;
             if (!_coordinator.TryBeginAttempt(out AttemptCommit commit))
             {
                 return;
             }
 
             _audio.PlayCommit();
+            _attemptLock = _interactionGate?.Acquire(
+                "combat-attempt:" + commit.PresentationId,
+                InteractionScope.Lobby | InteractionScope.Navigation |
+                InteractionScope.ModalDismiss);
+            _view.ArmEnemyAction(commit.PresentationId);
             _activeQuestion = commit.Question;
             _view.SetResult("SAVING ATTEMPT...", true);
+            _view.SetRetainedQuestionLayout(false);
             _view.SetAnswer(string.Empty, false);
             _view.SetAnswerInputEnabled(false);
             _view.ShowAttempt(true);
@@ -140,6 +173,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     () =>
                     {
                         _activeQuestion = null;
+                        _view.SetRetainedQuestionLayout(false);
                         _academic.ClearAttemptPresentation();
                         _view.SetResult(
                             string.IsNullOrWhiteSpace(result.PlayerMessage)
@@ -147,6 +181,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                                 : result.PlayerMessage,
                             false);
                         _view.ShowAttempt(false);
+                        _attemptLock?.Dispose();
+                        _attemptLock = null;
                     });
                 return;
             }
@@ -157,6 +193,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
 
             _view.SetResult("SAVING ANSWER WINDOW...", true);
+            _view.SetRetainedQuestionLayout(
+                result.RetainsPresentationSurface);
             Save(
                 _saveRequests.CreateSaveRequest(
                     GameplaySavePoint.AnswerWindowOpened,
@@ -172,6 +210,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnDigit(int digit)
         {
+            if (_interactionGate != null &&
+                !_interactionGate.IsAllowed(InteractionScope.Question)) return;
             if (_coordinator.TryAppendDigit(digit))
             {
                 _audio.PlayKey();
@@ -180,6 +220,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnBackspace()
         {
+            if (_interactionGate != null &&
+                !_interactionGate.IsAllowed(InteractionScope.Question)) return;
             if (_coordinator.TryBackspace())
             {
                 _audio.PlayKey();
@@ -188,6 +230,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnClear()
         {
+            if (_interactionGate != null &&
+                !_interactionGate.IsAllowed(InteractionScope.Question)) return;
             if (_coordinator.TryClear())
             {
                 _audio.PlayKey();
@@ -196,6 +240,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnSubmit()
         {
+            if (_interactionGate != null &&
+                !_interactionGate.IsAllowed(InteractionScope.Question)) return;
             _coordinator.TrySubmit(UnityEngine.Time.realtimeSinceStartupAsDouble);
         }
 
@@ -212,6 +258,11 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnAttemptResolved(AttemptResolution resolution)
         {
+            _resolutionLock = _interactionGate?.Acquire(
+                "combat-presentation:" + resolution.Presentation?.PresentationId,
+                InteractionScope.All);
+            _attemptLock?.Dispose();
+            _attemptLock = null;
             _runner.StopCombatRoutines();
             _view.SetAnswerInputEnabled(false);
             _view.SetResult("SAVING RESULT...", true);
@@ -237,13 +288,27 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private IEnumerator ResolutionRoutine(AttemptResolution resolution)
         {
-            yield return _feedback.Play(resolution);
+            string presentationId = resolution.Presentation?.PresentationId ?? string.Empty;
+            yield return _feedback.PlayAnswerFeedback(resolution);
+            _questionPresentation.Dismiss();
+            _view.SetRetainedQuestionLayout(false);
+            _view.ShowAttempt(false);
+            yield return _feedback.PlayBattleFeedback(resolution);
             if (resolution.Combat.BiomeChanged)
+            {
+                _audio?.PlayBiomeTransition();
                 yield return _view.PlayBiomeTransition(resolution.Snapshot.Combat);
+            }
+            while (!_feedback.AreActorsStable ||
+                   !_view.IsEnemyActionQueueStable ||
+                   !_view.IsBlockingUiStable)
+                yield return null;
             GameplaySnapshot snapshot = _coordinator.CompletePresentation();
             bool saved = false;
             Save(
-                _saveRequests.CreateSaveRequest(GameplaySavePoint.PresentationCompleted),
+                _saveRequests.CreateSaveRequest(
+                    GameplaySavePoint.PresentationCompleted,
+                    presentationId: presentationId),
                 () => saved = true);
             while (_saveInFlight) yield return null;
             if (!saved) yield break;
@@ -254,14 +319,60 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             bool terminal = snapshot.Combat.Phase == CombatPhase.RunDefeat ||
                 snapshot.Combat.Phase == CombatPhase.RunComplete;
+            if (terminal)
+            {
+                TerminalPresentationCompleted?.Invoke(snapshot.Combat.Phase);
+                _resolutionLock?.Dispose();
+                _resolutionLock = null;
+            }
             if (!terminal)
             {
                 _view.ShowAttempt(false);
+                _view.HideBattleBanner();
                 _academic.ClearAttemptPresentation();
             }
             else
             {
                 _view.SetAnswerInputEnabled(false);
+            }
+            if (!terminal && _view.IsEnemyActionQueueStable)
+            {
+                _resolutionLock?.Dispose();
+                _resolutionLock = null;
+            }
+        }
+
+        private IEnumerator RecoveryRoutine(AttemptPresentationReceipt receipt)
+        {
+            yield return _feedback.PlayRecoveredBattle(receipt);
+            while (!_feedback.AreActorsStable ||
+                   !_view.IsEnemyActionQueueStable ||
+                   !_view.IsBlockingUiStable)
+                yield return null;
+            GameplaySnapshot snapshot = _coordinator.CompletePresentation();
+            bool saved = false;
+            Save(
+                _saveRequests.CreateSaveRequest(
+                    GameplaySavePoint.PresentationCompleted,
+                    presentationId: receipt.PresentationId),
+                () => saved = true);
+            while (_saveInFlight) yield return null;
+            if (!saved) yield break;
+
+            _view.Render(snapshot.Combat);
+            _academic.Render(snapshot.Academic);
+            bool terminal = snapshot.Combat.Phase == CombatPhase.RunDefeat ||
+                snapshot.Combat.Phase == CombatPhase.RunComplete;
+            if (terminal)
+            {
+                TerminalPresentationCompleted?.Invoke(snapshot.Combat.Phase);
+                _resolutionLock?.Dispose();
+                _resolutionLock = null;
+            }
+            if (!terminal && _view.IsEnemyActionQueueStable)
+            {
+                _resolutionLock?.Dispose();
+                _resolutionLock = null;
             }
         }
 

@@ -52,6 +52,16 @@ namespace PowerMath.Gameplay.Progression
             Action<RunSettlementAward> completed,
             Action<string> failed)
         {
+            yield return Settle(
+                type, default, completed, failed);
+        }
+
+        public IEnumerator Settle(
+            RunSettlementType type,
+            RunSettlementPresentationValues presentation,
+            Action<RunSettlementAward> completed,
+            Action<string> failed)
+        {
             string runId = _player.activeRun?.runId ?? string.Empty;
             if (string.IsNullOrWhiteSpace(runId))
             {
@@ -90,6 +100,14 @@ namespace PowerMath.Gameplay.Progression
             int nextPrestige = checked((_player.progression?.prestige ?? 0) + award.Prestige);
             long nextRevision = checked(_player.revision + 1);
             string nextRunId = Guid.NewGuid().ToString("N");
+            string presentationId = "run-presentation-" + runId;
+            string sourceBiomeId = _player.activeRun?.biomeId ?? string.Empty;
+            string sourceEncounterId = _player.activeRun?.encounterId ??
+                _player.activeRun?.enemyId ?? string.Empty;
+            string sourceEncounterKind = _player.activeRun?.encounterKind ?? string.Empty;
+            long sourceCoins = _player.wallet?.powerCoins ?? 0;
+            long sourceLegacy = _player.progression?.legacyAtkBonusBasisPoints ?? 0;
+            int sourcePrestige = _player.progression?.prestige ?? 0;
             var builder = new FirestorePatchDocumentBuilder();
             string[] root = { _username, "gamedata" };
             builder.AddInteger(Join(root, "revision"), nextRevision);
@@ -113,6 +131,7 @@ namespace PowerMath.Gameplay.Progression
                 builder.AddInteger(Join(root, "activeRun", field), 0);
             builder.AddInteger(Join(root, "activeRun", "bonusMultiplierBasisPoints"), 10000);
             builder.AddString(Join(root, "activeRun", "phase"), "EnemyReady");
+            builder.AddNull(Join(root, "activeRun", "pendingPresentation"));
             builder.AddString(Join(root, "lastRunSettlement", "runId"), runId);
             builder.AddString(Join(root, "lastRunSettlement", "type"), type.ToString());
             builder.AddInteger(Join(root, "lastRunSettlement", "stageReached"), award.StageReached);
@@ -120,6 +139,30 @@ namespace PowerMath.Gameplay.Progression
             builder.AddInteger(Join(root, "lastRunSettlement", "legacyAtkBasisPointsGranted"), award.LegacyBasisPoints);
             builder.AddInteger(Join(root, "lastRunSettlement", "prestigeGranted"), award.Prestige);
             builder.AddInteger(Join(root, "lastRunSettlement", "resultingPowerCoins"), nextCoins);
+            builder.AddInteger(Join(root, "lastRunSettlement", "presentationVersion"), 1);
+            builder.AddString(Join(root, "lastRunSettlement", "presentationId"),
+                presentationId);
+            builder.AddString(Join(root, "lastRunSettlement", "presentationStatus"),
+                "Pending");
+            builder.AddString(Join(root, "lastRunSettlement", "presentationCause"),
+                type.ToString());
+            builder.AddString(Join(root, "lastRunSettlement", "sourceBiomeId"),
+                sourceBiomeId);
+            builder.AddString(Join(root, "lastRunSettlement", "sourceEncounterId"),
+                sourceEncounterId);
+            builder.AddString(Join(root, "lastRunSettlement", "sourceEncounterKind"),
+                sourceEncounterKind);
+            builder.AddInteger(Join(root, "lastRunSettlement", "sourcePowerCoins"),
+                sourceCoins);
+            builder.AddInteger(Join(root, "lastRunSettlement", "sourceLegacyAtkBasisPoints"),
+                sourceLegacy);
+            builder.AddInteger(Join(root, "lastRunSettlement", "sourcePrestige"),
+                sourcePrestige);
+            builder.AddInteger(Join(root, "lastRunSettlement", "sourceEffectiveAttack"),
+                presentation.SourceEffectiveAttack);
+            builder.AddInteger(Join(root, "lastRunSettlement", "resultingEffectiveAttack"),
+                presentation.ResultingEffectiveAttack);
+            builder.AddInteger(Join(root, "lastRunSettlement", "acknowledgedAtUnixSeconds"), 0);
 
             bool saved = false;
             string failure = string.Empty;
@@ -130,8 +173,62 @@ namespace PowerMath.Gameplay.Progression
                 yield break;
             }
 
-            ApplySettlement(type, award, reset, runId, nextRunId, nextCoins, nextLegacy, nextPrestige, nextRevision);
+            ApplySettlement(type, award, reset, runId, nextRunId, nextCoins,
+                nextLegacy, nextPrestige, nextRevision, presentationId,
+                sourceBiomeId, sourceEncounterId, sourceEncounterKind,
+                sourceCoins, sourceLegacy, sourcePrestige, presentation);
             completed?.Invoke(award);
+        }
+
+        public IEnumerator AcknowledgeSettlementPresentation(
+            string sourceRunId,
+            Action completed,
+            Action<string> failed)
+        {
+            PlayerSnapshot.RunSettlementData settlement = _player.lastRunSettlement;
+            if (settlement == null || string.IsNullOrWhiteSpace(sourceRunId) ||
+                !string.Equals(settlement.runId, sourceRunId, StringComparison.Ordinal))
+            {
+                failed?.Invoke("The run result no longer matches this presentation.");
+                yield break;
+            }
+            if (string.Equals(settlement.presentationStatus, "Acknowledged",
+                StringComparison.Ordinal))
+            {
+                completed?.Invoke();
+                yield break;
+            }
+            if (!string.Equals(settlement.presentationStatus, "Pending",
+                StringComparison.Ordinal))
+            {
+                failed?.Invoke("The run result is not awaiting acknowledgement.");
+                yield break;
+            }
+
+            long nextRevision = checked(_player.revision + 1);
+            long acknowledgedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var builder = new FirestorePatchDocumentBuilder();
+            string[] root = { _username, "gamedata" };
+            builder.AddInteger(Join(root, "revision"), nextRevision);
+            builder.AddString(Join(root, "lastRunSettlement", "presentationStatus"),
+                "Acknowledged");
+            builder.AddInteger(
+                Join(root, "lastRunSettlement", "acknowledgedAtUnixSeconds"),
+                acknowledgedAt);
+            bool saved = false;
+            string failure = string.Empty;
+            yield return Patch(builder.Build(), () => saved = true,
+                message => failure = message);
+            if (!saved)
+            {
+                failed?.Invoke(failure);
+                yield break;
+            }
+            _player.revision = nextRevision;
+            settlement.presentationStatus = "Acknowledged";
+            settlement.acknowledgedAtUnixSeconds = acknowledgedAt;
+            PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
+            completed?.Invoke();
         }
 
         public IEnumerator AscendWeapon(
@@ -292,7 +389,11 @@ namespace PowerMath.Gameplay.Progression
 
         private void ApplySettlement(
             RunSettlementType type, RunSettlementAward award, AcademicPersistenceSnapshot reset,
-            string runId, string nextRunId, long nextCoins, long nextLegacy, int nextPrestige, long revision)
+            string runId, string nextRunId, long nextCoins, long nextLegacy,
+            int nextPrestige, long revision, string presentationId,
+            string sourceBiomeId, string sourceEncounterId,
+            string sourceEncounterKind, long sourceCoins, long sourceLegacy,
+            int sourcePrestige, RunSettlementPresentationValues presentation)
         {
             _player.revision = revision;
             _player.wallet.powerCoins = nextCoins;
@@ -312,7 +413,20 @@ namespace PowerMath.Gameplay.Progression
             {
                 runId = runId, type = type.ToString(), stageReached = award.StageReached,
                 powerCoinsGranted = award.PowerCoins, legacyAtkBasisPointsGranted = award.LegacyBasisPoints,
-                prestigeGranted = award.Prestige, resultingPowerCoins = nextCoins
+                prestigeGranted = award.Prestige, resultingPowerCoins = nextCoins,
+                presentationVersion = 1,
+                presentationId = presentationId,
+                presentationStatus = "Pending",
+                presentationCause = type.ToString(),
+                sourceBiomeId = sourceBiomeId,
+                sourceEncounterId = sourceEncounterId,
+                sourceEncounterKind = sourceEncounterKind,
+                sourcePowerCoins = sourceCoins,
+                sourceLegacyAtkBasisPoints = sourceLegacy,
+                sourcePrestige = sourcePrestige,
+                sourceEffectiveAttack = presentation.SourceEffectiveAttack,
+                resultingEffectiveAttack = presentation.ResultingEffectiveAttack,
+                acknowledgedAtUnixSeconds = 0
             };
         }
 

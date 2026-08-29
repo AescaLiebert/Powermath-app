@@ -4,9 +4,11 @@
     <ui:Template name="PetGachaPanel" src="project://database/Assets/Project/UI/MainMenu/PetGachaPanel.uxml"/>
     <ui:Template name="LeaderboardPanel" src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uxml"/>
     <ui:Template name="ProfileAnalyticsPanel" src="project://database/Assets/Project/UI/MainMenu/ProfileAnalyticsPanel.uxml"/>
+    <ui:Template name="AdminPanel" src="project://database/Assets/Project/UI/MainMenu/AdminPanel.uxml"/>
     <ui:Instance template="RebirthPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="PlayerHubPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="PetGachaPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="LeaderboardPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="ProfileAnalyticsPanel" picking-mode="Ignore" class="mw-template-fill"/>
+    <ui:Instance template="AdminPanel" picking-mode="Ignore" class="mw-template-fill"/>
 </ui:UXML>

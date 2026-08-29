@@ -93,6 +93,45 @@ namespace PowerMath.PlayerData
             public long goldEarned;
             public long diamondEarned;
             public int bonusMultiplierBasisPoints;
+            public AttemptPresentationData pendingPresentation;
+        }
+
+        [Serializable]
+        public sealed class AttemptPresentationData
+        {
+            public int version;
+            public string presentationId;
+            public string attemptId;
+            public string outcome;
+            public int responseScore;
+            public int finalDamage;
+            public bool isCritical;
+            public int resolvedEnemyHpAfter;
+            public bool enemyDefeated;
+            public bool enemyAttacked;
+            public bool playerDefeated;
+            public bool stageAdvanced;
+            public bool biomeChanged;
+            public CombatPresentationData source;
+            public CombatPresentationData destination;
+            public string previousRank;
+            public string currentRank;
+        }
+
+        [Serializable]
+        public sealed class CombatPresentationData
+        {
+            public int stage;
+            public string biomeId;
+            public string encounterId;
+            public string encounterKind;
+            public int enemyCurrentHp;
+            public int enemyMaximumHp;
+            public int enemyRemainingCooldown;
+            public int enemyMaximumCooldown;
+            public int playerCurrentHearts;
+            public int playerMaximumHearts;
+            public string phase;
         }
 
         [Serializable]
@@ -107,6 +146,8 @@ namespace PowerMath.PlayerData
             public bool lastPetGachaWasNew;
             public long lastPetGachaCost;
             public long lastPetGachaResultingPowerCoins;
+            public string lastPetEquipTransactionId;
+            public string lastPetEquipPetId;
         }
 
         [Serializable]
@@ -119,6 +160,19 @@ namespace PowerMath.PlayerData
             public long legacyAtkBasisPointsGranted;
             public int prestigeGranted;
             public long resultingPowerCoins;
+            public int presentationVersion;
+            public string presentationId;
+            public string presentationStatus;
+            public string presentationCause;
+            public string sourceBiomeId;
+            public string sourceEncounterId;
+            public string sourceEncounterKind;
+            public long sourcePowerCoins;
+            public long sourceLegacyAtkBasisPoints;
+            public int sourcePrestige;
+            public long sourceEffectiveAttack;
+            public long resultingEffectiveAttack;
+            public long acknowledgedAtUnixSeconds;
         }
 
         [Serializable]

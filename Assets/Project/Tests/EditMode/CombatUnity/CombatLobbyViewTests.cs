@@ -63,21 +63,50 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(root.Q<Label>("combat-enemy-hp-label").text, Is.EqualTo("23 / 40 HP"));
             Assert.That(root.Q<Label>("combat-hearts-label").text, Is.EqualTo("♥ ♥ ♡"));
             VisualElement actions = root.Q<VisualElement>("combat-enemy-actions");
-            Assert.That(actions.childCount, Is.EqualTo(3));
+            Assert.That(actions.childCount, Is.EqualTo(1));
             Assert.That(
-                actions[0].ClassListContains("hud-enemy-action--spent"),
+                actions[0].ClassListContains("hud-enemy-action--attack"),
                 Is.True);
             Assert.That(
-                actions[2].ClassListContains("hud-enemy-action--attack"),
+                actions[0].ClassListContains("hud-enemy-action--danger"),
                 Is.True);
-            Assert.That(
-                actions[2].ClassListContains("hud-enemy-action--danger"),
-                Is.True);
-            Assert.That(root.Q<Button>("combat-attack-button").enabledSelf, Is.True);
-            Assert.That(
-                root.Q<Label>("combat-simulation-badge").style.display.value,
-                Is.EqualTo(DisplayStyle.Flex)
+            Assert.That(view.CanAttack, Is.True);
+        }
+
+        [Test]
+        public void AnswerFeedback_ReplacesNumpadWithOrderedVisualStack()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
             );
+            VisualElement root = asset.CloneTree();
+            using var view = new CombatLobbyView(root);
+
+            view.ShowAttempt(true);
+            view.SetRetainedQuestionLayout(true);
+            view.ShowAnswerFeedback(
+                "✓",
+                "CORRECT",
+                "Building your attack power",
+                true);
+            view.AddFeedbackStep("BASE ATK", "50", false);
+            view.AddFeedbackStep("RESPONSE SCORE 10", "×2.00", false);
+            view.AddFeedbackStep("FINAL DAMAGE", "100", true);
+
+            Assert.That(
+                root.Q<VisualElement>("combat-attempt-panel")
+                    .ClassListContains("combat-attempt-panel--retained-video"),
+                Is.True);
+            Assert.That(
+                root.Q<VisualElement>("combat-answer-content").style.display.value,
+                Is.EqualTo(DisplayStyle.None));
+            Assert.That(
+                root.Q<VisualElement>("combat-feedback-card").style.display.value,
+                Is.EqualTo(DisplayStyle.Flex));
+            Assert.That(
+                root.Q<VisualElement>("combat-score-stack").childCount,
+                Is.EqualTo(5),
+                "Three score rows should be connected by two visual arrows.");
         }
 
         [Test]
@@ -155,6 +184,161 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 unsupportedButtonText,
                 Is.Empty,
                 "Slice 4 must remain the approved one-pull experience.");
+        }
+
+        [Test]
+        public void RequestAttack_FiresAttackRequestedWhenReady()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
+            );
+            VisualElement root = asset.CloneTree();
+            using var view = new CombatLobbyView(root);
+            view.Bind();
+
+            bool attackFired = false;
+            view.AttackRequested += () => attackFired = true;
+
+            // When not ready, RequestAttack does not fire
+            view.RequestAttack();
+            Assert.That(attackFired, Is.False);
+
+            // When snapshot is ready, RequestAttack fires
+            var snapshot = new CombatSnapshot(
+                new StageId(1),
+                "goblin",
+                "Goblin",
+                20,
+                20,
+                3,
+                3,
+                3,
+                3,
+                CombatPhase.EnemyReady,
+                true
+            );
+            view.Render(snapshot);
+            Assert.That(view.CanAttack, Is.True);
+
+            view.RequestAttack();
+            Assert.That(attackFired, Is.True);
+        }
+
+        [Test]
+        public void AcademicProgressionView_ShowRankTransition_PopulatesJuiceElementsAndFiresContinue()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
+            );
+            VisualElement root = asset.CloneTree();
+            var progressionView = new AcademicProgressionView(root);
+            progressionView.Bind();
+
+            VisualElement modal = root.Q<VisualElement>("academic-rank-modal");
+            Assert.That(modal.style.display.value, Is.EqualTo(DisplayStyle.None));
+
+            var transition = new RankTransition(
+                AcademicRank.Silver,
+                AcademicRank.Gold
+            );
+            progressionView.ShowRankTransition(transition);
+
+            Assert.That(modal.style.display.value, Is.EqualTo(DisplayStyle.Flex));
+            Assert.That(root.Q<Label>("academic-rank-modal-header").text, Is.EqualTo("RANK UP"));
+            Assert.That(root.Q<Label>("academic-rank-modal-route").text, Does.Contain("Silver").And.Contain("Gold"));
+            Assert.That(root.Q<Label>("academic-rank-name-prev").text, Is.EqualTo("SILVER"));
+            Assert.That(root.Q<Label>("academic-rank-name-curr").text, Is.EqualTo("GOLD"));
+
+            bool continueFired = false;
+            progressionView.ContinueRequested += () => continueFired = true;
+
+            Button button = root.Q<Button>("academic-rank-continue-button");
+            Assert.That(button, Is.Not.Null);
+
+            progressionView.RequestContinue();
+            Assert.That(continueFired, Is.True, "ContinueRequested should fire on RequestContinue");
+
+            progressionView.HideRankTransition();
+            Assert.That(modal.style.display.value, Is.EqualTo(DisplayStyle.None));
+            progressionView.Dispose();
+        }
+
+        [Test]
+        public void MainMenuAsset_ContainsBiomeTransitionContract()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
+            );
+            Assert.That(asset, Is.Not.Null);
+
+            VisualElement root = asset.CloneTree();
+            VisualElement transition = root.Q<VisualElement>("combat-biome-transition");
+            Assert.That(transition, Is.Not.Null);
+            Assert.That(transition.ClassListContains("combat-biome-transition"), Is.True);
+            Assert.That(root.Q<VisualElement>("combat-biome-transition-backdrop"), Is.Not.Null);
+            Assert.That(root.Q<VisualElement>("combat-biome-transition-card"), Is.Not.Null);
+            Assert.That(root.Q<Label>("combat-biome-transition-kicker"), Is.Not.Null);
+            Assert.That(root.Q<Label>("combat-biome-transition-title"), Is.Not.Null);
+            Assert.That(root.Q<VisualElement>("combat-biome-transition-accent"), Is.Not.Null);
+        }
+
+        [Test]
+        public void PlayBiomeTransition_PopulatesTitleAndCoordinatesSequence()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
+            );
+            VisualElement root = asset.CloneTree();
+            using var view = new CombatLobbyView(root, reducedMotion: true);
+
+            string renderedBiome = null;
+            string renderedEncounter = null;
+            string crossfadedBiome = null;
+            float crossfadedDuration = 0f;
+
+            StageMapData stageMap = DevelopmentStageMapFactory.Create();
+            view.ConfigureStageMap(
+                stageMap,
+                biomeId => renderedBiome = biomeId,
+                encounterId => renderedEncounter = encounterId,
+                (biomeId, duration) =>
+                {
+                    crossfadedBiome = biomeId;
+                    crossfadedDuration = duration;
+                    return null;
+                }
+            );
+
+            var destinationSnapshot = new CombatSnapshot(
+                new StageId(31),
+                "biome-2-scout",
+                "Crystal Scout",
+                80,
+                80,
+                3,
+                3,
+                3,
+                3,
+                CombatPhase.EnemyReady,
+                true,
+                "biome-2",
+                "Crystal Caverns",
+                StageEncounterKind.NormalMonster,
+                string.Empty,
+                0
+            );
+
+            var routine = view.PlayBiomeTransition(destinationSnapshot);
+            while (routine.MoveNext())
+            {
+                // Advance routine
+            }
+
+            Assert.That(root.Q<Label>("combat-biome-transition-title").text, Is.EqualTo("CRYSTAL CAVERNS"));
+            Assert.That(root.Q<Label>("combat-biome-transition-kicker").text, Is.EqualTo("ENTERING NEW BIOME"));
+            Assert.That(crossfadedBiome, Is.EqualTo("biome-2"));
+            Assert.That(crossfadedDuration, Is.GreaterThan(0f));
+            Assert.That(renderedEncounter, Is.EqualTo("biome-2-scout"));
         }
     }
 }

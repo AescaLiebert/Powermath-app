@@ -44,6 +44,10 @@ namespace PowerMath.UI.MainMenu
             {
                 gameObject.AddComponent<ProfileActivityTracker>();
             }
+            if (GetComponent<MainMenuTransitionController>() == null)
+            {
+                gameObject.AddComponent<MainMenuTransitionController>();
+            }
         }
 
         private void OnEnable()

@@ -1,0 +1,17 @@
+{
+  "name": "PowerMath.Gameplay.Combat.Presentation.Core",
+  "rootNamespace": "PowerMath.Gameplay.Combat.Presentation",
+  "references": [
+    "PowerMath.Gameplay.Combat.Core",
+    "PowerMath.Gameplay.Academic.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

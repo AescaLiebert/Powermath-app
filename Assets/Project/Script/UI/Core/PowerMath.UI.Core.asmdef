@@ -1,0 +1,16 @@
+{
+  "name": "PowerMath.UI.Core",
+  "rootNamespace": "PowerMath.UI.Core",
+  "references": [
+    "LeanTween"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

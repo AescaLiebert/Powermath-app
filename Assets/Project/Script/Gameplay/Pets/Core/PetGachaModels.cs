@@ -7,17 +7,26 @@ namespace PowerMath.Gameplay.Pets
     public sealed class PetGachaPet
     {
         public PetGachaPet(string id, string displayName)
+            : this(id, displayName, 0)
+        {
+        }
+
+        public PetGachaPet(string id, string displayName, int attackBonus)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentException("Pet ID is required.", nameof(id));
             if (string.IsNullOrWhiteSpace(displayName))
                 throw new ArgumentException("Pet display name is required.", nameof(displayName));
+            if (attackBonus < 0)
+                throw new ArgumentOutOfRangeException(nameof(attackBonus));
             Id = id.Trim();
             DisplayName = displayName.Trim();
+            AttackBonus = attackBonus;
         }
 
         public string Id { get; }
         public string DisplayName { get; }
+        public int AttackBonus { get; }
     }
 
     public sealed class PetGachaRarity

@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
+using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,77 +13,76 @@ namespace PowerMath.UI.MainMenu
     {
         private readonly MonoBehaviour _host;
         private readonly PlayerSnapshot _player;
-        private readonly FirestoreProgressionCommandStore _store;
+        private readonly FirestoreProgressionCommandStore _weaponStore;
         private readonly FirestoreLeaderboardProjectionPublisher _publisher;
-        private readonly WeaponAscensionCatalogDefinition _catalog;
+        private readonly WeaponAscensionCatalogDefinition _weaponCatalog;
+        private readonly PetGachaCatalogDefinition _petDefinition;
+        private readonly PetGachaCatalog _petCatalog;
+        private readonly IPetEquipCommandStore _petEquipStore;
         private readonly int _baseAttack;
         private readonly int _baseWeaponAttack;
         private readonly double _baseCriticalRate;
         private readonly double _baseCriticalDamagePercent;
         private readonly IMainMenuPanelHost _panelHost;
-        private readonly VisualElement _modal;
-        private readonly Button _open;
-        private readonly Button _close;
-        private readonly Button _upgrade;
-        private readonly Label _effectiveAttack;
-        private readonly Label _attackBreakdown;
-        private readonly Label _legacyBonus;
-        private readonly Label _petStatus;
-        private readonly Label _weaponName;
-        private readonly Label _weaponCurrent;
-        private readonly Label _weaponNext;
-        private readonly Label _weaponCost;
-        private readonly Label _balance;
-        private readonly Label _status;
-        private readonly Label _summaryAttack;
-        private string _pendingTransactionId;
+        private readonly MainMenuSharedOverlayController _sharedOverlay;
+        private readonly PlayerHubView _view;
+        private readonly PlayerHubFeedbackPlayer _feedback;
+        private string _pendingWeaponTransactionId;
+        private string _pendingPetTransactionId;
+        private string _pendingPetId;
+        private string _selectedPetId;
         private bool _busy;
 
         public PlayerHubPanelController(
             MonoBehaviour host,
             VisualElement root,
             PlayerSnapshot player,
-            FirestoreProgressionCommandStore store,
+            FirestoreProgressionCommandStore weaponStore,
             FirestoreLeaderboardProjectionPublisher publisher,
-            WeaponAscensionCatalogDefinition catalog,
+            WeaponAscensionCatalogDefinition weaponCatalog,
+            PetGachaCatalogDefinition petDefinition,
+            PetGachaCatalog petCatalog,
+            IPetEquipCommandStore petEquipStore,
             int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent,
-            IMainMenuPanelHost panelHost)
+            AudioSource audioSource,
+            IUiMotionDriver motionDriver,
+            IMainMenuPanelHost panelHost,
+            MainMenuSharedOverlayController sharedOverlay)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
-            _store = store ?? throw new ArgumentNullException(nameof(store));
+            _weaponStore = weaponStore ?? throw new ArgumentNullException(nameof(weaponStore));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-            _catalog = catalog;
+            _weaponCatalog = weaponCatalog;
+            _petDefinition = petDefinition;
+            _petCatalog = petCatalog;
+            _petEquipStore = petEquipStore;
             _baseAttack = baseAttack;
             _baseWeaponAttack = baseWeaponAttack;
             _baseCriticalRate = baseCriticalRate;
             _baseCriticalDamagePercent = baseCriticalDamagePercent;
             _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
-            _modal = Require<VisualElement>(root, "player-hub-modal");
-            _open = Require<Button>(root, "player-hub-button");
-            _close = Require<Button>(root, "player-hub-close");
-            _upgrade = Require<Button>(root, "player-hub-weapon-upgrade");
-            _effectiveAttack = Require<Label>(root, "player-hub-effective-atk");
-            _attackBreakdown = Require<Label>(root, "player-hub-atk-breakdown");
-            _legacyBonus = Require<Label>(root, "player-hub-legacy-bonus");
-            _petStatus = Require<Label>(root, "player-hub-pet-status");
-            _weaponName = Require<Label>(root, "player-hub-weapon-name");
-            _weaponCurrent = Require<Label>(root, "player-hub-weapon-current");
-            _weaponNext = Require<Label>(root, "player-hub-weapon-next");
-            _weaponCost = Require<Label>(root, "player-hub-weapon-cost");
-            _balance = Require<Label>(root, "player-hub-balance");
-            _status = Require<Label>(root, "player-hub-status");
-            _summaryAttack = root.Q<Label>("player-menu-atk");
+            _sharedOverlay = sharedOverlay;
+            _view = new PlayerHubView(root ?? throw new ArgumentNullException(nameof(root)));
+            PlayerHubJuiceProfileDefinition profile =
+                Resources.Load<PlayerHubJuiceProfileDefinition>("PlayerHubJuiceProfile");
+            _feedback = new PlayerHubFeedbackPlayer(
+                _view,
+                profile,
+                audioSource,
+                motionDriver);
 
-            _open.clicked += Open;
-            _close.clicked += Close;
-            _upgrade.clicked += Upgrade;
+            _view.OpenRequested += Open;
+            _view.CloseRequested += Close;
+            _view.UpgradeRequested += Upgrade;
+            _view.PetEquipRequested += SelectAndEquipPet;
+            _panelHost.PanelClosed += OnPanelClosed;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
-            _open.tooltip = "Player Hub";
+            _view.OpenButton.tooltip = "Player Hub";
             HideInitially();
             OnPlayerChanged(_player);
         }
@@ -90,73 +91,82 @@ namespace PowerMath.UI.MainMenu
         {
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
-            _open.clicked -= Open;
-            _close.clicked -= Close;
-            _upgrade.clicked -= Upgrade;
+            _view.OpenRequested -= Open;
+            _view.CloseRequested -= Close;
+            _view.UpgradeRequested -= Upgrade;
+            _view.PetEquipRequested -= SelectAndEquipPet;
+            _panelHost.PanelClosed -= OnPanelClosed;
+            _feedback.Dispose();
+            _view.Dispose();
             if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub)
-                _panelHost.TryClose(MainMenuPanelId.PlayerHub, _open);
+                _panelHost.TryClose(MainMenuPanelId.PlayerHub, _view.OpenButton);
         }
 
         private void OnPlayerChanged(PlayerSnapshot player)
         {
-            if (player == null || _busy) return;
+            if (player == null) return;
             try
             {
                 RenderSummary(ProjectStats());
             }
-            catch (Exception exception) when (
-                exception is InvalidOperationException ||
-                exception is ArgumentOutOfRangeException ||
-                exception is OverflowException)
+            catch (Exception exception) when (IsProjectionFailure(exception))
             {
-                if (_summaryAttack != null) _summaryAttack.text = "—";
+                if (_view.SummaryAttack != null) _view.SummaryAttack.text = "—";
             }
-            _open.SetEnabled(!string.Equals(
+            bool safe = !string.Equals(
                 player.activeRun?.phase,
                 "RunDefeat",
-                StringComparison.Ordinal));
-            if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub)
+                StringComparison.Ordinal);
+            _view.OpenButton.SetEnabled(safe && !_busy);
+            if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub && !_busy)
                 Render();
         }
 
         private void Open()
         {
-            if (_busy) return;
-            if (!_panelHost.TryOpen(
+            if (_busy || !_panelHost.TryOpen(
                     MainMenuPanelId.PlayerHub,
-                    _modal,
-                    _open)) return;
+                    _view.Modal,
+                    _view.OpenButton)) return;
             SetSemanticState();
-            _status.text = string.Empty;
+            _view.Status.text = string.Empty;
             Render();
+            _feedback.StartIdle();
         }
 
         private void Close()
         {
             if (_busy) return;
+            _feedback.StopIdle();
             if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub)
-                _panelHost.TryClose(MainMenuPanelId.PlayerHub, _open);
+                _panelHost.TryClose(MainMenuPanelId.PlayerHub, _view.OpenButton);
             else if (_panelHost.OpenPanel == MainMenuPanelId.None)
                 HideInitially();
-            _pendingTransactionId = string.Empty;
+            _pendingWeaponTransactionId = string.Empty;
+        }
+
+        private void OnPanelClosed(MainMenuPanelId panelId)
+        {
+            if (panelId != MainMenuPanelId.PlayerHub) return;
+            _feedback.StopIdle();
+            _pendingWeaponTransactionId = string.Empty;
         }
 
         private void Render()
         {
-            _status.text = string.Empty;
+            _view.Status.text = string.Empty;
             try
             {
                 PlayerStatProjection stats = ProjectStats();
                 RenderStats(stats);
                 RenderWeapon(stats.Weapon);
+                RenderPets();
             }
-            catch (Exception exception) when (
-                exception is InvalidOperationException ||
-                exception is ArgumentOutOfRangeException ||
-                exception is OverflowException)
+            catch (Exception exception) when (IsProjectionFailure(exception))
             {
-                _status.text = $"Player stats are unavailable: {exception.Message}";
-                _upgrade.SetEnabled(false);
+                _view.Status.text = "Player data is unavailable: " + exception.Message;
+                _view.UpgradeButton.SetEnabled(false);
+                SetSemanticState("is-error");
             }
         }
 
@@ -167,50 +177,46 @@ namespace PowerMath.UI.MainMenu
                 _baseAttack,
                 _baseWeaponAttack,
                 _baseCriticalRate,
-                _baseCriticalDamagePercent);
+                _baseCriticalDamagePercent,
+                _petCatalog);
         }
 
         private void RenderStats(PlayerStatProjection stats)
         {
             RenderSummary(stats);
-            _effectiveAttack.text = $"{stats.EffectiveAttack:N0} ATK";
-            _attackBreakdown.text = stats.HasConfiguredPetStats
-                ? $"BASE {stats.BaseAttack:N0} + WEAPON {stats.Weapon.Attack:N0} + " +
-                    $"PET {stats.PetAttack:N0} = {stats.PermanentAttackSubtotal:N0}"
-                : $"BASE {stats.BaseAttack:N0} + WEAPON {stats.Weapon.Attack:N0} = " +
-                    $"{stats.PermanentAttackSubtotal:N0}";
-            _legacyBonus.text =
-                $"+{stats.LegacyBasisPoints / 100d:0.0}% REBIRTH BONUS " +
-                $"(+{stats.LegacyBonusAttack:N0} ATK)";
-            _petStatus.text = stats.HasConfiguredPetStats
-                ? $"PET ATK +{stats.PetAttack:N0}"
-                : "PET ATK: NO STAT CONFIGURED";
+            _view.EffectiveAttack.text = $"{stats.EffectiveAttack:N0} ATK";
+            _view.AttackBreakdown.text = stats.HasConfiguredPetStats
+                ? $"BASE {stats.BaseAttack:N0}  •  WEAPON {stats.Weapon.Attack:N0}  •  PET {stats.PetAttack:N0}"
+                : $"BASE {stats.BaseAttack:N0}  •  WEAPON {stats.Weapon.Attack:N0}";
+            _view.LegacyBonus.text =
+                $"REBIRTH +{stats.LegacyBasisPoints / 100d:0.0}%  •  +{stats.LegacyBonusAttack:N0} ATK";
+            _view.PetStatus.text = string.Empty;
         }
 
         private void RenderSummary(PlayerStatProjection stats)
         {
-            if (_summaryAttack != null)
-                _summaryAttack.text = stats.EffectiveAttack.ToString("N0");
+            if (_view.SummaryAttack != null)
+                _view.SummaryAttack.text = stats.EffectiveAttack.ToString("N0");
         }
 
         private void RenderWeapon(WeaponAscensionStats current)
         {
-            string currentName =
-                _catalog?.Resolve(current.Level)?.displayName ?? "Sword";
-            _weaponName.text = $"{currentName.ToUpperInvariant()}  LV.{current.Level}";
-            _weaponCurrent.text =
-                $"CURRENT   ATK {current.Attack:N0}   " +
-                $"CR +{current.CriticalRatePercent}%   " +
-                $"CD +{current.CriticalDamagePercent}%";
+            WeaponAscensionCatalogDefinition.Tier tier =
+                _weaponCatalog?.Resolve(current.Level);
+            string currentName = tier?.displayName ?? "Sword";
+            _view.SetWeaponPresentation(tier);
+            _view.WeaponName.text = $"{currentName.ToUpperInvariant()}  LV.{current.Level}";
+            _view.WeaponCurrent.text =
+                $"ATK {current.Attack:N0}\nCR +{current.CriticalRatePercent}%   CD +{current.CriticalDamagePercent}%";
             long coins = _player.wallet?.powerCoins ?? 0;
-            _balance.text = $"YOUR POWER COINS: {coins:N0}";
+            _view.Balance.text = $"⚡ {coins:N0} POWER COINS";
 
             if (current.Level >= WeaponAscensionPolicy.MaximumLevel)
             {
-                _weaponNext.text = "NEXT   MAXIMUM LEVEL REACHED";
-                _weaponCost.text = "NO FURTHER UPGRADE";
-                _upgrade.text = "MAX LEVEL";
-                _upgrade.SetEnabled(false);
+                _view.WeaponNext.text = "MAXIMUM POWER REACHED";
+                _view.WeaponCost.text = "NO FURTHER ASCENSION";
+                _view.UpgradeButton.text = "MAX LEVEL";
+                _view.UpgradeButton.SetEnabled(false);
                 return;
             }
 
@@ -218,51 +224,71 @@ namespace PowerMath.UI.MainMenu
                 current.Level + 1,
                 _baseWeaponAttack);
             long cost = WeaponAscensionPolicy.GetNextCost(current.Level);
-            string nextName =
-                _catalog?.Resolve(next.Level)?.displayName ?? currentName;
-            _weaponNext.text =
-                $"NEXT   {nextName.ToUpperInvariant()} LV.{next.Level}   " +
-                $"ATK {next.Attack:N0}   CR +{next.CriticalRatePercent}%   " +
-                $"CD +{next.CriticalDamagePercent}%";
-            _weaponCost.text = $"UPGRADE COST: {cost:N0} POWER COINS";
-            _upgrade.text = $"UPGRADE FOR {cost:N0}";
-
-            if (!CanUpgrade(out string reason))
-            {
-                _upgrade.SetEnabled(false);
-                if (string.IsNullOrEmpty(_status.text)) _status.text = reason;
-                return;
-            }
-
-            if (coins < cost)
-            {
-                _upgrade.SetEnabled(false);
-                _status.text = $"Need {(cost - coins):N0} more Power Coins.";
-                return;
-            }
-
-            _upgrade.SetEnabled(!_busy);
+            WeaponAscensionCatalogDefinition.Tier nextTier =
+                _weaponCatalog?.Resolve(next.Level);
+            string nextName = nextTier?.displayName ?? currentName;
+            _view.WeaponNext.text =
+                $"{nextName.ToUpperInvariant()}  LV.{next.Level}\nATK {next.Attack:N0}   CR +{next.CriticalRatePercent}%   CD +{next.CriticalDamagePercent}%";
+            _view.WeaponCost.text = $"{cost:N0} POWER COINS";
+            _view.UpgradeButton.text = $"ASCEND  ⚡{cost:N0}";
+            _view.UpgradeButton.SetEnabled(CanMutate(out _));
         }
 
-        private bool CanUpgrade(out string reason)
+        private void RenderPets()
+        {
+            if (!PlayerOwnedPetInventory.TryCreate(
+                    _player,
+                    _petDefinition,
+                    out PlayerOwnedPetInventory inventory,
+                    out string error))
+            {
+                _view.PetPreviewState.text = error;
+                _view.EquippedPet.sprite = null;
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_selectedPetId) ||
+                !inventory.TryGetOwned(_selectedPetId, out _))
+            {
+                _selectedPetId = !string.IsNullOrEmpty(inventory.EquippedPetId)
+                    ? inventory.EquippedPetId
+                    : inventory.Entries.Count > 0
+                        ? inventory.Entries[0].Definition.PetId
+                        : string.Empty;
+            }
+            _view.RenderInventory(
+                inventory,
+                _selectedPetId,
+                _busy ? _pendingPetId : string.Empty);
+            if (inventory.TryGetOwned(_selectedPetId, out OwnedPetEntry selected))
+                _view.RenderPetPreview(
+                    selected,
+                    _busy && string.Equals(
+                        _pendingPetId,
+                        _selectedPetId,
+                        StringComparison.Ordinal));
+            if (inventory.TryGetOwned(inventory.EquippedPetId, out OwnedPetEntry equipped))
+                _view.EquippedPet.sprite = equipped.Definition.Icon;
+            else
+                _view.EquippedPet.sprite = null;
+        }
+
+        private bool CanMutate(out string reason)
         {
             reason = string.Empty;
             if (_busy)
             {
-                reason = "Saving the current upgrade...";
+                reason = "Saving your last choice…";
                 return false;
             }
             if (!string.IsNullOrEmpty(_player.activeRun?.committedAttemptId))
             {
-                reason = "Finish the current question before upgrading.";
+                reason = "Finish the current question first.";
                 return false;
             }
-            if (string.Equals(
-                    _player.activeRun?.phase,
-                    "RunDefeat",
-                    StringComparison.Ordinal))
+            if (string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal))
             {
-                reason = "Finish run settlement before upgrading.";
+                reason = "Finish run settlement first.";
                 return false;
             }
             return true;
@@ -270,55 +296,152 @@ namespace PowerMath.UI.MainMenu
 
         private void Upgrade()
         {
-            if (!CanUpgrade(out string reason))
+            _feedback.PlayWeaponPress();
+            if (!CanMutate(out string reason))
             {
-                _status.text = reason;
+                Warn(reason);
                 return;
             }
-            if (string.IsNullOrEmpty(_pendingTransactionId))
-                _pendingTransactionId = Guid.NewGuid().ToString("N");
-            _host.StartCoroutine(Ascend());
+            PlayerStatProjection current = ProjectStats();
+            if (current.Weapon.Level >= WeaponAscensionPolicy.MaximumLevel) return;
+            long cost = WeaponAscensionPolicy.GetNextCost(current.Weapon.Level);
+            long coins = _player.wallet?.powerCoins ?? 0;
+            if (coins < cost)
+            {
+                string message = $"Need {(cost - coins):N0} more Power Coins.";
+                Warn(message);
+                _feedback.PlayInsufficient();
+                return;
+            }
+            if (string.IsNullOrEmpty(_pendingWeaponTransactionId))
+                _pendingWeaponTransactionId = Guid.NewGuid().ToString("N");
+            _host.StartCoroutine(Ascend(current.Weapon.Level));
         }
 
-        private IEnumerator Ascend()
+        private IEnumerator Ascend(int previousLevel)
         {
-            _busy = true;
-            SetSemanticState("is-busy");
-            _status.text = "Saving weapon upgrade to Firebase...";
-            _upgrade.SetEnabled(false);
-            _close.SetEnabled(false);
+            SetBusy(true, "Forging weapon ascension…");
             WeaponAscensionStats stats = default;
             bool success = false;
             string failure = string.Empty;
-            yield return _store.AscendWeapon(
-                _pendingTransactionId,
-                (value, _) =>
-                {
-                    stats = value;
-                    success = true;
-                },
+            yield return _weaponStore.AscendWeapon(
+                _pendingWeaponTransactionId,
+                (value, _) => { stats = value; success = true; },
                 message => failure = message);
-            _busy = false;
-            _close.SetEnabled(true);
+            SetBusy(false);
             if (!success)
             {
                 Render();
-                _status.text = failure;
-                SetSemanticState("is-error");
+                Warn(failure);
+                _feedback.PlayInsufficient();
                 yield break;
             }
 
-            yield return Publish();
+            yield return PublishLeaderboard();
             PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
-            _pendingTransactionId = string.Empty;
+            _pendingWeaponTransactionId = string.Empty;
+            WeaponAscensionCatalogDefinition.Tier previousTier =
+                _weaponCatalog?.Resolve(previousLevel);
+            WeaponAscensionCatalogDefinition.Tier newTier =
+                _weaponCatalog?.Resolve(stats.Level);
+            bool milestone = newTier != null &&
+                !ReferenceEquals(previousTier, newTier);
             Render();
-            string name = _catalog?.Resolve(stats.Level)?.displayName ?? "Sword";
-            _status.text =
-                $"Saved: {name} reached Lv.{stats.Level} with {stats.Attack} Weapon ATK.";
             SetSemanticState("is-success");
+            _feedback.PlayWeaponSuccess(milestone, newTier?.displayName);
+            string name = newTier?.displayName ?? "Sword";
+            _sharedOverlay?.Publish(
+                $"{name} reached Lv.{stats.Level} — ATK {stats.Attack:N0}",
+                MainMenuNoticeKind.Success,
+                milestone ? 3400 : 2200);
         }
 
-        private IEnumerator Publish()
+        private void SelectAndEquipPet(string petId)
+        {
+            if (string.IsNullOrWhiteSpace(petId) || _busy) return;
+            _selectedPetId = petId;
+            _view.SetSection(true);
+            _feedback.PlayPetPressed();
+            if (!CanMutate(out string reason))
+            {
+                Warn(reason);
+                return;
+            }
+            if (_petEquipStore == null)
+            {
+                Warn("Pet equipment is unavailable right now.");
+                _feedback.PlayPetFailure();
+                return;
+            }
+            if (!PlayerOwnedPetInventory.TryCreate(
+                    _player,
+                    _petDefinition,
+                    out PlayerOwnedPetInventory inventory,
+                    out string error) ||
+                !inventory.TryGetOwned(petId, out _))
+            {
+                Warn(string.IsNullOrEmpty(error)
+                    ? "Only owned pets can be equipped."
+                    : error);
+                _feedback.PlayPetFailure();
+                return;
+            }
+
+            string previousPetId = _player.loadout?.petId ?? string.Empty;
+            _player.loadout = _player.loadout ?? new PlayerSnapshot.LoadoutData();
+            _player.loadout.petId = petId;
+            PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
+            Render();
+            _sharedOverlay?.Publish("Pet equipped — saving…", MainMenuNoticeKind.Information);
+
+            if (!string.Equals(_pendingPetId, petId, StringComparison.Ordinal) ||
+                string.IsNullOrEmpty(_pendingPetTransactionId))
+            {
+                _pendingPetId = petId;
+                _pendingPetTransactionId = Guid.NewGuid().ToString("N");
+            }
+            _host.StartCoroutine(EquipPet(previousPetId, _player.revision));
+        }
+
+        private IEnumerator EquipPet(string previousPetId, long previewRevision)
+        {
+            string transactionId = _pendingPetTransactionId;
+            string targetPetId = _pendingPetId;
+            SetBusy(true, "Saving equipped pet…");
+            RenderPets();
+            bool success = false;
+            PetEquipFailure failure = default;
+            yield return _petEquipStore.Equip(
+                new PetEquipCommand(transactionId, targetPetId, previewRevision),
+                _ => success = true,
+                value => failure = value);
+            SetBusy(false);
+            if (!success)
+            {
+                _player.loadout = _player.loadout ?? new PlayerSnapshot.LoadoutData();
+                if (failure.Code != PetEquipFailureCode.StaleState)
+                    _player.loadout.petId = previousPetId;
+                PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
+                if (failure.Code != PetEquipFailureCode.RecoverableTransport)
+                {
+                    _pendingPetId = string.Empty;
+                    _pendingPetTransactionId = string.Empty;
+                }
+                Render();
+                Warn(failure.Message);
+                _feedback.PlayPetFailure();
+                yield break;
+            }
+
+            _pendingPetId = string.Empty;
+            _pendingPetTransactionId = string.Empty;
+            Render();
+            SetSemanticState("is-success");
+            _feedback.PlayPetSuccess();
+            _sharedOverlay?.Publish("Pet equipped and saved.", MainMenuNoticeKind.Success);
+        }
+
+        private IEnumerator PublishLeaderboard()
         {
             string warning = string.Empty;
             yield return _publisher.Publish(
@@ -328,24 +451,47 @@ namespace PowerMath.UI.MainMenu
             if (!string.IsNullOrEmpty(warning)) Debug.LogWarning(warning);
         }
 
-        private static T Require<T>(VisualElement root, string name)
-            where T : VisualElement
+        private void SetBusy(bool busy, string message = null)
         {
-            return root.Q<T>(name) ?? throw new InvalidOperationException(
-                $"Main Menu UI is missing '{name}'.");
+            _busy = busy;
+            SetSemanticState(busy ? "is-busy" : null);
+            _view.UpgradeButton.SetEnabled(!busy);
+            _view.SetInteractionEnabled(!busy);
+            _view.OpenButton.SetEnabled(!busy && !string.Equals(
+                _player.activeRun?.phase,
+                "RunDefeat",
+                StringComparison.Ordinal));
+            _sharedOverlay?.SetBackEnabled(!busy);
+            if (!string.IsNullOrEmpty(message)) _view.Status.text = message;
+        }
+
+        private void Warn(string message)
+        {
+            _view.Status.text = message ?? string.Empty;
+            SetSemanticState("is-error");
+            _sharedOverlay?.Publish(
+                string.IsNullOrWhiteSpace(message) ? "Action unavailable." : message,
+                MainMenuNoticeKind.Warning);
         }
 
         private void HideInitially()
         {
-            _modal.EnableInClassList("is-hidden", true);
-            _modal.style.display = DisplayStyle.None;
+            _view.Modal.EnableInClassList("is-hidden", true);
+            _view.Modal.style.display = DisplayStyle.None;
         }
 
         private void SetSemanticState(string state = null)
         {
-            _modal.EnableInClassList("is-busy", state == "is-busy");
-            _modal.EnableInClassList("is-success", state == "is-success");
-            _modal.EnableInClassList("is-error", state == "is-error");
+            _view.Modal.EnableInClassList("is-busy", state == "is-busy");
+            _view.Modal.EnableInClassList("is-success", state == "is-success");
+            _view.Modal.EnableInClassList("is-error", state == "is-error");
+        }
+
+        private static bool IsProjectionFailure(Exception exception)
+        {
+            return exception is InvalidOperationException ||
+                exception is ArgumentOutOfRangeException ||
+                exception is OverflowException;
         }
     }
 }

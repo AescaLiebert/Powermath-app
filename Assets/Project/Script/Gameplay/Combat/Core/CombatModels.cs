@@ -126,7 +126,8 @@ namespace PowerMath.Gameplay.Combat
             StageId resolvedStage,
             bool stageAdvanced,
             CombatSnapshot snapshot,
-            bool biomeChanged)
+            bool biomeChanged,
+            DamageBreakdown damageBreakdown = default)
         {
             ResponseScore = responseScore;
             ResponseDamageMultiplier = isCorrect
@@ -145,6 +146,7 @@ namespace PowerMath.Gameplay.Combat
             StageAdvanced = stageAdvanced;
             Snapshot = snapshot;
             BiomeChanged = biomeChanged;
+            DamageBreakdown = damageBreakdown;
         }
 
         public int ResponseScore { get; }
@@ -165,5 +167,6 @@ namespace PowerMath.Gameplay.Combat
         public bool StageAdvanced { get; }
         public CombatSnapshot Snapshot { get; }
         public bool BiomeChanged { get; }
+        public DamageBreakdown DamageBreakdown { get; }
     }
 }

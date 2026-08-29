@@ -4,7 +4,7 @@
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden">
-        <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel">
+        <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel main-menu-transition-top">
             <ui:Label name="combat-stage-label" text="STAGE 1" class="hud-stage-label"/>
             <ui:VisualElement name="combat-enemy-hp-shell" picking-mode="Ignore" class="hud-enemy-hp-shell">
                 <ui:ProgressBar name="combat-enemy-hp" value="0" high-value="100" class="hud-enemy-hp"/>
@@ -15,8 +15,7 @@
             </ui:VisualElement>
             <ui:VisualElement name="combat-enemy-actions" picking-mode="Ignore" class="hud-enemy-actions"/>
         </ui:VisualElement>
-        <ui:Button name="combat-attack-button" text="⚔" tooltip="Attack" class="hud-attack-button"/>
-        <ui:VisualElement name="player-dashboard" class="hud-dashboard">
+        <ui:VisualElement name="player-dashboard" class="hud-dashboard main-menu-transition-dashboard">
             <ui:VisualElement class="hud-health-row">
                 <ui:Label text="♥" class="hud-health-icon"/>
                 <ui:Label name="combat-hearts-label" text="♡ ♡ ♡" class="hud-health-value"/>
@@ -45,49 +44,79 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label name="combat-biome-label" text="PREPARING BIOME" class="hud-compat-hidden"/>
-        <ui:Label name="combat-simulation-badge" text="SIMULATION — NOT SAVED" class="combat-simulation-badge is-hidden"/>
-        <ui:Label name="academic-local-badge" text="LOCAL PROGRESSION — NOT SAVED" class="academic-local-badge is-hidden"/>
-        <ui:Label name="combat-damage-label" text="" class="combat-damage-label"/>
-        <ui:Label name="combat-critical-label" text="CRITICAL" class="combat-critical-label is-hidden"/>
+        <ui:Label name="combat-biome-label" text="PREPARING BIOME" picking-mode="Ignore" class="hud-compat-hidden"/>
+        <ui:Label name="combat-damage-label" text="" picking-mode="Ignore" class="combat-damage-label"/>
+        <ui:Label name="combat-critical-label" text="CRITICAL" picking-mode="Ignore" class="combat-critical-label is-hidden"/>
+        <ui:Label name="combat-battle-banner" text="" picking-mode="Ignore" class="combat-battle-banner is-hidden"/>
         <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel is-hidden">
             <ui:Label text="MATH CHALLENGE" class="combat-attempt-title"/>
-            <ui:Label name="academic-question-meta" text="silver-001 • Silver" class="academic-question-meta"/>
-            <ui:Label name="academic-question-prompt" text="QA target answer: 7" class="academic-question-prompt"/>
-            <ui:Label name="combat-timer-label" text="10" class="combat-timer"/>
-            <ui:Label name="combat-timer-caption" text="GET READY" class="combat-timer-caption"/>
-            <ui:Label name="combat-answer-display" text="Enter your answer" class="combat-answer-display combat-answer--placeholder"/>
-            <ui:VisualElement class="combat-numpad">
-                <ui:Button name="combat-digit-1" text="1" class="combat-key"/>
-                <ui:Button name="combat-digit-2" text="2" class="combat-key"/>
-                <ui:Button name="combat-digit-3" text="3" class="combat-key"/>
-                <ui:Button name="combat-digit-4" text="4" class="combat-key"/>
-                <ui:Button name="combat-digit-5" text="5" class="combat-key"/>
-                <ui:Button name="combat-digit-6" text="6" class="combat-key"/>
-                <ui:Button name="combat-digit-7" text="7" class="combat-key"/>
-                <ui:Button name="combat-digit-8" text="8" class="combat-key"/>
-                <ui:Button name="combat-digit-9" text="9" class="combat-key"/>
-                <ui:Button name="combat-digit-0" text="0" class="combat-key"/>
-                <ui:Button name="combat-backspace-button" text="BACKSPACE" class="combat-key combat-key--utility"/>
-                <ui:Button name="combat-clear-button" text="CLEAR" class="combat-key combat-key--utility"/>
-                <ui:Button name="combat-submit-button" text="SUBMIT" class="combat-key combat-key--submit"/>
+            <ui:VisualElement name="combat-answer-content" class="combat-answer-content">
+                <ui:Label name="academic-question-meta" text="silver-001 • Silver" class="academic-question-meta"/>
+                <ui:Label name="academic-question-prompt" text="QA target answer: 7" class="academic-question-prompt"/>
+                <ui:Label name="combat-timer-label" text="10" class="combat-timer"/>
+                <ui:Label name="combat-timer-caption" text="GET READY" class="combat-timer-caption"/>
+                <ui:Label name="combat-answer-display" text="Enter your answer" class="combat-answer-display combat-answer--placeholder"/>
+                <ui:VisualElement class="combat-numpad">
+                    <ui:Button name="combat-digit-1" text="1" class="combat-key"/>
+                    <ui:Button name="combat-digit-2" text="2" class="combat-key"/>
+                    <ui:Button name="combat-digit-3" text="3" class="combat-key"/>
+                    <ui:Button name="combat-digit-4" text="4" class="combat-key"/>
+                    <ui:Button name="combat-digit-5" text="5" class="combat-key"/>
+                    <ui:Button name="combat-digit-6" text="6" class="combat-key"/>
+                    <ui:Button name="combat-digit-7" text="7" class="combat-key"/>
+                    <ui:Button name="combat-digit-8" text="8" class="combat-key"/>
+                    <ui:Button name="combat-digit-9" text="9" class="combat-key"/>
+                    <ui:Button name="combat-digit-0" text="0" class="combat-key"/>
+                    <ui:Button name="combat-backspace-button" text="BACKSPACE" class="combat-key combat-key--utility"/>
+                    <ui:Button name="combat-clear-button" text="CLEAR" class="combat-key combat-key--utility"/>
+                    <ui:Button name="combat-submit-button" text="SUBMIT" class="combat-key combat-key--submit"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="combat-feedback-card" class="combat-feedback-card is-hidden">
+                <ui:Label name="combat-feedback-icon" text="✓" class="combat-feedback-icon"/>
+                <ui:Label name="combat-feedback-title" text="CORRECT" class="combat-feedback-title"/>
+                <ui:Label name="combat-feedback-subtitle" text="Building your attack" class="combat-feedback-subtitle"/>
+                <ui:VisualElement name="combat-score-stack" class="combat-score-stack"/>
             </ui:VisualElement>
             <ui:Label name="combat-result-label" text="" class="combat-result"/>
             <ui:Label name="academic-currency-gain" text="" class="academic-currency-gain"/>
         </ui:VisualElement>
-        <ui:VisualElement name="academic-rank-modal" class="academic-rank-modal">
-            <ui:VisualElement class="academic-rank-modal-card">
-                <ui:Label name="academic-rank-modal-header" text="RANK UP" class="academic-rank-modal-header"/>
-                <ui:Label name="academic-rank-modal-route" text="Silver  →  Gold" class="academic-rank-modal-route"/>
-                <ui:Label name="academic-rank-modal-body" text="Your next questions will match your new Rank." class="academic-rank-modal-body"/>
-                <ui:Label name="academic-rank-modal-multiplier" text="New damage multiplier: ×1.5" class="academic-rank-modal-multiplier"/>
-                <ui:Button name="academic-rank-continue-button" text="CONTINUE" class="academic-rank-continue-button"/>
+        <ui:VisualElement name="combat-biome-transition" picking-mode="Ignore" class="combat-biome-transition is-hidden">
+            <ui:VisualElement name="combat-biome-transition-backdrop" picking-mode="Ignore" class="combat-biome-transition-backdrop"/>
+            <ui:VisualElement name="combat-biome-transition-card" picking-mode="Ignore" class="combat-biome-transition-card">
+                <ui:Label name="combat-biome-transition-kicker" text="ENTERING NEW BIOME" picking-mode="Ignore" class="combat-biome-transition-kicker"/>
+                <ui:Label name="combat-biome-transition-title" text="BIOME" picking-mode="Ignore" class="combat-biome-transition-title"/>
+                <ui:VisualElement name="combat-biome-transition-accent" picking-mode="Ignore" class="combat-biome-transition-accent"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="combat-biome-transition" class="combat-biome-transition">
-            <ui:Label name="combat-biome-transition-kicker" text="ENTERING" class="combat-biome-transition-kicker"/>
-            <ui:Label name="combat-biome-transition-title" text="BIOME" class="combat-biome-transition-title"/>
-        </ui:VisualElement>
         <ui:Instance template="NavigatorPanel" picking-mode="Ignore" class="mw-template-fill"/>
+        <ui:VisualElement name="main-menu-interaction-shield" focusable="true" class="main-menu-interaction-shield is-hidden"/>
+        <ui:VisualElement name="academic-rank-modal" picking-mode="Position" class="academic-rank-modal">
+            <ui:VisualElement name="academic-rank-aura" picking-mode="Ignore" class="academic-rank-aura"/>
+            <ui:VisualElement name="academic-rank-notification" picking-mode="Ignore" class="academic-rank-notification">
+                <ui:VisualElement name="academic-rank-banner" picking-mode="Ignore" class="academic-rank-banner">
+                    <ui:VisualElement name="academic-rank-banner-glow" picking-mode="Ignore" class="academic-rank-banner-glow"/>
+                    <ui:Label name="academic-rank-modal-header" text="RANK UP" picking-mode="Ignore" class="academic-rank-modal-header"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="academic-rank-route-container" picking-mode="Ignore" class="academic-rank-route-container">
+                    <ui:VisualElement name="academic-rank-route-badges" picking-mode="Ignore" class="academic-rank-route-badges">
+                        <ui:VisualElement name="academic-rank-badge-prev" picking-mode="Ignore" class="academic-rank-badge academic-rank-badge--silver">
+                            <ui:Label name="academic-rank-icon-prev" text="S" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--silver academic-rank-badge-icon"/>
+                            <ui:Label name="academic-rank-name-prev" text="SILVER" picking-mode="Ignore" class="academic-rank-badge-name"/>
+                        </ui:VisualElement>
+                        <ui:Label name="academic-rank-arrow" text="➔" picking-mode="Ignore" class="academic-rank-arrow"/>
+                        <ui:VisualElement name="academic-rank-badge-curr" picking-mode="Ignore" class="academic-rank-badge academic-rank-badge--gold">
+                            <ui:Label name="academic-rank-icon-curr" text="G" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--gold academic-rank-badge-icon"/>
+                            <ui:Label name="academic-rank-name-curr" text="GOLD" picking-mode="Ignore" class="academic-rank-badge-name"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label name="academic-rank-modal-route" text="Silver  →  Gold" picking-mode="Ignore" class="academic-rank-modal-route hud-compat-hidden"/>
+                    <ui:Label name="academic-rank-modal-body" text="" picking-mode="Ignore" class="hud-compat-hidden"/>
+                    <ui:Label name="academic-rank-modal-multiplier" text="" picking-mode="Ignore" class="hud-compat-hidden"/>
+                    <ui:Label name="academic-rank-tap-prompt" text="TAP ANYWHERE TO CONTINUE" picking-mode="Ignore" class="academic-rank-tap-prompt"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Button name="academic-rank-continue-button" focusable="true" picking-mode="Position" class="academic-rank-continue-button academic-rank-touch-surface"/>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -104,6 +104,23 @@
     border-color: rgb(222, 199, 157);
     font-size: 37px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.pet-gacha-close:hover,
+.pet-gacha-close:focus {
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+    border-color: rgb(255, 194, 64);
+    background-color: white;
+}
+
+.pet-gacha-close:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
 }
 
 .pet-gacha-main {
@@ -252,7 +269,8 @@
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     transition-property: scale, opacity;
-    transition-duration: 0.18s;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-back;
 }
 
 .pet-gacha-capsule {
@@ -310,12 +328,23 @@
     border-color: rgb(218, 120, 38);
     font-size: 21px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
 
 .pet-gacha-pull:hover,
 .pet-gacha-pull:focus {
-    scale: 1.035 1.035;
+    scale: 1.05 1.05;
+    translate: 0 -2px;
     background-color: rgb(255, 200, 92);
+    border-color: rgb(20, 48, 91);
+}
+
+.pet-gacha-pull:active {
+    scale: 0.94 0.94;
+    translate: 0 2px;
+    transition-duration: 0.08s;
 }
 
 .pet-gacha-status {
@@ -359,6 +388,9 @@
     border-radius: 24px;
     border-width: 4px;
     border-color: rgb(255, 184, 68);
+    transition-property: scale, opacity, translate;
+    transition-duration: 0.24s;
+    transition-timing-function: ease-out-back;
 }
 
 .pet-gacha-overlay-title {
@@ -434,7 +466,8 @@
     border-width: 12px;
     border-color: rgba(255, 184, 68, 0.75);
     transition-property: scale, opacity;
-    transition-duration: 0.22s;
+    transition-duration: 0.28s;
+    transition-timing-function: ease-out-back;
 }
 
 .pet-gacha-result-icon {
@@ -442,7 +475,8 @@
     height: 390px;
     -unity-background-scale-mode: scale-to-fit;
     transition-property: scale, opacity;
-    transition-duration: 0.22s;
+    transition-duration: 0.28s;
+    transition-timing-function: ease-out-back;
 }
 
 .pet-gacha-result-state {
@@ -509,11 +543,11 @@
 }
 
 .pet-gacha-result--reveal .pet-gacha-result-icon {
-    scale: 1.08 1.08;
+    scale: 1.12 1.12;
 }
 
 .pet-gacha-result--reveal .pet-gacha-result-halo {
-    scale: 1.05 1.05;
+    scale: 1.08 1.08;
 }
 
 .pet-gacha-modal.is-error .pet-gacha-status {

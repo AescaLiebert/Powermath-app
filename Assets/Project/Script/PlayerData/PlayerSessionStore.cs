@@ -13,7 +13,7 @@ namespace PowerMath.PlayerData
             InvalidPlayer
         }
 
-        public const int SupportedSchemaVersion = 1;
+        public const int SupportedSchemaVersion = 2;
 
         public static PlayerSessionStore Instance { get; private set; }
 
@@ -45,7 +45,7 @@ namespace PowerMath.PlayerData
 
         public HydrationResult TryHydrate(BootstrapResponse response)
         {
-            if (response == null || response.schemaVersion != SupportedSchemaVersion)
+            if (response == null || response.schemaVersion > SupportedSchemaVersion)
             {
                 return HydrationResult.IncompatibleSchema;
             }
@@ -56,6 +56,12 @@ namespace PowerMath.PlayerData
                 string.IsNullOrWhiteSpace(response.player.profile.displayName))
             {
                 return HydrationResult.InvalidPlayer;
+            }
+
+            if (response.schemaVersion < SupportedSchemaVersion)
+            {
+                response.player = PlayerSchemaMigrator.Migrate(response.player, response.schemaVersion, SupportedSchemaVersion);
+                response.schemaVersion = SupportedSchemaVersion;
             }
 
             IsRemembered = response.remembered;

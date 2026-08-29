@@ -82,12 +82,12 @@ namespace PowerMath.Gameplay.Combat
             int finalDamage,
             double unroundedDamage,
             bool isCritical,
-            double responseDamageMultiplier)
+            DamageBreakdown breakdown)
         {
             FinalDamage = finalDamage;
             UnroundedDamage = unroundedDamage;
             IsCritical = isCritical;
-            ResponseDamageMultiplier = responseDamageMultiplier;
+            Breakdown = breakdown;
         }
 
         public int FinalDamage { get; }
@@ -96,7 +96,43 @@ namespace PowerMath.Gameplay.Combat
 
         public bool IsCritical { get; }
 
-        public double ResponseDamageMultiplier { get; }
+        public double ResponseDamageMultiplier => Breakdown.ResponseMultiplier;
+
+        public DamageBreakdown Breakdown { get; }
+    }
+
+    public readonly struct DamageBreakdown
+    {
+        public DamageBreakdown(
+            int baseAttack,
+            double rankMultiplier,
+            double buffMultiplier,
+            double criticalMultiplier,
+            int responseScore,
+            double responseMultiplier,
+            double unroundedDamage,
+            int finalDamage)
+        {
+            BaseAttack = baseAttack;
+            RankMultiplier = rankMultiplier;
+            BuffMultiplier = buffMultiplier;
+            CriticalMultiplier = criticalMultiplier;
+            ResponseScore = responseScore;
+            ResponseMultiplier = responseMultiplier;
+            UnroundedDamage = unroundedDamage;
+            FinalDamage = finalDamage;
+            IsAvailable = true;
+        }
+
+        public bool IsAvailable { get; }
+        public int BaseAttack { get; }
+        public double RankMultiplier { get; }
+        public double BuffMultiplier { get; }
+        public double CriticalMultiplier { get; }
+        public int ResponseScore { get; }
+        public double ResponseMultiplier { get; }
+        public double UnroundedDamage { get; }
+        public int FinalDamage { get; }
     }
 
     public sealed class DamageCalculator
@@ -118,11 +154,22 @@ namespace PowerMath.Gameplay.Combat
                 MidpointRounding.AwayFromZero
             );
 
+            int finalDamage = Math.Max(1, rounded);
+            var breakdown = new DamageBreakdown(
+                input.EffectiveAttack,
+                input.RankMultiplier,
+                input.BuffMultiplier,
+                criticalMultiplier,
+                input.ResponseScore,
+                input.ResponseDamageMultiplier,
+                unrounded,
+                finalDamage);
+
             return new DamageResult(
-                Math.Max(1, rounded),
+                finalDamage,
                 unrounded,
                 input.IsCritical,
-                input.ResponseDamageMultiplier);
+                breakdown);
         }
     }
 }

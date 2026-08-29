@@ -65,6 +65,24 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(
                 result.ResponseDamageMultiplier,
                 Is.EqualTo(expectedPercent / 100d));
+            Assert.That(result.Breakdown.IsAvailable, Is.True);
+            Assert.That(result.Breakdown.BaseAttack, Is.EqualTo(50));
+            Assert.That(result.Breakdown.RankMultiplier, Is.EqualTo(1d));
+            Assert.That(result.Breakdown.BuffMultiplier, Is.EqualTo(1d));
+            Assert.That(result.Breakdown.ResponseScore, Is.EqualTo(responseScore));
+            Assert.That(result.Breakdown.FinalDamage, Is.EqualTo(expectedDamage));
+        }
+
+        [Test]
+        public void QuestionPresentationResult_ReportsRetainedSurfaceExplicitly()
+        {
+            var result = new QuestionPresentationResult(
+                QuestionPresentationStatus.Ready,
+                "Enter your answer.",
+                true);
+
+            Assert.That(result.IsReady, Is.True);
+            Assert.That(result.RetainsPresentationSurface, Is.True);
         }
 
         [TestCase(0)]
@@ -194,6 +212,84 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(result.Combat.ResponseScore, Is.EqualTo(10));
             Assert.That(result.Combat.ResponseDamagePercent, Is.EqualTo(200));
             Assert.That(result.Combat.FinalDamage, Is.EqualTo(15));
+        }
+
+        [Test]
+        public void Transaction_ResolutionCreatesMatchingPendingPresentationReceipt()
+        {
+            GatewayFixture fixture = CreateGateway(maximumCooldown: 3);
+            fixture.Clock.NowSeconds = 10d;
+            AttemptCommit commit = fixture.Gateway.CommitAttempt(
+                new CombatCommandId("commit-receipt"));
+            fixture.Gateway.OpenAnswerWindow(
+                new CombatCommandId("window-receipt"),
+                commit.Question.Id);
+
+            AttemptResolution result = fixture.Gateway.SubmitAnswer(
+                new CombatCommandId("submit-receipt"), "12");
+
+            Assert.That(result.Presentation, Is.Not.Null);
+            Assert.That(fixture.Gateway.PendingPresentation,
+                Is.SameAs(result.Presentation));
+            Assert.That(result.Presentation.AttemptId, Is.Not.Empty);
+            Assert.That(result.Presentation.PresentationId,
+                Is.EqualTo(commit.PresentationId));
+            Assert.That(result.Presentation.FinalDamage,
+                Is.EqualTo(result.Combat.FinalDamage));
+            Assert.That(result.Presentation.Source.EnemyCurrentHp, Is.EqualTo(48));
+            Assert.That(result.Presentation.Destination.Phase,
+                Is.EqualTo(CombatPhase.PresentingResult));
+        }
+
+        [Test]
+        public void Transaction_CompletionRejectsMismatchedPresentationId()
+        {
+            GatewayFixture fixture = CreateGateway(maximumCooldown: 3);
+            fixture.Clock.NowSeconds = 10d;
+            AttemptCommit commit = fixture.Gateway.CommitAttempt(
+                new CombatCommandId("commit-mismatch"));
+            fixture.Gateway.OpenAnswerWindow(
+                new CombatCommandId("window-mismatch"),
+                commit.Question.Id);
+            AttemptResolution result = fixture.Gateway.SubmitAnswer(
+                new CombatCommandId("submit-mismatch"), "12");
+
+            Assert.That(
+                () => fixture.Gateway.CompletePresentation(
+                    new CombatCommandId("complete-wrong"), "wrong-id"),
+                Throws.InvalidOperationException);
+            Assert.That(fixture.Gateway.PendingPresentation,
+                Is.SameAs(result.Presentation));
+
+            GameplaySnapshot completed = fixture.Gateway.CompletePresentation(
+                new CombatCommandId("complete-right"),
+                result.Presentation.PresentationId);
+
+            Assert.That(fixture.Gateway.PendingPresentation, Is.Null);
+            Assert.That(completed.Combat.Phase, Is.EqualTo(CombatPhase.EnemyReady));
+        }
+
+        [Test]
+        public void Transaction_ConstructorWithPendingPresentation_RejectsReadyCombatPhase()
+        {
+            QuestionCatalogLoadResult catalogResult = new QuestionDocumentMapper()
+                .MapCatalog(InMemoryQuestionCatalogRepository.CreateDefaultDocuments());
+            var academic = new AcademicProgressionEngine(catalogResult.Catalog);
+            AcademicProgressionState state = academic.CreateInitialState(
+                AcademicRank.Silver,
+                new RankCurrencyBalances(0, 0, 0)
+            );
+            var clock = new ManualClock();
+            LocalCombatEngine readyCombat = CreateCombatEngine(maximumCooldown: 3);
+            var dummyReceipt = new AttemptPresentationReceipt(
+                "p-1", "a-1", AttemptOutcomeKind.Correct, 10, 5, false,
+                CombatPresentationSnapshot.From(readyCombat.Snapshot),
+                CombatPresentationSnapshot.From(readyCombat.Snapshot),
+                10, false, false, false, false, false, default);
+
+            Assert.Throws<System.InvalidOperationException>(() =>
+                new LocalAttemptTransactionEngine(
+                    readyCombat, academic, state, clock, 1d, 10d, null, "run-1", dummyReceipt));
         }
 
         [Test]

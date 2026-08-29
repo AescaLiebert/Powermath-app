@@ -25,17 +25,19 @@
 1. Keep the player Firebase project valid and disable `Use Editor Sample Student`.
 2. Clear or invalidate only the Question Firebase configuration, then authenticate an
    existing disposable student.
-3. Confirm the combat lobby remains playable and shows the development-question/
-   Firebase-save notice instead of the unavailable screen.
+3. Confirm the combat lobby remains playable and shows the isolated-practice/
+   progress-not-saved notice instead of the unavailable screen.
 4. Press Attack; confirm the simulated presentation exposes its QA target and the
    numpad/timer/answer sequence resolves normally.
-5. Confirm every acknowledged attempt checkpoint increments the real player document
-   revision and persists combat, audit, Rank currency, analytics, and active-run state.
-6. Stop and restart Play Mode with Question Firebase still unavailable; confirm the
-   saved Stage, HP, cooldown, hearts, Rank, currency, audit, and FIFO state rehydrate.
-7. Die during fallback play; confirm death settlement writes once and reloads Stage 1.
-8. Restore Question Firebase and confirm its canonical catalog loads instead of the
-   fallback. Use a disposable account because fallback question IDs are prototype data.
+5. Confirm attempts change only the local practice projection. The real player document
+   revision, combat, audit, Rank currency, analytics, active run, and pending presentation
+   must remain byte-for-byte unchanged.
+6. Confirm Player Hub progression, Pet Gacha, Death settlement, and Rebirth controls are
+   unavailable during isolated practice.
+7. Stop and restart Play Mode with Question Firebase still unavailable; confirm practice
+   starts fresh and the real saved artifact is still unchanged.
+8. Restore Question Firebase and confirm its canonical catalog and untouched player FIFO
+   state load instead of the fallback.
 
 ## Expected Limitation
 

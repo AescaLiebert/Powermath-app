@@ -62,6 +62,14 @@ namespace PowerMath.Bootstrap
 
             switch (state)
             {
+                case BootstrapState.CheckingVersion:
+                    SetProgress(
+                        "CHECKING VERSION",
+                        "Checking for updates...",
+                        detail ?? "Verifying game version and live content.",
+                        10f
+                    );
+                    break;
                 case BootstrapState.CheckingSession:
                     SetProgress(
                         "CHECKING SESSION",
@@ -114,6 +122,13 @@ namespace PowerMath.Bootstrap
                         "UPDATE REQUIRED",
                         "Game update required",
                         detail ?? "Install the latest version before continuing."
+                    );
+                    break;
+                case BootstrapState.MaintenanceMode:
+                    ShowBlocked(
+                        "MAINTENANCE",
+                        "Maintenance in progress",
+                        detail ?? "The game is currently undergoing maintenance. Please try again later."
                     );
                     break;
             }

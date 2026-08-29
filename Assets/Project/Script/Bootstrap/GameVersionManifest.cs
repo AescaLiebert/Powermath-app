@@ -1,0 +1,40 @@
+using System;
+
+namespace PowerMath.Bootstrap
+{
+    [Serializable]
+    public sealed class GameVersionManifest
+    {
+        public string clientVersion;
+        public string minSupportedVersion;
+        public int schemaVersion = 1;
+        public ContentVersions contentVersions;
+        public MaintenanceInfo maintenance;
+        public string forceReloadUrl;
+
+        [Serializable]
+        public sealed class ContentVersions
+        {
+            public string questionCatalog;
+            public string stageMap;
+            public string petGacha;
+        }
+
+        [Serializable]
+        public sealed class MaintenanceInfo
+        {
+            public bool isActive;
+            public string message;
+        }
+    }
+
+    public enum VersionCompatibilityResult
+    {
+        Compatible,
+        UpdateRecommended,
+        HardUpdateRequired,
+        IncompatibleSchema,
+        MaintenanceActive,
+        NetworkError
+    }
+}

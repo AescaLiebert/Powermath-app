@@ -12,6 +12,13 @@
                 <ui:Label name="run-settlement-stage" text="STAGE —" class="settlement-stage"/>
             </ui:VisualElement>
             <ui:ScrollView class="settlement-scroll">
+                <ui:VisualElement class="settlement-progress-section">
+                    <ui:VisualElement class="settlement-progress-header">
+                        <ui:Label text="REBIRTH REQUIREMENT" class="settlement-progress-title"/>
+                        <ui:Label name="run-settlement-progress-label" text="STAGE — / 50" class="settlement-progress-label"/>
+                    </ui:VisualElement>
+                    <ui:ProgressBar name="run-settlement-progress" value="0" low-value="0" high-value="50" class="settlement-progress-bar"/>
+                </ui:VisualElement>
                 <ui:Label text="PERMANENT REWARDS" class="settlement-section-title"/>
                 <ui:VisualElement class="settlement-grid">
                     <ui:VisualElement class="settlement-value-card settlement-value-card--coins">

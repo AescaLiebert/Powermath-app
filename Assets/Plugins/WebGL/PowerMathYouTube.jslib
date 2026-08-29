@@ -5,6 +5,7 @@ mergeInto(LibraryManager.library, {
     var state = window.PowerMathYouTubeState || (window.PowerMathYouTubeState = {});
     state.receiver = receiver;
     state.generation = generation;
+    state.answerMode = false;
 
     var canvas = Module.canvas;
     var overlay = document.getElementById('powermath-youtube-overlay');
@@ -18,6 +19,7 @@ mergeInto(LibraryManager.library, {
       overlay.style.alignItems = 'center';
       overlay.style.justifyContent = 'center';
       overlay.style.pointerEvents = 'auto';
+      overlay.style.transition = 'left 180ms ease, top 180ms ease, width 180ms ease, height 180ms ease, opacity 180ms ease';
       var mount = document.createElement('div');
       mount.id = 'powermath-youtube-player';
       mount.style.width = '100%';
@@ -29,6 +31,15 @@ mergeInto(LibraryManager.library, {
     var align = function () {
       if (!Module.canvas || overlay.style.display === 'none') return;
       var rect = Module.canvas.getBoundingClientRect();
+      if (state.answerMode) {
+        var dockWidth = Math.max(280, Math.min(760, rect.width * 0.40));
+        var dockHeight = dockWidth * 9 / 16;
+        overlay.style.left = (rect.left + Math.max(12, rect.width * 0.04)) + 'px';
+        overlay.style.top = (rect.top + Math.max(12, rect.height * 0.12)) + 'px';
+        overlay.style.width = dockWidth + 'px';
+        overlay.style.height = Math.min(dockHeight, rect.height * 0.58) + 'px';
+        return;
+      }
       var insetX = Math.max(12, rect.width * 0.08);
       var insetY = Math.max(70, rect.height * 0.16);
       overlay.style.left = (rect.left + insetX) + 'px';
@@ -41,6 +52,8 @@ mergeInto(LibraryManager.library, {
     state.previousAlign = align;
     window.addEventListener('resize', align);
     overlay.style.display = 'flex';
+    overlay.style.pointerEvents = 'auto';
+    overlay.style.opacity = '1';
     align();
 
     var createOrLoad = function () {
@@ -85,10 +98,25 @@ mergeInto(LibraryManager.library, {
     }
   },
 
+  PowerMathYouTubeSetAnswerMode: function () {
+    var state = window.PowerMathYouTubeState;
+    var overlay = document.getElementById('powermath-youtube-overlay');
+    if (!state || !overlay) return;
+    state.answerMode = true;
+    overlay.style.pointerEvents = 'none';
+    overlay.style.opacity = '0.92';
+    if (state.align) state.align();
+  },
+
   PowerMathYouTubeHide: function () {
     var state = window.PowerMathYouTubeState;
     var overlay = document.getElementById('powermath-youtube-overlay');
     if (state && state.player && state.player.stopVideo) state.player.stopVideo();
-    if (overlay) overlay.style.display = 'none';
+    if (state) state.answerMode = false;
+    if (overlay) {
+      overlay.style.display = 'none';
+      overlay.style.pointerEvents = 'auto';
+      overlay.style.opacity = '1';
+    }
   }
 });

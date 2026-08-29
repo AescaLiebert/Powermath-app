@@ -3,6 +3,7 @@ using System.Collections;
 using System.Globalization;
 using System.Reflection;
 using NUnit.Framework;
+using PowerMath.Gameplay.Combat.Unity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -26,13 +27,10 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
                 }
             );
 
-            Button attack = root.Q<Button>("combat-attack-button");
-            Assert.That(attack.enabledSelf, Is.True);
             Assert.That(root.Q<Label>("combat-stage-label").text, Is.EqualTo("STAGE 1 / 200"));
             Assert.That(root.Q<Label>("academic-rank-label").text, Is.EqualTo("RANK SILVER"));
             Assert.That(root.Q<VisualElement>("audit-score"), Is.Null);
             Assert.That(root.Q<VisualElement>("audit-count"), Is.Null);
-            Assert.That(root.Q<Image>("combat-enemy-image").image, Is.Not.Null);
 
             string hpBefore = root.Q<Label>("combat-enemy-hp-label").text;
             yield return CompleteCorrectAttempt(root, false);
@@ -80,13 +78,12 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
                 root.Q<Label>("academic-rank-modal-route").text,
                 Does.Contain("Silver").And.Contain("Gold")
             );
-            Assert.That(root.Q<Button>("combat-attack-button").enabledSelf, Is.False);
 
             SendSubmit(root.Q<Button>("academic-rank-continue-button"));
             yield return WaitFor(
-                () => root.Q<Button>("combat-attack-button").enabledSelf,
+                () => IsCombatReady(root),
                 4f,
-                "Attack did not unlock after acknowledging Rank promotion."
+                "Combat did not return to ready after acknowledging Rank promotion."
             );
             Assert.That(modal.style.display.value, Is.EqualTo(DisplayStyle.None));
             Assert.That(root.Q<Label>("academic-rank-label").text, Is.EqualTo("RANK GOLD"));
@@ -134,9 +131,9 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
 
             SendSubmit(root.Q<Button>("academic-rank-continue-button"));
             yield return WaitFor(
-                () => root.Q<Button>("combat-attack-button").enabledSelf,
+                () => IsCombatReady(root),
                 4f,
-                "Attack did not unlock after acknowledging Rank adjustment."
+                "Combat did not return to ready after acknowledging Rank adjustment."
             );
             Assert.That(root.Q<Label>("academic-rank-label").text, Is.EqualTo("RANK SILVER"));
             Assert.That(root.Q<Label>("academic-active-currency").text, Is.EqualTo("Silver: 0"));
@@ -160,9 +157,9 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             );
 
             string hpBefore = root.Q<Label>("combat-enemy-hp-label").text;
-            SendSubmit(root.Q<Button>("combat-attack-button"));
+            TriggerAttack();
             yield return WaitFor(
-                () => root.Q<Button>("combat-attack-button").enabledSelf,
+                () => IsCombatReady(root),
                 15f,
                 "Timed-out attempt did not return to EnemyReady."
             );
@@ -175,16 +172,38 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             yield return null;
         }
 
+        private static bool IsCombatReady(VisualElement root)
+        {
+            VisualElement attemptPanel = root.Q<VisualElement>("combat-attempt-panel");
+            VisualElement rankModal = root.Q<VisualElement>("academic-rank-modal");
+            bool rankClosed = rankModal == null || rankModal.resolvedStyle.display == DisplayStyle.None;
+            return rankClosed && attemptPanel != null && attemptPanel.ClassListContains("is-hidden");
+        }
+
+        private static void TriggerAttack()
+        {
+            ActorPresentationController actor =
+                GameObject.Find("playerPresentation")?.GetComponent<ActorPresentationController>() ??
+                GameObject.Find("monsterPrefab")?.GetComponent<ActorPresentationController>() ??
+                UnityEngine.Object.FindAnyObjectByType<ActorPresentationController>();
+            if (actor != null)
+            {
+                actor.TriggerClick();
+            }
+        }
+
         private static IEnumerator CompleteCorrectAttempt(
             VisualElement root,
             bool expectRankPopup)
         {
-            SendSubmit(root.Q<Button>("combat-attack-button"));
-            yield return null;
-
+            TriggerAttack();
             Label prompt = root.Q<Label>("academic-question-prompt");
             const string prefix = "QA target answer: ";
-            Assert.That(prompt.text, Does.StartWith(prefix));
+            yield return WaitFor(
+                () => prompt != null && prompt.text != null && prompt.text.StartsWith(prefix),
+                4f,
+                "Question prompt was not displayed after triggering attack."
+            );
             string answer = prompt.text.Substring(prefix.Length);
             foreach (char digit in answer)
             {
@@ -197,7 +216,7 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             {
                 yield return WaitFor(
                     () => root.Q<VisualElement>("academic-rank-modal")
-                        .style.display.value == DisplayStyle.Flex,
+                        .resolvedStyle.display == DisplayStyle.Flex,
                     5f,
                     "Expected Rank transition popup was not shown."
                 );
@@ -205,7 +224,7 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             else
             {
                 yield return WaitFor(
-                    () => root.Q<Button>("combat-attack-button").enabledSelf,
+                    () => IsCombatReady(root),
                     5f,
                     "Correct attempt did not return to EnemyReady."
                 );
@@ -216,8 +235,14 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             VisualElement root,
             bool expectRankPopup)
         {
-            SendSubmit(root.Q<Button>("combat-attack-button"));
-            yield return null;
+            TriggerAttack();
+            Label prompt = root.Q<Label>("academic-question-prompt");
+            const string prefix = "QA target answer: ";
+            yield return WaitFor(
+                () => prompt != null && prompt.text != null && prompt.text.StartsWith(prefix),
+                4f,
+                "Question prompt was not displayed after triggering attack."
+            );
             SendSubmit(root.Q<Button>("combat-digit-0"));
             yield return null;
             SendSubmit(root.Q<Button>("combat-submit-button"));
@@ -226,7 +251,7 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             {
                 yield return WaitFor(
                     () => root.Q<VisualElement>("academic-rank-modal")
-                        .style.display.value == DisplayStyle.Flex,
+                        .resolvedStyle.display == DisplayStyle.Flex,
                     5f,
                     "Expected Rank adjustment popup was not shown."
                 );
@@ -234,7 +259,7 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             else
             {
                 yield return WaitFor(
-                    () => root.Q<Button>("combat-attack-button").enabledSelf,
+                    () => IsCombatReady(root),
                     5f,
                     "Incorrect attempt did not return to EnemyReady."
                 );
@@ -259,15 +284,18 @@ namespace PowerMath.Gameplay.Combat.PlayModeTests
             UIDocument document = UnityEngine.Object.FindAnyObjectByType<UIDocument>();
             Assert.That(document, Is.Not.Null);
             VisualElement root = document.rootVisualElement;
-            Assert.That(root.Q<Button>("combat-attack-button").enabledSelf, Is.True);
-            Assert.That(
-                root.Q<Label>("combat-simulation-badge").style.display.value,
-                Is.EqualTo(DisplayStyle.Flex)
-            );
-            Assert.That(
-                root.Q<Label>("academic-local-badge").style.display.value,
-                Is.EqualTo(DisplayStyle.Flex)
-            );
+
+            Type transitionType = Type.GetType("PowerMath.UI.MainMenu.MainMenuTransitionController, Assembly-CSharp");
+            if (transitionType != null)
+            {
+                Component transition = UnityEngine.Object.FindAnyObjectByType(transitionType) as Component;
+                if (transition != null)
+                {
+                    transitionType.GetMethod("CancelAndApplyFinalState")?.Invoke(transition, null);
+                }
+            }
+
+            yield return WaitFor(() => IsCombatReady(root), 5f, "Combat surface was not ready.");
             completed(sessionObject, root);
         }
 

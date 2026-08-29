@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine.UIElements;
@@ -13,6 +14,16 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             "Assets/Project/UI/BootstrapUI.uxml";
         private const string MainMenuUxml =
             "Assets/Project/UI/MainMenuUI.uxml";
+        private const string MainMenuTransitionViewScript =
+            "Assets/Project/Script/UI/MainMenu/Transitions/MainMenuTransitionView.cs";
+        private const string MainMenuTransitionControllerScript =
+            "Assets/Project/Script/UI/MainMenu/Transitions/MainMenuTransitionController.cs";
+        private const string CombatLobbyCompositionRootScript =
+            "Assets/Project/Script/UI/MainMenu/CombatLobbyCompositionRoot.cs";
+        private const string PlayerHubFeedbackScript =
+            "Assets/Project/Script/UI/MainMenu/RunEconomy/PlayerHubFeedbackPlayer.cs";
+        private const string PlayerHubStyle =
+            "Assets/Project/UI/MainMenu/PlayerHubPanel.uss";
 
         [Test]
         public void AuthenticationAsset_PreservesLoginContract()
@@ -71,7 +82,6 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Button>(root, "player-hub-button");
             Require<Button>(root, "pet-gacha-button");
             Require<VisualElement>(root, "combat-layer");
-            Require<Button>(root, "combat-attack-button");
             Require<Button>(root, "combat-map-button");
             VisualElement navigator = Require<VisualElement>(
                 root,
@@ -89,6 +99,16 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Label>(root, "dashboard-pet");
             Require<Label>(root, "dashboard-weapon");
             Require<VisualElement>(root, "combat-enemy-actions");
+            Require<VisualElement>(root, "combat-answer-content");
+            Require<VisualElement>(root, "combat-feedback-card");
+            Require<VisualElement>(root, "combat-score-stack");
+            Require<Label>(root, "combat-feedback-title");
+            Require<Label>(root, "combat-battle-banner");
+            Require<VisualElement>(root, "main-menu-transition-layer");
+            Require<VisualElement>(root, "main-menu-transition-cover");
+            Require<Label>(root, "battle-start-title");
+            Require<VisualElement>(root, "battle-start-accent-left");
+            Require<VisualElement>(root, "battle-start-accent-right");
             VisualElement enemyHpShell = Require<VisualElement>(
                 root,
                 "combat-enemy-hp-shell"
@@ -148,6 +168,25 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Label>(root, "player-hub-balance");
             Require<Button>(root, "player-hub-weapon-upgrade");
             Require<Label>(root, "player-hub-status");
+            Require<Button>(root, "player-hub-tab-weapon");
+            Require<Button>(root, "player-hub-tab-pets");
+            Require<VisualElement>(root, "player-hub-pet-grid");
+            Require<Image>(root, "player-hub-pet-preview-icon");
+            Require<Label>(root, "player-hub-pet-preview-rarity");
+            Require<Label>(root, "player-hub-pet-preview-name");
+            Require<Label>(root, "player-hub-pet-preview-description");
+            Require<Image>(root, "player-hub-equipped-pet");
+            Require<Image>(root, "player-hub-equipped-weapon");
+            Require<VisualElement>(root, "player-hub-particle-layer");
+            Require<VisualElement>(root, "player-hub-milestone");
+            Require<VisualElement>(root, "main-menu-utility-bar");
+            Require<Button>(root, "main-menu-utility-back");
+            Require<Label>(root, "main-menu-utility-power-coins");
+            Assert.That(root.Q<Label>("main-menu-utility-title"), Is.Null);
+            Assert.That(root.Q<Label>("main-menu-utility-gold"), Is.Null);
+            Assert.That(root.Q<Label>("main-menu-utility-diamonds"), Is.Null);
+            Require<VisualElement>(root, "main-menu-notification");
+            Require<Label>(root, "main-menu-notification-text");
 
             VisualElement rebirth = Require<VisualElement>(
                 root,
@@ -162,6 +201,8 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Label>(root, "run-settlement-attack");
             Require<Label>(root, "run-settlement-prestige");
             Require<Label>(root, "run-settlement-status");
+            Require<ProgressBar>(root, "run-settlement-progress");
+            Require<Label>(root, "run-settlement-progress-label");
             Require<Button>(root, "run-settlement-close");
             Require<Button>(root, "run-settlement-confirm");
             Require<Button>(root, "run-settlement-continue");
@@ -170,6 +211,95 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(rebirth.ClassListContains("is-hidden"), Is.True);
             Assert.That(root.Q<VisualElement>("weapon-inventory"), Is.Null);
             Assert.That(root.Q<VisualElement>("pet-equip-button"), Is.Null);
+        }
+
+        [Test]
+        public void MainMenuTransition_UsesViewportStagingAndSharedMotionDriver()
+        {
+            string viewSource = File.ReadAllText(MainMenuTransitionViewScript);
+            string controllerSource = File.ReadAllText(
+                MainMenuTransitionControllerScript);
+
+            Assert.That(viewSource, Does.Contain("Vector2.down *"));
+            Assert.That(viewSource, Does.Contain("Vector2.left *"));
+            Assert.That(viewSource, Does.Contain("Vector2.up *"));
+            Assert.That(viewSource, Does.Contain("style.translate"));
+            Assert.That(controllerSource, Does.Contain("IUiMotionDriver"));
+            Assert.That(controllerSource, Does.Contain("UiMotionChannel.Lifecycle"));
+            Assert.That(controllerSource, Does.Contain("AnimateSessionUi"));
+            Assert.That(controllerSource, Does.Not.Contain("LeanTween.value"));
+            Assert.That(controllerSource, Does.Not.Contain("LTDescr"));
+            Assert.That(controllerSource, Does.Not.Contain("EnsureLeanTweenDriver"));
+            Assert.That(controllerSource, Does.Contain("_view.ApplySessionUiProgress"));
+            Assert.That(controllerSource, Does.Not.Contain("SessionStaggerSeconds"));
+            Assert.That(controllerSource, Does.Not.Contain("PlaySessionReturn"));
+            Assert.That(controllerSource, Does.Not.Contain("PanelClosed"));
+        }
+
+        [Test]
+        public void InvalidQuestionFallback_ReleasesBootstrapPresentation()
+        {
+            string source = File.ReadAllText(CombatLobbyCompositionRootScript);
+            int messageIndex = source.IndexOf(
+                "Questions are offline and the development fallback is invalid.",
+                System.StringComparison.Ordinal);
+            Assert.That(messageIndex, Is.GreaterThanOrEqualTo(0));
+
+            int handlerIndex = source.LastIndexOf(
+                "SetUnavailable(",
+                messageIndex,
+                System.StringComparison.Ordinal);
+            Assert.That(handlerIndex, Is.GreaterThanOrEqualTo(0));
+            Assert.That(
+                source.Substring(handlerIndex, messageIndex - handlerIndex),
+                Does.Not.Contain("_view?"),
+                "Fallback failure must use the handler that restores final UI state.");
+        }
+
+        [Test]
+        public void QuestionFallback_IsIsolatedFromAuthoritativeProgression()
+        {
+            string source = File.ReadAllText(CombatLobbyCompositionRootScript);
+
+            Assert.That(source, Does.Contain("isolateQuestionFallback: true"));
+            Assert.That(source, Does.Contain(
+                "isolateQuestionFallback || snapshot.academic == null"));
+            Assert.That(source, Does.Contain(
+                "progressionStore == null || isolateQuestionFallback"));
+            Assert.That(source, Does.Contain(
+                "progressionStore != null && !isolateQuestionFallback"));
+            Assert.That(source, Does.Contain(
+                "PRACTICE QUESTIONS ACTIVE; PROGRESS IS NOT SAVED"));
+            Assert.That(source, Does.Contain(
+                "? \"practice-\" + System.Guid.NewGuid().ToString(\"N\")"));
+        }
+
+        [Test]
+        public void PlayerHubFeedback_UsesDriverWithoutConflictingTransforms()
+        {
+            string feedbackSource = File.ReadAllText(PlayerHubFeedbackScript);
+            string styleSource = File.ReadAllText(PlayerHubStyle);
+
+            Assert.That(feedbackSource, Does.Contain("IUiMotionDriver"));
+            Assert.That(feedbackSource, Does.Contain("UiMotionChannel.Feedback"));
+            Assert.That(feedbackSource, Does.Contain("UiMotionChannel.Ambient"));
+            Assert.That(feedbackSource, Does.Not.Contain("LeanTween."));
+            Assert.That(feedbackSource, Does.Not.Contain("LTDescr"));
+            Assert.That(
+                RuleBody(styleSource, ".player-hub-weapon-aura"),
+                Does.Not.Contain("transition-property"));
+            Assert.That(
+                RuleBody(styleSource, ".player-hub-weapon-icon"),
+                Does.Not.Contain("transition-property"));
+            Assert.That(
+                RuleBody(styleSource, ".player-hub-comparison-card"),
+                Does.Not.Contain("scale"));
+            Assert.That(
+                RuleBody(styleSource, ".player-hub-upgrade"),
+                Does.Not.Contain("translate"));
+            Assert.That(
+                RuleBody(styleSource, ".player-hub-pet-preview-icon"),
+                Does.Not.Contain("transition-property"));
         }
 
         [Test]
@@ -237,6 +367,19 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             T element = root.Q<T>(name);
             Assert.That(element, Is.Not.Null, $"Missing {typeof(T).Name} '{name}'.");
             return element;
+        }
+
+        private static string RuleBody(string source, string selector)
+        {
+            int selectorIndex = source.IndexOf(
+                selector,
+                System.StringComparison.Ordinal);
+            Assert.That(selectorIndex, Is.GreaterThanOrEqualTo(0));
+            int bodyStart = source.IndexOf('{', selectorIndex);
+            int bodyEnd = source.IndexOf('}', bodyStart + 1);
+            Assert.That(bodyStart, Is.GreaterThan(selectorIndex));
+            Assert.That(bodyEnd, Is.GreaterThan(bodyStart));
+            return source.Substring(bodyStart + 1, bodyEnd - bodyStart - 1);
         }
     }
 }

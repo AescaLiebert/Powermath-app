@@ -1,27 +1,48 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
     <ui:VisualElement name="content" picking-mode="Ignore" class="main-shell">
-        <ui:VisualElement name="profile-panel" focusable="true" tooltip="Open Profile Analytics" class="hud-profile-panel">
-            <ui:VisualElement class="hud-profile-icon"><ui:Label text="P" picking-mode="Ignore"/></ui:VisualElement>
-            <ui:VisualElement class="hud-profile-copy" picking-mode="Ignore">
+        <ui:VisualElement name="profile-panel" focusable="true" tooltip="Open Profile Analytics" class="hud-profile-panel main-menu-transition-top">
+            <ui:VisualElement class="hud-profile-icon">
+                <ui:Label text="P" picking-mode="Ignore"/>
+            </ui:VisualElement>
+            <ui:VisualElement picking-mode="Ignore" class="hud-profile-copy">
                 <ui:Label text="Loading player..." name="player-display-name" class="hud-profile-name"/>
                 <ui:VisualElement class="hud-rank-currencies">
-                    <ui:VisualElement tooltip="Silver Rank Currency" class="hud-rank-currency"><ui:Label text="S" class="hud-rank-icon hud-rank-icon--silver"/><ui:Label name="profile-silver-value" text="—"/></ui:VisualElement>
-                    <ui:VisualElement tooltip="Gold Rank Currency" class="hud-rank-currency"><ui:Label text="G" class="hud-rank-icon hud-rank-icon--gold"/><ui:Label name="profile-gold-value" text="—"/></ui:VisualElement>
-                    <ui:VisualElement tooltip="Diamond Rank Currency" class="hud-rank-currency"><ui:Label text="D" class="hud-rank-icon hud-rank-icon--diamond"/><ui:Label name="profile-diamond-value" text="—"/></ui:VisualElement>
+                    <ui:VisualElement tooltip="Silver Rank Currency" class="hud-rank-currency">
+                        <ui:Label text="S" class="hud-rank-icon hud-rank-icon--silver"/>
+                        <ui:Label name="profile-silver-value" text="—"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement tooltip="Gold Rank Currency" class="hud-rank-currency">
+                        <ui:Label text="G" class="hud-rank-icon hud-rank-icon--gold"/>
+                        <ui:Label name="profile-gold-value" text="—"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement tooltip="Diamond Rank Currency" class="hud-rank-currency">
+                        <ui:Label text="D" class="hud-rank-icon hud-rank-icon--diamond"/>
+                        <ui:Label name="profile-diamond-value" text="—"/>
+                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="main-navigator" class="hud-navigator">
+        <ui:VisualElement name="main-navigator" class="hud-navigator main-menu-transition-top">
             <ui:Button name="combat-map-button" text="◆" tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome"/>
             <ui:Button name="leaderboard" text="★" tooltip="Leaderboard" class="hud-icon-button hud-icon-button--leaderboard"/>
-            <ui:Button name="setting" text="⚙" tooltip="Settings (coming soon)" enabled="false" class="hud-icon-button hud-icon-button--settings"/>
+            <ui:Button name="setting" text="⚙" tooltip="Admin / Settings" class="hud-icon-button hud-icon-button--settings"/>
         </ui:VisualElement>
-        <ui:VisualElement name="player-menu" class="hud-player-menu">
+        <ui:VisualElement name="player-menu" class="hud-player-menu main-menu-transition-player-menu">
             <ui:Button name="player-menu-toggle" text="‹" tooltip="Close Player Menu" class="hud-player-menu-toggle"/>
             <ui:VisualElement name="player-menu-content" class="hud-player-menu-content">
                 <ui:VisualElement class="hud-player-resources">
-                    <ui:VisualElement tooltip="Power Coins" class="hud-player-resource"><ui:Label text="●" class="hud-player-resource-icon hud-player-resource-icon--coin"/><ui:Label name="player-menu-power-coins" text="—"/></ui:VisualElement>
-                    <ui:VisualElement tooltip="Current Attack" class="hud-player-resource"><ui:Label text="◆" class="hud-player-resource-icon hud-player-resource-icon--attack"/><ui:Label name="player-menu-atk" text="—"/></ui:VisualElement>
+                    <ui:VisualElement tooltip="Power Coins" class="hud-player-resource">
+                        <ui:Label text="●" class="hud-player-resource-icon hud-player-resource-icon--coin"/>
+                        <ui:Label name="player-menu-power-coins" text="—"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement tooltip="Current Attack" class="hud-player-resource">
+                        <ui:Label text="◆" class="hud-player-resource-icon hud-player-resource-icon--attack"/>
+                        <ui:Label name="player-menu-atk" text="—"/>
+                    </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Button name="player-hub-button" text="⌂" tooltip="Player Hub" class="hud-player-menu-button"/>
                 <ui:Button name="pet-gacha-button" text="★" tooltip="Pet Gacha" class="hud-player-menu-button"/>

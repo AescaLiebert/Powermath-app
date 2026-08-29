@@ -8,21 +8,13 @@ namespace PowerMath.Gameplay.Pets
     public sealed class PetGachaCatalogDefinition : ScriptableObject
     {
         [Serializable]
-        public sealed class PetContent
-        {
-            public string petId;
-            public string displayName;
-            public Sprite icon;
-        }
-
-        [Serializable]
         public sealed class RarityContent
         {
             public string rarityId;
             public string displayName;
             [Min(1)] public int rateBasisPoints;
             public Color displayColor = Color.white;
-            public PetContent[] pets = Array.Empty<PetContent>();
+            public PetDefinition[] pets = Array.Empty<PetDefinition>();
         }
 
         [Header("Catalog")]
@@ -50,6 +42,8 @@ namespace PowerMath.Gameplay.Pets
         public AudioClip NewPetClip => newPetClip;
         public AudioClip DuplicateClip => duplicateClip;
         public AudioClip ErrorClip => errorClip;
+        public IReadOnlyList<RarityContent> Rarities =>
+            rarities ?? Array.Empty<RarityContent>();
 
         public bool TryBuildCatalog(out PetGachaCatalog catalog, out string error)
         {
@@ -70,11 +64,19 @@ namespace PowerMath.Gameplay.Pets
                     if (rarity.pets == null || rarity.pets.Length == 0)
                         throw new InvalidOperationException("Every pet rarity needs at least one pet.");
                     var mappedPets = new List<PetGachaPet>(rarity.pets.Length);
-                    foreach (PetContent pet in rarity.pets)
+                    foreach (PetDefinition pet in rarity.pets)
                     {
-                        if (pet == null || pet.icon == null)
-                            throw new InvalidOperationException("Production pet entries require an icon.");
-                        mappedPets.Add(new PetGachaPet(pet.petId, pet.displayName));
+                        if (pet == null)
+                            throw new InvalidOperationException(
+                                "Pet rarity entries cannot be null.");
+                        if (!pet.TryBuild(out PetGachaPet mappedPet, out string petError))
+                        {
+                            throw new InvalidOperationException(
+                                string.IsNullOrEmpty(petError)
+                                    ? "Pet definition is invalid."
+                                    : petError);
+                        }
+                        mappedPets.Add(mappedPet);
                     }
                     mappedRarities.Add(new PetGachaRarity(
                         rarity.rarityId,
@@ -97,16 +99,17 @@ namespace PowerMath.Gameplay.Pets
 
         public bool TryResolvePet(
             string petId,
-            out PetContent pet,
+            out PetDefinition pet,
             out RarityContent rarity)
         {
             foreach (RarityContent candidateRarity in rarities ?? Array.Empty<RarityContent>())
             {
                 if (candidateRarity == null) continue;
-                foreach (PetContent candidatePet in candidateRarity.pets ?? Array.Empty<PetContent>())
+                foreach (PetDefinition candidatePet in
+                    candidateRarity.pets ?? Array.Empty<PetDefinition>())
                 {
                     if (candidatePet != null &&
-                        string.Equals(candidatePet.petId, petId, StringComparison.Ordinal))
+                        string.Equals(candidatePet.PetId, petId, StringComparison.Ordinal))
                     {
                         pet = candidatePet;
                         rarity = candidateRarity;

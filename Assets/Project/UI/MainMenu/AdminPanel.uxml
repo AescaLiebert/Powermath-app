@@ -1,0 +1,38 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="admin-panel-modal" enabled="true" focusable="true" class="social-modal admin-modal is-hidden">
+        <ui:VisualElement class="admin-backdrop admin-backdrop--crimson" picking-mode="Ignore"/>
+        <ui:VisualElement class="admin-backdrop admin-backdrop--cobalt" picking-mode="Ignore"/>
+        <ui:Label text="ADMIN" class="admin-watermark" picking-mode="Ignore"/>
+        <ui:VisualElement class="admin-shell">
+            <ui:VisualElement class="admin-header">
+                <ui:VisualElement class="admin-heading">
+                    <ui:Label text="ADMIN PANEL" class="admin-title"/>
+                    <ui:Label text="Administrative tools and account management" class="admin-subtitle"/>
+                </ui:VisualElement>
+                <ui:Button name="admin-panel-close" text="×" tooltip="Close Admin Panel" class="admin-close"/>
+            </ui:VisualElement>
+            <ui:ScrollView class="admin-scroll">
+                <ui:VisualElement class="admin-account-card">
+                    <ui:VisualElement class="admin-account-icon-wrap">
+                        <ui:Label text="⚙" class="admin-account-icon" picking-mode="Ignore"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="admin-account-info">
+                        <ui:Label text="ACTIVE ACCOUNT" class="admin-account-label"/>
+                        <ui:Label name="admin-account-summary" text="Student: ..." class="admin-account-summary"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="admin-command-card">
+                    <ui:VisualElement class="admin-command-header">
+                        <ui:Label text="COMMAND: RESET USER DATA" class="admin-command-title"/>
+                        <ui:Label text="DANGER ZONE" class="admin-command-badge"/>
+                    </ui:VisualElement>
+                    <ui:Label text="This command resets all Firebase Firestore game progress (stages, rank currencies, weapon upgrades, pets, academic inventories, question history, and analytics) back to brand-new account defaults. It also permanently removes this user's entry from the public Leaderboard. Login credentials (username &amp; password) will be preserved." class="admin-command-desc"/>
+                    <ui:VisualElement class="admin-action-row">
+                        <ui:Button name="admin-reset-button" text="RESET USER DATA" tooltip="Rollback all game data to fresh account" class="admin-action-btn admin-action-btn--danger"/>
+                    </ui:VisualElement>
+                    <ui:Label name="admin-reset-status" text="Ready" class="social-status admin-status"/>
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

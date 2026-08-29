@@ -17,6 +17,7 @@ namespace PowerMath.Gameplay.Combat
         private AcademicProgressionState _academicState;
         private ActiveAttempt _activeAttempt;
         private string _lastAttemptId = string.Empty;
+        private AttemptPresentationReceipt _pendingPresentation;
 
         public LocalAttemptTransactionEngine(
             ILocalEncounterEngine combat,
@@ -38,7 +39,8 @@ namespace PowerMath.Gameplay.Combat
             double preparationSeconds,
             double answerSeconds,
             EventQuestionCatalog eventQuestions,
-            string runId)
+            string runId,
+            AttemptPresentationReceipt pendingPresentation = null)
         {
             _combat = combat ?? throw new ArgumentNullException(nameof(combat));
             _academic = academic ?? throw new ArgumentNullException(nameof(academic));
@@ -59,9 +61,17 @@ namespace PowerMath.Gameplay.Combat
             _answerSeconds = answerSeconds;
             _eventQuestions = eventQuestions;
             _runId = string.IsNullOrWhiteSpace(runId) ? "local-run" : runId;
+            _pendingPresentation = pendingPresentation;
+            if (_pendingPresentation != null &&
+                _combat.Snapshot.Phase != CombatPhase.PresentingResult &&
+                _combat.Snapshot.Phase != CombatPhase.RunDefeat &&
+                _combat.Snapshot.Phase != CombatPhase.RunComplete)
+                throw new InvalidOperationException(
+                    "A pending presentation requires a presentation or terminal combat phase.");
         }
 
         public GameplaySnapshot Snapshot => CreateSnapshot();
+        public AttemptPresentationReceipt PendingPresentation => _pendingPresentation;
 
         public AcademicPersistenceSnapshot ExportAcademicPersistence()
         {
@@ -72,7 +82,8 @@ namespace PowerMath.Gameplay.Combat
             GameplaySavePoint savePoint,
             QuestionPresentationDescriptor activeQuestion = null,
             AnswerWindowReceipt? answerWindow = null,
-            AttemptResolution resolution = null)
+            AttemptResolution resolution = null,
+            string presentationId = "")
         {
             return new GameplaySaveRequest(
                 savePoint,
@@ -81,7 +92,8 @@ namespace PowerMath.Gameplay.Combat
                 activeQuestion,
                 answerWindow,
                 resolution,
-                ResolveTransactionId()
+                ResolveTransactionId(),
+                presentationId
             );
         }
 
@@ -142,7 +154,8 @@ namespace PowerMath.Gameplay.Combat
             return new AttemptCommit(
                 descriptor,
                 new AnswerInputPolicy(question.AnswerLength),
-                CreateSnapshot()
+                CreateSnapshot(),
+                "attempt-presentation-" + _activeAttempt.AttemptId
             );
         }
 
@@ -220,9 +233,15 @@ namespace PowerMath.Gameplay.Combat
             return CreateSnapshot();
         }
 
-        public GameplaySnapshot CompletePresentation()
+        public GameplaySnapshot CompletePresentation(string presentationId)
         {
+            if (_pendingPresentation == null)
+                throw new InvalidOperationException("No presentation is pending completion.");
+            if (!string.Equals(_pendingPresentation.PresentationId, presentationId,
+                StringComparison.Ordinal))
+                throw new InvalidOperationException("Presentation completion ID does not match the pending receipt.");
             _combat.CompletePresentation();
+            _pendingPresentation = null;
             return CreateSnapshot();
         }
 
@@ -235,6 +254,7 @@ namespace PowerMath.Gameplay.Combat
                 Math.Round((_clock.NowSeconds -
                     (_activeAttempt.PreparationEndsAt - _preparationSeconds)) * 1000d)));
             ActiveAttempt active = _activeAttempt;
+            CombatPresentationSnapshot source = CombatPresentationSnapshot.From(_combat.Snapshot);
             bool correct = outcome == QuestionOutcome.Correct;
             CombatResolution combat = correct
                 ? _combat.ResolveCorrect(
@@ -261,11 +281,36 @@ namespace PowerMath.Gameplay.Combat
             _lastAttemptId = active.AttemptId;
             _activeAttempt = null;
             GameplaySnapshot snapshot = CreateSnapshot();
+            RankTransitionReceipt rankTransition = academicResult == null
+                ? default
+                : new RankTransitionReceipt(
+                    academicResult.RankTransition.Previous,
+                    academicResult.RankTransition.Current);
+            _pendingPresentation = new AttemptPresentationReceipt(
+                "attempt-presentation-" + active.AttemptId,
+                active.AttemptId,
+                outcome == QuestionOutcome.Correct
+                    ? AttemptOutcomeKind.Correct
+                    : outcome == QuestionOutcome.Timeout
+                        ? AttemptOutcomeKind.Timeout
+                        : AttemptOutcomeKind.Incorrect,
+                responseScore,
+                combat.FinalDamage,
+                combat.IsCritical,
+                source,
+                CombatPresentationSnapshot.From(snapshot.Combat),
+                combat.EnemyHpAfter,
+                combat.EnemyDefeated,
+                combat.EnemyAttacked,
+                combat.PlayerDefeated,
+                combat.StageAdvanced,
+                combat.BiomeChanged,
+                rankTransition);
             return active.IsAcademic
                 ? new AttemptResolution(academicResult, combat, snapshot,
-                    responseDurationMilliseconds)
+                    responseDurationMilliseconds, _pendingPresentation)
                 : new AttemptResolution(eventResult, combat, snapshot,
-                    responseDurationMilliseconds);
+                    responseDurationMilliseconds, _pendingPresentation);
         }
 
         private GameplaySnapshot CreateSnapshot()

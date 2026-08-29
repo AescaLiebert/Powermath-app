@@ -113,6 +113,23 @@
     border-color: rgb(222, 199, 157);
     font-size: 31px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.leaderboard-icon-button:hover,
+.leaderboard-icon-button:focus {
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+    border-color: rgb(255, 194, 64);
+    background-color: white;
+}
+
+.leaderboard-icon-button:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
 }
 
 .leaderboard-content {
@@ -154,6 +171,9 @@
     border-color: rgb(255, 249, 232);
     font-size: 82px;
     -unity-text-align: middle-center;
+    transition-property: scale;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out-back;
 }
 
 .leaderboard-throne {
@@ -248,6 +268,15 @@
     border-radius: 14px;
     border-width: 2px;
     border-color: rgb(166, 199, 195);
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out-back;
+}
+
+.leaderboard-row:hover {
+    scale: 1.015 1.015;
+    translate: 2px 0;
+    border-color: rgb(255, 194, 64);
 }
 
 .leaderboard-row-rank {

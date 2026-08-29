@@ -19,61 +19,31 @@ MonoBehaviour:
     rateBasisPoints: 7000
     displayColor: {r: 0.74, g: 0.52, b: 0.28, a: 1}
     pets:
-    - petId: ember_fox
-      displayName: Ember Fox
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: moss_turtle
-      displayName: Moss Turtle
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: cloud_finch
-      displayName: Cloud Finch
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: pebble_golem
-      displayName: Pebble Golem
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: moon_bunny
-      displayName: Moon Bunny
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    - {fileID: 11400000, guid: a1000000000000000000000000000001, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000002, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000003, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000004, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000005, type: 2}
   - rarityId: super_rare
     displayName: Super Rare
     rateBasisPoints: 2700
     displayColor: {r: 0.55, g: 0.36, b: 0.9, a: 1}
     pets:
-    - petId: prism_owl
-      displayName: Prism Owl
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: rune_lynx
-      displayName: Rune Lynx
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: tide_serpent
-      displayName: Tide Serpent
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: gear_griffin
-      displayName: Gear Griffin
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: bloom_stag
-      displayName: Bloom Stag
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    - {fileID: 11400000, guid: a1000000000000000000000000000006, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000007, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000008, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000009, type: 2}
+    - {fileID: 11400000, guid: a100000000000000000000000000000a, type: 2}
   - rarityId: ssr
     displayName: SSR
     rateBasisPoints: 300
     displayColor: {r: 1, g: 0.78, b: 0.2, a: 1}
     pets:
-    - petId: infinity_dragon
-      displayName: Infinity Dragon
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: chrono_phoenix
-      displayName: Chrono Phoenix
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: astral_kirin
-      displayName: Astral Kirin
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: crown_sphinx
-      displayName: Crown Sphinx
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-    - petId: wisdom_leviathan
-      displayName: Wisdom Leviathan
-      icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    - {fileID: 11400000, guid: a100000000000000000000000000000b, type: 2}
+    - {fileID: 11400000, guid: a100000000000000000000000000000c, type: 2}
+    - {fileID: 11400000, guid: a100000000000000000000000000000d, type: 2}
+    - {fileID: 11400000, guid: a100000000000000000000000000000e, type: 2}
+    - {fileID: 11400000, guid: a100000000000000000000000000000f, type: 2}
   commitClip: {fileID: 0}
   newPetClip: {fileID: 0}
   duplicateClip: {fileID: 0}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using PowerMath.Gameplay.Combat.Presentation;
 using PowerMath.UI.MainMenu;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -20,9 +21,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _enemyHpLabel;
         private readonly Label _cooldownLabel;
         private readonly VisualElement _enemyActions;
+        private readonly EnemyActionQueuePresenter _enemyActionQueue;
         private readonly Label _heartsLabel;
         private readonly Button _attackButton;
         private readonly VisualElement _attemptPanel;
+        private readonly VisualElement _answerContent;
         private readonly Label _timerLabel;
         private readonly Label _timerCaption;
         private readonly Label _answerLabel;
@@ -32,9 +35,14 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Button[] _digitButtons;
         private readonly Action[] _digitHandlers;
         private readonly Label _resultLabel;
+        private readonly VisualElement _feedbackCard;
+        private readonly Label _feedbackIcon;
+        private readonly Label _feedbackTitle;
+        private readonly Label _feedbackSubtitle;
+        private readonly VisualElement _scoreStack;
         private readonly Label _damageLabel;
         private readonly Label _criticalLabel;
-        private readonly Label _simulationBadge;
+        private readonly Label _battleBanner;
         private readonly Label _biomeLabel;
         private readonly Button _mapButton;
         private readonly VisualElement _mapModal;
@@ -42,17 +50,26 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Button _mapClose;
         private readonly VisualElement _biomeTransition;
         private readonly Label _biomeTransitionTitle;
+        private readonly Label _biomeTransitionKicker;
         private readonly Dictionary<string, Label> _mapNodes = new Dictionary<string, Label>();
         private Action<string> _backgroundRenderer;
         private Action<string> _encounterRenderer;
+        private Func<string, float, IEnumerator> _backgroundCrossfader;
         private bool _bound;
+        private readonly bool _reducedMotion;
+        private readonly UiToolkitLifecycleController _attemptLifecycle;
+        private readonly UiToolkitLifecycleController _feedbackLifecycle;
+        private readonly UiToolkitLifecycleController _bannerLifecycle;
+        private readonly UiToolkitLifecycleController _biomeLifecycle;
 
         public CombatLobbyView(
             VisualElement root,
-            IMainMenuPanelHost panelHost = null)
+            IMainMenuPanelHost panelHost = null,
+            bool reducedMotion = false)
         {
             _root = root ?? throw new ArgumentNullException(nameof(root));
             _panelHost = panelHost ?? new MainMenuPanelHost();
+            _reducedMotion = reducedMotion;
             _combatLayer = Require<VisualElement>("combat-layer");
             _enemyCard = Require<VisualElement>("combat-enemy-card");
             _stageLabel = Require<Label>("combat-stage-label");
@@ -62,9 +79,12 @@ namespace PowerMath.Gameplay.Combat.Unity
             _enemyHpLabel = Require<Label>("combat-enemy-hp-label");
             _cooldownLabel = _root.Q<Label>("combat-cooldown-label");
             _enemyActions = Require<VisualElement>("combat-enemy-actions");
+            _enemyActionQueue = new EnemyActionQueuePresenter(
+                new EnemyActionQueueView(_enemyActions), reducedMotion);
             _heartsLabel = Require<Label>("combat-hearts-label");
-            _attackButton = Require<Button>("combat-attack-button");
+            _attackButton = _root.Q<Button>("combat-attack-button");
             _attemptPanel = Require<VisualElement>("combat-attempt-panel");
+            _answerContent = Require<VisualElement>("combat-answer-content");
             _timerLabel = Require<Label>("combat-timer-label");
             _timerCaption = Require<Label>("combat-timer-caption");
             _answerLabel = Require<Label>("combat-answer-display");
@@ -72,9 +92,14 @@ namespace PowerMath.Gameplay.Combat.Unity
             _backspaceButton = Require<Button>("combat-backspace-button");
             _clearButton = Require<Button>("combat-clear-button");
             _resultLabel = Require<Label>("combat-result-label");
+            _feedbackCard = Require<VisualElement>("combat-feedback-card");
+            _feedbackIcon = Require<Label>("combat-feedback-icon");
+            _feedbackTitle = Require<Label>("combat-feedback-title");
+            _feedbackSubtitle = Require<Label>("combat-feedback-subtitle");
+            _scoreStack = Require<VisualElement>("combat-score-stack");
             _damageLabel = Require<Label>("combat-damage-label");
             _criticalLabel = Require<Label>("combat-critical-label");
-            _simulationBadge = Require<Label>("combat-simulation-badge");
+            _battleBanner = Require<Label>("combat-battle-banner");
             _biomeLabel = Require<Label>("combat-biome-label");
             _mapButton = Require<Button>("combat-map-button");
             _mapModal = Require<VisualElement>("combat-map-modal");
@@ -82,6 +107,14 @@ namespace PowerMath.Gameplay.Combat.Unity
             _mapClose = Require<Button>("combat-map-close");
             _biomeTransition = Require<VisualElement>("combat-biome-transition");
             _biomeTransitionTitle = Require<Label>("combat-biome-transition-title");
+            _biomeTransitionKicker = _root.Q<Label>("combat-biome-transition-kicker");
+            _attemptLifecycle = new UiToolkitLifecycleController(_attemptPanel);
+            _feedbackLifecycle = new UiToolkitLifecycleController(_feedbackCard);
+            _bannerLifecycle = new UiToolkitLifecycleController(_battleBanner);
+            _biomeLifecycle = new UiToolkitLifecycleController(
+                _biomeTransition,
+                enterMilliseconds: 420,
+                exitMilliseconds: 320);
 
             _digitButtons = new Button[10];
             _digitHandlers = new Action[10];
@@ -100,6 +133,13 @@ namespace PowerMath.Gameplay.Combat.Unity
         public event Action SubmitRequested;
 
         public int EnemyMaximumHp { get; private set; }
+        public bool CanAttack { get; private set; }
+
+        public void RequestAttack()
+        {
+            if (!CanAttack) return;
+            OnAttack();
+        }
 
         public void Bind()
         {
@@ -108,7 +148,10 @@ namespace PowerMath.Gameplay.Combat.Unity
                 return;
             }
 
-            _attackButton.clicked += OnAttack;
+            if (_attackButton != null)
+            {
+                _attackButton.clicked += OnAttack;
+            }
             _submitButton.clicked += OnSubmit;
             _backspaceButton.clicked += OnBackspace;
             _clearButton.clicked += OnClear;
@@ -149,31 +192,36 @@ namespace PowerMath.Gameplay.Combat.Unity
                     !snapshot.IsEvent && snapshot.EnemyRemainingCooldown <= 1
                 );
             }
-            RenderEnemyActions(snapshot);
+            if (snapshot.Phase == CombatPhase.EnemyReady ||
+                snapshot.Phase == CombatPhase.EventReady)
+                _enemyActionQueue.Synchronize(snapshot, _enemyActions.childCount == 0);
             _heartsLabel.text = BuildHearts(
                 snapshot.PlayerCurrentHearts,
                 snapshot.PlayerMaximumHearts
             );
-            _simulationBadge.style.display = snapshot.IsSimulation
-                ? DisplayStyle.Flex
-                : DisplayStyle.None;
-            _attackButton.text = "⚔";
-            _attackButton.tooltip = snapshot.IsEvent
-                ? "Start Challenge"
-                : "Attack";
-            _attackButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
-                snapshot.Phase == CombatPhase.EventReady);
+            CanAttack = snapshot.Phase == CombatPhase.EnemyReady ||
+                snapshot.Phase == CombatPhase.EventReady;
+            if (_attackButton != null)
+            {
+                _attackButton.text = "⚔";
+                _attackButton.tooltip = snapshot.IsEvent
+                    ? "Start Challenge"
+                    : "Attack";
+                _attackButton.SetEnabled(CanAttack);
+            }
             _mapButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
                 snapshot.Phase == CombatPhase.EventReady);
         }
 
         public void ConfigureStageMap(StageMapData map,
             Action<string> backgroundRenderer,
-            Action<string> encounterRenderer)
+            Action<string> encounterRenderer,
+            Func<string, float, IEnumerator> backgroundCrossfader = null)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
             _backgroundRenderer = backgroundRenderer;
             _encounterRenderer = encounterRenderer;
+            _backgroundCrossfader = backgroundCrossfader;
             _mapRoute.Clear();
             _mapNodes.Clear();
             for (int index = 0; index < map.Biomes.Count; index++)
@@ -188,12 +236,40 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public IEnumerator PlayBiomeTransition(CombatSnapshot destination)
         {
+            if (destination == null) yield break;
             _biomeTransitionTitle.text = destination.BiomeTitle.ToUpperInvariant();
-            _biomeTransition.style.display = DisplayStyle.Flex;
-            yield return new WaitForSecondsRealtime(0.55f);
-            ApplyEncounterVisuals(destination);
-            yield return new WaitForSecondsRealtime(0.85f);
-            _biomeTransition.style.display = DisplayStyle.None;
+            if (_biomeTransitionKicker != null)
+            {
+                _biomeTransitionKicker.text = "ENTERING NEW BIOME";
+            }
+
+            float crossfadeDuration = _reducedMotion ? 0.30f : 1.40f;
+            float popUpHoldDuration = _reducedMotion ? 0.35f : 0.85f;
+
+            _biomeLifecycle.Enter();
+
+            if (_backgroundCrossfader != null)
+            {
+                IEnumerator crossfade = _backgroundCrossfader(destination.BiomeId, crossfadeDuration);
+                if (crossfade != null)
+                {
+                    while (crossfade.MoveNext())
+                    {
+                        yield return crossfade.Current;
+                    }
+                }
+            }
+            else
+            {
+                _backgroundRenderer?.Invoke(destination.BiomeId);
+                yield return new WaitForSecondsRealtime(crossfadeDuration);
+            }
+
+            _encounterRenderer?.Invoke(destination.EnemyId);
+            yield return new WaitForSecondsRealtime(popUpHoldDuration);
+
+            _biomeLifecycle.Exit();
+            while (!_biomeLifecycle.IsStable) yield return null;
         }
 
         public void SetEnemyHp(int currentHp)
@@ -206,14 +282,97 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public void ShowAttempt(bool visible)
         {
-            _attemptPanel.style.display = visible
-                ? DisplayStyle.Flex
-                : DisplayStyle.None;
-            _attackButton.SetEnabled(!visible);
             if (visible)
             {
-                _attemptPanel.Focus();
+                CanAttack = false;
+                _attackButton?.SetEnabled(false);
+                ShowAnswerContent(true);
+                HideAnswerFeedback();
+                _attemptLifecycle.Enter(() => _attemptPanel.Focus());
             }
+            else _attemptLifecycle.Exit();
+        }
+
+        public void SetRetainedQuestionLayout(bool retained)
+        {
+            _attemptPanel.EnableInClassList(
+                "combat-attempt-panel--retained-video",
+                retained);
+        }
+
+        public void ShowAnswerContent(bool visible)
+        {
+            _answerContent.style.display = visible
+                ? DisplayStyle.Flex
+                : DisplayStyle.None;
+        }
+
+        public void ShowAnswerFeedback(
+            string icon,
+            string title,
+            string subtitle,
+            bool isPositive)
+        {
+            ShowAnswerContent(false);
+            _resultLabel.text = string.Empty;
+            _feedbackIcon.text = icon ?? string.Empty;
+            _feedbackTitle.text = title ?? string.Empty;
+            _feedbackSubtitle.text = subtitle ?? string.Empty;
+            _feedbackCard.EnableInClassList(
+                "combat-feedback-card--negative",
+                !isPositive);
+            _scoreStack.Clear();
+            _feedbackLifecycle.Enter();
+        }
+
+        public void AddFeedbackStep(string label, string value, bool isFinal)
+        {
+            if (_scoreStack.childCount > 0)
+            {
+                var connector = new Label("▼");
+                connector.pickingMode = PickingMode.Ignore;
+                connector.AddToClassList("combat-score-connector");
+                _scoreStack.Add(connector);
+            }
+
+            var row = new VisualElement
+            {
+                pickingMode = PickingMode.Ignore
+            };
+            row.AddToClassList("combat-score-row");
+            row.EnableInClassList("combat-score-row--final", isFinal);
+
+            var caption = new Label(label ?? string.Empty);
+            caption.AddToClassList("combat-score-label");
+            var amount = new Label(value ?? string.Empty);
+            amount.AddToClassList("combat-score-value");
+            row.Add(caption);
+            row.Add(amount);
+            _scoreStack.Add(row);
+            row.schedule.Execute(() =>
+                row.AddToClassList("combat-score-row--revealed"));
+        }
+
+        public void HideAnswerFeedback()
+        {
+            _feedbackLifecycle.Exit();
+            _feedbackCard.RemoveFromClassList("combat-feedback-card--negative");
+            _scoreStack.Clear();
+        }
+
+        public void ShowBattleBanner(string message, bool isPositive)
+        {
+            _battleBanner.text = message ?? string.Empty;
+            _battleBanner.EnableInClassList(
+                "combat-battle-banner--negative",
+                !isPositive);
+            _bannerLifecycle.Enter();
+        }
+
+        public void HideBattleBanner()
+        {
+            _bannerLifecycle.Exit();
+            _battleBanner.RemoveFromClassList("combat-battle-banner--negative");
         }
 
         public void SetAnswer(string displayValue, bool canSubmit)
@@ -289,10 +448,69 @@ namespace PowerMath.Gameplay.Combat.Unity
             _enemyCard.EnableInClassList("combat-enemy--critical", active && critical);
         }
 
+        public bool IsEnemyActionQueueStable => _enemyActionQueue.IsStable;
+        public bool IsBlockingUiStable => _attemptLifecycle.IsStable &&
+            _feedbackLifecycle.IsStable && _bannerLifecycle.IsStable &&
+            _biomeLifecycle.IsStable;
+
+        public void ArmEnemyAction(string presentationId)
+        {
+            _enemyActionQueue.ArmNext(presentationId);
+        }
+
+        public IEnumerator ConsumeEnemyAction(
+            string presentationId,
+            EnemyActionTokenKind kind,
+            bool cancelled)
+        {
+            yield return _enemyActionQueue.ConsumeArmed(
+                presentationId, kind, cancelled);
+        }
+
+        public void InitiateEnemyActions(CombatSnapshot snapshot)
+        {
+            _enemyActionQueue.Synchronize(snapshot, true);
+        }
+
+        public void PrepareEncounterPresentation(CombatSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            ApplyEncounterVisuals(snapshot);
+            _enemyName.text = snapshot.EnemyName;
+            EnemyMaximumHp = snapshot.EnemyMaximumHp;
+            SetEnemyHp(snapshot.EnemyCurrentHp);
+        }
+
+        public void RebuildRecoveredEnemyActions(AttemptPresentationReceipt receipt)
+        {
+            if (receipt == null) return;
+            CombatPresentationSnapshot source = receipt.Source;
+            var snapshot = new CombatSnapshot(
+                source.Stage,
+                source.EncounterId,
+                source.EncounterId,
+                source.EnemyCurrentHp,
+                source.EnemyMaximumHp,
+                source.EnemyRemainingCooldown,
+                source.EnemyMaximumCooldown,
+                source.PlayerCurrentHearts,
+                source.PlayerMaximumHearts,
+                CombatPhase.EnemyReady,
+                false,
+                source.BiomeId,
+                source.BiomeId,
+                source.EncounterKind,
+                string.Empty,
+                0);
+            _enemyActionQueue.Synchronize(snapshot, false);
+            _enemyActionQueue.ArmNext(receipt.PresentationId);
+        }
+
         public void SetUnavailable(string playerMessage)
         {
             _combatLayer.style.display = DisplayStyle.Flex;
-            _attackButton.SetEnabled(false);
+            CanAttack = false;
+            _attackButton?.SetEnabled(false);
             _resultLabel.text = playerMessage;
             _resultLabel.AddToClassList("combat-result--negative");
         }
@@ -304,7 +522,10 @@ namespace PowerMath.Gameplay.Combat.Unity
                 return;
             }
 
-            _attackButton.clicked -= OnAttack;
+            if (_attackButton != null)
+            {
+                _attackButton.clicked -= OnAttack;
+            }
             _submitButton.clicked -= OnSubmit;
             _backspaceButton.clicked -= OnBackspace;
             _clearButton.clicked -= OnClear;
@@ -356,40 +577,6 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             _backgroundRenderer?.Invoke(snapshot.BiomeId);
             _encounterRenderer?.Invoke(snapshot.EnemyId);
-        }
-
-        private void RenderEnemyActions(CombatSnapshot snapshot)
-        {
-            _enemyActions.Clear();
-            if (snapshot.IsEvent)
-            {
-                var challenge = new Label("!");
-                challenge.pickingMode = PickingMode.Ignore;
-                challenge.AddToClassList("hud-enemy-action");
-                challenge.AddToClassList("hud-enemy-action--attack");
-                _enemyActions.Add(challenge);
-                return;
-            }
-
-            int maximum = Mathf.Max(1, snapshot.EnemyMaximumCooldown);
-            int remaining = Mathf.Clamp(
-                snapshot.EnemyRemainingCooldown,
-                0,
-                maximum);
-            int consumed = maximum - remaining;
-            for (int index = 0; index < maximum; index++)
-            {
-                bool attackTurn = index == maximum - 1;
-                var slot = new Label(attackTurn ? "⚔" : "•");
-                slot.pickingMode = PickingMode.Ignore;
-                slot.AddToClassList("hud-enemy-action");
-                slot.EnableInClassList("hud-enemy-action--spent", index < consumed);
-                slot.EnableInClassList("hud-enemy-action--attack", attackTurn);
-                slot.EnableInClassList(
-                    "hud-enemy-action--danger",
-                    attackTurn && remaining <= 1);
-                _enemyActions.Add(slot);
-            }
         }
 
         private void OnSubmit()

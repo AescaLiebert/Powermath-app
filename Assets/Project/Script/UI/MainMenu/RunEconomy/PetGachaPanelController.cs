@@ -441,13 +441,13 @@ namespace PowerMath.UI.MainMenu
             if (_definition != null &&
                 _definition.TryResolvePet(
                     receipt.PetId,
-                    out PetGachaCatalogDefinition.PetContent pet,
+                    out PetDefinition pet,
                     out PetGachaCatalogDefinition.RarityContent rarity))
             {
-                _resultName.text = pet.displayName.ToUpperInvariant();
+                _resultName.text = pet.DisplayName.ToUpperInvariant();
                 _resultRarity.text = rarity.displayName.ToUpperInvariant();
                 _resultRarity.style.color = rarity.displayColor;
-                _resultIcon.style.backgroundImage = new StyleBackground(pet.icon);
+                _resultIcon.style.backgroundImage = new StyleBackground(pet.Icon);
             }
             else
             {

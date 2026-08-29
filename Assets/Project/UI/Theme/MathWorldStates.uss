@@ -25,6 +25,11 @@
     background-color: rgba(255, 230, 181, 0.84);
 }
 
-.is-reduced-motion .mw-button {
+.is-reduced-motion .mw-button,
+.is-reduced-motion .mw-button:hover,
+.is-reduced-motion .mw-button:focus,
+.is-reduced-motion .mw-button:active {
     transition-duration: 0s;
+    scale: 1 1;
+    translate: 0 0;
 }

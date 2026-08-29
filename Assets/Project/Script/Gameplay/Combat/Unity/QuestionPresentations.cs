@@ -30,5 +30,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             _cancelled = true;
         }
+
+        public void Dismiss()
+        {
+        }
     }
 }

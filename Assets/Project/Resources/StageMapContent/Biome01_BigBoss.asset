@@ -17,6 +17,6 @@ MonoBehaviour:
   biomeId: biome-1
   encounterKind: 2
   baseHp: 100
-  maximumCooldown: 2
+  maximumCooldown: 3
   hpMultiplierBasisPoints: 22000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 3b0ab68052cf34b448fa615d2f211b6e, type: 3}

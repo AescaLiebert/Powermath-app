@@ -21,6 +21,20 @@ namespace PowerMath.Gameplay.Progression
         public int Prestige { get; }
     }
 
+    public readonly struct RunSettlementPresentationValues
+    {
+        public RunSettlementPresentationValues(
+            long sourceEffectiveAttack,
+            long resultingEffectiveAttack)
+        {
+            SourceEffectiveAttack = Math.Max(0, sourceEffectiveAttack);
+            ResultingEffectiveAttack = Math.Max(0, resultingEffectiveAttack);
+        }
+
+        public long SourceEffectiveAttack { get; }
+        public long ResultingEffectiveAttack { get; }
+    }
+
     public static class RunSettlementPolicy
     {
         public const int MinimumRebirthStage = 50;
@@ -64,8 +78,8 @@ namespace PowerMath.Gameplay.Progression
 
         public static RunSettlementAward Calculate(PlayerSnapshot player, RunSettlementType type)
         {
-            if (!CanSettle(player, type, out string reason))
-                throw new InvalidOperationException(reason);
+            if (player?.progression == null || player.activeRun == null)
+                throw new InvalidOperationException("Player run data is unavailable.");
 
             int stage = Math.Min(200, Math.Max(1,
                 Math.Max(player.progression.currentStage, player.activeRun.currentStage)));

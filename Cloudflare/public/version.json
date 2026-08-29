@@ -1,0 +1,15 @@
+{
+  "clientVersion": "1.0.0.0",
+  "minSupportedVersion": "1.0.0.0",
+  "schemaVersion": 1,
+  "contentVersions": {
+    "questionCatalog": "2026.08-v1",
+    "stageMap": "1.0.0",
+    "petGacha": "1.0.0"
+  },
+  "maintenance": {
+    "isActive": false,
+    "message": "The game is currently undergoing scheduled maintenance. Please check back shortly."
+  },
+  "forceReloadUrl": ""
+}

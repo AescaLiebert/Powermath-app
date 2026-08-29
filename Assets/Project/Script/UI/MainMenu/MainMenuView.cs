@@ -126,7 +126,11 @@ namespace PowerMath.UI.MainMenu
 
             if (root != null)
             {
+                root.pickingMode = PickingMode.Ignore;
                 _screen = root.Q<VisualElement>("main-menu-screen");
+                if (_screen != null) _screen.pickingMode = PickingMode.Ignore;
+                VisualElement safeArea = root.Q<VisualElement>("safe-area");
+                if (safeArea != null) safeArea.pickingMode = PickingMode.Ignore;
                 _displayNameLabel = root.Q<Label>("player-display-name");
                 _stageLabel = root.Q<Label>("current-stage-label");
                 _stageProgress = root.Q<ProgressBar>("stage-progress");

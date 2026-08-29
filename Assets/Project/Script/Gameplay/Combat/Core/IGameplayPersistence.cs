@@ -21,7 +21,8 @@ namespace PowerMath.Gameplay.Combat
             QuestionPresentationDescriptor activeQuestion = null,
             AnswerWindowReceipt? answerWindow = null,
             AttemptResolution resolution = null,
-            string transactionId = "")
+            string transactionId = "",
+            string presentationId = "")
         {
             TransactionId = string.IsNullOrWhiteSpace(transactionId)
                 ? Guid.NewGuid().ToString("N")
@@ -32,6 +33,7 @@ namespace PowerMath.Gameplay.Combat
             ActiveQuestion = activeQuestion;
             AnswerWindow = answerWindow;
             Resolution = resolution;
+            PresentationId = presentationId ?? string.Empty;
         }
 
         public GameplaySavePoint SavePoint { get; }
@@ -41,6 +43,7 @@ namespace PowerMath.Gameplay.Combat
         public QuestionPresentationDescriptor ActiveQuestion { get; }
         public AnswerWindowReceipt? AnswerWindow { get; }
         public AttemptResolution Resolution { get; }
+        public string PresentationId { get; }
     }
 
     public interface IGameplayPersistence
@@ -58,7 +61,8 @@ namespace PowerMath.Gameplay.Combat
             GameplaySavePoint savePoint,
             QuestionPresentationDescriptor activeQuestion = null,
             AnswerWindowReceipt? answerWindow = null,
-            AttemptResolution resolution = null);
+            AttemptResolution resolution = null,
+            string presentationId = "");
     }
 
     public sealed class ImmediateGameplayPersistence : IGameplayPersistence

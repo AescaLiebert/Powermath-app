@@ -70,6 +70,8 @@ namespace PowerMath.Session
             AddBoolean(builder, root, gameData, new[] { "economy", "lastPetGachaWasNew" }, false);
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaCost" }, 0);
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaResultingPowerCoins" }, 0);
+            AddString(builder, root, gameData, new[] { "economy", "lastPetEquipTransactionId" }, string.Empty);
+            AddString(builder, root, gameData, new[] { "economy", "lastPetEquipPetId" }, string.Empty);
             AddString(builder, root, gameData, new[] { "lastRunSettlement", "runId" }, string.Empty);
             AddString(builder, root, gameData, new[] { "lastRunSettlement", "type" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "lastRunSettlement", "stageReached" }, 0);

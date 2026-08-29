@@ -34,12 +34,15 @@
     border-bottom-right-radius: 16px;
     font-size: 19px;
     -unity-font-style: bold;
-    transition-duration: 0.1s;
-    transition-property: scale, background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+    transition-property: scale, translate, background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
 }
 
 .mw-button:hover,
 .mw-button:focus {
+    scale: 1.035 1.035;
+    translate: 0 -2px;
     border-left-color: rgb(32, 92, 183);
     border-right-color: rgb(32, 92, 183);
     border-top-color: rgb(32, 92, 183);
@@ -47,11 +50,15 @@
 }
 
 .mw-button:active {
-    scale: 0.98 0.98;
+    scale: 0.94 0.94;
+    translate: 0 2px;
+    transition-duration: 0.08s;
 }
 
 .mw-button:disabled {
     opacity: 0.55;
+    scale: 1 1;
+    translate: 0 0;
 }
 
 .mw-button--primary {
@@ -65,11 +72,19 @@
 
 .mw-button--primary:hover,
 .mw-button--primary:focus {
+    scale: 1.04 1.04;
+    translate: 0 -2px;
     background-color: rgb(255, 197, 82);
     border-left-color: rgb(20, 48, 91);
     border-right-color: rgb(20, 48, 91);
     border-top-color: rgb(20, 48, 91);
     border-bottom-color: rgb(20, 48, 91);
+}
+
+.mw-button--primary:active {
+    scale: 0.94 0.94;
+    translate: 0 2px;
+    transition-duration: 0.08s;
 }
 
 .mw-status {

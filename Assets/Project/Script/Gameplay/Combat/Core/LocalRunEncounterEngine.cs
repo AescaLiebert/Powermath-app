@@ -53,9 +53,7 @@ namespace PowerMath.Gameplay.Combat
                 _selection.Kind != restored.EncounterKind)
                 throw new InvalidOperationException("Saved encounter does not match the Stage Map catalog.");
             _eventAttemptOrdinal = Math.Max(0, restored.EventAttemptOrdinal);
-            _phase = restored.Phase == CombatPhase.PresentingResult
-                ? (_selection.IsEvent ? CombatPhase.EventReady : CombatPhase.EnemyReady)
-                : restored.Phase;
+            _phase = restored.Phase;
             _attemptCommitted = _phase == CombatPhase.Committed;
             if (!_selection.IsEvent)
             {
@@ -94,7 +92,8 @@ namespace PowerMath.Gameplay.Combat
             DamageResult damage = _damageCalculator.Calculate(new DamageInput(
                 _stats.EffectiveAttack, rankMultiplier, 1d,
                 _stats.CriticalDamagePercent, critical, responseScore));
-            return Resolve(responseScore, damage.FinalDamage, true, critical, false);
+            return Resolve(responseScore, damage.FinalDamage, true, critical, false,
+                damage.Breakdown);
         }
 
         public CombatResolution ResolveIncorrect(bool timedOut)
@@ -110,7 +109,9 @@ namespace PowerMath.Gameplay.Combat
             return CreateSnapshot();
         }
 
-        private CombatResolution Resolve(int score, int damage, bool correct, bool critical, bool timedOut)
+        private CombatResolution Resolve(int score, int damage, bool correct,
+            bool critical, bool timedOut,
+            DamageBreakdown damageBreakdown = default)
         {
             StageId resolvedStage = _stage;
             string previousBiome = _selection.BiomeId;
@@ -150,7 +151,8 @@ namespace PowerMath.Gameplay.Combat
             _attemptCommitted = false;
             return new CombatResolution(score, damage, correct, critical, timedOut,
                 hpBefore, hpAfter, defeated, attacked, playerDefeated, resolvedStage,
-                advanced, CreateSnapshot(), advanced && previousBiome != _selection.BiomeId);
+                advanced, CreateSnapshot(), advanced && previousBiome != _selection.BiomeId,
+                damageBreakdown);
         }
 
         private void LoadSelection(EncounterSelection selection, bool initial)

@@ -2,13 +2,15 @@
 
 | Field | Value |
 |---|---|
-| Status | **Accepted** |
+| Status | **Partially superseded by ADR-015** |
 | Date | 2026-08-10 |
 | Author | Architect agent |
 | GDD Section | `@tag:core-loop`, `@tag:question-data`, `@tag:run-reset`, `@tag:server-authority` |
 | Supersedes on acceptance | ADR-003 schema/path decision; ADR-005 no-live-adapter restriction |
 
 > Accepted by the project owner on 2026-08-10 (`LGTM`).
+
+> ADR-015 supersedes only the local-content/real-save fallback behavior. Live catalog, persistence, and YouTube boundaries remain accepted.
 
 ## Context
 

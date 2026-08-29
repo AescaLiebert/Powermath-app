@@ -350,7 +350,8 @@ namespace PowerMath.Session
                     silverEarned = ReadLong(activeRun, "silverEarned"),
                     goldEarned = ReadLong(activeRun, "goldEarned"),
                     diamondEarned = ReadLong(activeRun, "diamondEarned"),
-                    bonusMultiplierBasisPoints = Math.Max(10000, ReadInt(activeRun, "bonusMultiplierBasisPoints"))
+                    bonusMultiplierBasisPoints = Math.Max(10000, ReadInt(activeRun, "bonusMultiplierBasisPoints")),
+                    pendingPresentation = MapAttemptPresentation(activeRun)
                 },
                 academic = MapAcademic(gameData),
                 analytics = MapAnalytics(gameData),
@@ -364,7 +365,9 @@ namespace PowerMath.Session
                     lastPetGachaPetId = ReadString(economy, "lastPetGachaPetId"),
                     lastPetGachaWasNew = ReadBool(economy, "lastPetGachaWasNew"),
                     lastPetGachaCost = ReadLong(economy, "lastPetGachaCost"),
-                    lastPetGachaResultingPowerCoins = ReadLong(economy, "lastPetGachaResultingPowerCoins")
+                    lastPetGachaResultingPowerCoins = ReadLong(economy, "lastPetGachaResultingPowerCoins"),
+                    lastPetEquipTransactionId = ReadString(economy, "lastPetEquipTransactionId"),
+                    lastPetEquipPetId = ReadString(economy, "lastPetEquipPetId")
                 },
                 lastRunSettlement = new PlayerSnapshot.RunSettlementData
                 {
@@ -374,10 +377,73 @@ namespace PowerMath.Session
                     powerCoinsGranted = ReadLong(lastRunSettlement, "powerCoinsGranted"),
                     legacyAtkBasisPointsGranted = ReadLong(lastRunSettlement, "legacyAtkBasisPointsGranted"),
                     prestigeGranted = ReadInt(lastRunSettlement, "prestigeGranted"),
-                    resultingPowerCoins = ReadLong(lastRunSettlement, "resultingPowerCoins")
+                    resultingPowerCoins = ReadLong(lastRunSettlement, "resultingPowerCoins"),
+                    presentationVersion = ReadInt(lastRunSettlement, "presentationVersion"),
+                    presentationId = ReadString(lastRunSettlement, "presentationId"),
+                    presentationStatus = ReadString(lastRunSettlement, "presentationStatus", "None"),
+                    presentationCause = ReadString(lastRunSettlement, "presentationCause"),
+                    sourceBiomeId = ReadString(lastRunSettlement, "sourceBiomeId"),
+                    sourceEncounterId = ReadString(lastRunSettlement, "sourceEncounterId"),
+                    sourceEncounterKind = ReadString(lastRunSettlement, "sourceEncounterKind"),
+                    sourcePowerCoins = ReadLong(lastRunSettlement, "sourcePowerCoins"),
+                    sourceLegacyAtkBasisPoints = ReadLong(lastRunSettlement, "sourceLegacyAtkBasisPoints"),
+                    sourcePrestige = ReadInt(lastRunSettlement, "sourcePrestige"),
+                    sourceEffectiveAttack = ReadLong(lastRunSettlement, "sourceEffectiveAttack"),
+                    resultingEffectiveAttack = ReadLong(lastRunSettlement, "resultingEffectiveAttack"),
+                    acknowledgedAtUnixSeconds = ReadLong(lastRunSettlement, "acknowledgedAtUnixSeconds")
                 }
             };
             return true;
+        }
+
+        private static PlayerSnapshot.AttemptPresentationData MapAttemptPresentation(
+            JsonValue activeRun)
+        {
+            if (!TryGetMapFromFields(activeRun, "pendingPresentation", out JsonValue value))
+                return null;
+            string presentationId = ReadString(value, "presentationId");
+            if (string.IsNullOrWhiteSpace(presentationId)) return null;
+            TryGetMapFromFields(value, "source", out JsonValue source);
+            TryGetMapFromFields(value, "destination", out JsonValue destination);
+            return new PlayerSnapshot.AttemptPresentationData
+            {
+                version = ReadInt(value, "version"),
+                presentationId = presentationId,
+                attemptId = ReadString(value, "attemptId"),
+                outcome = ReadString(value, "outcome"),
+                responseScore = ReadInt(value, "responseScore"),
+                finalDamage = ReadInt(value, "finalDamage"),
+                isCritical = ReadBool(value, "isCritical"),
+                resolvedEnemyHpAfter = ReadInt(value, "resolvedEnemyHpAfter"),
+                enemyDefeated = ReadBool(value, "enemyDefeated"),
+                enemyAttacked = ReadBool(value, "enemyAttacked"),
+                playerDefeated = ReadBool(value, "playerDefeated"),
+                stageAdvanced = ReadBool(value, "stageAdvanced"),
+                biomeChanged = ReadBool(value, "biomeChanged"),
+                previousRank = ReadString(value, "previousRank", "Silver"),
+                currentRank = ReadString(value, "currentRank", "Silver"),
+                source = MapPresentationSnapshot(source),
+                destination = MapPresentationSnapshot(destination)
+            };
+        }
+
+        private static PlayerSnapshot.CombatPresentationData MapPresentationSnapshot(
+            JsonValue value)
+        {
+            return new PlayerSnapshot.CombatPresentationData
+            {
+                stage = ReadInt(value, "stage"),
+                biomeId = ReadString(value, "biomeId"),
+                encounterId = ReadString(value, "encounterId"),
+                encounterKind = ReadString(value, "encounterKind", "NormalMonster"),
+                enemyCurrentHp = ReadInt(value, "enemyCurrentHp"),
+                enemyMaximumHp = ReadInt(value, "enemyMaximumHp"),
+                enemyRemainingCooldown = ReadInt(value, "enemyRemainingCooldown"),
+                enemyMaximumCooldown = ReadInt(value, "enemyMaximumCooldown"),
+                playerCurrentHearts = ReadInt(value, "playerCurrentHearts"),
+                playerMaximumHearts = ReadInt(value, "playerMaximumHearts"),
+                phase = ReadString(value, "phase")
+            };
         }
 
         private static PlayerSnapshot.AcademicData MapAcademic(JsonValue gameData)

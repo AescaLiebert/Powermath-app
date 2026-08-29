@@ -33,6 +33,7 @@ namespace PowerMath.Gameplay.Academic.Unity
             }
 
             _view.ContinueRequested -= OnContinue;
+            yield return _view.PlayDismissAnimation();
             _view.HideRankTransition();
         }
 

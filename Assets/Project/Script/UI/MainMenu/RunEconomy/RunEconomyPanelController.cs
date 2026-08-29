@@ -2,8 +2,11 @@ using System;
 using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
+using PowerMath.Gameplay.Combat;
+using PowerMath.Gameplay.Combat.Unity;
 using PowerMath.PlayerData;
 using PowerMath.Session;
+using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -30,51 +33,27 @@ namespace PowerMath.UI.MainMenu
             double baseCriticalDamagePercent,
             AudioSource audioSource,
             bool reducedMotion,
-            IMainMenuPanelHost panelHost)
+            IUiMotionDriver motionDriver,
+            IMainMenuPanelHost panelHost,
+            IMainMenuInteractionGate interactionGate = null,
+            ActorPresentationController playerActor = null)
         {
             if (host == null) throw new ArgumentNullException(nameof(host));
             if (root == null) throw new ArgumentNullException(nameof(root));
             if (player == null) throw new ArgumentNullException(nameof(player));
             if (panelHost == null) throw new ArgumentNullException(nameof(panelHost));
 
-            var store = new FirestoreProgressionCommandStore(
-                settings,
-                player,
-                questions,
-                baseWeaponAttack);
-            var publisher = new FirestoreLeaderboardProjectionPublisher(settings);
-            _settlement = new RunSettlementPanelController(
-                host,
-                root,
-                player,
-                store,
-                publisher,
-                baseAttack,
-                baseWeaponAttack,
-                baseCriticalRate,
-                baseCriticalDamagePercent,
-                panelHost);
-            _playerHub = new PlayerHubPanelController(
-                host,
-                root,
-                player,
-                store,
-                publisher,
-                catalog,
-                baseAttack,
-                baseWeaponAttack,
-                baseCriticalRate,
-                baseCriticalDamagePercent,
-                panelHost);
-
             PetGachaCatalog petCatalog = null;
             IPetGachaCommandStore petStore = null;
+            IPetEquipCommandStore petEquipStore = null;
             string unavailableReason;
             if (petGachaDefinition == null)
             {
                 unavailableReason = "Pet Gacha content is not configured.";
             }
-            else if (!petGachaDefinition.TryBuildCatalog(out petCatalog, out unavailableReason))
+            else if (!petGachaDefinition.TryBuildCatalog(
+                         out petCatalog,
+                         out unavailableReason))
             {
                 unavailableReason = "Pet Gacha content is invalid: " + unavailableReason;
             }
@@ -86,8 +65,58 @@ namespace PowerMath.UI.MainMenu
                     player,
                     petCatalog,
                     _petGachaRandom);
+                petEquipStore = new FirestorePetEquipCommandStore(
+                    settings,
+                    player,
+                    petGachaDefinition);
                 unavailableReason = string.Empty;
             }
+
+            var store = new FirestoreProgressionCommandStore(
+                settings,
+                player,
+                questions,
+                baseWeaponAttack);
+            var publisher = new FirestoreLeaderboardProjectionPublisher(settings);
+            MainMenuSharedOverlayController sharedOverlay =
+                MainMenuSharedOverlayController.GetOrCreate(
+                    host.gameObject,
+                    root,
+                    panelHost);
+            _settlement = new RunSettlementPanelController(
+                host,
+                root,
+                player,
+                store,
+                publisher,
+                baseAttack,
+                baseWeaponAttack,
+                baseCriticalRate,
+                baseCriticalDamagePercent,
+                petCatalog,
+                panelHost,
+                interactionGate,
+                playerActor,
+                reducedMotion);
+            _playerHub = new PlayerHubPanelController(
+                host,
+                root,
+                player,
+                store,
+                publisher,
+                catalog,
+                petGachaDefinition,
+                petCatalog,
+                petEquipStore,
+                baseAttack,
+                baseWeaponAttack,
+                baseCriticalRate,
+                baseCriticalDamagePercent,
+                audioSource,
+                motionDriver,
+                panelHost,
+                sharedOverlay);
+
             _petGacha = new PetGachaPanelController(
                 host,
                 root,
@@ -108,6 +137,12 @@ namespace PowerMath.UI.MainMenu
             _playerHub.Dispose();
             _petGacha.Dispose();
             _petGachaRandom?.Dispose();
+        }
+
+        public void NotifyTerminalPresentationCompleted(CombatPhase phase)
+        {
+            if (phase == CombatPhase.RunDefeat)
+                _settlement.NotifyDeathPresentationCompleted();
         }
     }
 }

@@ -1,23 +1,38 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:Template name="MainMenuShell" src="project://database/Assets/Project/UI/MainMenu/MainMenuShell.uxml"/>
-    <ui:Template name="CombatSurface" src="project://database/Assets/Project/UI/MainMenu/CombatSurface.uxml"/>
-    <ui:Template name="LegacyFeaturePanels" src="project://database/Assets/Project/UI/MainMenu/LegacyFeaturePanels.uxml"/>
-    <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss"/>
-    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss"/>
-    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss"/>
-    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss"/>
-    <Style src="project://database/Assets/Project/UI/CombatLobbyUI.uss"/>
-    <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuExperience.uss"/>
-    <Style src="project://database/Assets/Project/UI/MainMenu/PlayerHubPanel.uss"/>
-    <Style src="project://database/Assets/Project/UI/MainMenu/RebirthPanel.uss"/>
-    <Style src="project://database/Assets/Project/UI/MainMenu/PetGachaPanel.uss"/>
-    <Style src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uss"/>
-    <Style src="project://database/Assets/Project/UI/MainMenu/ProfileAnalyticsPanel.uss"/>
-    <ui:VisualElement name="main-menu-screen" class="mw-screen main-menu-root is-ready">
-        <ui:VisualElement name="safe-area" class="mw-safe-area main-menu-safe-area">
+    <ui:Template name="CombatSurface" src="project://database/Assets/Project/UI/MainMenu/CombatSurface.uxml?fileID=9197481963319205126&amp;guid=d4ed21dcae3742648a830e100cb14187&amp;type=3#CombatSurface"/>
+    <ui:Template name="LegacyFeaturePanels" src="project://database/Assets/Project/UI/MainMenu/LegacyFeaturePanels.uxml?fileID=9197481963319205126&amp;guid=103f3110e42504747956c1b845dd65a2&amp;type=3#LegacyFeaturePanels"/>
+    <ui:Template name="MainMenuShell" src="project://database/Assets/Project/UI/MainMenu/MainMenuShell.uxml?fileID=9197481963319205126&amp;guid=a627e06624973a54693ce44339524e61&amp;type=3#MainMenuShell"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
+    <Style src="project://database/Assets/Project/UI/CombatLobbyUI.uss?fileID=7433441132597879392&amp;guid=3ea5ee48f6afce54b8ee62c9ae496672&amp;type=3#CombatLobbyUI"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuExperience.uss?fileID=7433441132597879392&amp;guid=a3168f27716975f42a77b8d15d9be5c1&amp;type=3#MainMenuExperience"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/PlayerHubPanel.uss?fileID=7433441132597879392&amp;guid=6c719429dbb49c14b86d3fe58b0df7ec&amp;type=3#PlayerHubPanel"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/RebirthPanel.uss?fileID=7433441132597879392&amp;guid=f55d322181168c747ab659406eb947e6&amp;type=3#RebirthPanel"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/PetGachaPanel.uss?fileID=7433441132597879392&amp;guid=3d40160347b7bcc449b9a900de6ae62a&amp;type=3#PetGachaPanel"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uss?fileID=7433441132597879392&amp;guid=9cb9d7a720d16eb4db4946f3cbb1a86e&amp;type=3#LeaderboardPanel"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/ProfileAnalyticsPanel.uss?fileID=7433441132597879392&amp;guid=6ee03a27eb16be44caacfddce5237c0f&amp;type=3#ProfileAnalyticsPanel"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/AdminPanel.uss?fileID=7433441132597879392&amp;guid=0cd82efce4261564b869fe4761529a07&amp;type=3#AdminPanel"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuSharedOverlay.uss?fileID=7433441132597879392&amp;guid=0ab46313332b46e8a9fa5e40c123c9d5&amp;type=3#MainMenuSharedOverlay"/>
+    <ui:VisualElement name="main-menu-screen" picking-mode="Ignore" class="mw-screen main-menu-root is-ready">
+        <ui:VisualElement name="safe-area" picking-mode="Ignore" class="mw-safe-area main-menu-safe-area">
             <ui:Instance template="MainMenuShell" picking-mode="Ignore" class="mw-template-fill"/>
             <ui:Instance template="CombatSurface" picking-mode="Ignore" class="mw-template-fill"/>
             <ui:Instance template="LegacyFeaturePanels" picking-mode="Ignore" class="mw-template-fill"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="main-menu-utility-bar" class="main-menu-utility-bar" style="left: auto;">
+            <ui:Button name="main-menu-utility-back" text="X" tooltip="Back" class="main-menu-utility-back" style="border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; margin-right: 4px;"/>
+            <ui:Label name="main-menu-utility-power-coins" text="⚡ 0" class="main-menu-utility-currency main-menu-utility-currency--power"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="main-menu-notification" picking-mode="Ignore" class="main-menu-notification" style="flex-direction: column; bottom: auto; top: 50px;">
+            <ui:Label name="main-menu-notification-text" text="" picking-mode="Ignore" class="main-menu-notification__text"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="main-menu-transition-layer" picking-mode="Ignore" class="main-menu-transition-layer">
+            <ui:VisualElement name="main-menu-transition-cover" picking-mode="Ignore" class="main-menu-transition-cover"/>
+            <ui:VisualElement name="battle-start-accent-left" picking-mode="Ignore" class="battle-start-accent battle-start-accent--left"/>
+            <ui:VisualElement name="battle-start-accent-right" picking-mode="Ignore" class="battle-start-accent battle-start-accent--right"/>
+            <ui:Label name="battle-start-title" text="BATTLE START" picking-mode="Ignore" class="battle-start-title"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

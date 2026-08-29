@@ -133,6 +133,7 @@ GameObject:
   - component: {fileID: 336529141}
   - component: {fileID: 336529140}
   - component: {fileID: 336529139}
+  - component: {fileID: 336529142}
   m_Layer: 0
   m_Name: UIDocument
   m_TagString: Untagged
@@ -227,6 +228,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 743f0c53af0329a4ab8f3e611412ff2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.Authentication.AuthenticationView
+--- !u!114 &336529142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336529135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6771290128e48f4ab90d0a818e68486, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.MainMenu.CombatLobbyCompositionRoot
+  enemyDefinition: {fileID: 0}
+  stageMapDefinition: {fileID: 11400000, guid: 548879cc068a14d4f9cf2a6d282196af, type: 2}
+  runtimeSettings: {fileID: 11400000, guid: def893c3501319740a24c383e7b5db9c, type: 2}
+  enemyTexture: {fileID: 0}
+  weaponAscensionCatalog: {fileID: 11400000, guid: 12cc37094ac24a3eb61531ad4dbf22fc, type: 2}
+  petGachaCatalog: {fileID: 11400000, guid: 40ac51f9ccf74dbeb7acf0dd0b937a83, type: 2}
+  floatingCombatTextPrefab: {fileID: 0}
+  floatingCombatTextStyle: {fileID: 11400000, guid: bc11995fd52b4fce944716d8d89db833, type: 2}
+  combatJuiceProfile: {fileID: 11400000, guid: 3c6f828cd2b341c3bbf8f0a3291a72f0, type: 2}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

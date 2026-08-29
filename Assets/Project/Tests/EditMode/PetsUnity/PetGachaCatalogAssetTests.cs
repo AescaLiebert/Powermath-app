@@ -55,8 +55,8 @@ namespace PowerMath.Gameplay.Pets.Unity.Tests
 
             Assert.That(definition.TryResolvePet(petId, out var pet, out var rarity),
                 Is.True);
-            Assert.That(pet.displayName, Is.EqualTo(expectedName));
-            Assert.That(pet.icon, Is.Not.Null);
+            Assert.That(pet.DisplayName, Is.EqualTo(expectedName));
+            Assert.That(pet.Icon, Is.Not.Null);
             Assert.That(rarity.rarityId, Is.EqualTo(expectedRarity));
         }
     }

@@ -16,11 +16,15 @@ MonoBehaviour:
   fallbackTitle: Biome 1
   firstStage: 1
   lastStage: 30
-  backgroundSprite: {fileID: 0}
+  backgroundSprite: {fileID: 1454881287634882539, guid: f47d84f0492847d4d8441d49f8d87701, type: 3}
   mapLandmarkSprite: {fileID: 0}
   normalizedMapPosition: {x: 0, y: 0.42}
   normalMonsters:
   - {fileID: 11400000, guid: 21b7fecc79d902344afe2719e76b6194, type: 2}
+  - {fileID: 11400000, guid: 086723b23a58e794d85f8db7cce602f3, type: 2}
+  - {fileID: 11400000, guid: ceca9353f2dc5c840966c63f6a7d915f, type: 2}
+  - {fileID: 11400000, guid: 626cfc73b3a0d2649aa4b8cf10ec8088, type: 2}
+  - {fileID: 11400000, guid: 7b6edf4a875b4454a851eec12f52310e, type: 2}
   bossBindings:
   - stage: 5
     monster: {fileID: 11400000, guid: d0000000000000000000000000000001, type: 2}

@@ -1,0 +1,260 @@
+.admin-modal {
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+}
+
+.admin-backdrop {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.admin-backdrop--crimson {
+    left: -15%;
+    top: -40%;
+    width: 58%;
+    height: 120%;
+    background-color: rgba(220, 53, 69, 0.18);
+}
+
+.admin-backdrop--cobalt {
+    right: -20%;
+    bottom: -45%;
+    width: 65%;
+    height: 120%;
+    background-color: rgba(32, 92, 183, 0.15);
+    border-width: 14px;
+    border-color: rgba(95, 211, 225, 0.35);
+}
+
+.admin-watermark {
+    position: absolute;
+    left: -10px;
+    bottom: -50px;
+    color: rgba(20, 48, 91, 0.05);
+    font-size: 190px;
+    -unity-font-style: bold;
+    letter-spacing: -6px;
+}
+
+.admin-shell {
+    position: absolute;
+    left: 42px;
+    right: 42px;
+    top: 28px;
+    bottom: 28px;
+}
+
+.admin-header {
+    min-height: 90px;
+    padding: 0 8px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-heading {
+    flex-grow: 1;
+}
+
+.admin-title {
+    color: rgb(20, 48, 91);
+    font-size: 46px;
+    -unity-font-style: bold;
+    letter-spacing: -1px;
+}
+
+.admin-subtitle {
+    color: rgb(46, 84, 122);
+    font-size: 15px;
+    -unity-font-style: bold;
+}
+
+.admin-close {
+    min-width: 54px;
+    width: 54px;
+    min-height: 54px;
+    height: 54px;
+    padding: 0;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 15px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+    font-size: 31px;
+    -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.admin-close:hover,
+.admin-close:focus {
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+    background-color: rgb(255, 235, 204);
+    border-color: rgb(255, 194, 64);
+}
+
+.admin-close:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
+}
+
+.admin-scroll {
+    flex-grow: 1;
+    min-height: 0;
+    padding: 12px 8px;
+}
+
+.admin-account-card {
+    min-height: 80px;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(219, 241, 246);
+    border-radius: 18px;
+    border-width: 3px;
+    border-color: rgb(32, 92, 183);
+}
+
+.admin-account-icon-wrap {
+    min-width: 48px;
+    min-height: 48px;
+    width: 48px;
+    height: 48px;
+    margin-right: 16px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(32, 92, 183);
+    border-radius: 50%;
+}
+
+.admin-account-icon {
+    color: white;
+    font-size: 26px;
+    -unity-text-align: middle-center;
+}
+
+.admin-account-info {
+    flex-grow: 1;
+}
+
+.admin-account-label {
+    color: rgb(32, 92, 183);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.admin-account-summary {
+    margin-top: 2px;
+    color: rgb(20, 48, 91);
+    font-size: 19px;
+    -unity-font-style: bold;
+}
+
+.admin-command-card {
+    padding: 24px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    border-width: 3px;
+    border-color: rgb(217, 83, 79);
+}
+
+.admin-command-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.admin-command-title {
+    color: rgb(180, 40, 40);
+    font-size: 22px;
+    -unity-font-style: bold;
+}
+
+.admin-command-badge {
+    padding: 4px 12px;
+    color: white;
+    background-color: rgb(217, 83, 79);
+    border-radius: 10px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.admin-command-desc {
+    margin-bottom: 20px;
+    color: rgb(46, 84, 122);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: normal;
+}
+
+.admin-action-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.admin-action-btn {
+    min-height: 52px;
+    padding: 10px 28px;
+    color: white;
+    border-radius: 14px;
+    border-width: 0;
+    font-size: 16px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    transition-property: background-color, scale, translate, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.admin-action-btn--danger {
+    background-color: rgb(217, 83, 79);
+}
+
+.admin-action-btn--danger:hover,
+.admin-action-btn--danger:focus {
+    background-color: rgb(200, 60, 55);
+    scale: 1.04 1.04;
+    translate: 0 -2px;
+}
+
+.admin-action-btn--danger:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
+}
+
+.admin-action-btn--danger.is-confirming {
+    background-color: rgb(160, 20, 20);
+    border-width: 3px;
+    border-color: rgb(255, 200, 50);
+}
+
+.admin-status {
+    margin-top: 14px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(46, 84, 122);
+}
+
+.admin-modal.is-busy .admin-action-btn {
+    opacity: 0.6;
+}
+
+.admin-modal.is-busy .admin-status {
+    color: rgb(32, 92, 183);
+}
+
+.admin-modal.is-success .admin-status {
+    color: rgb(34, 126, 82);
+}
+
+.admin-modal.is-error .admin-status {
+    color: rgb(180, 40, 40);
+}

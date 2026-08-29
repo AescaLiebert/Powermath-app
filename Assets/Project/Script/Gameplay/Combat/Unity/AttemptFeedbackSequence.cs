@@ -10,6 +10,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly AcademicAudioPlayer _academicAudio;
         private readonly RankTransitionFeedbackPlayer _rankTransition;
 
+        public bool AreActorsStable => _combat.AreActorsStable;
+
         public AttemptFeedbackSequence(
             CombatFeedbackPlayer combat,
             AcademicProgressionPresenter academic,
@@ -22,19 +24,29 @@ namespace PowerMath.Gameplay.Combat.Unity
             _rankTransition = rankTransition;
         }
 
-        public IEnumerator Play(AttemptResolution resolution)
+        public IEnumerator PlayAnswerFeedback(AttemptResolution resolution)
         {
             if (resolution.IsAcademic)
             {
                 _academic.ShowAttemptOutcome(resolution.Academic);
-                if (resolution.Academic.CurrencyDelta > 0)
+                if (resolution.Academic.CurrencyDelta > 0 && !resolution.Combat.EnemyDefeated)
                     _academicAudio.PlayCurrency();
             }
 
-            yield return _combat.Play(resolution.Combat);
+            yield return _combat.PlayAnswerFeedback(resolution.Combat);
+        }
+
+        public IEnumerator PlayBattleFeedback(AttemptResolution resolution)
+        {
+            yield return _combat.PlayBattleResolution(resolution);
             if (resolution.IsAcademic)
                 yield return _rankTransition.Play(resolution.Academic.RankTransition);
             _academic.Render(resolution.Snapshot.Academic);
+        }
+
+        public IEnumerator PlayRecoveredBattle(AttemptPresentationReceipt receipt)
+        {
+            yield return _combat.PlayRecoveredResolution(receipt);
         }
 
         public void Cancel()

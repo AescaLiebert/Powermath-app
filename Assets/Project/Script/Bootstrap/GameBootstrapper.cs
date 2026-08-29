@@ -80,8 +80,80 @@ namespace PowerMath.Bootstrap
             }
 
             _isBootstrapping = true;
+
+#if UNITY_EDITOR
+            if (apiSettings.UseEditorSampleStudent)
+            {
+                _view.Render(BootstrapState.CheckingSession);
+                StartCoroutine(FetchPlayer());
+                return;
+            }
+#endif
+
+            if (apiSettings.EnableVersionCheck && !string.IsNullOrWhiteSpace(apiSettings.VersionManifestUrl))
+            {
+                _view.Render(BootstrapState.CheckingVersion);
+                StartCoroutine(CheckVersionThenFetchPlayer());
+            }
+            else
+            {
+                _view.Render(BootstrapState.CheckingSession);
+                StartCoroutine(FetchPlayer());
+            }
+        }
+
+        private IEnumerator CheckVersionThenFetchPlayer()
+        {
+            GameVersionManifest manifest = null;
+            string fetchError = null;
+
+            yield return GameVersionChecker.FetchManifest(
+                apiSettings.VersionManifestUrl,
+                apiSettings.RequestTimeoutSeconds,
+                result => manifest = result,
+                error => fetchError = error
+            );
+
+            if (manifest != null)
+            {
+                var result = GameVersionChecker.EvaluateCompatibility(
+                    manifest,
+                    Application.version,
+                    PlayerSessionStore.SupportedSchemaVersion,
+                    out string statusMessage
+                );
+
+                if (result == VersionCompatibilityResult.MaintenanceActive)
+                {
+                    _isBootstrapping = false;
+                    _view.Render(BootstrapState.MaintenanceMode, statusMessage);
+                    yield break;
+                }
+
+                if (result == VersionCompatibilityResult.HardUpdateRequired ||
+                    result == VersionCompatibilityResult.IncompatibleSchema)
+                {
+                    _isBootstrapping = false;
+                    _view.Render(
+                        BootstrapState.IncompatibleClient,
+                        statusMessage + " Refreshing the page to update..."
+                    );
+                    WebCacheBridge.PurgeCacheAndReload();
+                    yield break;
+                }
+
+                if (result == VersionCompatibilityResult.UpdateRecommended)
+                {
+                    Debug.Log($"[GameBootstrapper] Soft update available: {statusMessage}");
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(fetchError))
+            {
+                Debug.LogWarning($"[GameBootstrapper] Version check skipped due to error: {fetchError}");
+            }
+
             _view.Render(BootstrapState.CheckingSession);
-            StartCoroutine(FetchPlayer());
+            yield return FetchPlayer();
         }
 
         private IEnumerator FetchPlayer()

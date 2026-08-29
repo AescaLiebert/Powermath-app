@@ -37,16 +37,19 @@ namespace PowerMath.Gameplay.Combat
         public AttemptCommit(
             QuestionPresentationDescriptor question,
             AnswerInputPolicy answerPolicy,
-            GameplaySnapshot snapshot)
+            GameplaySnapshot snapshot,
+            string presentationId = "")
         {
             Question = question ?? throw new ArgumentNullException(nameof(question));
             AnswerPolicy = answerPolicy;
             Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
+            PresentationId = presentationId ?? string.Empty;
         }
 
         public QuestionPresentationDescriptor Question { get; }
         public AnswerInputPolicy AnswerPolicy { get; }
         public GameplaySnapshot Snapshot { get; }
+        public string PresentationId { get; }
     }
 
     public readonly struct AnswerWindowReceipt
@@ -74,13 +77,15 @@ namespace PowerMath.Gameplay.Combat
             AcademicAttemptResult academic,
             CombatResolution combat,
             GameplaySnapshot snapshot,
-            int responseDurationMilliseconds = 0)
+            int responseDurationMilliseconds = 0,
+            AttemptPresentationReceipt presentation = null)
         {
             Academic = academic ?? throw new ArgumentNullException(nameof(academic));
             ContentKind = QuestionContentKind.RankQuestion;
             Combat = combat ?? throw new ArgumentNullException(nameof(combat));
             Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
             ResponseDurationMilliseconds = Math.Max(0, responseDurationMilliseconds);
+            Presentation = presentation;
         }
 
         public AcademicAttemptResult Academic { get; }
@@ -90,18 +95,21 @@ namespace PowerMath.Gameplay.Combat
         public CombatResolution Combat { get; }
         public GameplaySnapshot Snapshot { get; }
         public int ResponseDurationMilliseconds { get; }
+        public AttemptPresentationReceipt Presentation { get; }
 
         public AttemptResolution(
             EventAttemptResult eventResult,
             CombatResolution combat,
             GameplaySnapshot snapshot,
-            int responseDurationMilliseconds = 0)
+            int responseDurationMilliseconds = 0,
+            AttemptPresentationReceipt presentation = null)
         {
             Event = eventResult ?? throw new ArgumentNullException(nameof(eventResult));
             ContentKind = QuestionContentKind.EventQuestion;
             Combat = combat ?? throw new ArgumentNullException(nameof(combat));
             Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
             ResponseDurationMilliseconds = Math.Max(0, responseDurationMilliseconds);
+            Presentation = presentation;
         }
     }
 

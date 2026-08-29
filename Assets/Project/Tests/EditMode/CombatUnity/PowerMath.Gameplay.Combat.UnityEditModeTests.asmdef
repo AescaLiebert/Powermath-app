@@ -3,9 +3,11 @@
   "rootNamespace": "PowerMath.Gameplay.Combat.Unity.Tests",
   "references": [
     "PowerMath.Gameplay.Combat.Core",
+    "PowerMath.Gameplay.Combat.Presentation.Core",
     "PowerMath.Gameplay.Combat.Unity",
     "PowerMath.Gameplay.Academic.Core",
-    "PowerMath.Gameplay.Academic.Unity"
+    "PowerMath.Gameplay.Academic.Unity",
+    "PowerMath.UI.Core"
   ],
   "includePlatforms": [
     "Editor"

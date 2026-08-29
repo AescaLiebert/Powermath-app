@@ -14,6 +14,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly AudioClip _critical;
         private readonly AudioClip _enemyAttack;
         private readonly AudioClip _defeat;
+        private readonly AudioClip _biomeTransition;
 
         public CombatAudioPlayer(AudioSource source)
         {
@@ -28,6 +29,12 @@ namespace PowerMath.Gameplay.Combat.Unity
             _critical = CreateTone("CombatCritical", 90f, 0.20f, 0.22f);
             _enemyAttack = CreateTone("EnemyAttack", 70f, 0.22f, 0.18f);
             _defeat = CreateTone("EnemyDefeat", 440f, 0.30f, 0.14f);
+            _biomeTransition = CreateHarmonicChord(
+                "CombatBiomeTransition",
+                new[] { 392f, 493.88f, 587.33f, 783.99f },
+                0.75f,
+                0.16f
+            );
         }
 
         public void PlayCommit() => Play(_commit);
@@ -37,6 +44,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void PlayHit(bool critical) => Play(critical ? _critical : _hit);
         public void PlayEnemyAttack() => Play(_enemyAttack);
         public void PlayDefeat() => Play(_defeat);
+        public void PlayBiomeTransition() => Play(_biomeTransition);
 
         private void Play(AudioClip clip)
         {
@@ -60,6 +68,34 @@ namespace PowerMath.Gameplay.Combat.Unity
                 samples[index] = Mathf.Sin(
                     2f * Mathf.PI * frequency * index / SampleRate
                 ) * amplitude * fade;
+            }
+
+            AudioClip clip = AudioClip.Create(name, sampleCount, 1, SampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        private static AudioClip CreateHarmonicChord(
+            string name,
+            float[] frequencies,
+            float duration,
+            float amplitude)
+        {
+            int sampleCount = Mathf.Max(1, Mathf.CeilToInt(SampleRate * duration));
+            float[] samples = new float[sampleCount];
+            float componentAmplitude = amplitude / Mathf.Max(1, frequencies.Length);
+            for (int index = 0; index < sampleCount; index++)
+            {
+                float progress = index / (float)sampleCount;
+                float envelope = Mathf.Sin(progress * Mathf.PI);
+                float value = 0f;
+                for (int frequencyIndex = 0; frequencyIndex < frequencies.Length; frequencyIndex++)
+                {
+                    value += Mathf.Sin(
+                        2f * Mathf.PI * frequencies[frequencyIndex] * index / SampleRate
+                    ) * componentAmplitude * envelope;
+                }
+                samples[index] = value;
             }
 
             AudioClip clip = AudioClip.Create(name, sampleCount, 1, SampleRate, false);

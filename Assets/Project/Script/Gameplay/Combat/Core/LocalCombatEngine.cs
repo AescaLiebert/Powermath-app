@@ -95,9 +95,7 @@ namespace PowerMath.Gameplay.Combat
             _effectiveAttack = 5;
             _stageCalculator = new StageProgressionCalculator();
             _damageCalculator = new DamageCalculator();
-            _phase = restored.Phase == CombatPhase.PresentingResult
-                ? CombatPhase.EnemyReady
-                : restored.Phase;
+            _phase = restored.Phase;
             _attemptCommitted = _phase == CombatPhase.Committed;
             _enemy = new EnemyState(
                 enemyDefinition,
@@ -173,7 +171,8 @@ namespace PowerMath.Gameplay.Combat
                 damage.FinalDamage,
                 true,
                 isCritical,
-                false
+                false,
+                damage.Breakdown
             );
         }
 
@@ -193,7 +192,8 @@ namespace PowerMath.Gameplay.Combat
             int finalDamage,
             bool isCorrect,
             bool isCritical,
-            bool timedOut)
+            bool timedOut,
+            DamageBreakdown damageBreakdown = default)
         {
             StageId resolvedStage = _stage;
             int enemyHpBefore = _enemy.CurrentHp;
@@ -249,7 +249,9 @@ namespace PowerMath.Gameplay.Combat
                 playerDefeated,
                 resolvedStage,
                 stageAdvanced,
-                CreateSnapshot()
+                CreateSnapshot(),
+                false,
+                damageBreakdown
             );
         }
 

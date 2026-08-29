@@ -5,6 +5,119 @@
     background-color: rgba(0, 0, 0, 0);
 }
 
+.main-menu-transition-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 500;
+}
+
+.main-menu-transition-layer.is-transition-blocking {
+    display: flex;
+}
+
+.main-menu-transition-cover {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0;
+    background-color: rgb(8, 20, 42);
+    transition-property: opacity;
+    transition-duration: 0.42s;
+    transition-timing-function: ease-out;
+}
+
+.main-menu-transition-layer.is-bootstrap-active .main-menu-transition-cover {
+    opacity: 1;
+}
+
+.main-menu-transition-layer.is-bootstrap-active .main-menu-transition-cover.is-scene-revealed,
+.main-menu-transition-cover.is-scene-revealed {
+    opacity: 0;
+}
+
+.battle-start-title {
+    min-width: 720px;
+    padding: 20px 64px;
+    opacity: 0;
+    scale: 1.35 1.35;
+    color: rgb(255, 244, 198);
+    background-color: rgba(13, 49, 94, 0.96);
+    border-width: 4px;
+    border-color: rgb(255, 194, 64);
+    border-radius: 22px;
+    font-size: 78px;
+    letter-spacing: 8px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: rgb(8, 26, 54);
+    transition-property: opacity, scale;
+    transition-duration: 0.24s;
+    transition-timing-function: ease-out-back;
+}
+
+.battle-start-title.is-visible {
+    opacity: 1;
+    scale: 1 1;
+}
+
+.battle-start-accent {
+    position: absolute;
+    width: 48%;
+    height: 18px;
+    opacity: 0;
+    background-color: rgb(67, 180, 226);
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-color: rgb(255, 207, 79);
+    transition-property: translate, opacity;
+    transition-duration: 0.24s;
+    transition-timing-function: ease-out-back;
+}
+
+.battle-start-accent--left {
+    left: -50%;
+    translate: -80px 0;
+}
+
+.battle-start-accent--right {
+    right: -50%;
+    translate: 80px 0;
+}
+
+.battle-start-accent--left.is-visible {
+    opacity: 0.9;
+    translate: 58% 0;
+}
+
+.battle-start-accent--right.is-visible {
+    opacity: 0.9;
+    translate: -58% 0;
+}
+
+.main-menu-root.is-reduced-motion .battle-start-title,
+.main-menu-root.is-reduced-motion .battle-start-accent {
+    transition-duration: 0.12s;
+}
+
+.main-menu-root.is-reduced-motion .battle-start-title,
+.main-menu-root.is-reduced-motion .battle-start-title.is-visible {
+    scale: 1 1;
+}
+
+.main-menu-root.is-reduced-motion .battle-start-accent {
+    display: none;
+}
+
 .main-menu-safe-area,
 .main-shell {
     overflow: hidden;
@@ -37,13 +150,21 @@
     border-width: 2px;
     border-color: rgba(205, 228, 255, 0.58);
     transition-property: scale, border-color;
-    transition-duration: 0.12s;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
 
 .hud-profile-panel:hover,
 .hud-profile-panel:focus {
-    scale: 1.02 1.02;
+    scale: 1.03 1.03;
+    translate: 0 -2px;
     border-color: rgb(255, 207, 91);
+}
+
+.hud-profile-panel:active {
+    scale: 0.96 0.96;
+    translate: 0 1px;
+    transition-duration: 0.08s;
 }
 
 .hud-profile-icon {
@@ -139,17 +260,29 @@
     border-color: rgba(211, 232, 255, 0.7);
     font-size: 29px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
 
 .hud-icon-button:hover,
 .hud-icon-button:focus {
     background-color: rgb(63, 140, 205);
     border-color: rgb(255, 215, 102);
-    scale: 1.07 1.07;
+    scale: 1.10 1.10;
+    translate: 0 -3px;
+}
+
+.hud-icon-button:active {
+    scale: 0.92 0.92;
+    translate: 0 2px;
+    transition-duration: 0.08s;
 }
 
 .hud-icon-button:disabled {
     opacity: 0.72;
+    scale: 1 1;
+    translate: 0 0;
 }
 
 .hud-player-menu {
@@ -177,6 +310,22 @@
     border-color: rgba(207, 229, 255, 0.68);
     font-size: 31px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.hud-player-menu-toggle:hover,
+.hud-player-menu-toggle:focus {
+    scale: 1.06 1.06;
+    translate: 2px 0;
+    background-color: rgb(25, 70, 125);
+    border-color: rgb(255, 215, 102);
+}
+
+.hud-player-menu-toggle:active {
+    scale: 0.94 0.94;
+    transition-duration: 0.08s;
 }
 
 .hud-player-menu-content {
@@ -187,8 +336,9 @@
     border-radius: 22px;
     border-width: 2px;
     border-color: rgba(207, 229, 255, 0.68);
-    transition-property: translate, opacity;
-    transition-duration: 0.16s;
+    transition-property: translate, opacity, scale;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-back;
 }
 
 .hud-player-menu-content.is-collapsed {
@@ -238,18 +388,55 @@
     border-color: rgb(184, 211, 234);
     font-size: 42px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
 
 .hud-player-menu-button:hover,
 .hud-player-menu-button:focus {
     border-color: rgb(255, 194, 64);
     background-color: white;
-    scale: 1.04 1.04;
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+}
+
+.hud-player-menu-button:active {
+    scale: 0.93 0.93;
+    translate: 0 2px;
+    transition-duration: 0.08s;
+}
+
+.hud-player-menu-button:disabled {
+    opacity: 0.5;
+    scale: 1 1;
+    translate: 0 0;
 }
 
 .hud-player-menu-button--rebirth {
     color: rgb(194, 55, 108);
     border-color: rgb(246, 171, 195);
+}
+
+.hud-player-menu-button--rebirth:hover,
+.hud-player-menu-button--rebirth:focus {
+    border-color: rgb(244, 111, 83);
+    background-color: rgb(255, 242, 245);
+    color: rgb(218, 38, 96);
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+}
+
+.hud-player-menu-button--rebirth:active {
+    scale: 0.93 0.93;
+    translate: 0 2px;
+    transition-duration: 0.08s;
+}
+
+.hud-player-menu-button--rebirth.is-ready {
+    border-color: rgb(244, 111, 83);
+    background-color: rgb(255, 243, 237);
+    color: rgb(218, 38, 96);
 }
 
 .hud-session-status {
@@ -384,6 +571,91 @@
     background-color: rgb(224, 60, 62);
 }
 
+.hud-enemy-action--entering {
+    opacity: 0;
+    scale: 0.72 0.72;
+}
+
+.hud-enemy-action--armed {
+    border-color: rgb(255, 226, 112);
+    scale: 1.10 1.10;
+}
+
+.hud-enemy-action--consuming {
+    opacity: 0;
+    scale: 1.30 0.55;
+    translate: 0 -10px;
+}
+
+.hud-enemy-action--cancelled {
+    opacity: 0;
+    scale: 0.60 0.60;
+    translate: 0 8px;
+}
+
+.hud-enemy-action,
+.hud-enemy-action--reflowing {
+    transition-property: translate, scale, opacity, border-color;
+    transition-duration: 160ms;
+    transition-timing-function: ease-out-back;
+}
+
+.main-menu-interaction-shield {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.ui-lifecycle--entering {
+    opacity: 0;
+    scale: 0.90 0.90;
+    translate: 0 12px;
+}
+
+.ui-lifecycle--exiting {
+    opacity: 0;
+    scale: 0.96 0.96;
+    translate: 0 -6px;
+}
+
+.combat-attempt-panel,
+.combat-feedback-card,
+.combat-battle-banner,
+.run-settlement-modal {
+    transition-property: opacity, scale, translate;
+    transition-duration: 220ms;
+    transition-timing-function: ease-out-back;
+}
+
+.combat-biome-transition {
+    transition-property: opacity;
+    transition-duration: 350ms;
+    transition-timing-function: ease-out;
+}
+
+.combat-biome-transition-card {
+    transition-property: opacity, scale, translate;
+    transition-duration: 450ms;
+    transition-timing-function: ease-out-back;
+}
+
+.combat-biome-transition.ui-lifecycle--entering .combat-biome-transition-card {
+    opacity: 0;
+    scale: 0.72 0.72;
+    translate: 0 32px;
+}
+
+.combat-biome-transition.ui-lifecycle--exiting .combat-biome-transition-card {
+    opacity: 0;
+    scale: 1.08 1.08;
+    translate: 0 -16px;
+    transition-duration: 320ms;
+    transition-timing-function: ease-in-cubic;
+}
+
 .hud-attack-button {
     position: absolute;
     left: 31%;
@@ -400,12 +672,29 @@
     border-color: rgb(255, 207, 75);
     font-size: 42px;
     -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
 
 .hud-attack-button:hover,
 .hud-attack-button:focus {
-    scale: 1.08 1.08;
+    scale: 1.10 1.10;
+    translate: 0 -4px;
     background-color: rgb(48, 132, 210);
+    border-color: rgb(255, 226, 112);
+}
+
+.hud-attack-button:active {
+    scale: 0.92 0.92;
+    translate: 0 2px;
+    transition-duration: 0.08s;
+}
+
+.hud-attack-button:disabled {
+    opacity: 0.65;
+    scale: 1 1;
+    translate: 0 0;
 }
 
 .hud-dashboard {
@@ -491,21 +780,19 @@
     opacity: 0.56;
 }
 
-.combat-simulation-badge,
-.academic-local-badge {
-    position: absolute;
-    right: 30px;
-    top: 112px;
-}
-
-.academic-local-badge { top: 152px; }
-
 .combat-attempt-panel {
     left: 24%;
     right: 24%;
     top: 7%;
     bottom: 7%;
     z-index: 100;
+    transition-property: left, right;
+    transition-duration: 0.18s;
+}
+
+.combat-attempt-panel.combat-attempt-panel--retained-video {
+    left: 49%;
+    right: 5%;
 }
 
 .navigator-modal {
@@ -524,3 +811,55 @@
     border-left-width: 8px;
     border-left-color: rgb(244, 111, 83);
 }
+
+/* Reward Magnet Feedback FX */
+.reward-magnet-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 200;
+}
+
+.reward-magnet-icon {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.9);
+    color: rgb(20, 39, 67);
+    background-color: rgb(255, 202, 84);
+}
+
+.reward-magnet-icon--silver {
+    background-color: rgb(194, 208, 226);
+    border-color: rgb(240, 246, 255);
+    color: rgb(20, 39, 67);
+}
+
+.reward-magnet-icon--gold {
+    background-color: rgb(255, 198, 65);
+    border-color: rgb(255, 240, 180);
+    color: rgb(20, 39, 67);
+}
+
+.reward-magnet-icon--diamond {
+    background-color: rgb(105, 223, 242);
+    border-color: rgb(215, 250, 255);
+    color: rgb(20, 39, 67);
+}
+
+.reward-magnet-icon--coin {
+    background-color: rgb(255, 202, 84);
+    border-color: rgb(255, 245, 200);
+    color: rgb(140, 85, 10);
+}
+

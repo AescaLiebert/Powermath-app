@@ -180,6 +180,56 @@ namespace PowerMath.Gameplay.Pets.Tests
                 }));
         }
 
+        [Test]
+        public void PetAttackBonus_IsImmutableAndRejectsNegativeValues()
+        {
+            var pet = new PetGachaPet("pet-power", "Power Pet", 17);
+
+            Assert.That(pet.AttackBonus, Is.EqualTo(17));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new PetGachaPet("pet-invalid", "Invalid Pet", -1));
+        }
+
+        [Test]
+        public void EquippedPetAttack_RequiresExactlyOneOwnedBaseRecord()
+        {
+            var catalog = new PetGachaCatalog(
+                "stats-v1",
+                new[]
+                {
+                    new PetGachaRarity(
+                        "all",
+                        "All",
+                        10000,
+                        new[] { new PetGachaPet("pet", "Pet", 9) })
+                });
+
+            int attack = EquippedPetAttackPolicy.Resolve(
+                "pet",
+                catalog,
+                new[] { new PetOwnershipRecord("pet", true, 0) },
+                out bool configured);
+
+            Assert.That(attack, Is.EqualTo(9));
+            Assert.That(configured, Is.True);
+            Assert.Throws<InvalidOperationException>(() =>
+                EquippedPetAttackPolicy.Resolve(
+                    "pet",
+                    catalog,
+                    new[] { new PetOwnershipRecord("pet", false, 0) },
+                    out _));
+            Assert.Throws<InvalidOperationException>(() =>
+                EquippedPetAttackPolicy.Resolve(
+                    "pet",
+                    catalog,
+                    new[]
+                    {
+                        new PetOwnershipRecord("pet", true, 0),
+                        new PetOwnershipRecord("pet", true, 0)
+                    },
+                    out _));
+        }
+
         private static PetChance Find(IEnumerable<PetChance> chances, string petId) =>
             chances.Single(value => value.PetId == petId);
 

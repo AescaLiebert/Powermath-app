@@ -38,6 +38,13 @@ namespace PowerMath.Gameplay.Academic
                 failed?.Invoke("Another authoritative save is still in progress.");
                 return;
             }
+            if (request.SavePoint == GameplaySavePoint.PresentationCompleted &&
+                !HasMatchingPendingPresentation(request.PresentationId))
+            {
+                failed?.Invoke(
+                    "Presentation acknowledgement does not match the pending result.");
+                return;
+            }
             int generation = ++_generation;
             _operation = _host.StartCoroutine(SaveRoutine(generation, request, completed, failed));
         }
@@ -133,6 +140,17 @@ namespace PowerMath.Gameplay.Academic
             _player.activeRun.questionId = request.ActiveQuestion == null
                 ? 0 : request.ActiveQuestion.Id.Value;
             if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution?.Presentation != null)
+            {
+                _player.activeRun.pendingPresentation = ToPlayer(
+                    request.Resolution.Presentation);
+            }
+            else if (request.SavePoint == GameplaySavePoint.PresentationCompleted ||
+                     request.SavePoint == GameplaySavePoint.AttemptCommitted)
+            {
+                _player.activeRun.pendingPresentation = null;
+            }
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
                 request.Resolution != null && request.Resolution.IsAcademic)
             {
                 long delta = Math.Max(0, request.Resolution.Academic.CurrencyDelta);
@@ -165,6 +183,59 @@ namespace PowerMath.Gameplay.Academic
                 failedIds = snapshot.Failed.Select(id => id.Value).ToArray(),
                 attemptedInAuditIds = snapshot.Attempted.Select(id => id.Value).ToArray(),
                 clearedInCycleIds = snapshot.Cleared.Select(id => id.Value).ToArray()
+            };
+        }
+
+        private bool HasMatchingPendingPresentation(string presentationId)
+        {
+            return !string.IsNullOrWhiteSpace(presentationId) &&
+                string.Equals(
+                    _player.activeRun?.pendingPresentation?.presentationId,
+                    presentationId,
+                    StringComparison.Ordinal);
+        }
+
+        private static PlayerSnapshot.AttemptPresentationData ToPlayer(
+            AttemptPresentationReceipt receipt)
+        {
+            return new PlayerSnapshot.AttemptPresentationData
+            {
+                version = receipt.Version,
+                presentationId = receipt.PresentationId,
+                attemptId = receipt.AttemptId,
+                outcome = receipt.Outcome.ToString(),
+                responseScore = receipt.ResponseScore,
+                finalDamage = receipt.FinalDamage,
+                isCritical = receipt.IsCritical,
+                resolvedEnemyHpAfter = receipt.ResolvedEnemyHpAfter,
+                enemyDefeated = receipt.EnemyDefeated,
+                enemyAttacked = receipt.EnemyAttacked,
+                playerDefeated = receipt.PlayerDefeated,
+                stageAdvanced = receipt.StageAdvanced,
+                biomeChanged = receipt.BiomeChanged,
+                source = ToPlayer(receipt.Source),
+                destination = ToPlayer(receipt.Destination),
+                previousRank = receipt.RankTransition.Previous.ToString(),
+                currentRank = receipt.RankTransition.Current.ToString()
+            };
+        }
+
+        private static PlayerSnapshot.CombatPresentationData ToPlayer(
+            CombatPresentationSnapshot snapshot)
+        {
+            return new PlayerSnapshot.CombatPresentationData
+            {
+                stage = snapshot.Stage.Value,
+                biomeId = snapshot.BiomeId,
+                encounterId = snapshot.EncounterId,
+                encounterKind = snapshot.EncounterKind.ToString(),
+                enemyCurrentHp = snapshot.EnemyCurrentHp,
+                enemyMaximumHp = snapshot.EnemyMaximumHp,
+                enemyRemainingCooldown = snapshot.EnemyRemainingCooldown,
+                enemyMaximumCooldown = snapshot.EnemyMaximumCooldown,
+                playerCurrentHearts = snapshot.PlayerCurrentHearts,
+                playerMaximumHearts = snapshot.PlayerMaximumHearts,
+                phase = snapshot.Phase.ToString()
             };
         }
     }
