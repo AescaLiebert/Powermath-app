@@ -26,7 +26,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         private Quaternion _authoredRotation;
         private bool _reducedMotion;
         private CombatJuiceProfileDefinition _profile;
-        private Coroutine _activeRoutine;
+        private bool _isPlaying;
+        private int _playSessionId;
         private bool _whiteFlashTriggered;
 
         public event Action Clicked;
@@ -44,7 +45,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void Initialize(
             PresentationActor actor,
             bool reducedMotion,
-            CombatJuiceProfileDefinition profile = null)
+            CombatJuiceProfileDefinition profile = null,
+            Vector2? restPosition = null)
         {
             if (actor != PresentationActor.Player && actor != PresentationActor.Enemy)
                 throw new ArgumentOutOfRangeException(nameof(actor));
@@ -61,18 +63,25 @@ namespace PowerMath.Gameplay.Combat.Unity
             {
                 _graphic.raycastTarget = true;
                 _authoredColor = _graphic.color;
+                if (_authoredColor.a <= 0.01f)
+                    _authoredColor = new Color(_authoredColor.r, _authoredColor.g, _authoredColor.b, 1f);
             }
             else
             {
                 _authoredColor = Color.white;
             }
-            _authoredPosition = _rectTransform.anchoredPosition;
+            _authoredPosition = restPosition ?? _rectTransform.anchoredPosition;
             _authoredRotation = _rectTransform.localRotation;
             DamageTextAnchor = new RectTransformCombatAnchor(
                 _rectTransform, fctNormalizedAnchor, fctOffset);
-            State = gameObject.activeInHierarchy
-                ? ActorVisualState.Idle
-                : ActorVisualState.Hidden;
+            gameObject.SetActive(true);
+            _canvasGroup.alpha = 1f;
+            State = ActorVisualState.Idle;
+        }
+
+        public void SetAuthoredRestPosition(Vector2 restPosition)
+        {
+            _authoredPosition = restPosition;
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -111,61 +120,72 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (!ActorPresentationStatePolicy.CanTransition(_actor, State, target))
                 throw new InvalidOperationException(
                     $"Illegal {_actor} presentation transition {State} -> {target}.");
-            if (_activeRoutine != null)
+            if (_isPlaying)
                 throw new InvalidOperationException("Actor presentation is already active.");
 
-            bool completed = false;
-            _activeRoutine = StartCoroutine(PlayRoutine(target, () => completed = true));
-            while (!completed) yield return null;
+            int sessionId = ++_playSessionId;
+            _isPlaying = true;
+            try
+            {
+                if (!gameObject.activeSelf)
+                {
+                    gameObject.SetActive(true);
+                }
+
+                RestoreAuthoredPose(resetAlpha: false);
+                State = target;
+                _whiteFlashTriggered = false;
+                float duration = ResolveDuration(target);
+                float elapsed = 0f;
+                Vector2 direction = _actor == PresentationActor.Player
+                    ? Vector2.right
+                    : Vector2.left;
+                while (elapsed < duration)
+                {
+                    if (sessionId != _playSessionId) yield break;
+                    float delta = Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime : 0.05f;
+                    elapsed += delta;
+                    float t = duration <= 0f ? 1f : Mathf.Clamp01(elapsed / duration);
+                    ApplyFrame(target, t, direction);
+                    yield return null;
+                }
+
+                if (sessionId != _playSessionId) yield break;
+
+                bool terminal = target == ActorVisualState.Dying;
+                if (terminal)
+                {
+                    RestoreAuthoredPose(resetAlpha: false);
+                    State = ActorVisualState.Hidden;
+                    if (_canvasGroup != null) _canvasGroup.alpha = 0f;
+                    if (_graphic != null) _graphic.color = _authoredColor;
+                    gameObject.SetActive(false);
+                }
+                else
+                {
+                    RestoreAuthoredPose(resetAlpha: true);
+                    State = ActorVisualState.Idle;
+                }
+            }
+            finally
+            {
+                if (sessionId == _playSessionId)
+                {
+                    _isPlaying = false;
+                }
+            }
         }
 
         public void CancelAndApply(ActorVisualState finalState)
         {
-            if (_activeRoutine != null) StopCoroutine(_activeRoutine);
-            _activeRoutine = null;
+            _playSessionId++;
+            _isPlaying = false;
             RestoreAuthoredPose(resetAlpha: false);
             State = finalState;
             if (_graphic != null) _graphic.color = _authoredColor;
             if (_canvasGroup != null)
                 _canvasGroup.alpha = finalState == ActorVisualState.Hidden ? 0f : 1f;
             gameObject.SetActive(finalState != ActorVisualState.Hidden);
-        }
-
-        private IEnumerator PlayRoutine(ActorVisualState target, Action completed)
-        {
-            RestoreAuthoredPose(resetAlpha: false);
-            State = target;
-            _whiteFlashTriggered = false;
-            gameObject.SetActive(true);
-            float duration = ResolveDuration(target);
-            float elapsed = 0f;
-            Vector2 direction = _actor == PresentationActor.Player
-                ? Vector2.right
-                : Vector2.left;
-            while (elapsed < duration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                float t = duration <= 0f ? 1f : Mathf.Clamp01(elapsed / duration);
-                ApplyFrame(target, t, direction);
-                yield return null;
-            }
-
-            bool terminal = target == ActorVisualState.Dying;
-            if (terminal)
-            {
-                RestoreAuthoredPose(resetAlpha: false);
-                State = ActorVisualState.Hidden;
-                if (_canvasGroup != null) _canvasGroup.alpha = 0f;
-                if (_graphic != null) _graphic.color = _authoredColor;
-                gameObject.SetActive(false);
-            }
-            else
-            {
-                RestoreAuthoredPose(resetAlpha: true);
-                State = ActorVisualState.Idle;
-            }
-            _activeRoutine = null;
-            completed?.Invoke();
         }
 
         private void ApplyFrame(ActorVisualState state, float t, Vector2 direction)
@@ -343,8 +363,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnDisable()
         {
-            if (_activeRoutine != null) StopCoroutine(_activeRoutine);
-            _activeRoutine = null;
+            _playSessionId++;
+            _isPlaying = false;
             if (_rectTransform != null) RestoreAuthoredPose(resetAlpha: false);
             if (_graphic != null) _graphic.color = _authoredColor;
             State = ActorVisualState.Hidden;

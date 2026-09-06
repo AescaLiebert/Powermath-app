@@ -1,0 +1,55 @@
+﻿<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/PlayerMenuPanel.uss"/>
+    <ui:VisualElement name="Player Menu" picking-mode="Ignore" class="hud-player-menu main-menu-transition-player-menu">
+        <pm:FigmaShadowElement name="Player Menu Shadow" class="hud-player-menu-shadow"/>
+        <ui:VisualElement name="Primary Navigation" picking-mode="Ignore" class="hud-player-menu-content">
+            <ui:Button name="player-hub-button" text="" tooltip="Player Hub" class="hud-player-menu-button hud-player-menu-button--hub">
+                <ui:VisualElement name="Home" picking-mode="Ignore" class="hud-player-menu-card">
+                    <pm:FigmaShadowElement name="Home Shadow" class="hud-player-menu-card-shadow"/>
+                    <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
+                    <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
+                    <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--hub"/>
+                    <ui:Label name="Home Text Shadow" text="Home" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                    <ui:Label name="Home Text" text="Home" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                </ui:VisualElement>
+            </ui:Button>
+            <ui:Button name="pet-gacha-button" text="" tooltip="Pet Gacha" class="hud-player-menu-button hud-player-menu-button--gacha">
+                <ui:VisualElement name="Summon" picking-mode="Ignore" class="hud-player-menu-card">
+                    <pm:FigmaShadowElement name="Summon Shadow" class="hud-player-menu-card-shadow"/>
+                    <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
+                    <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
+                    <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--gacha"/>
+                    <ui:Label name="Summon Text Shadow" text="Summon" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                    <ui:Label name="Summon Text" text="Summon" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                </ui:VisualElement>
+            </ui:Button>
+            <ui:Button name="rebirth-button" text="" tooltip="Rebirth" class="hud-player-menu-button hud-player-menu-button--rebirth">
+                <ui:VisualElement name="Rebirth" picking-mode="Ignore" class="hud-player-menu-card">
+                    <pm:FigmaShadowElement name="Rebirth Shadow" class="hud-player-menu-card-shadow"/>
+                    <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
+                    <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
+                    <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--rebirth"/>
+                    <ui:Label name="Rebirth Text Shadow" text="Rebirth" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                    <ui:Label name="Rebirth Text" text="Rebirth" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                </ui:VisualElement>
+            </ui:Button>
+            <ui:VisualElement name="Power-Coin_Currency-field" tooltip="Power Coins" class="hud-power-coin-field">
+                <pm:FigmaShadowElement name="Currency Drop Shadow" class="hud-power-coin-drop-shadow"/>
+                <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-power-coin-currency">
+                    <pm:FigmaShadowElement name="Currency Inner Shadow Left" class="hud-power-coin-inner-shadow hud-power-coin-inner-shadow--left"/>
+                    <pm:FigmaShadowElement name="Currency Inner Shadow Right" class="hud-power-coin-inner-shadow hud-power-coin-inner-shadow--right"/>
+                    <ui:Label name="Currency_Value" text="2,300" picking-mode="Ignore" class="hud-power-coin-value"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="hud-power-coin-icon"/>
+            </ui:VisualElement>
+            <ui:Label name="player-menu-atk" text="—" picking-mode="Ignore" class="hud-compat-hidden"/>
+        </ui:VisualElement>
+        <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle">
+            <ui:Label name="Chevron" text="‹" picking-mode="Ignore" class="hud-player-menu-chevron"/>
+        </ui:Button>
+    </ui:VisualElement>
+</ui:UXML>

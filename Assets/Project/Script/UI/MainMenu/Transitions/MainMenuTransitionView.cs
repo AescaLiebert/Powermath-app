@@ -41,12 +41,19 @@ namespace PowerMath.UI.MainMenu
             _accentRight = Require<VisualElement>(root, "battle-start-accent-right");
             _topTargets = new[]
             {
+                Require<VisualElement>(root, "Player Summary Shadow"),
                 Require<VisualElement>(root, "profile-panel"),
                 Require<VisualElement>(root, "combat-enemy-card"),
                 Require<VisualElement>(root, "main-navigator")
             };
-            _playerMenu = Require<VisualElement>(root, "player-menu");
-            _dashboard = Require<VisualElement>(root, "player-dashboard");
+            _playerMenu = root.Q<VisualElement>(className:
+                "main-menu-transition-player-menu") ??
+                throw new InvalidOperationException(
+                    "Main Menu is missing the Player Menu transition element.");
+            _dashboard = root.Q<VisualElement>(className:
+                "main-menu-transition-dashboard") ??
+                throw new InvalidOperationException(
+                    "Main Menu is missing the Player Loadout transition element.");
         }
 
         public VisualElement Screen => _screen;
@@ -190,7 +197,10 @@ namespace PowerMath.UI.MainMenu
 
         private void SetInputLocked(bool locked)
         {
-            _safeArea.SetEnabled(!locked);
+            // The transition layer already owns input while blocking. Keeping
+            // the safe area enabled avoids leaving the full UI in Unity's
+            // disabled state if bootstrap exits through a fallback path.
+            _safeArea.SetEnabled(true);
             _transitionLayer.EnableInClassList("is-transition-blocking", locked);
             _transitionLayer.pickingMode = locked
                 ? PickingMode.Position

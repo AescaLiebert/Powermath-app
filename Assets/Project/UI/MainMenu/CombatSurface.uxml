@@ -1,48 +1,83 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="NavigatorPanel" src="project://database/Assets/Project/UI/MainMenu/NavigatorPanel.uxml?fileID=9197481963319205126&amp;guid=06cb78a1b6c61b949ac197f1543ab3d8&amp;type=3#NavigatorPanel"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden">
         <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel main-menu-transition-top">
-            <ui:Label name="combat-stage-label" text="STAGE 1" class="hud-stage-label"/>
+            <ui:Label name="combat-stage-label-compat" text="STAGE 1" class="hud-stage-label"/>
             <ui:VisualElement name="combat-enemy-hp-shell" picking-mode="Ignore" class="hud-enemy-hp-shell">
-                <ui:ProgressBar name="combat-enemy-hp" value="0" high-value="100" class="hud-enemy-hp"/>
+                <ui:ProgressBar name="combat-enemy-hp-compat" value="0" high-value="100" class="hud-enemy-hp"/>
                 <ui:VisualElement class="hud-enemy-hp-overlay">
-                    <ui:Label name="combat-enemy-name" text="Preparing encounter..." class="hud-enemy-name"/>
-                    <ui:Label name="combat-enemy-hp-label" text="— / — HP" class="hud-enemy-hp-label"/>
+                    <ui:Label name="combat-enemy-name-compat" text="Preparing encounter..." class="hud-enemy-name"/>
+                    <ui:Label name="combat-enemy-hp-label-compat" text="— / — HP" class="hud-enemy-hp-label"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="combat-enemy-actions" picking-mode="Ignore" class="hud-enemy-actions"/>
+            <ui:VisualElement name="combat-enemy-actions-compat" picking-mode="Ignore" class="hud-enemy-actions"/>
         </ui:VisualElement>
-        <ui:VisualElement name="player-dashboard" class="hud-dashboard main-menu-transition-dashboard">
-            <ui:VisualElement class="hud-health-row">
-                <ui:Label text="♥" class="hud-health-icon"/>
-                <ui:Label name="combat-hearts-label" text="♡ ♡ ♡" class="hud-health-value"/>
+        <ui:VisualElement name="Player Loadout" class="hud-dashboard main-menu-transition-dashboard">
+            <pm:FigmaShadowElement name="Player Loadout Shadow" class="hud-loadout-panel-shadow"/>
+            <ui:VisualElement name="Round_Panel_outer" picking-mode="Ignore" class="hud-loadout-panel-outer">
+                <pm:FigmaShadowElement name="Round_Panel_outer Shadow" class="hud-loadout-outer-shadow"/>
+                <pm:FigmaShadowElement name="Panel_Inner Shadow" class="hud-loadout-inner-shadow"/>
+                <ui:VisualElement name="Panel_Inner" picking-mode="Ignore" class="hud-loadout-panel-inner"/>
             </ui:VisualElement>
-            <ui:VisualElement class="hud-dashboard-slots">
-                <ui:VisualElement tooltip="Current Rank" class="hud-dashboard-slot hud-dashboard-slot--rank">
-                    <ui:Label name="academic-rank-label" text="RANK SILVER"/>
-                    <ui:Label name="academic-rank-multiplier" text="Damage ×1.0" class="hud-compat-hidden"/>
-                    <ui:Label name="academic-active-currency" text="Silver: 0" class="hud-compat-hidden"/>
+            <ui:VisualElement name="Player Loadout / Health Row" picking-mode="Ignore" class="hud-loadout-health-row">
+                <ui:Label name="CharacterName" text="Stellar" picking-mode="Ignore" class="hud-loadout-character-name"/>
+                <ui:VisualElement name="Health" picking-mode="Ignore" class="hud-loadout-health">
+                    <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart"/>
+                    <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart"/>
+                    <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart"/>
+                    <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart"/>
+                    <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart hud-loadout-heart--last"/>
                 </ui:VisualElement>
-                <ui:VisualElement tooltip="Equipped Pet" class="hud-dashboard-slot">
-                    <ui:Label text="PET" class="hud-slot-caption"/>
-                    <ui:Label name="dashboard-pet" text="NONE" class="hud-slot-value"/>
+                <ui:Label name="combat-hearts-label" text="♥ ♥ ♥ ♥ ♥" picking-mode="Ignore" class="hud-compat-hidden"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="Player Loadout / Inventory Row" class="hud-loadout-inventory-row">
+                <ui:VisualElement name="Quick Slot / Pet" tooltip="Equipped Pet" class="hud-loadout-slot hud-loadout-slot--large">
+                    <pm:FigmaShadowElement name="Quick Slot / Pet Shadow" class="hud-loadout-slot-shadow hud-loadout-slot-shadow--large"/>
+                    <pm:FigmaGradientElement name="Quick Slot / Pet Gradient" class="hud-loadout-slot-gradient"/>
+                    <ui:VisualElement name="border" picking-mode="Ignore" class="hud-loadout-slot-border hud-loadout-slot-border--large"/>
+                    <ui:VisualElement name="Quick Slot / Pet Artwork" picking-mode="Ignore" class="hud-loadout-artwork hud-loadout-artwork--large">
+                        <ui:VisualElement name="Vector / Quick Slot / Pet Artwork Watermark" picking-mode="Ignore" class="hud-loadout-watermark hud-loadout-watermark--pet"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="star-frame" picking-mode="Ignore" class="hud-loadout-star-frame">
+                        <ui:VisualElement name="star" picking-mode="Ignore" class="hud-loadout-star"/>
+                    </ui:VisualElement>
+                    <ui:Label name="dashboard-pet" text="NONE" picking-mode="Ignore" class="hud-compat-hidden"/>
                 </ui:VisualElement>
-                <ui:VisualElement tooltip="Equipped Weapon" class="hud-dashboard-slot">
-                    <ui:Label text="WEAPON" class="hud-slot-caption"/>
-                    <ui:Label name="dashboard-weapon" text="NONE" class="hud-slot-value"/>
+                <ui:VisualElement name="Quick Slot / Weapon" tooltip="Equipped Weapon" class="hud-loadout-slot hud-loadout-slot--large">
+                    <pm:FigmaShadowElement name="Quick Slot / Weapon Shadow" class="hud-loadout-slot-shadow hud-loadout-slot-shadow--large"/>
+                    <pm:FigmaGradientElement name="Quick Slot / Weapon Gradient" class="hud-loadout-slot-gradient"/>
+                    <ui:VisualElement name="border" picking-mode="Ignore" class="hud-loadout-slot-border hud-loadout-slot-border--large hud-loadout-slot-border--weapon"/>
+                    <ui:VisualElement name="Quick Slot / Pet Artwork" picking-mode="Ignore" class="hud-loadout-artwork hud-loadout-artwork--large">
+                        <ui:VisualElement name="Vector / Quick Slot / Pet Artwork Watermark" picking-mode="Ignore" class="hud-loadout-watermark hud-loadout-watermark--weapon"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="star-frame" picking-mode="Ignore" class="hud-loadout-star-frame">
+                        <ui:VisualElement name="star" picking-mode="Ignore" class="hud-loadout-star"/>
+                    </ui:VisualElement>
+                    <ui:Label name="dashboard-weapon" text="NONE" picking-mode="Ignore" class="hud-compat-hidden"/>
                 </ui:VisualElement>
-                <ui:VisualElement tooltip="Power-up cards are not implemented yet" enabled="false" class="hud-dashboard-slot hud-dashboard-slot--locked">
-                    <ui:Label text="CARD" class="hud-slot-caption"/>
-                    <ui:Label text="—" class="hud-slot-value"/>
+                <ui:VisualElement name="Quick Slot / Not Empty" class="hud-loadout-slot hud-loadout-slot--small">
+                    <pm:FigmaShadowElement name="Quick Slot / Not Empty Shadow" class="hud-loadout-slot-shadow hud-loadout-slot-shadow--small"/>
+                    <pm:FigmaGradientElement name="Quick Slot / Not Empty Gradient" class="hud-loadout-slot-gradient"/>
+                    <ui:VisualElement name="border" picking-mode="Ignore" class="hud-loadout-slot-border hud-loadout-slot-border--small"/>
                 </ui:VisualElement>
-                <ui:VisualElement tooltip="Power-up cards are not implemented yet" enabled="false" class="hud-dashboard-slot hud-dashboard-slot--locked">
-                    <ui:Label text="CARD" class="hud-slot-caption"/>
-                    <ui:Label text="—" class="hud-slot-value"/>
+                <ui:VisualElement name="Quick Slot / Not Empty" class="hud-loadout-slot hud-loadout-slot--small">
+                    <pm:FigmaShadowElement name="Quick Slot / Not Empty Shadow" class="hud-loadout-slot-shadow hud-loadout-slot-shadow--small"/>
+                    <pm:FigmaGradientElement name="Quick Slot / Not Empty Gradient" class="hud-loadout-slot-gradient"/>
+                    <ui:VisualElement name="border" picking-mode="Ignore" class="hud-loadout-slot-border hud-loadout-slot-border--small"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="Quick Slot / Empty 1" tooltip="Slot unavailable" class="hud-loadout-slot hud-loadout-slot--small hud-loadout-slot--last">
+                    <pm:FigmaShadowElement name="Quick Slot / Empty 1 Shadow" class="hud-loadout-slot-shadow hud-loadout-slot-shadow--small"/>
+                    <pm:FigmaGradientElement name="Quick Slot / Empty 1 Gradient" class="hud-loadout-slot-gradient"/>
+                    <ui:VisualElement name="border" picking-mode="Ignore" class="hud-loadout-slot-border hud-loadout-slot-border--small"/>
+                    <ui:VisualElement name="UnavailablePanel" picking-mode="Ignore" class="hud-loadout-unavailable"/>
                 </ui:VisualElement>
             </ui:VisualElement>
+            <ui:Label name="academic-rank-label" text="RANK SILVER" picking-mode="Ignore" class="hud-compat-hidden"/>
+            <ui:Label name="academic-rank-multiplier" text="Damage ×1.0" picking-mode="Ignore" class="hud-compat-hidden"/>
+            <ui:Label name="academic-active-currency" text="Silver: 0" picking-mode="Ignore" class="hud-compat-hidden"/>
         </ui:VisualElement>
         <ui:Label name="combat-biome-label" text="PREPARING BIOME" picking-mode="Ignore" class="hud-compat-hidden"/>
         <ui:Label name="combat-damage-label" text="" picking-mode="Ignore" class="combat-damage-label"/>

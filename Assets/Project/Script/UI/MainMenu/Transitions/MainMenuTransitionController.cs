@@ -85,6 +85,32 @@ namespace PowerMath.UI.MainMenu
             _view.PrepareBootstrap(IsReducedMotion());
         }
 
+        public Vector2 PlayerRestPosition => _playerFinalPosition;
+        public Vector2 EnemyRestPosition => _enemyFinalPosition;
+
+        private void Start()
+        {
+            StartCoroutine(EnforceTransitionStartupSafety());
+        }
+
+        private IEnumerator EnforceTransitionStartupSafety()
+        {
+            const float safetyTimeoutSeconds = 6f;
+            float elapsed = 0f;
+            while (elapsed < safetyTimeoutSeconds)
+            {
+                if (_bootstrapPlayed && _activeRoutine == null) yield break;
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (isActiveAndEnabled && (_activeRoutine != null || !_bootstrapPlayed))
+            {
+                Debug.LogWarning("[MainMenuTransitionController] Transition did not complete within safety window. Forcing UI reveal.");
+                CancelAndApplyFinalState();
+            }
+        }
+
         private void OnDisable()
         {
             CancelAndApplyFinalState();
@@ -125,42 +151,50 @@ namespace PowerMath.UI.MainMenu
 
         private IEnumerator PlayBootstrap(int generation)
         {
-            bool reduced = IsReducedMotion();
-            _motionDriver.SetReducedMotion(reduced);
-            _view.PrepareBootstrap(reduced);
-            PrepareCanvasEntrance(reduced);
-            yield return null;
-            yield return WaitUnscaled(settings.InitialSettleSeconds, generation);
-
-            if (!IsCurrent(generation)) yield break;
-            _view.ShowBattleTitle();
-            PlayClip(settings.BattleStartImpact);
-            yield return WaitUnscaled(settings.TitleEntrySeconds, generation);
-            yield return WaitUnscaled(settings.TitleHoldSeconds, generation);
-
-            if (!IsCurrent(generation)) yield break;
-            _view.HideBattleTitle();
-            yield return WaitUnscaled(settings.TitleExitSeconds, generation);
-
-            if (!IsCurrent(generation)) yield break;
-            _view.RevealScene();
-            PlayClip(settings.CharacterWhoosh);
-            if (reduced)
+            try
             {
-                yield return WaitUnscaled(
-                    settings.ReducedCrossfadeSeconds,
-                    generation);
-                ApplyCanvasFinalState();
+                bool reduced = IsReducedMotion();
+                _motionDriver.SetReducedMotion(reduced);
+                _view.PrepareBootstrap(reduced);
+                PrepareCanvasEntrance(reduced);
+                yield return null;
+                yield return WaitUnscaled(settings.InitialSettleSeconds, generation);
+
+                if (!IsCurrent(generation)) yield break;
+                _view.ShowBattleTitle();
+                PlayClip(settings.BattleStartImpact);
+                yield return WaitUnscaled(settings.TitleEntrySeconds, generation);
+                yield return WaitUnscaled(settings.TitleHoldSeconds, generation);
+
+                if (!IsCurrent(generation)) yield break;
+                _view.HideBattleTitle();
+                yield return WaitUnscaled(settings.TitleExitSeconds, generation);
+
+                if (!IsCurrent(generation)) yield break;
+                _view.RevealScene();
+                PlayClip(settings.CharacterWhoosh);
+                if (reduced)
+                {
+                    yield return WaitUnscaled(
+                        settings.ReducedCrossfadeSeconds,
+                        generation);
+                    ApplyCanvasFinalState();
+                }
+                else
+                {
+                    yield return AnimateCanvasEntrance(generation);
+                }
+
+                if (!IsCurrent(generation)) yield break;
+                yield return AnimateSessionUi(generation, reduced);
             }
-            else
+            finally
             {
-                yield return AnimateCanvasEntrance(generation);
+                if (IsCurrent(generation))
+                {
+                    Complete(generation);
+                }
             }
-
-            if (!IsCurrent(generation)) yield break;
-            yield return AnimateSessionUi(generation, reduced);
-
-            Complete(generation);
         }
 
         private IEnumerator AnimateSessionUi(int generation, bool reduced)
@@ -207,9 +241,12 @@ namespace PowerMath.UI.MainMenu
                     enemyDelay));
             }
 
-            while (!playerComplete || !enemyComplete)
+            float timeout = duration + enemyDelay + 1.0f;
+            float elapsed = 0f;
+            while ((!playerComplete || !enemyComplete) && elapsed < timeout)
             {
                 if (!IsCurrent(generation)) yield break;
+                elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
 

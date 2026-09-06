@@ -120,6 +120,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 Label target = _tokens[index];
                 _tokens.RemoveAt(index);
                 target.RemoveFromHierarchy();
+                RefreshTokenSpacing();
             }
         }
 
@@ -151,15 +152,19 @@ namespace PowerMath.Gameplay.Combat.Unity
             bool isDanger = false)
         {
             string text = kind == EnemyActionTokenKind.Attack
-                ? "⚔"
+                ? "ATTACK"
                 : kind == EnemyActionTokenKind.EventRisk
-                    ? "!"
-                    : "→";
+                    ? "RISK"
+                    : "MOVE";
             var token = new Label(text)
             {
+                name = "Enemy Ability",
                 pickingMode = PickingMode.Ignore,
                 userData = kind
             };
+            token.AddToClassList("figma-ability");
+            token.EnableInClassList("figma-ability--attack",
+                kind != EnemyActionTokenKind.Walk);
             token.AddToClassList("hud-enemy-action");
             token.EnableInClassList("hud-enemy-action--attack",
                 kind != EnemyActionTokenKind.Walk);
@@ -168,6 +173,17 @@ namespace PowerMath.Gameplay.Combat.Unity
             token.EnableInClassList("hud-enemy-action--entering", entering);
             _tokens.Add(token);
             _root.Add(token);
+            RefreshTokenSpacing();
+        }
+
+        private void RefreshTokenSpacing()
+        {
+            for (int index = 0; index < _tokens.Count; index++)
+            {
+                _tokens[index].EnableInClassList(
+                    "figma-grid-gap-right",
+                    index < _tokens.Count - 1);
+            }
         }
     }
 }

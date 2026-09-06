@@ -17,7 +17,7 @@ namespace PowerMath.Bootstrap
                 remembered = false,
                 player = new PlayerSnapshot
                 {
-                    playerId = "editor-sample-student",
+                    playerId = "level1:sample-student",
                     revision = 1,
                     profile = new PlayerSnapshot.ProfileData
                     {

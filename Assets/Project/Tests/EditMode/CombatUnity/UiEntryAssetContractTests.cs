@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine.UIElements;
+using PowerMath.UI.Core;
 
 namespace PowerMath.Gameplay.Combat.Unity.Tests
 {
@@ -14,6 +15,8 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             "Assets/Project/UI/BootstrapUI.uxml";
         private const string MainMenuUxml =
             "Assets/Project/UI/MainMenuUI.uxml";
+        private const string PlayerMenuUxml =
+            "Assets/Project/UI/MainMenu/PlayerMenuPanel.uxml";
         private const string MainMenuTransitionViewScript =
             "Assets/Project/Script/UI/MainMenu/Transitions/MainMenuTransitionView.cs";
         private const string MainMenuTransitionControllerScript =
@@ -24,6 +27,8 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             "Assets/Project/Script/UI/MainMenu/RunEconomy/PlayerHubFeedbackPlayer.cs";
         private const string PlayerHubStyle =
             "Assets/Project/UI/MainMenu/PlayerHubPanel.uss";
+        private const string MainMenuExperienceStyle =
+            "Assets/Project/UI/MainMenu/MainMenuExperience.uss";
 
         [Test]
         public void AuthenticationAsset_PreservesLoginContract()
@@ -92,12 +97,34 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Label>(root, "profile-silver-value");
             Require<Label>(root, "profile-gold-value");
             Require<Label>(root, "profile-diamond-value");
-            Require<Button>(root, "player-menu-toggle");
-            Require<Label>(root, "player-menu-power-coins");
+            Require<Button>(root, "Collapse Handle");
+            Require<Label>(root, "Chevron");
+            Require<Label>(root, "Currency_Value");
             Require<Label>(root, "player-menu-atk");
-            Require<VisualElement>(root, "player-dashboard");
+            Require<VisualElement>(root, "Power-Coin_Currency-field");
+            Require<VisualElement>(root, "Power-Coin-Icon");
+            VisualElement playerLoadout = Require<VisualElement>(
+                root,
+                "Player Loadout");
+            Require<VisualElement>(root, "Round_Panel_outer");
+            Require<VisualElement>(root, "Panel_Inner");
+            Require<Label>(root, "CharacterName");
+            VisualElement health = Require<VisualElement>(root, "Health");
+            VisualElement inventory = Require<VisualElement>(
+                root,
+                "Player Loadout / Inventory Row");
+            Require<VisualElement>(root, "Quick Slot / Pet");
+            Require<VisualElement>(root, "Quick Slot / Weapon");
+            Require<VisualElement>(root, "Quick Slot / Empty 1");
             Require<Label>(root, "dashboard-pet");
             Require<Label>(root, "dashboard-weapon");
+            Assert.That(health.Query<VisualElement>(
+                className: "hud-loadout-heart").ToList().Count,
+                Is.EqualTo(5));
+            Assert.That(inventory.Children().Count(child =>
+                child.ClassListContains("hud-loadout-slot")),
+                Is.EqualTo(5));
+            Assert.That(inventory.parent, Is.SameAs(playerLoadout));
             Require<VisualElement>(root, "combat-enemy-actions");
             Require<VisualElement>(root, "combat-answer-content");
             Require<VisualElement>(root, "combat-feedback-card");
@@ -350,6 +377,53 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(allText, Does.Not.Contain("MASTERY"));
             Assert.That(allText, Does.Not.Contain("STREAK"));
             Assert.That(root.Q<VisualElement>("leaderboard-grade-tabs"), Is.Null);
+        }
+
+        [Test]
+        public void PlayerMenuAsset_PreservesFigmaStructureAndTokensContract()
+        {
+            VisualElement root = Clone(PlayerMenuUxml);
+
+            VisualElement playerMenu = Require<VisualElement>(root, "Player Menu");
+            VisualElement shadow = Require<FigmaShadowElement>(root, "Player Menu Shadow");
+            Button toggle = Require<Button>(root, "Collapse Handle");
+            Label chevron = Require<Label>(toggle, "Chevron");
+            VisualElement content = Require<VisualElement>(root, "Primary Navigation");
+            VisualElement powerCoinField = Require<VisualElement>(
+                content,
+                "Power-Coin_Currency-field");
+            VisualElement currency = Require<VisualElement>(
+                powerCoinField,
+                "Currency");
+            VisualElement powerCoinIcon = Require<VisualElement>(
+                powerCoinField,
+                "Power-Coin-Icon");
+            Label powerCoinValue = Require<Label>(root, "Currency_Value");
+            Require<Label>(root, "player-menu-atk");
+            Require<Button>(root, "player-hub-button");
+            Require<Button>(root, "pet-gacha-button");
+            Require<Button>(root, "rebirth-button");
+
+            Assert.That(shadow.parent, Is.SameAs(playerMenu));
+            Assert.That(shadow.pickingMode, Is.EqualTo(PickingMode.Ignore));
+            Assert.That(toggle.parent, Is.SameAs(playerMenu));
+            Assert.That(content.parent, Is.SameAs(playerMenu));
+            Assert.That(currency.parent, Is.SameAs(powerCoinField));
+            Assert.That(powerCoinIcon.parent, Is.SameAs(powerCoinField));
+            Assert.That(powerCoinValue.parent, Is.SameAs(currency));
+            Assert.That(chevron.text, Is.EqualTo("‹"));
+
+            string style = File.ReadAllText(MainMenuExperienceStyle);
+            string collapsedToggle = RuleBody(
+                style,
+                ".hud-player-menu-toggle.is-collapsed");
+            Assert.That(collapsedToggle, Does.Contain("translate: -230px 0"));
+            Assert.That(style, Does.Contain(
+                "power-coin-orange-white-green.png"));
+            Assert.That(style, Does.Contain("--power-coin-field-fill"));
+            Assert.That(style, Does.Contain("--figma-shadow-inset: 1"));
+            Assert.That(style, Does.Contain("--loadout-slot-fill-0"));
+            Assert.That(style, Does.Contain("--figma-gradient-stop-1: 0.58"));
         }
 
         private static VisualElement Clone(string path)

@@ -127,6 +127,36 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 while (routine.MoveNext()) { }
 
                 Assert.That(controller.State, Is.EqualTo(ActorVisualState.Hidden));
+                Assert.That(whiteFlashed, Is.True);
+                Assert.That(rewardDropped, Is.True);
+                Assert.That(go.activeSelf, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void AppearState_WhenActorIsHiddenAndInactive_ActivatesAndTransitionsToIdle()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Enemy, true);
+
+                // Simulate actor having died and become hidden / inactive
+                controller.CancelAndApply(ActorVisualState.Hidden);
+                Assert.That(go.activeSelf, Is.False);
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Hidden));
+
+                // Playing appear should activate the game object and transition to Idle
+                var routine = controller.Play(PresentationActionKind.EnemyAppear);
+                while (routine.MoveNext()) { }
+
+                Assert.That(go.activeSelf, Is.True);
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Idle));
             }
             finally
             {

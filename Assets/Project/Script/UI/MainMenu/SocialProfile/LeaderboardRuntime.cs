@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
 using PowerMath.Session;
 using UnityEngine;
@@ -184,7 +185,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             return true;
         }
 
-        private static bool IsPublicPlayerId(string value)
+        internal static bool IsPublicPlayerId(string value)
         {
             if (string.IsNullOrEmpty(value) || value.Length != 32) return false;
             foreach (char character in value)
@@ -325,6 +326,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                     _refresh.SetEnabled(true);
                     try
                     {
+                        IncludeAuthoritativeSelf(entries);
                         _cached = LeaderboardRanking.Rank(
                             entries,
                             _player?.profile?.publicPlayerId ?? string.Empty);
@@ -342,9 +344,86 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 {
                     _loading = false;
                     _refresh.SetEnabled(true);
-                    _status.text = _cached == null ? message : "Showing saved standings · " + message;
+                    if (_cached == null)
+                    {
+                        var localEntries = new List<LeaderboardEntry>();
+                        IncludeAuthoritativeSelf(localEntries);
+                        if (localEntries.Count > 0)
+                        {
+                            _cached = LeaderboardRanking.Rank(
+                                localEntries,
+                                _player?.profile?.publicPlayerId ?? string.Empty);
+                            Render(
+                                _cached,
+                                "Public standings unavailable · showing your saved standing");
+                        }
+                        else
+                        {
+                            _status.text = message;
+                        }
+                    }
+                    else
+                    {
+                        _status.text = "Showing saved standings · " + message;
+                    }
                     SetSemanticState("is-error");
                 });
+        }
+
+        private void IncludeAuthoritativeSelf(List<LeaderboardEntry> entries)
+        {
+            LeaderboardEntry self = CreateAuthoritativeSelfEntry(_player);
+            if (self == null) return;
+            entries.RemoveAll(entry => string.Equals(
+                entry.PlayerId,
+                self.PlayerId,
+                StringComparison.Ordinal));
+            entries.Add(self);
+        }
+
+        private static LeaderboardEntry CreateAuthoritativeSelfEntry(PlayerSnapshot player)
+        {
+            string publicId = player?.profile?.publicPlayerId?.Trim() ?? string.Empty;
+            if (!FirestoreLeaderboardRepository.IsPublicPlayerId(publicId))
+                return null;
+
+            PlayerSnapshot.ProfileData profile = player.profile ?? new PlayerSnapshot.ProfileData();
+            PlayerSnapshot.ProgressionData progression =
+                player.progression ?? new PlayerSnapshot.ProgressionData();
+            PlayerSnapshot.WalletData wallet = player.wallet ?? new PlayerSnapshot.WalletData();
+            PlayerSnapshot.LoadoutData loadout = player.loadout ?? new PlayerSnapshot.LoadoutData();
+            long silver = Math.Max(0, wallet.silver);
+            long gold = Math.Max(0, wallet.gold);
+            long diamond = Math.Max(0, wallet.diamond);
+            int currentStage = Math.Max(1, Math.Min(200, progression.currentStage));
+            int highestStage = Math.Max(currentStage, Math.Min(200, progression.highestStage));
+            int weaponLevel = 0;
+            foreach (PlayerSnapshot.InventoryItemData item in
+                     player.inventory ?? Array.Empty<PlayerSnapshot.InventoryItemData>())
+            {
+                if (item != null && item.itemId == WeaponAscensionPolicy.CanonicalItemId)
+                    weaponLevel = Math.Max(weaponLevel, item.upgradeLevel);
+            }
+
+            return new LeaderboardEntry
+            {
+                PlayerId = publicId,
+                DisplayName = string.IsNullOrWhiteSpace(profile.displayName)
+                    ? "You"
+                    : profile.displayName,
+                CurrentStage = currentStage,
+                HighestStage = highestStage,
+                Silver = silver,
+                Gold = gold,
+                Diamond = diamond,
+                WeightedScore = LeaderboardRanking.Score(silver, gold, diamond),
+                TotalDamage = Math.Max(0, progression.totalDamage),
+                AvatarId = loadout.avatarId ?? profile.iconId ?? string.Empty,
+                IconId = profile.iconId ?? string.Empty,
+                PetId = loadout.petId ?? string.Empty,
+                WeaponId = loadout.weaponId ?? string.Empty,
+                WeaponLevel = weaponLevel
+            };
         }
 
         private void Render(List<RankedLeaderboardEntry> entries, string status)

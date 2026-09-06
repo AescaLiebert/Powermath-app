@@ -1,4 +1,5 @@
 using PowerMath.PlayerData;
+using PowerMath.Session;
 using PowerMath.UI.MainMenu.Admin;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -45,6 +46,24 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _leaderboard.Bind();
             _profile.Bind();
             _admin.Bind();
+            SynchronizeLeaderboardProjection(
+                presenter.ApiSettings,
+                session.Snapshot);
+        }
+
+        private void SynchronizeLeaderboardProjection(
+            GameApiSettings settings,
+            PlayerSnapshot player)
+        {
+#if UNITY_EDITOR
+            if (settings != null && settings.UseEditorSampleStudent)
+                return;
+#endif
+            var publisher = new FirestoreLeaderboardProjectionPublisher(settings);
+            StartCoroutine(publisher.Publish(
+                player,
+                () => { },
+                message => Debug.LogWarning(message)));
         }
 
         private void OnDisable()

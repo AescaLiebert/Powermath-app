@@ -132,6 +132,26 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
 
         [Test]
+        public void ResolveBounceTarget_PrioritizesRankCurrencyIconElement()
+        {
+            var root = new VisualElement();
+            var silCur = new VisualElement { name = "sil_cur" };
+            var icon = new VisualElement { name = "icon" };
+            var silverLabel = new Label("0") { name = "profile-silver-value" };
+            silCur.Add(icon);
+            silCur.Add(silverLabel);
+            root.Add(silCur);
+
+            var driver = new ImmediateMotionDriver();
+            var player = new RewardMagnetFeedbackPlayer(root, driver);
+
+            VisualElement bounceTarget = player.ResolveBounceTarget(RewardCurrencyKind.RankSilver, silverLabel);
+            Assert.That(bounceTarget, Is.SameAs(icon));
+
+            player.Dispose();
+        }
+
+        [Test]
         public void Dispose_CleansUpOverlayLayer()
         {
             var root = new VisualElement();

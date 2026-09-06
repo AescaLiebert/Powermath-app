@@ -1,4 +1,4 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+﻿<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="CombatSurface" src="project://database/Assets/Project/UI/MainMenu/CombatSurface.uxml?fileID=9197481963319205126&amp;guid=d4ed21dcae3742648a830e100cb14187&amp;type=3#CombatSurface"/>
     <ui:Template name="LegacyFeaturePanels" src="project://database/Assets/Project/UI/MainMenu/LegacyFeaturePanels.uxml?fileID=9197481963319205126&amp;guid=103f3110e42504747956c1b845dd65a2&amp;type=3#LegacyFeaturePanels"/>
     <ui:Template name="MainMenuShell" src="project://database/Assets/Project/UI/MainMenu/MainMenuShell.uxml?fileID=9197481963319205126&amp;guid=a627e06624973a54693ce44339524e61&amp;type=3#MainMenuShell"/>

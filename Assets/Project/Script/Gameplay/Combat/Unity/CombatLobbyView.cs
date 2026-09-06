@@ -17,12 +17,16 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _stageLabel;
         private readonly ProgressBar _stageProgress;
         private readonly Label _enemyName;
+        private readonly Label _enemyNameShadow;
         private readonly ProgressBar _enemyHpBar;
+        private readonly VisualElement _enemyHpFill;
         private readonly Label _enemyHpLabel;
+        private readonly Label _enemyHpLabelShadow;
         private readonly Label _cooldownLabel;
         private readonly VisualElement _enemyActions;
         private readonly EnemyActionQueuePresenter _enemyActionQueue;
         private readonly Label _heartsLabel;
+        private readonly List<VisualElement> _heartIcons = new List<VisualElement>();
         private readonly Button _attackButton;
         private readonly VisualElement _attemptPanel;
         private readonly VisualElement _answerContent;
@@ -75,13 +79,18 @@ namespace PowerMath.Gameplay.Combat.Unity
             _stageLabel = Require<Label>("combat-stage-label");
             _stageProgress = _root.Q<ProgressBar>("combat-stage-progress");
             _enemyName = Require<Label>("combat-enemy-name");
+            _enemyNameShadow = _root.Q<Label>("combat-enemy-name-shadow");
             _enemyHpBar = Require<ProgressBar>("combat-enemy-hp");
+            _enemyHpFill = _root.Q<VisualElement>(className: "figma-boss-fill");
             _enemyHpLabel = Require<Label>("combat-enemy-hp-label");
+            _enemyHpLabelShadow = _root.Q<Label>("combat-enemy-hp-label-shadow");
             _cooldownLabel = _root.Q<Label>("combat-cooldown-label");
             _enemyActions = Require<VisualElement>("combat-enemy-actions");
             _enemyActionQueue = new EnemyActionQueuePresenter(
                 new EnemyActionQueueView(_enemyActions), reducedMotion);
             _heartsLabel = Require<Label>("combat-hearts-label");
+            _root.Query<VisualElement>(className: "hud-loadout-heart")
+                .ForEach(_heartIcons.Add);
             _attackButton = _root.Q<Button>("combat-attack-button");
             _attemptPanel = Require<VisualElement>("combat-attempt-panel");
             _answerContent = Require<VisualElement>("combat-answer-content");
@@ -169,10 +178,12 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void Render(CombatSnapshot snapshot)
         {
             _combatLayer.style.display = DisplayStyle.Flex;
-            _stageLabel.text = $"STAGE {snapshot.Stage.Value} / {StageId.Final}";
+            _stageLabel.text = $"STAGE {snapshot.Stage.Value}";
             if (_stageProgress != null)
                 _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
             _enemyName.text = snapshot.EnemyName;
+            if (_enemyNameShadow != null)
+                _enemyNameShadow.text = snapshot.EnemyName;
             _biomeLabel.text = snapshot.BiomeTitle.ToUpperInvariant();
             ApplyEncounterVisuals(snapshot);
             foreach (KeyValuePair<string, Label> pair in _mapNodes)
@@ -196,6 +207,10 @@ namespace PowerMath.Gameplay.Combat.Unity
                 snapshot.Phase == CombatPhase.EventReady)
                 _enemyActionQueue.Synchronize(snapshot, _enemyActions.childCount == 0);
             _heartsLabel.text = BuildHearts(
+                snapshot.PlayerCurrentHearts,
+                snapshot.PlayerMaximumHearts
+            );
+            UpdateHeartIcons(
                 snapshot.PlayerCurrentHearts,
                 snapshot.PlayerMaximumHearts
             );
@@ -276,8 +291,14 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             int safeMaximum = Mathf.Max(1, EnemyMaximumHp);
             int safeCurrent = Mathf.Clamp(currentHp, 0, safeMaximum);
-            _enemyHpBar.value = safeCurrent / (float)safeMaximum * 100f;
-            _enemyHpLabel.text = $"{safeCurrent} / {safeMaximum} HP";
+            float healthPercent = safeCurrent / (float)safeMaximum * 100f;
+            _enemyHpBar.value = healthPercent;
+            if (_enemyHpFill != null)
+                _enemyHpFill.style.width = Length.Percent(healthPercent);
+            string healthText = $"{safeCurrent} / {safeMaximum}";
+            _enemyHpLabel.text = healthText;
+            if (_enemyHpLabelShadow != null)
+                _enemyHpLabelShadow.text = healthText;
         }
 
         public void ShowAttempt(bool visible)
@@ -477,6 +498,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (snapshot == null) return;
             ApplyEncounterVisuals(snapshot);
             _enemyName.text = snapshot.EnemyName;
+            if (_enemyNameShadow != null)
+                _enemyNameShadow.text = snapshot.EnemyName;
             EnemyMaximumHp = snapshot.EnemyMaximumHp;
             SetEnemyHp(snapshot.EnemyCurrentHp);
         }
@@ -642,6 +665,22 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
 
             return new string(chars);
+        }
+
+        private void UpdateHeartIcons(int current, int maximum)
+        {
+            int visibleMaximum = Mathf.Clamp(maximum, 0, _heartIcons.Count);
+            int visibleCurrent = Mathf.Clamp(current, 0, visibleMaximum);
+
+            for (int index = 0; index < _heartIcons.Count; index++)
+            {
+                bool isUsed = index < visibleMaximum;
+                _heartIcons[index].EnableInClassList("is-unused", !isUsed);
+                _heartIcons[index].EnableInClassList(
+                    "is-empty",
+                    isUsed && index >= visibleCurrent
+                );
+            }
         }
     }
 }

@@ -27,6 +27,7 @@ namespace PowerMath.Gameplay.Academic.Unity
         private readonly Label _rankNamePrev;
         private readonly Label _rankNameCurr;
         private readonly Label _rankTapPrompt;
+        private readonly VisualElement _dashboardRankIcon;
         private readonly VisualElement _root;
         private bool _bound;
         private IVisualElementScheduledItem _scheduledEntrance;
@@ -60,6 +61,7 @@ namespace PowerMath.Gameplay.Academic.Unity
             _rankNamePrev = root.Q<Label>("academic-rank-name-prev");
             _rankNameCurr = root.Q<Label>("academic-rank-name-curr");
             _rankTapPrompt = root.Q<Label>("academic-rank-tap-prompt");
+            _dashboardRankIcon = root.Q<VisualElement>("Rank Icon");
 
             HideRankTransition();
         }
@@ -112,6 +114,15 @@ namespace PowerMath.Gameplay.Academic.Unity
             _multiplierLabel.text = $"Damage ×{rank.DamageMultiplier:0.0}";
             _activeCurrencyLabel.text =
                 $"{rank}: {projection.Balances.Get(rank)}";
+
+            if (_dashboardRankIcon != null)
+            {
+                string tier = rank.ToString().ToLowerInvariant();
+                _dashboardRankIcon.RemoveFromClassList("hud-slot-icon--rank-silver");
+                _dashboardRankIcon.RemoveFromClassList("hud-slot-icon--rank-gold");
+                _dashboardRankIcon.RemoveFromClassList("hud-slot-icon--rank-diamond");
+                _dashboardRankIcon.AddToClassList($"hud-slot-icon--rank-{tier}");
+            }
         }
 
         public void ShowQuestion(QuestionPresentationDescriptor question)

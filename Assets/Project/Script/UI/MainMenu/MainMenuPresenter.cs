@@ -17,6 +17,8 @@ namespace PowerMath.UI.MainMenu
         private SceneFlowController _sceneFlow;
         private PlayerSessionStore _sessionStore;
         private IAuthenticationService _authenticationService;
+        private IMainMenuInteractionGate _interactionGate;
+        private PlayerSnapshot _pendingSnapshot;
         private bool _logoutActive;
 
         public GameApiSettings ApiSettings => apiSettings;
@@ -44,6 +46,10 @@ namespace PowerMath.UI.MainMenu
             {
                 gameObject.AddComponent<ProfileActivityTracker>();
             }
+            if (GetComponent<MainMenuInteractionGateProvider>() == null)
+            {
+                gameObject.AddComponent<MainMenuInteractionGateProvider>();
+            }
             if (GetComponent<MainMenuTransitionController>() == null)
             {
                 gameObject.AddComponent<MainMenuTransitionController>();
@@ -54,10 +60,17 @@ namespace PowerMath.UI.MainMenu
         {
             _view.LogoutRequested += OnLogoutRequested;
             _sessionStore = PlayerSessionStore.Instance;
+            _interactionGate = GetComponent<MainMenuInteractionGateProvider>()?.Gate;
+            if (_interactionGate != null)
+            {
+                _interactionGate.Changed += OnInteractionGateChanged;
+            }
 
             if (_sessionStore == null || !_sessionStore.IsReady)
             {
                 _view.RenderUnavailable();
+                GetComponent<MainMenuTransitionController>()?
+                    .CancelAndApplyFinalState();
                 Debug.LogError(
                     "MainMenuScene requires a successful BootstrapScene player session."
                 );
@@ -85,6 +98,10 @@ namespace PowerMath.UI.MainMenu
         private void OnDisable()
         {
             _view.LogoutRequested -= OnLogoutRequested;
+            if (_interactionGate != null)
+            {
+                _interactionGate.Changed -= OnInteractionGateChanged;
+            }
             if (_sessionStore != null)
             {
                 _sessionStore.Changed -= OnPlayerSessionChanged;
@@ -95,11 +112,31 @@ namespace PowerMath.UI.MainMenu
         {
             if (snapshot == null)
             {
+                _pendingSnapshot = null;
                 _view.RenderUnavailable();
+                GetComponent<MainMenuTransitionController>()?
+                    .CancelAndApplyFinalState();
                 return;
             }
 
+            if (_interactionGate != null && !_interactionGate.IsAllowed(InteractionScope.All))
+            {
+                _pendingSnapshot = snapshot;
+                return;
+            }
+
+            _pendingSnapshot = null;
             _view.Render(MainMenuViewModel.From(snapshot));
+        }
+
+        private void OnInteractionGateChanged(InteractionGateSnapshot snapshot)
+        {
+            if (_pendingSnapshot != null && _interactionGate != null && _interactionGate.IsAllowed(InteractionScope.All))
+            {
+                PlayerSnapshot pending = _pendingSnapshot;
+                _pendingSnapshot = null;
+                _view.Render(MainMenuViewModel.From(pending));
+            }
         }
 
         private void OnLogoutRequested()

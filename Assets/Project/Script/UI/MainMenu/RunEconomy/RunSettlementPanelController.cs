@@ -66,8 +66,8 @@ namespace PowerMath.UI.MainMenu
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
-            _store = store ?? throw new ArgumentNullException(nameof(store));
-            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            _store = store;
+            _publisher = publisher;
             _baseAttack = baseAttack;
             _baseWeaponAttack = baseWeaponAttack;
             _baseCriticalRate = baseCriticalRate;
@@ -291,6 +291,15 @@ namespace PowerMath.UI.MainMenu
 
         private IEnumerator Settle(RunSettlementType type)
         {
+            if (_store == null)
+            {
+                _status.text = "Rebirth save is not configured in offline mode.";
+                _confirm.text = "OFFLINE";
+                Show(true, false);
+                SetSemanticState("is-error");
+                yield break;
+            }
+
             _busy = true;
             SetSemanticState("is-busy");
             _status.text = "Saving to Firebase...";
@@ -369,6 +378,7 @@ namespace PowerMath.UI.MainMenu
 
         private IEnumerator Publish()
         {
+            if (_publisher == null) yield break;
             string warning = string.Empty;
             yield return _publisher.Publish(
                 _player,

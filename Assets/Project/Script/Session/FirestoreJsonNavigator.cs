@@ -104,18 +104,29 @@ namespace PowerMath.Session
         public static bool TryReadString(JsonValue value, out string result)
         {
             result = string.Empty;
-            if (!TryGetScalar(value, "stringValue", JsonValueKind.String, out JsonValue leaf))
+            if (value == null) return false;
+            if (TryGetScalar(value, "stringValue", JsonValueKind.String, out JsonValue leaf))
             {
-                return false;
+                result = leaf.Text ?? string.Empty;
+                return true;
             }
-
-            result = leaf.Text ?? string.Empty;
-            return true;
+            if (TryGetScalar(value, "integerValue", JsonValueKind.String, out JsonValue intText))
+            {
+                result = intText.Text ?? string.Empty;
+                return true;
+            }
+            if (TryGetScalar(value, "integerValue", JsonValueKind.Number, out JsonValue intNum))
+            {
+                result = intNum.Text ?? string.Empty;
+                return true;
+            }
+            return false;
         }
 
         public static bool TryReadInteger(JsonValue value, out long result)
         {
             result = 0L;
+            if (value == null) return false;
             if (TryGetScalar(value, "integerValue", JsonValueKind.String, out JsonValue text))
             {
                 return long.TryParse(
@@ -134,6 +145,25 @@ namespace PowerMath.Session
                     CultureInfo.InvariantCulture,
                     out result
                 );
+            }
+
+            if (TryGetScalar(value, "stringValue", JsonValueKind.String, out JsonValue strText))
+            {
+                return long.TryParse(
+                    strText.Text,
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out result
+                );
+            }
+
+            if (TryGetScalar(value, "doubleValue", JsonValueKind.Number, out JsonValue dblNum))
+            {
+                if (double.TryParse(dblNum.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double dblVal))
+                {
+                    result = (long)dblVal;
+                    return true;
+                }
             }
 
             return false;

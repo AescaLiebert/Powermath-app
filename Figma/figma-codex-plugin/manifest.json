@@ -1,0 +1,14 @@
+{
+  "name": "figma-codex-plugin",
+  "id": "1675924807767901396",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "capabilities": [],
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "devAllowedDomains": ["http://localhost:3847"]
+  }
+}

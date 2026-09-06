@@ -6,7 +6,9 @@
 2. Verify a committed save request contains the locked question, reserved FIFO entry, and decremented cooldown.
 3. Verify combat restore preserves Stage, enemy HP/cooldown, and player hearts.
 4. Verify same numeric question IDs remain valid across different Rank documents.
-5. Do not load the serialized live API keys in automated network tests.
+5. Verify both supported Firestore question shapes parse: the canonical `items` array and
+   deployed top-level `q1`/`q2` maps containing rank-prefixed display IDs and `video-url`.
+6. Do not load the serialized live API keys in automated network tests.
 
 ## Human Live E2E
 
@@ -17,8 +19,14 @@
 5. Press Attack; confirm `activeRun`/`activeAttempt`, reserved question, and cooldown write before content begins.
 6. Resolve one correct answer; confirm currency, audit, FIFO, enemy HP, Stage, and revision update before feedback continues.
 7. Stop and restart Play Mode; confirm the same completed state rehydrates.
-8. Repeat with incorrect answer, timeout, and content failure.
-9. Disconnect during each save checkpoint; confirm input stays locked and a save error is shown.
+8. With deployed top-level `qN` question documents, confirm no isolated-practice notice is
+   shown and numeric rank-scoped question IDs are persisted from the `qN` field names.
+9. Resolve exactly five questions; confirm the audit persists after every answer and only
+   the resulting promotion/demotion is exposed to the player at the five-answer boundary.
+10. Open Leaderboard; confirm the authenticated player's authoritative saved projection is
+    visible even when the public board is empty or temporarily unavailable.
+11. Repeat with incorrect answer, timeout, and content failure.
+12. Disconnect during each save checkpoint; confirm input stays locked and a save error is shown.
 
 ## Question Firebase Fallback E2E
 

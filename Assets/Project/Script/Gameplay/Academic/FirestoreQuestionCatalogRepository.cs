@@ -56,7 +56,7 @@ namespace PowerMath.Gameplay.Academic
                 using (UnityWebRequest request = UnityWebRequest.Get(url))
                 {
                     _activeRequest = request;
-                    request.timeout = _settings.RequestTimeoutSeconds;
+                    request.timeout = Mathf.Min(3, _settings.RequestTimeoutSeconds > 0 ? _settings.RequestTimeoutSeconds : 3);
                     request.SetRequestHeader("Accept", "application/json");
                     yield return request.SendWebRequest();
                     _activeRequest = null;
@@ -85,6 +85,10 @@ namespace PowerMath.Gameplay.Academic
             );
         }
 
+        private static readonly string[] IdFieldCandidates = { "id", "Id", "question_id", "questionId", "ID" };
+        private static readonly string[] VideoLinkFieldCandidates = { "video_link", "videoLink", "video-url", "url", "link", "video_url", "videoUrl" };
+        private static readonly string[] AnswerFieldCandidates = { "answer", "Answer", "correct_answer", "correctAnswer", "value" };
+
         private static bool TryReadItems(
             string json,
             AcademicRank rank,
@@ -93,50 +97,152 @@ namespace PowerMath.Gameplay.Academic
         {
             error = string.Empty;
             if (!FirestoreJsonNavigator.TryParse(json, out JsonValue root, out string parseError) ||
-                !FirestoreJsonNavigator.TryGetDocumentFields(root, out JsonValue fields) ||
-                !fields.TryGet("items", out JsonValue items) ||
-                !FirestoreJsonNavigator.TryGetArrayValues(items, out IReadOnlyList<JsonValue> values))
+                !FirestoreJsonNavigator.TryGetDocumentFields(root, out JsonValue fields))
             {
-                error = $"The shared {rank} question document has an invalid items array. {parseError}".Trim();
+                error = $"The shared {rank} question document has an invalid document structure. {parseError}".Trim();
                 return false;
             }
 
-            foreach (JsonValue value in values)
+            JsonValue items = null;
+            if (fields.TryGet("items", out items) ||
+                fields.TryGet("Items", out items) ||
+                fields.TryGet("questions", out items) ||
+                fields.TryGet("Questions", out items))
             {
-                if (!FirestoreJsonNavigator.TryGetMapFields(value, out JsonValue itemFields) ||
-                    !TryReadInteger(itemFields, "id", out long id) ||
-                    !TryReadString(itemFields, "video_link", out string videoLink) ||
-                    !TryReadInteger(itemFields, "answer", out long answer))
+                if (!FirestoreJsonNavigator.TryGetArrayValues(items, out IReadOnlyList<JsonValue> values))
                 {
-                    error = $"The shared {rank} question document contains a malformed item.";
+                    error = $"The shared {rank} question document has an invalid items array.";
                     return false;
                 }
 
-                destination.Add(new RankedQuestionDocument(
-                    rank,
-                    new QuestionDocumentDto
-                    {
-                        id = id,
-                        video_link = videoLink,
-                        answer = answer
-                    }
-                ));
+                foreach (JsonValue value in values)
+                {
+                    if (!TryReadQuestion(value, null, rank, destination, out error))
+                        return false;
+                }
+                return true;
+            }
+
+            var keyedQuestions = new List<KeyValuePair<long, JsonValue>>();
+            foreach (KeyValuePair<string, JsonValue> pair in
+                     fields.Object ?? new Dictionary<string, JsonValue>())
+            {
+                if (string.Equals(pair.Key, "_meta", StringComparison.Ordinal))
+                    continue;
+                if (!TryReadQuestionFieldId(pair.Key, out long questionId))
+                {
+                    error = $"The shared {rank} question document contains an unsupported field '{pair.Key}'.";
+                    return false;
+                }
+                keyedQuestions.Add(new KeyValuePair<long, JsonValue>(questionId, pair.Value));
+            }
+
+            if (keyedQuestions.Count == 0)
+            {
+                error = $"The shared {rank} question document contains no questions.";
+                return false;
+            }
+
+            keyedQuestions.Sort((left, right) => left.Key.CompareTo(right.Key));
+            foreach (KeyValuePair<long, JsonValue> question in keyedQuestions)
+            {
+                if (!TryReadQuestion(question.Value, question.Key, rank, destination, out error))
+                    return false;
             }
             return true;
+        }
+
+        private static bool TryReadQuestion(
+            JsonValue value,
+            long? documentFieldId,
+            AcademicRank rank,
+            ICollection<RankedQuestionDocument> destination,
+            out string error)
+        {
+            error = string.Empty;
+            if (!FirestoreJsonNavigator.TryGetMapFields(value, out JsonValue itemFields) ||
+                !TryReadAnyString(itemFields, VideoLinkFieldCandidates, out string videoLink) ||
+                !TryReadAnyInteger(itemFields, AnswerFieldCandidates, out long answer))
+            {
+                error = $"The shared {rank} question document contains a malformed item.";
+                return false;
+            }
+
+            long id;
+            if (documentFieldId.HasValue)
+            {
+                // The deployed catalog uses q1/q2/... as the stable numeric identity
+                // while its display/content id is rank-prefixed (s1/g1/d1).
+                id = documentFieldId.Value;
+            }
+            else if (!TryReadAnyInteger(itemFields, IdFieldCandidates, out id))
+            {
+                error = $"The shared {rank} question document contains a malformed item.";
+                return false;
+            }
+
+            destination.Add(new RankedQuestionDocument(
+                rank,
+                new QuestionDocumentDto
+                {
+                    id = id,
+                    video_link = videoLink,
+                    answer = answer
+                }
+            ));
+            return true;
+        }
+
+        private static bool TryReadQuestionFieldId(string fieldName, out long id)
+        {
+            id = 0;
+            return !string.IsNullOrEmpty(fieldName) &&
+                fieldName.Length > 1 &&
+                (fieldName[0] == 'q' || fieldName[0] == 'Q') &&
+                long.TryParse(
+                    fieldName.Substring(1),
+                    System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out id) &&
+                id >= 0;
         }
 
         private static bool TryReadString(JsonValue fields, string name, out string value)
         {
             value = string.Empty;
-            return fields.TryGet(name, out JsonValue leaf) &&
+            return fields != null && fields.TryGet(name, out JsonValue leaf) &&
                 FirestoreJsonNavigator.TryReadString(leaf, out value);
         }
 
         private static bool TryReadInteger(JsonValue fields, string name, out long value)
         {
             value = 0;
-            return fields.TryGet(name, out JsonValue leaf) &&
+            return fields != null && fields.TryGet(name, out JsonValue leaf) &&
                 FirestoreJsonNavigator.TryReadInteger(leaf, out value);
+        }
+
+        private static bool TryReadAnyString(JsonValue fields, string[] candidateNames, out string value)
+        {
+            value = string.Empty;
+            if (fields == null) return false;
+            for (int i = 0; i < candidateNames.Length; i++)
+            {
+                if (TryReadString(fields, candidateNames[i], out value) && !string.IsNullOrEmpty(value))
+                    return true;
+            }
+            return false;
+        }
+
+        private static bool TryReadAnyInteger(JsonValue fields, string[] candidateNames, out long value)
+        {
+            value = 0;
+            if (fields == null) return false;
+            for (int i = 0; i < candidateNames.Length; i++)
+            {
+                if (TryReadInteger(fields, candidateNames[i], out value))
+                    return true;
+            }
+            return false;
         }
 
         private void Complete(

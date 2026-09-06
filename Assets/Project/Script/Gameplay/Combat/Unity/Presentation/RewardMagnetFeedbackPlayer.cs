@@ -82,6 +82,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             EnsureOverlay();
             VisualElement target = ResolveTargetElement(kind);
+            VisualElement bounceTarget = ResolveBounceTarget(kind, target);
             long[] portions = RewardPortionCalculator.CalculatePortions(grantAmount);
             if (portions == null || portions.Length == 0) yield break;
 
@@ -125,6 +126,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                         originPanel,
                         scatterPos,
                         target,
+                        bounceTarget,
                         popSeconds,
                         flightSeconds,
                         portion,
@@ -134,8 +136,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                             accumulated += portion;
                             long currentTotal = startAmount + accumulated;
 
-                            // Target scale bounce
-                            PlayTargetBounce(target);
+                            // Target scale bounce on Rank Currency Icon
+                            PlayTargetBounce(bounceTarget ?? target);
 
                             // Audio
                             _audio?.PlayCurrency();
@@ -162,13 +164,16 @@ namespace PowerMath.Gameplay.Combat.Unity
             VisualElement icon,
             Vector2 startPos,
             Vector2 scatterPos,
-            VisualElement target,
+            VisualElement textTarget,
+            VisualElement bounceTarget,
             float popDuration,
             float flightDuration,
             long portion,
             Action onLanded)
         {
             if (_disposed || icon == null) return;
+
+            VisualElement flightTarget = bounceTarget ?? textTarget;
 
             // Phase 1: Pop and Scatter
             if (_motionDriver != null)
@@ -200,7 +205,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                             t =>
                             {
                                 if (_disposed || icon.parent == null) return;
-                                Vector2 targetPos = GetTargetPosition(target);
+                                Vector2 targetPos = GetTargetPosition(flightTarget);
                                 // Accelerated curve towards target
                                 float curvedT = t * t;
                                 Vector2 currentPos = Vector2.Lerp(finalScatter, targetPos, curvedT);
@@ -259,32 +264,26 @@ namespace PowerMath.Gameplay.Combat.Unity
         private VisualElement CreateRewardIcon(RewardCurrencyKind kind)
         {
             var icon = new VisualElement();
+            icon.pickingMode = PickingMode.Ignore;
             icon.AddToClassList("reward-magnet-icon");
-            var label = new Label();
-            label.pickingMode = PickingMode.Ignore;
 
             switch (kind)
             {
                 case RewardCurrencyKind.RankSilver:
                     icon.AddToClassList("reward-magnet-icon--silver");
-                    label.text = "S";
                     break;
                 case RewardCurrencyKind.RankGold:
                     icon.AddToClassList("reward-magnet-icon--gold");
-                    label.text = "G";
                     break;
                 case RewardCurrencyKind.RankDiamond:
                     icon.AddToClassList("reward-magnet-icon--diamond");
-                    label.text = "D";
                     break;
                 case RewardCurrencyKind.PowerCoin:
                 default:
                     icon.AddToClassList("reward-magnet-icon--coin");
-                    label.text = "●";
                     break;
             }
 
-            icon.Add(label);
             return icon;
         }
 
@@ -308,9 +307,41 @@ namespace PowerMath.Gameplay.Combat.Unity
                            _root.Q<VisualElement>("academic-rank-label");
                 case RewardCurrencyKind.PowerCoin:
                 default:
-                    return _root.Q<Label>("player-menu-power-coins") ??
+                    return _root.Q<Label>("Currency_Value") ??
+                           _root.Q<Label>("player-menu-power-coins") ??
                            _root.Q<Label>("main-menu-utility-power-coins") ??
-                           _root.Q<VisualElement>("player-menu");
+                           _root.Q<VisualElement>("Player Menu");
+            }
+        }
+
+        public VisualElement ResolveBounceTarget(RewardCurrencyKind kind, VisualElement targetText)
+        {
+            if (_root == null) return targetText;
+
+            switch (kind)
+            {
+                case RewardCurrencyKind.RankSilver:
+                    return _root.Q<VisualElement>("sil_cur")?.Q<VisualElement>("icon") ??
+                           _root.Q<VisualElement>("sil_cur") ??
+                           _root.Q<VisualElement>("Rank Icon") ??
+                           targetText;
+                case RewardCurrencyKind.RankGold:
+                    return _root.Q<VisualElement>("gold_cur")?.Q<VisualElement>("icon") ??
+                           _root.Q<VisualElement>("gold_cur") ??
+                           _root.Q<VisualElement>("Rank Icon") ??
+                           targetText;
+                case RewardCurrencyKind.RankDiamond:
+                    return _root.Q<VisualElement>("dia_cur")?.Q<VisualElement>("icon") ??
+                           _root.Q<VisualElement>("dia_cur") ??
+                           _root.Q<VisualElement>("Rank Icon") ??
+                           targetText;
+                case RewardCurrencyKind.PowerCoin:
+                default:
+                    return _root.Q<VisualElement>("Power-Coin-Icon") ??
+                           _root.Q<VisualElement>("Currency_Value")?.parent?.Q<VisualElement>("icon") ??
+                           _root.Q<VisualElement>("player-menu-power-coins")?.parent?.Q<VisualElement>("icon") ??
+                           _root.Q<VisualElement>("main-menu-utility-power-coins")?.parent?.Q<VisualElement>("icon") ??
+                           targetText;
             }
         }
 

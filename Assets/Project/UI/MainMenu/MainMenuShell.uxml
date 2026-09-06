@@ -1,53 +1,135 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
-    <ui:VisualElement name="content" picking-mode="Ignore" class="main-shell">
+    <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuExperience.uss?fileID=7433441132597879392&amp;guid=a3168f27716975f42a77b8d15d9be5c1&amp;type=3#MainMenuExperience"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuSharedOverlay.uss?fileID=7433441132597879392&amp;guid=0ab46313332b46e8a9fa5e40c123c9d5&amp;type=3#MainMenuSharedOverlay"/>
+    <ui:VisualElement name="content" picking-mode="Ignore" class="main-shell" style="top: 0; bottom: 0; right: -1px; left: 2px;">
+        <pm:FigmaShadowElement name="Player Summary Shadow" class="hud-profile-panel-shadow main-menu-transition-top"/>
         <ui:VisualElement name="profile-panel" focusable="true" tooltip="Open Profile Analytics" class="hud-profile-panel main-menu-transition-top">
-            <ui:VisualElement class="hud-profile-icon">
-                <ui:Label text="P" picking-mode="Ignore"/>
+            <ui:VisualElement name="Player Summary" picking-mode="Ignore" class="figma-object-name"/>
+            <ui:VisualElement name="profile" picking-mode="Ignore" class="hud-profile-icon">
+                <ui:VisualElement name="ProfileFrame" picking-mode="Ignore" class="hud-profile-frame"/>
+                <ui:VisualElement name="Avatar Placeholder" picking-mode="Ignore" class="hud-profile-avatar"/>
+                <ui:VisualElement name="ProfilePic" picking-mode="Ignore" class="hud-profile-picture"/>
             </ui:VisualElement>
-            <ui:VisualElement picking-mode="Ignore" class="hud-profile-copy">
-                <ui:Label text="Loading player..." name="player-display-name" class="hud-profile-name"/>
-                <ui:VisualElement class="hud-rank-currencies">
-                    <ui:VisualElement tooltip="Silver Rank Currency" class="hud-rank-currency">
-                        <ui:Label text="S" class="hud-rank-icon hud-rank-icon--silver"/>
-                        <ui:Label name="profile-silver-value" text="—"/>
+            <ui:VisualElement name="info" picking-mode="Ignore" class="hud-profile-copy">
+                <ui:Label text="Loading player..." name="player-display-name" picking-mode="Ignore" class="hud-profile-name"/>
+                <ui:VisualElement name="Line 1" picking-mode="Ignore" class="hud-profile-divider"/>
+                <ui:VisualElement name="rank Currency" picking-mode="Ignore" class="hud-rank-currencies">
+                    <ui:VisualElement name="sil_cur" tooltip="Silver Rank Currency" class="hud-rank-currency hud-rank-currency--silver">
+                        <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-rank-value-shell">
+                            <ui:Label name="profile-silver-value" text="—" picking-mode="Ignore" class="hud-rank-value"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="icon" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--silver"/>
                     </ui:VisualElement>
-                    <ui:VisualElement tooltip="Gold Rank Currency" class="hud-rank-currency">
-                        <ui:Label text="G" class="hud-rank-icon hud-rank-icon--gold"/>
-                        <ui:Label name="profile-gold-value" text="—"/>
+                    <ui:VisualElement name="gold_cur" tooltip="Gold Rank Currency" class="hud-rank-currency">
+                        <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-rank-value-shell">
+                            <ui:Label name="profile-gold-value" text="—" picking-mode="Ignore" class="hud-rank-value"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="icon" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--gold"/>
                     </ui:VisualElement>
-                    <ui:VisualElement tooltip="Diamond Rank Currency" class="hud-rank-currency">
-                        <ui:Label text="D" class="hud-rank-icon hud-rank-icon--diamond"/>
-                        <ui:Label name="profile-diamond-value" text="—"/>
+                    <ui:VisualElement name="dia_cur" tooltip="Diamond Rank Currency" class="hud-rank-currency hud-rank-currency--last">
+                        <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-rank-value-shell">
+                            <ui:Label name="profile-diamond-value" text="—" picking-mode="Ignore" class="hud-rank-value"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="icon" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--diamond"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="main-navigator" class="hud-navigator main-menu-transition-top">
-            <ui:Button name="combat-map-button" text="◆" tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome"/>
-            <ui:Button name="leaderboard" text="★" tooltip="Leaderboard" class="hud-icon-button hud-icon-button--leaderboard"/>
-            <ui:Button name="setting" text="⚙" tooltip="Admin / Settings" class="hud-icon-button hud-icon-button--settings"/>
-        </ui:VisualElement>
-        <ui:VisualElement name="player-menu" class="hud-player-menu main-menu-transition-player-menu">
-            <ui:Button name="player-menu-toggle" text="‹" tooltip="Close Player Menu" class="hud-player-menu-toggle"/>
-            <ui:VisualElement name="player-menu-content" class="hud-player-menu-content">
-                <ui:VisualElement class="hud-player-resources">
-                    <ui:VisualElement tooltip="Power Coins" class="hud-player-resource">
-                        <ui:Label text="●" class="hud-player-resource-icon hud-player-resource-icon--coin"/>
-                        <ui:Label name="player-menu-power-coins" text="—"/>
+        <pm:FigmaShadowElement name="Stage Status Shadow" class="figma-stage-status-shadow main-menu-transition-top"/>
+        <ui:VisualElement name="Stage Status" picking-mode="Ignore" class="figma-stage-status stage-info main-menu-transition-top">
+            <ui:VisualElement name="Frame 1" class="figma-stage-heading">
+                <pm:StageInfoVectorPath name="Vector" class="stage-info-vector stage-info-vector--left"/>
+                <ui:Label text="STAGE 12" name="combat-stage-label" picking-mode="Ignore" class="figma-stage-title"/>
+                <pm:StageInfoVectorPath name="Vector" class="stage-info-vector stage-info-vector--right"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="Divider" class="figma-stage-divider"/>
+            <ui:VisualElement name="Stage Info / Enemy Row" class="figma-boss-row">
+                <ui:VisualElement name="Boss Slider" picking-mode="Ignore" class="figma-boss-slider Boss-Slider">
+                    <ui:VisualElement name="Player HP Track" picking-mode="Ignore" class="figma-boss-track"/>
+                    <ui:VisualElement name="Fill" picking-mode="Ignore" class="figma-boss-fill">
+                        <pm:FigmaShadowElement name="Player HP Fill Shadow" class="figma-boss-fill-base-shadow"/>
+                        <ui:VisualElement name="Player HP Fill" picking-mode="Ignore" class="figma-boss-fill-base"/>
+                        <pm:FigmaShadowElement name="Player HP Fill Shadow" class="figma-boss-fill-gradient-shadow"/>
+                        <pm:FigmaGradientElement name="Player HP Fill" class="figma-boss-fill-gradient"/>
                     </ui:VisualElement>
-                    <ui:VisualElement tooltip="Current Attack" class="hud-player-resource">
-                        <ui:Label text="◆" class="hud-player-resource-icon hud-player-resource-icon--attack"/>
-                        <ui:Label name="player-menu-atk" text="—"/>
+                    <ui:ProgressBar name="combat-enemy-hp" value="78" high-value="100" class="figma-boss-value-source"/>
+                    <ui:VisualElement name="Boss HP Value" picking-mode="Ignore" class="figma-boss-copy">
+                        <ui:Label name="combat-enemy-name-shadow" text="Monster Name" picking-mode="Ignore" class="figma-boss-name figma-boss-text-shadow figma-boss-name-shadow"/>
+                        <ui:Label name="combat-enemy-hp-label-shadow" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value figma-boss-text-shadow figma-boss-value-shadow"/>
+                        <ui:Label name="combat-enemy-name" text="Monster Name" picking-mode="Ignore" class="figma-boss-name"/>
+                        <ui:Label name="combat-enemy-hp-label" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:Button name="player-hub-button" text="⌂" tooltip="Player Hub" class="hud-player-menu-button"/>
-                <ui:Button name="pet-gacha-button" text="★" tooltip="Pet Gacha" class="hud-player-menu-button"/>
-                <ui:Button name="rebirth-button" text="↻" tooltip="Rebirth" class="hud-player-menu-button hud-player-menu-button--rebirth"/>
             </ui:VisualElement>
+            <ui:VisualElement name="combat-enemy-actions" picking-mode="Ignore" class="figma-enemy-abilities Enemy-Abilities">
+                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="ATTACK" class="figma-ability figma-ability--attack"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="main-navigator" picking-mode="Ignore" class="hud-navigator main-menu-transition-top">
+            <ui:VisualElement name="Utility Actions" picking-mode="Ignore" class="figma-object-name"/>
+            <pm:FigmaShadowElement name="Utility / MAP Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--biome"/>
+            <pm:FigmaShadowElement name="Utility / CUP Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--leaderboard"/>
+            <pm:FigmaShadowElement name="Utility / SET Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--settings"/>
+            <ui:Button name="combat-map-button" text="" tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome"/>
+            <ui:Button name="leaderboard" text="" tooltip="Leaderboard" class="hud-icon-button hud-icon-button--leaderboard"/>
+            <ui:Button name="setting" text="" tooltip="Admin / Settings" class="hud-icon-button hud-icon-button--settings"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="Player Menu" picking-mode="Ignore" class="hud-player-menu main-menu-transition-player-menu">
+            <pm:FigmaShadowElement name="Player Menu Shadow" class="hud-player-menu-shadow"/>
+            <ui:VisualElement name="Primary Navigation" picking-mode="Ignore" class="hud-player-menu-content">
+                <ui:Button name="player-hub-button" text="" tooltip="Player Hub" class="hud-player-menu-button hud-player-menu-button--hub">
+                    <ui:VisualElement name="Home" picking-mode="Ignore" class="hud-player-menu-card">
+                        <pm:FigmaShadowElement name="Home Shadow" class="hud-player-menu-card-shadow"/>
+                        <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
+                        <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
+                        <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--hub"/>
+                        <ui:Label name="Home Text Shadow" text="Home" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                        <ui:Label name="Home Text" text="Home" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:Button name="pet-gacha-button" text="" tooltip="Pet Gacha" class="hud-player-menu-button hud-player-menu-button--gacha">
+                    <ui:VisualElement name="Summon" picking-mode="Ignore" class="hud-player-menu-card">
+                        <pm:FigmaShadowElement name="Summon Shadow" class="hud-player-menu-card-shadow"/>
+                        <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
+                        <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
+                        <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--gacha"/>
+                        <ui:Label name="Summon Text Shadow" text="Summon" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                        <ui:Label name="Summon Text" text="Summon" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:Button name="rebirth-button" text="" tooltip="Rebirth" class="hud-player-menu-button hud-player-menu-button--rebirth">
+                    <ui:VisualElement name="Rebirth" picking-mode="Ignore" class="hud-player-menu-card">
+                        <pm:FigmaShadowElement name="Rebirth Shadow" class="hud-player-menu-card-shadow"/>
+                        <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
+                        <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
+                        <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--rebirth"/>
+                        <ui:Label name="Rebirth Text Shadow" text="Rebirth" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                        <ui:Label name="Rebirth Text" text="Rebirth" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:VisualElement name="Power-Coin_Currency-field" tooltip="Power Coins" class="hud-power-coin-field">
+                    <pm:FigmaShadowElement name="Currency Drop Shadow" class="hud-power-coin-drop-shadow"/>
+                    <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-power-coin-currency">
+                        <pm:FigmaShadowElement name="Currency Inner Shadow Left" class="hud-power-coin-inner-shadow hud-power-coin-inner-shadow--left"/>
+                        <pm:FigmaShadowElement name="Currency Inner Shadow Right" class="hud-power-coin-inner-shadow hud-power-coin-inner-shadow--right"/>
+                        <ui:Label name="Currency_Value" text="2,300" picking-mode="Ignore" class="hud-power-coin-value"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="hud-power-coin-icon"/>
+                </ui:VisualElement>
+                <ui:Label name="player-menu-atk" text="—" picking-mode="Ignore" class="hud-compat-hidden"/>
+            </ui:VisualElement>
+            <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle">
+                <ui:Label name="Chevron" text="‹" picking-mode="Ignore" class="hud-player-menu-chevron"/>
+            </ui:Button>
         </ui:VisualElement>
         <ui:Label text="" name="session-status" class="mw-status hud-session-status is-hidden"/>
         <ui:Label text="Stage 1" name="current-stage-label" class="hud-compat-hidden"/>

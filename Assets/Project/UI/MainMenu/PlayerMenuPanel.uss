@@ -1,0 +1,6 @@
+/*
+ * The standalone Player Menu uses the same Figma-derived tokens and component
+ * classes as MainMenuShell. Keeping one USS source prevents the prefab and the
+ * live scene from drifting apart.
+ */
+@import url("project://database/Assets/Project/UI/MainMenu/MainMenuExperience.uss");

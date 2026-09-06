@@ -57,27 +57,52 @@ namespace PowerMath.UI.MainMenu
             {
                 unavailableReason = "Pet Gacha content is invalid: " + unavailableReason;
             }
+            else if (settings == null)
+            {
+                unavailableReason = "Pet Gacha is unavailable in offline mode.";
+            }
             else
             {
                 _petGachaRandom = new CryptoPetGachaRandomSource();
-                petStore = new FirestorePetGachaCommandStore(
-                    settings,
-                    player,
-                    petCatalog,
-                    _petGachaRandom);
-                petEquipStore = new FirestorePetEquipCommandStore(
-                    settings,
-                    player,
-                    petGachaDefinition);
-                unavailableReason = string.Empty;
+                try
+                {
+                    petStore = new FirestorePetGachaCommandStore(
+                        settings,
+                        player,
+                        petCatalog,
+                        _petGachaRandom);
+                    petEquipStore = new FirestorePetEquipCommandStore(
+                        settings,
+                        player,
+                        petGachaDefinition);
+                    unavailableReason = string.Empty;
+                }
+                catch (Exception exception)
+                {
+                    unavailableReason = "Pet Gacha offline: " + exception.Message;
+                }
             }
 
-            var store = new FirestoreProgressionCommandStore(
-                settings,
-                player,
-                questions,
-                baseWeaponAttack);
-            var publisher = new FirestoreLeaderboardProjectionPublisher(settings);
+            FirestoreProgressionCommandStore store = null;
+            if (settings != null)
+            {
+                try
+                {
+                    store = new FirestoreProgressionCommandStore(
+                        settings,
+                        player,
+                        questions,
+                        baseWeaponAttack);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning($"Progression store offline: {exception.Message}");
+                }
+            }
+
+            var publisher = settings != null
+                ? new FirestoreLeaderboardProjectionPublisher(settings)
+                : null;
             MainMenuSharedOverlayController sharedOverlay =
                 MainMenuSharedOverlayController.GetOrCreate(
                     host.gameObject,

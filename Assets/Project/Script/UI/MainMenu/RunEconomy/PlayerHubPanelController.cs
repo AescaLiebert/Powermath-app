@@ -54,8 +54,8 @@ namespace PowerMath.UI.MainMenu
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
-            _weaponStore = weaponStore ?? throw new ArgumentNullException(nameof(weaponStore));
-            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            _weaponStore = weaponStore;
+            _publisher = publisher;
             _weaponCatalog = weaponCatalog;
             _petDefinition = petDefinition;
             _petCatalog = petCatalog;
@@ -320,6 +320,13 @@ namespace PowerMath.UI.MainMenu
 
         private IEnumerator Ascend(int previousLevel)
         {
+            if (_weaponStore == null)
+            {
+                Warn("Weapon ascension is not available in offline mode.");
+                _feedback.PlayInsufficient();
+                yield break;
+            }
+
             SetBusy(true, "Forging weapon ascension…");
             WeaponAscensionStats stats = default;
             bool success = false;
@@ -443,6 +450,7 @@ namespace PowerMath.UI.MainMenu
 
         private IEnumerator PublishLeaderboard()
         {
+            if (_publisher == null) yield break;
             string warning = string.Empty;
             yield return _publisher.Publish(
                 _player,

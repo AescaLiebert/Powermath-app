@@ -11,6 +11,7 @@ namespace PowerMath.UI.MainMenu
         public event Action LogoutRequested;
 
         private Label _displayNameLabel;
+        private Label _loadoutCharacterNameLabel;
         private Label _stageLabel;
         private ProgressBar _stageProgress;
         private Label _walletLabel;
@@ -26,7 +27,10 @@ namespace PowerMath.UI.MainMenu
         private Label _weaponLabel;
         private Label _petLabel;
         private Button _playerMenuToggle;
+        private Label _playerMenuChevron;
         private VisualElement _playerMenuContent;
+        private VisualElement _playerMenuShadow;
+        private IVisualElementScheduledItem _playerMenuSettle;
         private bool _eventsBound;
         private bool _bindingErrorLogged;
 
@@ -38,6 +42,8 @@ namespace PowerMath.UI.MainMenu
             }
 
             _displayNameLabel.text = model.DisplayName;
+            _loadoutCharacterNameLabel.text = model.DisplayName;
+            _loadoutCharacterNameLabel.tooltip = model.DisplayName;
             _stageLabel.text = model.StageText;
             _stageProgress.value = model.StageProgress;
             _walletLabel.text = model.WalletText;
@@ -53,6 +59,7 @@ namespace PowerMath.UI.MainMenu
             _sessionStatusLabel.AddToClassList("is-hidden");
             _logoutButton.SetEnabled(true);
             _content.SetEnabled(true);
+            _playerMenuToggle.SetEnabled(true);
         }
 
         public void RenderLogoutBusy()
@@ -89,6 +96,8 @@ namespace PowerMath.UI.MainMenu
             }
 
             _displayNameLabel.text = "Player data unavailable";
+            _loadoutCharacterNameLabel.text = "—";
+            _loadoutCharacterNameLabel.tooltip = string.Empty;
             _screen.SetSemanticState(UiSemanticState.Blocked);
             _stageLabel.text = "Return to sign in";
             _stageProgress.value = 0f;
@@ -100,12 +109,17 @@ namespace PowerMath.UI.MainMenu
             _powerCoinLabel.text = "—";
             _weaponLabel.text = "NONE";
             _petLabel.text = "NONE";
-            _content.SetEnabled(false);
+            // Keep the shell and menu toggle interactive in offline/fallback
+            // states. Feature controllers remain responsible for disabling
+            // actions that require hydrated player data.
+            _content.SetEnabled(true);
+            _playerMenuToggle.SetEnabled(true);
         }
 
         private bool TryBindElements()
         {
-            if (_displayNameLabel != null && _stageLabel != null &&
+            if (_displayNameLabel != null && _loadoutCharacterNameLabel != null &&
+                _stageLabel != null &&
                 _stageProgress != null && _walletLabel != null &&
                 _loadoutLabel != null && _content != null &&
                 _screen != null && _logoutButton != null &&
@@ -113,7 +127,8 @@ namespace PowerMath.UI.MainMenu
                 _silverLabel != null && _goldLabel != null &&
                 _diamondLabel != null && _powerCoinLabel != null &&
                 _weaponLabel != null && _petLabel != null &&
-                _playerMenuToggle != null && _playerMenuContent != null &&
+                _playerMenuToggle != null && _playerMenuChevron != null &&
+                _playerMenuContent != null &&
                 _eventsBound)
             {
                 return true;
@@ -132,6 +147,7 @@ namespace PowerMath.UI.MainMenu
                 VisualElement safeArea = root.Q<VisualElement>("safe-area");
                 if (safeArea != null) safeArea.pickingMode = PickingMode.Ignore;
                 _displayNameLabel = root.Q<Label>("player-display-name");
+                _loadoutCharacterNameLabel = root.Q<Label>("CharacterName");
                 _stageLabel = root.Q<Label>("current-stage-label");
                 _stageProgress = root.Q<ProgressBar>("stage-progress");
                 _walletLabel = root.Q<Label>("wallet-summary");
@@ -142,14 +158,19 @@ namespace PowerMath.UI.MainMenu
                 _silverLabel = root.Q<Label>("profile-silver-value");
                 _goldLabel = root.Q<Label>("profile-gold-value");
                 _diamondLabel = root.Q<Label>("profile-diamond-value");
-                _powerCoinLabel = root.Q<Label>("player-menu-power-coins");
+                _powerCoinLabel = root.Q<Label>("Currency_Value") ??
+                    root.Q<Label>("player-menu-power-coins");
                 _weaponLabel = root.Q<Label>("dashboard-weapon");
                 _petLabel = root.Q<Label>("dashboard-pet");
-                _playerMenuToggle = root.Q<Button>("player-menu-toggle");
-                _playerMenuContent = root.Q<VisualElement>("player-menu-content");
+                _playerMenuToggle = root.Q<Button>(className: "hud-player-menu-toggle");
+                _playerMenuChevron = root.Q<Label>("Chevron");
+                _playerMenuContent = root.Q<VisualElement>(
+                    className: "hud-player-menu-content");
+                _playerMenuShadow = root.Q<VisualElement>("Player Menu Shadow");
             }
 
-            bool isBound = _displayNameLabel != null && _stageLabel != null &&
+            bool isBound = _displayNameLabel != null &&
+                _loadoutCharacterNameLabel != null && _stageLabel != null &&
                 _stageProgress != null && _walletLabel != null &&
                 _loadoutLabel != null && _content != null &&
                 _screen != null && _logoutButton != null &&
@@ -157,7 +178,7 @@ namespace PowerMath.UI.MainMenu
                 _goldLabel != null && _diamondLabel != null &&
                 _powerCoinLabel != null && _weaponLabel != null &&
                 _petLabel != null && _playerMenuToggle != null &&
-                _playerMenuContent != null;
+                _playerMenuChevron != null && _playerMenuContent != null;
 
             if (isBound && !_eventsBound)
             {
@@ -179,6 +200,8 @@ namespace PowerMath.UI.MainMenu
 
         private void OnDisable()
         {
+            _playerMenuSettle?.Pause();
+            _playerMenuSettle = null;
             if (_eventsBound)
             {
                 _logoutButton.clicked -= OnLogoutClicked;
@@ -195,11 +218,37 @@ namespace PowerMath.UI.MainMenu
         private void TogglePlayerMenu()
         {
             bool collapsed = !_playerMenuContent.ClassListContains("is-collapsed");
-            _playerMenuContent.EnableInClassList("is-collapsed", collapsed);
-            _playerMenuToggle.text = collapsed ? "›" : "‹";
+            _playerMenuSettle?.Pause();
+            _playerMenuSettle = null;
+            SetPlayerMenuClass("is-follow-through", false);
+
+            if (!collapsed && !_screen.ClassListContains("is-reduced-motion"))
+                SetPlayerMenuClass("is-follow-through", true);
+
+            SetPlayerMenuClass("is-collapsed", collapsed);
+            _playerMenuChevron.text = collapsed ? "›" : "‹";
             _playerMenuToggle.tooltip = collapsed
                 ? "Open Player Menu"
                 : "Close Player Menu";
+
+            if (!collapsed &&
+                _playerMenuContent.ClassListContains("is-follow-through"))
+            {
+                _playerMenuSettle = _playerMenuContent.schedule
+                    .Execute(() =>
+                    {
+                        SetPlayerMenuClass("is-follow-through", false);
+                        _playerMenuSettle = null;
+                    })
+                    .StartingIn(260);
+            }
+        }
+
+        private void SetPlayerMenuClass(string className, bool enabled)
+        {
+            _playerMenuContent.EnableInClassList(className, enabled);
+            _playerMenuShadow?.EnableInClassList(className, enabled);
+            _playerMenuToggle.EnableInClassList(className, enabled);
         }
     }
 }
