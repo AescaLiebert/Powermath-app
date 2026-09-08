@@ -47,6 +47,7 @@ namespace PowerMath.PlayerData
             string[] root = { publicId };
             builder.AddInteger(Join(root, "entryRevision"), player.revision);
             builder.AddString(Join(root, "displayName"), profile.displayName ?? string.Empty);
+            builder.AddString(Join(root, "characterId"), profile.characterId ?? string.Empty);
             builder.AddString(Join(root, "iconId"), profile.iconId ?? string.Empty);
             builder.AddString(Join(root, "avatarId"), loadout.avatarId ?? profile.iconId ?? string.Empty);
             builder.AddString(Join(root, "petId"), loadout.petId ?? string.Empty);

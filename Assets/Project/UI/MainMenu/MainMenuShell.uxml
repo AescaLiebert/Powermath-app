@@ -39,8 +39,8 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <pm:FigmaShadowElement name="Stage Status Shadow" class="figma-stage-status-shadow main-menu-transition-top"/>
-        <ui:VisualElement name="Stage Status" picking-mode="Ignore" class="figma-stage-status stage-info main-menu-transition-top">
+        <pm:FigmaShadowElement name="Stage Status Shadow" class="figma-stage-status-shadow main-menu-transition-top" style="left: 45%;"/>
+        <ui:VisualElement name="Stage Status" picking-mode="Ignore" class="figma-stage-status stage-info main-menu-transition-top" style="left: 45%;">
             <ui:VisualElement name="Frame 1" class="figma-stage-heading">
                 <pm:StageInfoVectorPath name="Vector" class="stage-info-vector stage-info-vector--left"/>
                 <ui:Label text="STAGE 12" name="combat-stage-label" picking-mode="Ignore" class="figma-stage-title"/>
@@ -50,7 +50,7 @@
             <ui:VisualElement name="Stage Info / Enemy Row" class="figma-boss-row">
                 <ui:VisualElement name="Boss Slider" picking-mode="Ignore" class="figma-boss-slider Boss-Slider">
                     <ui:VisualElement name="Player HP Track" picking-mode="Ignore" class="figma-boss-track"/>
-                    <ui:VisualElement name="Fill" picking-mode="Ignore" class="figma-boss-fill">
+                    <ui:VisualElement name="Fill" picking-mode="Ignore" class="figma-boss-fill" style="top: -2px; left: 0;">
                         <pm:FigmaShadowElement name="Player HP Fill Shadow" class="figma-boss-fill-base-shadow"/>
                         <ui:VisualElement name="Player HP Fill" picking-mode="Ignore" class="figma-boss-fill-base"/>
                         <pm:FigmaShadowElement name="Player HP Fill Shadow" class="figma-boss-fill-gradient-shadow"/>
@@ -58,20 +58,20 @@
                     </ui:VisualElement>
                     <ui:ProgressBar name="combat-enemy-hp" value="78" high-value="100" class="figma-boss-value-source"/>
                     <ui:VisualElement name="Boss HP Value" picking-mode="Ignore" class="figma-boss-copy">
-                        <ui:Label name="combat-enemy-name-shadow" text="Monster Name" picking-mode="Ignore" class="figma-boss-name figma-boss-text-shadow figma-boss-name-shadow"/>
-                        <ui:Label name="combat-enemy-hp-label-shadow" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value figma-boss-text-shadow figma-boss-value-shadow"/>
-                        <ui:Label name="combat-enemy-name" text="Monster Name" picking-mode="Ignore" class="figma-boss-name"/>
-                        <ui:Label name="combat-enemy-hp-label" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value"/>
+                        <ui:Label name="combat-enemy-name-shadow" text="Monster Name" picking-mode="Ignore" class="figma-boss-name figma-boss-text-shadow figma-boss-name-shadow" style="display: none;"/>
+                        <ui:Label name="combat-enemy-hp-label-shadow" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value figma-boss-text-shadow figma-boss-value-shadow" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Material/Font/zh-cn.ttf?fileID=12800000&amp;guid=25d050ba013c6e74bbb3e2c20348ce97&amp;type=3#zh-cn&quot;); -unity-text-align: middle-left; display: none;"/>
+                        <ui:Label name="combat-enemy-name" text="Monster Name" picking-mode="Ignore" class="figma-boss-name" style="display: flex; top: 2px; left: 6px; -unity-text-outline-width: 0; -unity-font-style: normal;"/>
+                        <ui:Label name="combat-enemy-hp-label" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value" style="top: 2px; right: 4px; -unity-text-align: middle-right; -unity-text-outline-width: 0; -unity-font-style: normal;"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="combat-enemy-actions" picking-mode="Ignore" class="figma-enemy-abilities Enemy-Abilities">
-                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
-                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
-                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
-                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
-                <ui:Label name="Enemy Ability" text="MOVE" class="figma-ability figma-grid-gap-right"/>
-                <ui:Label name="Enemy Ability" text="ATTACK" class="figma-ability figma-ability--attack"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="ATTACK" class="loc-combat.attack figma-ability figma-ability--attack"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="main-navigator" picking-mode="Ignore" class="hud-navigator main-menu-transition-top">
@@ -79,12 +79,17 @@
             <pm:FigmaShadowElement name="Utility / MAP Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--biome"/>
             <pm:FigmaShadowElement name="Utility / CUP Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--leaderboard"/>
             <pm:FigmaShadowElement name="Utility / SET Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--settings"/>
-            <ui:Button name="combat-map-button" text="" tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome"/>
+            <ui:Button name="combat-map-button" text="" tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome">
+                <pm:ChainLockVectorElement name="combat-map-lock" picking-mode="Ignore" class="hud-chain-lock-overlay"/>
+            </ui:Button>
             <ui:Button name="leaderboard" text="" tooltip="Leaderboard" class="hud-icon-button hud-icon-button--leaderboard"/>
             <ui:Button name="setting" text="" tooltip="Admin / Settings" class="hud-icon-button hud-icon-button--settings"/>
         </ui:VisualElement>
         <ui:VisualElement name="Player Menu" picking-mode="Ignore" class="hud-player-menu main-menu-transition-player-menu">
             <pm:FigmaShadowElement name="Player Menu Shadow" class="hud-player-menu-shadow"/>
+            <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle" style="top: 195px; left: 207px;">
+                <ui:Label name="Chevron" text="‹" picking-mode="Ignore" class="hud-player-menu-chevron" style="align-items: center;"/>
+            </ui:Button>
             <ui:VisualElement name="Primary Navigation" picking-mode="Ignore" class="hud-player-menu-content">
                 <ui:Button name="player-hub-button" text="" tooltip="Player Hub" class="hud-player-menu-button hud-player-menu-button--hub">
                     <ui:VisualElement name="Home" picking-mode="Ignore" class="hud-player-menu-card">
@@ -92,8 +97,9 @@
                         <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
                         <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
                         <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--hub"/>
-                        <ui:Label name="Home Text Shadow" text="Home" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
-                        <ui:Label name="Home Text" text="Home" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                        <ui:Label name="Home Text Shadow" text="Home" picking-mode="Ignore" class="loc-menu.home hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                        <ui:Label name="Home Text" text="Home" picking-mode="Ignore" class="loc-menu.home hud-player-menu-card-label"/>
+                        <pm:ChainLockVectorElement name="player-hub-lock" picking-mode="Ignore" class="hud-chain-lock-overlay"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="pet-gacha-button" text="" tooltip="Pet Gacha" class="hud-player-menu-button hud-player-menu-button--gacha">
@@ -102,8 +108,9 @@
                         <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
                         <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
                         <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--gacha"/>
-                        <ui:Label name="Summon Text Shadow" text="Summon" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
-                        <ui:Label name="Summon Text" text="Summon" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                        <ui:Label name="Summon Text Shadow" text="Summon" picking-mode="Ignore" class="loc-menu.summon hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                        <ui:Label name="Summon Text" text="Summon" picking-mode="Ignore" class="loc-menu.summon hud-player-menu-card-label"/>
+                        <pm:ChainLockVectorElement name="pet-gacha-lock" picking-mode="Ignore" class="hud-chain-lock-overlay"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="rebirth-button" text="" tooltip="Rebirth" class="hud-player-menu-button hud-player-menu-button--rebirth">
@@ -112,8 +119,8 @@
                         <ui:VisualElement name="R_Panel_inner" picking-mode="Ignore" class="hud-player-menu-card-outer"/>
                         <pm:FigmaGradientElement name="R_Panel_inner Gradient" class="hud-player-menu-card-gradient"/>
                         <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--rebirth"/>
-                        <ui:Label name="Rebirth Text Shadow" text="Rebirth" picking-mode="Ignore" class="hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
-                        <ui:Label name="Rebirth Text" text="Rebirth" picking-mode="Ignore" class="hud-player-menu-card-label"/>
+                        <ui:Label name="Rebirth Text Shadow" text="Rebirth" picking-mode="Ignore" class="loc-menu.rebirth hud-player-menu-card-label hud-player-menu-card-label--shadow"/>
+                        <ui:Label name="Rebirth Text" text="Rebirth" picking-mode="Ignore" class="loc-menu.rebirth hud-player-menu-card-label"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:VisualElement name="Power-Coin_Currency-field" tooltip="Power Coins" class="hud-power-coin-field">
@@ -127,9 +134,6 @@
                 </ui:VisualElement>
                 <ui:Label name="player-menu-atk" text="—" picking-mode="Ignore" class="hud-compat-hidden"/>
             </ui:VisualElement>
-            <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle">
-                <ui:Label name="Chevron" text="‹" picking-mode="Ignore" class="hud-player-menu-chevron"/>
-            </ui:Button>
         </ui:VisualElement>
         <ui:Label text="" name="session-status" class="mw-status hud-session-status is-hidden"/>
         <ui:Label text="Stage 1" name="current-stage-label" class="hud-compat-hidden"/>

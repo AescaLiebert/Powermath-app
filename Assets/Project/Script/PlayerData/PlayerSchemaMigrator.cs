@@ -5,21 +5,22 @@ namespace PowerMath.PlayerData
 {
     public static class PlayerSchemaMigrator
     {
-        public const int CurrentSchemaVersion = 2;
+        public const int CurrentSchemaVersion = 3;
 
         public static PlayerSnapshot Migrate(PlayerSnapshot snapshot, int fromVersion, int targetVersion = CurrentSchemaVersion)
         {
             if (snapshot == null) return null;
+            if (fromVersion < 0 || targetVersion > CurrentSchemaVersion || fromVersion > targetVersion)
+                throw new NotSupportedException("Unsupported schema migration.");
             if (fromVersion == targetVersion)
             {
                 EnsureBaselineDefaults(snapshot);
                 return snapshot;
             }
 
-            if (fromVersion > targetVersion)
+            if (fromVersion < 0 || fromVersion > targetVersion || targetVersion > CurrentSchemaVersion)
             {
-                Debug.LogWarning($"[PlayerSchemaMigrator] Attempted to downgrade snapshot from schema {fromVersion} to {targetVersion}. Migration skipped.");
-                return snapshot;
+                throw new NotSupportedException($"Unsupported schema migration {fromVersion} -> {targetVersion}.");
             }
 
             PlayerSnapshot current = snapshot;
@@ -37,14 +38,17 @@ namespace PowerMath.PlayerData
                         current = MigrateV1ToV2(current);
                         version = 2;
                         break;
-                    default:
-                        Debug.LogError($"[PlayerSchemaMigrator] No migration path defined for schema version {version} -> {version + 1}.");
-                        version = targetVersion; // Break loop
+                    case 2:
+                        EnsureLifecycleDefaults(current);
+                        version = 3;
                         break;
+                    default:
+                        throw new NotSupportedException("Missing schema migration step.");
                 }
             }
 
             EnsureBaselineDefaults(current);
+            current.schemaVersion = targetVersion;
             return current;
         }
 
@@ -57,7 +61,7 @@ namespace PowerMath.PlayerData
         private static PlayerSnapshot MigrateV1ToV2(PlayerSnapshot s)
         {
             EnsureBaselineDefaults(s);
-            s.activeRun.pendingPresentation = null;
+            // Existing receipts can be present in unversioned/older prototype saves. Preserve them.
             s.lastRunSettlement.presentationStatus = string.IsNullOrWhiteSpace(
                 s.lastRunSettlement.presentationStatus)
                 ? "None"
@@ -65,9 +69,21 @@ namespace PowerMath.PlayerData
             return s;
         }
 
+        private static void EnsureLifecycleDefaults(PlayerSnapshot s)
+        {
+            s.preferences ??= new PlayerSnapshot.PreferencesData();
+            s.onboarding ??= new PlayerSnapshot.OnboardingData
+            {
+                version = 1, phase = "character", legacyPlayer = true,
+                openingCheckpointId = "complete"
+            };
+            s.tutorial ??= new PlayerSnapshot.TutorialData { version = 1 };
+        }
+
         public static void EnsureBaselineDefaults(PlayerSnapshot s)
         {
             if (s == null) return;
+            EnsureLifecycleDefaults(s);
 
             if (s.profile == null)
             {

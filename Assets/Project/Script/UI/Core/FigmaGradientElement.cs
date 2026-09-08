@@ -11,14 +11,18 @@ namespace PowerMath.UI.Core
     [UxmlElement]
     public partial class FigmaGradientElement : VisualElement
     {
-        private const int MaximumStops = 4;
+        private const int MaximumStops = 8;
 
         private static readonly CustomStyleProperty<Color>[] ColorProperties =
         {
             new("--figma-gradient-color-0"),
             new("--figma-gradient-color-1"),
             new("--figma-gradient-color-2"),
-            new("--figma-gradient-color-3")
+            new("--figma-gradient-color-3"),
+            new("--figma-gradient-color-4"),
+            new("--figma-gradient-color-5"),
+            new("--figma-gradient-color-6"),
+            new("--figma-gradient-color-7")
         };
 
         private static readonly CustomStyleProperty<float>[] StopProperties =
@@ -26,7 +30,11 @@ namespace PowerMath.UI.Core
             new("--figma-gradient-stop-0"),
             new("--figma-gradient-stop-1"),
             new("--figma-gradient-stop-2"),
-            new("--figma-gradient-stop-3")
+            new("--figma-gradient-stop-3"),
+            new("--figma-gradient-stop-4"),
+            new("--figma-gradient-stop-5"),
+            new("--figma-gradient-stop-6"),
+            new("--figma-gradient-stop-7")
         };
 
         private static readonly CustomStyleProperty<float> StopCountProperty =
@@ -47,10 +55,15 @@ namespace PowerMath.UI.Core
             Color.black,
             Color.white,
             Color.white,
+            Color.white,
+            Color.white,
+            Color.white,
+            Color.white,
             Color.white
         };
 
-        private readonly float[] _stops = { 0f, 1f, 1f, 1f };
+        private readonly float[] _stops =
+            { 0f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
         private readonly Gradient _gradient = new();
         private int _stopCount = 2;
         private Vector2 _start = new(0.5f, 1f);

@@ -71,7 +71,8 @@ namespace PowerMath.UI.Core
                 profile = ScriptableObject.CreateInstance<
                     UiMotionProfileDefinition>();
                 _ownsRuntimeProfile = true;
-                Debug.LogWarning(
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "UI",
                     "UiMotionProfile is not authored. Runtime starting values " +
                     "are active for the ADR-014 pilot.",
                     this);

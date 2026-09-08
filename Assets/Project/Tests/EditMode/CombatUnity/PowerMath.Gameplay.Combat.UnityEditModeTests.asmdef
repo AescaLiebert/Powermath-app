@@ -7,7 +7,8 @@
     "PowerMath.Gameplay.Combat.Unity",
     "PowerMath.Gameplay.Academic.Core",
     "PowerMath.Gameplay.Academic.Unity",
-    "PowerMath.UI.Core"
+    "PowerMath.UI.Core",
+    "PowerMath.Diagnostics"
   ],
   "includePlatforms": [
     "Editor"

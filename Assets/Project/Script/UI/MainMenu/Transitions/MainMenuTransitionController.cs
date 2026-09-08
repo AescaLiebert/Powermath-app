@@ -76,7 +76,7 @@ namespace PowerMath.UI.MainMenu
             }
             catch (System.InvalidOperationException exception)
             {
-                Debug.LogError(exception.Message);
+                PowerMath.Diagnostics.AppLog.Error("UI", exception.Message);
                 enabled = false;
                 return;
             }
@@ -106,7 +106,7 @@ namespace PowerMath.UI.MainMenu
 
             if (isActiveAndEnabled && (_activeRoutine != null || !_bootstrapPlayed))
             {
-                Debug.LogWarning("[MainMenuTransitionController] Transition did not complete within safety window. Forcing UI reveal.");
+                PowerMath.Diagnostics.AppLog.Warning("UI", "Transition did not complete within safety window. Forcing UI reveal.");
                 CancelAndApplyFinalState();
             }
         }

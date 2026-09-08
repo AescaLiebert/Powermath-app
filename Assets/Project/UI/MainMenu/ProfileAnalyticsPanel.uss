@@ -73,11 +73,47 @@
     font-size: 15px;
 }
 
+.profile-header-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.profile-balance-pill {
+    min-width: 130px;
+    height: 54px;
+    padding: 7px 18px 7px 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(255, 249, 232);
+    border-radius: 27px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+}
+
+.profile-coin-icon {
+    width: 34px;
+    height: 34px;
+    margin-right: 10px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.profile-balance {
+    color: rgb(20, 48, 91);
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+}
+
 .profile-close {
+    display: flex;
     min-width: 55px;
     width: 55px;
     min-height: 55px;
     height: 55px;
+    margin-left: 14px;
     padding: 0;
     color: rgb(20, 48, 91);
     background-color: rgb(255, 249, 232);

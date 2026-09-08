@@ -186,6 +186,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private readonly VisualElement _open;
         private readonly VisualElement _modal;
         private readonly Button _close;
+        private readonly Label _balance;
         private readonly TextField _name;
         private readonly Button _save;
         private readonly Label _status;
@@ -208,6 +209,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _open = root.Q<VisualElement>("profile-panel");
             _modal = root.Q<VisualElement>("profile-analytics-modal");
             _close = root.Q<Button>("profile-analytics-close");
+            _balance = root.Q<Label>("profile-balance");
             _name = root.Q<TextField>("profile-display-name-input");
             _save = root.Q<Button>("profile-display-name-save");
             _status = root.Q<Label>("profile-display-name-status");
@@ -231,6 +233,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _open.RegisterCallback<ClickEvent>(Open);
             _close.clicked += Close;
             _save.clicked += Save;
+            if (PlayerSessionStore.Instance != null)
+                PlayerSessionStore.Instance.Changed += OnPlayerChanged;
             _modal.style.display = DisplayStyle.None;
             _bound = true;
         }
@@ -238,6 +242,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         public void Dispose()
         {
             if (!_bound) return;
+            if (PlayerSessionStore.Instance != null)
+                PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
             _open.UnregisterCallback<ClickEvent>(Open);
             _close.clicked -= Close;
             _save.clicked -= Save;
@@ -297,12 +303,20 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 });
         }
 
+        private void OnPlayerChanged(PlayerSnapshot player)
+        {
+            if (_balance != null && player?.wallet != null)
+                _balance.text = player.wallet.powerCoins.ToString("N0");
+        }
+
         private void Render()
         {
             PlayerSnapshot.AnalyticsData analytics = _player.analytics ?? new PlayerSnapshot.AnalyticsData();
             PlayerSnapshot.ProgressionData progress = _player.progression ?? new PlayerSnapshot.ProgressionData();
             PlayerSnapshot.WalletData wallet = _player.wallet ?? new PlayerSnapshot.WalletData();
             PlayerSnapshot.LoadoutData loadout = _player.loadout ?? new PlayerSnapshot.LoadoutData();
+            if (_balance != null)
+                _balance.text = wallet.powerCoins.ToString("N0");
             _name.value = _player.profile?.displayName ?? string.Empty;
             long changedAt = _player.profile?.displayNameChangedAtUnixSeconds ?? 0;
             if (changedAt <= 0)

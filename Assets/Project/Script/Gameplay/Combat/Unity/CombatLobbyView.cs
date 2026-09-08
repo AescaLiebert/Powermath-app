@@ -49,9 +49,12 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _battleBanner;
         private readonly Label _biomeLabel;
         private readonly Button _mapButton;
+        private readonly VisualElement _mapLock;
         private readonly VisualElement _mapModal;
         private readonly VisualElement _mapRoute;
         private readonly Button _mapClose;
+        private readonly Label _mapBalance;
+        private long _powerCoins;
         private readonly VisualElement _biomeTransition;
         private readonly Label _biomeTransitionTitle;
         private readonly Label _biomeTransitionKicker;
@@ -59,8 +62,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         private Action<string> _backgroundRenderer;
         private Action<string> _encounterRenderer;
         private Func<string, float, IEnumerator> _backgroundCrossfader;
+        private Func<string, string> _enemyNameResolver;
+        private string _lastEncounterId;
         private bool _bound;
         private readonly bool _reducedMotion;
+        private bool _isBiomeMapAvailable;
         private readonly UiToolkitLifecycleController _attemptLifecycle;
         private readonly UiToolkitLifecycleController _feedbackLifecycle;
         private readonly UiToolkitLifecycleController _bannerLifecycle;
@@ -69,11 +75,13 @@ namespace PowerMath.Gameplay.Combat.Unity
         public CombatLobbyView(
             VisualElement root,
             IMainMenuPanelHost panelHost = null,
-            bool reducedMotion = false)
+            bool reducedMotion = false,
+            bool isBiomeMapAvailable = false)
         {
             _root = root ?? throw new ArgumentNullException(nameof(root));
             _panelHost = panelHost ?? new MainMenuPanelHost();
             _reducedMotion = reducedMotion;
+            _isBiomeMapAvailable = isBiomeMapAvailable;
             _combatLayer = Require<VisualElement>("combat-layer");
             _enemyCard = Require<VisualElement>("combat-enemy-card");
             _stageLabel = Require<Label>("combat-stage-label");
@@ -111,9 +119,11 @@ namespace PowerMath.Gameplay.Combat.Unity
             _battleBanner = Require<Label>("combat-battle-banner");
             _biomeLabel = Require<Label>("combat-biome-label");
             _mapButton = Require<Button>("combat-map-button");
+            _mapLock = _mapButton.Q<VisualElement>("combat-map-lock");
             _mapModal = Require<VisualElement>("combat-map-modal");
             _mapRoute = Require<VisualElement>("combat-map-route");
             _mapClose = Require<Button>("combat-map-close");
+            _mapBalance = _root.Q<Label>("combat-map-balance");
             _biomeTransition = Require<VisualElement>("combat-biome-transition");
             _biomeTransitionTitle = Require<Label>("combat-biome-transition-title");
             _biomeTransitionKicker = _root.Q<Label>("combat-biome-transition-kicker");
@@ -124,6 +134,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _biomeTransition,
                 enterMilliseconds: 420,
                 exitMilliseconds: 320);
+
+            UpdateMapButtonAvailability();
 
             _digitButtons = new Button[10];
             _digitHandlers = new Action[10];
@@ -140,6 +152,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public event Action BackspaceRequested;
         public event Action ClearRequested;
         public event Action SubmitRequested;
+        public event Action<bool> AttemptVisibilityChanged;
 
         public int EnemyMaximumHp { get; private set; }
         public bool CanAttack { get; private set; }
@@ -181,9 +194,11 @@ namespace PowerMath.Gameplay.Combat.Unity
             _stageLabel.text = $"STAGE {snapshot.Stage.Value}";
             if (_stageProgress != null)
                 _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
-            _enemyName.text = snapshot.EnemyName;
+            _lastEncounterId = snapshot.EnemyId;
+            string enemyName = ResolveEnemyName(snapshot.EnemyId, snapshot.EnemyName);
+            _enemyName.text = enemyName;
             if (_enemyNameShadow != null)
-                _enemyNameShadow.text = snapshot.EnemyName;
+                _enemyNameShadow.text = enemyName;
             _biomeLabel.text = snapshot.BiomeTitle.ToUpperInvariant();
             ApplyEncounterVisuals(snapshot);
             foreach (KeyValuePair<string, Label> pair in _mapNodes)
@@ -224,19 +239,37 @@ namespace PowerMath.Gameplay.Combat.Unity
                     : "Attack";
                 _attackButton.SetEnabled(CanAttack);
             }
-            _mapButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
-                snapshot.Phase == CombatPhase.EventReady);
+
+            if (!_isBiomeMapAvailable)
+            {
+                _mapButton.SetEnabled(false);
+                _mapButton.pickingMode = PickingMode.Ignore;
+                _mapButton.tooltip = "Biome Map (Locked in v1.0)";
+                _mapButton.AddToClassList("is-feature-locked");
+                _mapLock?.RemoveFromClassList("is-hidden");
+            }
+            else
+            {
+                _mapButton.SetEnabled(snapshot.Phase == CombatPhase.EnemyReady ||
+                    snapshot.Phase == CombatPhase.EventReady);
+                _mapButton.pickingMode = PickingMode.Position;
+                _mapButton.tooltip = "Biome Navigator";
+                _mapButton.RemoveFromClassList("is-feature-locked");
+                _mapLock?.AddToClassList("is-hidden");
+            }
         }
 
         public void ConfigureStageMap(StageMapData map,
             Action<string> backgroundRenderer,
             Action<string> encounterRenderer,
-            Func<string, float, IEnumerator> backgroundCrossfader = null)
+            Func<string, float, IEnumerator> backgroundCrossfader = null,
+            Func<string, string> enemyNameResolver = null)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
             _backgroundRenderer = backgroundRenderer;
             _encounterRenderer = encounterRenderer;
             _backgroundCrossfader = backgroundCrossfader;
+            _enemyNameResolver = enemyNameResolver;
             _mapRoute.Clear();
             _mapNodes.Clear();
             for (int index = 0; index < map.Biomes.Count; index++)
@@ -247,6 +280,25 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _mapRoute.Add(node);
                 _mapNodes.Add(biome.Id, node);
             }
+        }
+
+        private string ResolveEnemyName(string encounterId, string fallbackName)
+        {
+            if (_enemyNameResolver != null && !string.IsNullOrEmpty(encounterId))
+            {
+                string resolved = _enemyNameResolver(encounterId);
+                if (!string.IsNullOrWhiteSpace(resolved)) return resolved;
+            }
+            return fallbackName;
+        }
+
+        public void RefreshLocalizedEnemyName()
+        {
+            if (_enemyName == null || string.IsNullOrEmpty(_lastEncounterId)) return;
+            string enemyName = ResolveEnemyName(_lastEncounterId, _enemyName.text);
+            _enemyName.text = enemyName;
+            if (_enemyNameShadow != null)
+                _enemyNameShadow.text = enemyName;
         }
 
         public IEnumerator PlayBiomeTransition(CombatSnapshot destination)
@@ -312,6 +364,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _attemptLifecycle.Enter(() => _attemptPanel.Focus());
             }
             else _attemptLifecycle.Exit();
+            AttemptVisibilityChanged?.Invoke(visible);
         }
 
         public void SetRetainedQuestionLayout(bool retained)
@@ -497,9 +550,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             if (snapshot == null) return;
             ApplyEncounterVisuals(snapshot);
-            _enemyName.text = snapshot.EnemyName;
+            _lastEncounterId = snapshot.EnemyId;
+            string enemyName = ResolveEnemyName(snapshot.EnemyId, snapshot.EnemyName);
+            _enemyName.text = enemyName;
             if (_enemyNameShadow != null)
-                _enemyNameShadow.text = snapshot.EnemyName;
+                _enemyNameShadow.text = enemyName;
             EnemyMaximumHp = snapshot.EnemyMaximumHp;
             SetEnemyHp(snapshot.EnemyCurrentHp);
         }
@@ -582,8 +637,51 @@ namespace PowerMath.Gameplay.Combat.Unity
             AttackRequested?.Invoke();
         }
 
+        public void SetPowerCoins(long coins)
+        {
+            _powerCoins = Math.Max(0, coins);
+            if (_mapBalance != null)
+            {
+                _mapBalance.text = _powerCoins.ToString("N0");
+            }
+        }
+
+        public void SetBiomeMapAvailable(bool available)
+        {
+            _isBiomeMapAvailable = available;
+            UpdateMapButtonAvailability();
+        }
+
+        private void UpdateMapButtonAvailability()
+        {
+            if (!_isBiomeMapAvailable)
+            {
+                _mapButton.SetEnabled(false);
+                _mapButton.pickingMode = PickingMode.Ignore;
+                _mapButton.tooltip = "Biome Map (Locked in v1.0)";
+                _mapButton.AddToClassList("is-feature-locked");
+                _mapLock?.RemoveFromClassList("is-hidden");
+            }
+            else
+            {
+                _mapButton.pickingMode = PickingMode.Position;
+                _mapButton.tooltip = "Biome Navigator";
+                _mapButton.RemoveFromClassList("is-feature-locked");
+                _mapLock?.AddToClassList("is-hidden");
+            }
+        }
+
         private void OnShowMap()
         {
+            if (!_isBiomeMapAvailable)
+            {
+                return;
+            }
+
+            if (_mapBalance != null)
+            {
+                _mapBalance.text = _powerCoins.ToString("N0");
+            }
             _panelHost.TryOpen(
                 MainMenuPanelId.WorldMap,
                 _mapModal,

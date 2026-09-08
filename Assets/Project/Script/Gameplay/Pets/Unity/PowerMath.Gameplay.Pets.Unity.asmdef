@@ -2,7 +2,8 @@
   "name": "PowerMath.Gameplay.Pets.Unity",
   "rootNamespace": "PowerMath.Gameplay.Pets",
   "references": [
-    "PowerMath.Gameplay.Pets.Core"
+    "PowerMath.Gameplay.Pets.Core",
+    "PowerMath.Diagnostics"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

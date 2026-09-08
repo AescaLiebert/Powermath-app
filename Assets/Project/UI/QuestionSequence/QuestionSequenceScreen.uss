@@ -1,0 +1,747 @@
+@import url("QuestionSequencePalette.uss");
+
+/* Screen Base Layout */
+.question-sequence-screen {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 24px;
+    padding-bottom: 28px;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: var(--color-surface-screen);
+}
+
+/* =========================================================================
+   TOP COMBAT HUD CARD (.battle-hud)
+   ========================================================================= */
+.battle-hud {
+    width: 100%;
+    max-width: 480px;
+    background-color: var(--color-surface-card);
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-color: var(--color-border-light);
+    border-right-color: var(--color-border-light);
+    border-top-color: var(--color-border-light);
+    border-bottom-color: var(--color-border-light);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-bottom: 16px;
+    align-items: stretch;
+}
+
+/* Stage Tag Row */
+.stage-tag-row {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.stage-star {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+}
+
+.stage-label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    letter-spacing: 2px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+/* Boss Health Row */
+.boss-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.boss-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    letter-spacing: 0.5px;
+}
+
+.health-bar-track {
+    height: 16px;
+    flex-grow: 1;
+    margin-left: 10px;
+    margin-right: 10px;
+    background-color: var(--color-hp-red-bg);
+    border-left-color: var(--color-hp-red-border);
+    border-right-color: var(--color-hp-red-border);
+    border-top-color: var(--color-hp-red-border);
+    border-bottom-color: var(--color-hp-red-border);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: hidden;
+}
+
+.health-bar-fill {
+    height: 100%;
+    width: 78%;
+    background-color: var(--color-hp-red-fill);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    transition-property: width;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-out;
+}
+
+.health-value {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+}
+
+/* Status Buffs Row */
+.status-buffs-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.buff-slot {
+    width: 32px;
+    height: 32px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    margin-right: 8px;
+    align-items: center;
+    justify-content: center;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+}
+
+.buff-slot--speed-1,
+.buff-slot--speed-2,
+.buff-slot--shield {
+    background-color: var(--color-buff-blue-bg);
+    border-left-color: var(--color-buff-blue-border);
+    border-right-color: var(--color-buff-blue-border);
+    border-top-color: var(--color-buff-blue-border);
+    border-bottom-color: var(--color-buff-blue-border);
+}
+
+.buff-slot--swords {
+    background-color: var(--color-buff-red-bg);
+    border-left-color: var(--color-buff-red-border);
+    border-right-color: var(--color-buff-red-border);
+    border-top-color: var(--color-buff-red-border);
+    border-bottom-color: var(--color-buff-red-border);
+}
+
+.buff-icon {
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.buff-icon--speed {
+    color: var(--color-buff-blue-icon);
+}
+
+.buff-icon--shield {
+    color: var(--color-buff-blue-icon);
+}
+
+.buff-icon--swords {
+    color: var(--color-buff-red-icon);
+}
+
+.badge-count {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 15px;
+    height: 15px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background-color: var(--color-buff-blue-icon);
+    align-items: center;
+    justify-content: center;
+}
+
+.badge-count-text {
+    font-size: 9px;
+    -unity-font-style: bold;
+    color: white;
+}
+
+/* =========================================================================
+   QUESTION SEQUENCE CHALLENGE CARD (.math-challenge-card)
+   ========================================================================= */
+.math-challenge-card {
+    width: 100%;
+    max-width: 480px;
+    background-color: var(--color-surface-card);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: var(--color-border-card);
+    border-right-color: var(--color-border-card);
+    border-top-color: var(--color-border-card);
+    border-bottom-color: var(--color-border-card);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    padding-top: 20px;
+    padding-bottom: 24px;
+    padding-left: 20px;
+    padding-right: 20px;
+    align-items: stretch;
+    transition-property: scale, translate, opacity;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-back;
+}
+
+/* Card Header */
+.card-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.card-star {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-border-blue);
+}
+
+.card-title {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    letter-spacing: 2px;
+}
+
+.academic-meta {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-slate-muted);
+    letter-spacing: 1px;
+    -unity-text-align: middle-center;
+    margin-bottom: 6px;
+}
+
+/* Equation */
+.equation-row {
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.equation-text {
+    font-size: 32px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    -unity-text-align: middle-center;
+}
+
+/* Answer Input Field */
+.answer-display-box {
+    height: 54px;
+    background-color: var(--color-surface-input);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: var(--color-border-input);
+    border-right-color: var(--color-border-input);
+    border-top-color: var(--color-border-input);
+    border-bottom-color: var(--color-border-input);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 18px;
+    padding-right: 18px;
+    margin-bottom: 14px;
+    transition-property: border-left-color, border-right-color, border-top-color, border-bottom-color, background-color;
+    transition-duration: 0.15s;
+}
+
+.bracket-star {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-border-input);
+}
+
+.input-value {
+    font-size: 28px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    -unity-text-align: middle-center;
+}
+
+/* Keypad Grid */
+.keypad-grid {
+    align-items: stretch;
+    margin-bottom: 16px;
+}
+
+.keypad-row {
+    flex-direction: row;
+    align-items: stretch;
+    margin-bottom: 8px;
+}
+
+.key-btn {
+    flex-grow: 1;
+    height: 52px;
+    margin-left: 4px;
+    margin-right: 4px;
+    background-color: var(--color-surface-key);
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-color: var(--color-surface-key-border);
+    border-right-color: var(--color-surface-key-border);
+    border-top-color: var(--color-surface-key-border);
+    border-bottom-color: var(--color-surface-key-border);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    justify-content: center;
+    align-items: center;
+    transition-property: scale, background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
+}
+
+.key-btn:hover {
+    scale: 1.04 1.04;
+    background-color: rgb(232, 242, 252);
+    border-left-color: var(--color-border-input);
+    border-right-color: var(--color-border-input);
+    border-top-color: var(--color-border-input);
+    border-bottom-color: var(--color-border-input);
+}
+
+.key-btn:active {
+    scale: 0.94 0.94;
+    background-color: rgb(218, 233, 248);
+}
+
+.key-text {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    -unity-text-align: middle-center;
+}
+
+.key-text--clear {
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 0.5px;
+}
+
+.key-text--backspace {
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+/* Submit Button */
+.btn-submit {
+    height: 56px;
+    background-color: var(--color-btn-orange-bottom);
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-color: var(--color-btn-orange-border);
+    border-right-color: var(--color-btn-orange-border);
+    border-top-color: var(--color-btn-orange-border);
+    border-bottom-color: var(--color-btn-orange-border);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    justify-content: center;
+    align-items: center;
+    transition-property: scale, translate, background-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.btn-submit:hover {
+    scale: 1.03 1.03;
+    translate: 0 -2px;
+    background-color: var(--color-btn-orange-top);
+}
+
+.btn-submit:active {
+    scale: 0.95 0.95;
+    translate: 0 2px;
+    transition-duration: 0.08s;
+}
+
+.btn-label {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: white;
+    letter-spacing: 1.5px;
+    -unity-text-align: middle-center;
+}
+
+/* =========================================================================
+   SEQUENCE STATE OVERLAYS (Countdown, Correct Reward, Failure Penalty)
+   ========================================================================= */
+.state-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-surface-card);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    padding-left: 20px;
+    padding-right: 20px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    transition-property: opacity, scale;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out-back;
+}
+
+/* State 02: Countdown */
+.timer-widget {
+    width: 140px;
+    height: 140px;
+    border-top-left-radius: 70px;
+    border-top-right-radius: 70px;
+    border-bottom-left-radius: 70px;
+    border-bottom-right-radius: 70px;
+    border-left-width: 8px;
+    border-right-width: 8px;
+    border-top-width: 8px;
+    border-bottom-width: 8px;
+    border-left-color: var(--color-buff-blue-icon);
+    border-right-color: var(--color-buff-blue-icon);
+    border-top-color: var(--color-buff-blue-icon);
+    border-bottom-color: var(--color-buff-blue-bg);
+    align-items: center;
+    justify-content: center;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.seconds-left {
+    font-size: 44px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+}
+
+.seconds-lbl {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-slate-muted);
+    letter-spacing: 1.2px;
+}
+
+/* State 03: Correct Reward */
+.banner-correct {
+    height: 48px;
+    width: 100%;
+    background-color: var(--color-correct-green);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    align-items: center;
+    justify-content: center;
+}
+
+.banner-text {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: white;
+    letter-spacing: 2px;
+}
+
+.eq-solved {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+}
+
+.score-laurel-badge {
+    width: 120px;
+    height: 120px;
+    border-top-left-radius: 60px;
+    border-top-right-radius: 60px;
+    border-bottom-left-radius: 60px;
+    border-bottom-right-radius: 60px;
+    background-color: rgb(254, 249, 195);
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-left-color: rgb(250, 204, 21);
+    border-right-color: rgb(250, 204, 21);
+    border-top-color: rgb(250, 204, 21);
+    border-bottom-color: rgb(250, 204, 21);
+    align-items: center;
+    justify-content: center;
+}
+
+.score-lbl {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    letter-spacing: 1px;
+}
+
+.score-val {
+    font-size: 42px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+}
+
+.multiplier-calc-box {
+    height: 42px;
+    width: 100%;
+    background-color: rgb(241, 245, 249);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.formula {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+}
+
+.banner-damage {
+    height: 58px;
+    width: 100%;
+    background-color: var(--color-damage-blue-top);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    align-items: center;
+    justify-content: center;
+}
+
+.dmg-lbl {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: rgb(191, 219, 254);
+    letter-spacing: 1px;
+}
+
+.dmg-mult {
+    font-size: 26px;
+    -unity-font-style: bold;
+    color: white;
+}
+
+/* State 04: Failure Penalty */
+.banner-incorrect {
+    height: 48px;
+    width: 100%;
+    background-color: var(--color-failure-red);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    align-items: center;
+    justify-content: center;
+}
+
+.wrong-input-box {
+    height: 48px;
+    width: 100%;
+    background-color: rgb(254, 242, 242);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(248, 113, 113);
+    border-right-color: rgb(248, 113, 113);
+    border-top-color: rgb(248, 113, 113);
+    border-bottom-color: rgb(248, 113, 113);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.wrong-val {
+    font-size: 24px;
+    -unity-font-style: bold;
+    color: var(--color-failure-red);
+}
+
+.broken-sword-badge {
+    width: 110px;
+    height: 110px;
+    border-top-left-radius: 55px;
+    border-top-right-radius: 55px;
+    border-bottom-left-radius: 55px;
+    border-bottom-right-radius: 55px;
+    background-color: rgb(254, 226, 226);
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-left-color: rgb(252, 165, 165);
+    border-right-color: rgb(252, 165, 165);
+    border-top-color: rgb(252, 165, 165);
+    border-bottom-color: rgb(252, 165, 165);
+    align-items: center;
+    justify-content: center;
+}
+
+.broken-sword-icon {
+    font-size: 40px;
+    color: var(--color-failure-red);
+}
+
+.no-dmg-lbl {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--color-navy);
+    letter-spacing: 1px;
+}
+
+.warning-pill {
+    height: 48px;
+    width: 100%;
+    background-color: rgb(254, 242, 242);
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-color: rgb(254, 202, 202);
+    border-right-color: rgb(254, 202, 202);
+    border-top-color: rgb(254, 202, 202);
+    border-bottom-color: rgb(254, 202, 202);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.warning-icon {
+    font-size: 16px;
+    color: var(--color-failure-red);
+    margin-right: 8px;
+}
+
+.alert-lbl {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-failure-red);
+    letter-spacing: 1.2px;
+}
+
+/* =========================================================================
+   INTERACTIVE DEBUG SWITCHER TRAY (for testing all 4 states in scene)
+   ========================================================================= */
+.state-debug-tray {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin-top: 16px;
+    max-width: 520px;
+}
+
+.state-btn {
+    height: 32px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    background-color: rgb(255, 255, 255);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: var(--color-border-light);
+    border-right-color: var(--color-border-light);
+    border-top-color: var(--color-border-light);
+    border-bottom-color: var(--color-border-light);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-slate-muted);
+}
+
+.state-btn--active {
+    background-color: var(--color-buff-blue-icon);
+    color: white;
+    border-left-color: var(--color-buff-blue-icon);
+    border-right-color: var(--color-buff-blue-icon);
+    border-top-color: var(--color-buff-blue-icon);
+    border-bottom-color: var(--color-buff-blue-icon);
+}
+
+/* Utility visibility classes */
+.is-hidden {
+    display: none;
+    opacity: 0;
+}

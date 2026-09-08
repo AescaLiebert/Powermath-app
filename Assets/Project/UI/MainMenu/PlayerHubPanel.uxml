@@ -7,10 +7,16 @@
         <ui:VisualElement picking-mode="Ignore" class="player-hub-ground"/>
         <ui:VisualElement picking-mode="Ignore" class="player-hub-landmark player-hub-landmark--left"/>
         <ui:VisualElement picking-mode="Ignore" class="player-hub-landmark player-hub-landmark--right"/>
-        <ui:Button name="player-hub-close" text="CLOSE" class="player-hub-local-close"/>
+        <ui:VisualElement name="player-hub-header-controls" class="player-hub-header-controls">
+            <ui:VisualElement class="player-hub-balance-pill" tooltip="Power Coins">
+                <ui:VisualElement class="player-hub-coin-icon" picking-mode="Ignore"/>
+                <ui:Label name="player-hub-balance" text="0" class="player-hub-balance"/>
+            </ui:VisualElement>
+            <ui:Button name="player-hub-close" text="×" tooltip="Close Player Hub" class="player-hub-close"/>
+        </ui:VisualElement>
         <ui:VisualElement class="player-hub-screen">
             <ui:VisualElement class="player-hub-player-stage">
-                <ui:Label text="PERMANENT POWER" class="player-hub-kicker"/>
+                <ui:Label text="PERMANENT POWER" class="loc-menu.permanentPower player-hub-kicker"/>
                 <ui:VisualElement class="player-hub-avatar-scene">
                     <ui:VisualElement picking-mode="Ignore" class="player-hub-avatar-shadow"/>
                     <ui:VisualElement name="player-hub-avatar" class="player-hub-avatar">
@@ -20,7 +26,7 @@
                     <ui:Image name="player-hub-equipped-pet" tooltip="Equipped pet" class="player-hub-equipped-visual player-hub-equipped-pet"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="player-hub-stats-float">
-                    <ui:Label text="EFFECTIVE ATTACK" class="player-hub-metric-label"/>
+                    <ui:Label text="EFFECTIVE ATTACK" class="loc-menu.attack player-hub-metric-label"/>
                     <ui:Label name="player-hub-effective-atk" text="— ATK" class="player-hub-effective-atk"/>
                     <ui:Label name="player-hub-atk-breakdown" text="Preparing power…" class="player-hub-atk-breakdown"/>
                     <ui:Label name="player-hub-legacy-bonus" text="Preparing…" class="player-hub-legacy-bonus"/>
@@ -29,16 +35,15 @@
             </ui:VisualElement>
             <ui:VisualElement class="player-hub-workspace">
                 <ui:VisualElement class="player-hub-tabs">
-                    <ui:Button name="player-hub-tab-weapon" text="WEAPON ASCEND" class="player-hub-tab is-selected"/>
-                    <ui:Button name="player-hub-tab-pets" text="PET COLLECTION" class="player-hub-tab"/>
+                    <ui:Button name="player-hub-tab-weapon" text="WEAPON ASCEND" class="loc-menu.weaponAscend player-hub-tab is-selected"/>
+                    <ui:Button name="player-hub-tab-pets" text="PET COLLECTION" class="loc-menu.collection player-hub-tab"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="player-hub-weapon-workspace" class="player-hub-feature player-hub-weapon-workspace">
                     <ui:VisualElement class="player-hub-feature-header">
                         <ui:VisualElement>
-                            <ui:Label text="FORGE OF ASCENSION" class="player-hub-section-title"/>
-                            <ui:Label text="Build permanent power. New forms awaken at milestones." class="player-hub-section-copy"/>
+                            <ui:Label text="FORGE OF ASCENSION" class="loc-menu.forge player-hub-section-title"/>
+                            <ui:Label text="Build permanent power. New forms awaken at milestones." class="loc-menu.ascensionHelp player-hub-section-copy"/>
                         </ui:VisualElement>
-                        <ui:Label name="player-hub-balance" text="POWER COINS  —" class="player-hub-balance"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="player-hub-weapon-showcase">
                         <ui:VisualElement name="player-hub-weapon-aura" picking-mode="Ignore" class="player-hub-weapon-aura"/>
@@ -51,28 +56,28 @@
                     </ui:VisualElement>
                     <ui:VisualElement class="player-hub-comparison">
                         <ui:VisualElement name="player-hub-current-card" class="player-hub-comparison-card">
-                            <ui:Label text="CURRENT" class="player-hub-comparison-label"/>
+                            <ui:Label text="CURRENT" class="loc-menu.current player-hub-comparison-label"/>
                             <ui:Label name="player-hub-weapon-current" text="Preparing current stats…" class="player-hub-weapon-stat"/>
                         </ui:VisualElement>
                         <ui:Label text="→" class="player-hub-comparison-arrow"/>
                         <ui:VisualElement name="player-hub-next-card" class="player-hub-comparison-card player-hub-comparison-card--next">
-                            <ui:Label text="NEXT" class="player-hub-comparison-label"/>
+                            <ui:Label text="NEXT" class="loc-menu.next player-hub-comparison-label"/>
                             <ui:Label name="player-hub-weapon-next" text="Preparing next stats…" class="player-hub-weapon-next"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement class="player-hub-purchase-row">
                         <ui:VisualElement class="player-hub-cost-block">
-                            <ui:Label text="ASCENSION COST" class="player-hub-chip-title"/>
+                            <ui:Label text="ASCENSION COST" class="loc-menu.ascensionCost player-hub-chip-title"/>
                             <ui:Label name="player-hub-weapon-cost" text="Preparing…" class="player-hub-cost"/>
                         </ui:VisualElement>
-                        <ui:Button name="player-hub-weapon-upgrade" text="ASCEND" class="player-hub-upgrade mw-button mw-button--primary"/>
+                        <ui:Button name="player-hub-weapon-upgrade" text="ASCEND" class="loc-menu.ascend player-hub-upgrade mw-button mw-button--primary"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="player-hub-pet-workspace" class="player-hub-feature player-hub-pet-workspace">
                     <ui:VisualElement class="player-hub-pet-browser">
                         <ui:VisualElement class="player-hub-pet-inventory-panel">
-                            <ui:Label text="YOUR PETS" class="player-hub-section-title"/>
-                            <ui:Label text="Tap a pet to equip instantly" class="player-hub-section-copy"/>
+                            <ui:Label text="YOUR PETS" class="loc-menu.yourPets player-hub-section-title"/>
+                            <ui:Label text="Tap a pet to equip instantly" class="loc-menu.equipHelp player-hub-section-copy"/>
                             <ui:ScrollView name="player-hub-pet-scroll" mode="Vertical" class="player-hub-pet-scroll">
                                 <ui:VisualElement name="player-hub-pet-grid" class="player-hub-pet-grid"/>
                             </ui:ScrollView>
@@ -80,9 +85,9 @@
                         <ui:VisualElement name="player-hub-pet-preview" class="player-hub-pet-preview">
                             <ui:VisualElement name="player-hub-pet-preview-aura" picking-mode="Ignore" class="player-hub-pet-preview-aura"/>
                             <ui:Image name="player-hub-pet-preview-icon" class="player-hub-pet-preview-icon"/>
-                            <ui:Label name="player-hub-pet-preview-rarity" text="RARITY" class="player-hub-pet-preview-rarity"/>
-                            <ui:Label name="player-hub-pet-preview-name" text="SELECT A PET" class="player-hub-pet-preview-name"/>
-                            <ui:Label name="player-hub-pet-preview-description" text="Choose an owned pet to see what it can do." class="player-hub-pet-preview-description"/>
+                            <ui:Label name="player-hub-pet-preview-rarity" text="RARITY" class="loc-menu.rarity player-hub-pet-preview-rarity"/>
+                            <ui:Label name="player-hub-pet-preview-name" text="SELECT A PET" class="loc-menu.selectPet player-hub-pet-preview-name"/>
+                            <ui:Label name="player-hub-pet-preview-description" text="Choose an owned pet to see what it can do." class="loc-menu.petHelp player-hub-pet-preview-description"/>
                             <ui:Label name="player-hub-pet-preview-state" text="" class="player-hub-pet-preview-state"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
@@ -91,8 +96,8 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="player-hub-milestone" picking-mode="Ignore" class="player-hub-milestone">
-            <ui:Label text="MILESTONE AWAKENED" class="player-hub-milestone-kicker"/>
-            <ui:Label name="player-hub-milestone-name" text="NEW WEAPON FORM" class="player-hub-milestone-name"/>
+            <ui:Label text="MILESTONE AWAKENED" class="loc-menu.milestone player-hub-milestone-kicker"/>
+            <ui:Label name="player-hub-milestone-name" text="NEW WEAPON FORM" class="loc-menu.newWeapon player-hub-milestone-name"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -58,6 +58,16 @@ namespace PowerMath.UI.MainMenu
             int durationMilliseconds = 2400)
         {
             if (!_initialized || string.IsNullOrWhiteSpace(message)) return;
+
+            var severity = kind switch
+            {
+                MainMenuNoticeKind.Success => PowerMath.UI.Core.StatusSeverity.Success,
+                MainMenuNoticeKind.Warning => PowerMath.UI.Core.StatusSeverity.Warning,
+                MainMenuNoticeKind.Error => PowerMath.UI.Core.StatusSeverity.Error,
+                _ => PowerMath.UI.Core.StatusSeverity.Info
+            };
+            PowerMath.UI.Core.StatusMessageService.Show(message, severity, durationMilliseconds);
+
             int revision = ++_noticeRevision;
             _noticeText.text = message.Trim();
             _notice.EnableInClassList("is-success", kind == MainMenuNoticeKind.Success);
@@ -157,11 +167,7 @@ namespace PowerMath.UI.MainMenu
 
         private static bool IsSharedPanel(MainMenuPanelId panelId)
         {
-            return panelId == MainMenuPanelId.WorldMap ||
-                panelId == MainMenuPanelId.PlayerHub ||
-                panelId == MainMenuPanelId.ProfileAnalytics ||
-                panelId == MainMenuPanelId.PetGacha ||
-                panelId == MainMenuPanelId.Leaderboard;
+            return false;
         }
 
         private static bool HasOverlayContract(VisualElement root)

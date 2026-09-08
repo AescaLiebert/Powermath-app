@@ -1,73 +1,100 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="run-settlement-modal" enabled="true" focusable="true" class="social-modal settlement-modal is-hidden">
-        <ui:VisualElement class="settlement-backdrop-ring settlement-backdrop-ring--one" picking-mode="Ignore"/>
-        <ui:VisualElement class="settlement-backdrop-ring settlement-backdrop-ring--two" picking-mode="Ignore"/>
-        <ui:VisualElement class="social-modal-card settlement-card mw-card">
-            <ui:VisualElement class="settlement-header">
-                <ui:VisualElement class="settlement-heading">
-                    <ui:Label text="RUN RESET" class="mw-kicker settlement-kicker"/>
-                    <ui:Label name="run-settlement-title" text="REBIRTH PREVIEW" class="social-title settlement-title"/>
-                    <ui:Label text="Review the permanent rewards before beginning again." class="social-subtitle settlement-subtitle"/>
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="run-settlement-modal" focusable="true" class="social-modal settlement-modal is-hidden">
+        <pm:FigmaShadowElement name="Rebirth / Window Shadow" class="rebirth-window-shadow"/>
+        <ui:VisualElement name="Rebirth / Window" class="rebirth-window">
+            <pm:FigmaShadowElement name="Rebirth / Window Inner Shadow" class="rebirth-window-inner-shadow"/>
+            <ui:VisualElement name="Rebirth / Header" class="rebirth-header">
+                <pm:FigmaGradientElement name="Rebirth / Header Gradient" class="rebirth-header-gradient"/>
+                <pm:FigmaShadowElement name="Rebirth / Header Inner Shadow" class="rebirth-header-inner-shadow"/>
+                <ui:VisualElement name="Rebirth / Title Group" class="rebirth-title-group">
+                    <ui:VisualElement name="image 3" class="rebirth-title-icon"/>
+                    <ui:Label name="Title" text="REBIRTH" class="rebirth-title"/>
                 </ui:VisualElement>
-                <ui:Label name="run-settlement-stage" text="STAGE —" class="settlement-stage"/>
+                <ui:Button name="Button / Close" class="rebirth-close-button">
+                    <pm:FigmaGradientElement name="Button / Close Gradient" class="rebirth-close-gradient"/>
+                    <pm:FigmaShadowElement name="Button / Close Inner Highlight" class="rebirth-close-highlight"/>
+                    <ui:VisualElement name="Vector / Close" class="rebirth-close-vector">
+                        <ui:VisualElement name="Vector" class="rebirth-close-line rebirth-close-line--forward"/>
+                        <ui:VisualElement class="rebirth-close-line rebirth-close-line--back"/>
+                    </ui:VisualElement>
+                </ui:Button>
             </ui:VisualElement>
-            <ui:ScrollView class="settlement-scroll">
-                <ui:VisualElement class="settlement-progress-section">
-                    <ui:VisualElement class="settlement-progress-header">
-                        <ui:Label text="REBIRTH REQUIREMENT" class="settlement-progress-title"/>
-                        <ui:Label name="run-settlement-progress-label" text="STAGE — / 50" class="settlement-progress-label"/>
-                    </ui:VisualElement>
-                    <ui:ProgressBar name="run-settlement-progress" value="0" low-value="0" high-value="50" class="settlement-progress-bar"/>
-                </ui:VisualElement>
-                <ui:Label text="PERMANENT REWARDS" class="settlement-section-title"/>
-                <ui:VisualElement class="settlement-grid">
-                    <ui:VisualElement class="settlement-value-card settlement-value-card--coins">
-                        <ui:VisualElement class="settlement-value-icon settlement-value-icon--coins">
-                            <ui:Label text="✦" class="settlement-value-symbol"/>
+            <ui:VisualElement name="Rebirth / Body" class="rebirth-body">
+                <pm:FigmaGradientElement name="Rebirth / Body Gradient" class="rebirth-body-gradient"/>
+                <ui:VisualElement name="Rebirth / Comparison List" class="rebirth-comparison-list">
+                    <ui:VisualElement name="Component / Rebirth Comparison Row" class="rebirth-comparison-row rebirth-comparison-row--attack">
+                        <ui:VisualElement name="Before" class="rebirth-comparison-card">
+                            <pm:FigmaShadowElement class="rebirth-card-drop-shadow"/>
+                            <ui:VisualElement name="Enemy Ability" class="rebirth-card-surface">
+                                <pm:FigmaShadowElement class="rebirth-card-inner-light"/><pm:FigmaShadowElement class="rebirth-card-inner-dark"/>
+                                <ui:VisualElement name="Icon Slot" class="rebirth-icon-slot"><ui:VisualElement name="ATK_Icon" class="rebirth-stat-icon rebirth-stat-icon--attack"/></ui:VisualElement>
+                                <ui:Label name="Before Number" text="25(+0%)" enable-rich-text="true" class="rebirth-number rebirth-atk-before"/>
+                            </ui:VisualElement>
                         </ui:VisualElement>
-                        <ui:VisualElement class="settlement-value-copy">
-                            <ui:Label text="POWER COINS" class="settlement-value-title"/>
-                            <ui:Label name="run-settlement-coins" text="— → —" class="settlement-value"/>
-                            <ui:Label name="run-settlement-coins-gain" text="Preparing reward…" class="settlement-gain"/>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="settlement-value-card settlement-value-card--legacy">
-                        <ui:VisualElement class="settlement-value-icon settlement-value-icon--legacy">
-                            <ui:Label text="↑" class="settlement-value-symbol"/>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="settlement-value-copy">
-                            <ui:Label text="LEGACY ATK" class="settlement-value-title"/>
-                            <ui:Label name="run-settlement-legacy" text="— → —" class="settlement-value"/>
-                            <ui:Label name="run-settlement-legacy-gain" text="Preparing reward…" class="settlement-gain"/>
+                        <ui:VisualElement name="Direction" class="rebirth-direction"><ui:VisualElement name="Rectangle 12" class="rebirth-direction-shaft"/><pm:RebirthDirectionHead name="Polygon 2" class="rebirth-direction-head"/></ui:VisualElement>
+                        <ui:VisualElement name="After" class="rebirth-comparison-card">
+                            <pm:FigmaShadowElement class="rebirth-card-drop-shadow"/>
+                            <ui:VisualElement name="Enemy Ability" class="rebirth-card-surface">
+                                <pm:FigmaShadowElement class="rebirth-card-inner-light"/><pm:FigmaShadowElement class="rebirth-card-inner-dark"/>
+                                <ui:VisualElement name="Icon Slot" class="rebirth-icon-slot"><ui:VisualElement name="ATK_Icon" class="rebirth-stat-icon rebirth-stat-icon--attack"/></ui:VisualElement>
+                                <ui:Label name="Before Number" text="26(+1%)" enable-rich-text="true" class="rebirth-number rebirth-atk-after"/>
+                            </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="settlement-result-row">
-                    <ui:Label name="run-settlement-attack" text="EFFECTIVE ATK  — → —" class="settlement-result settlement-result--attack"/>
-                    <ui:Label name="run-settlement-prestige" text="PRESTIGE  —" class="settlement-result settlement-result--prestige"/>
-                </ui:VisualElement>
-                <ui:Label text="WHAT HAPPENS NEXT" class="settlement-section-title settlement-section-title--rules"/>
-                <ui:VisualElement class="settlement-rules">
-                    <ui:VisualElement class="settlement-rule-card settlement-rule-card--keep">
-                        <ui:Label text="KEEP" class="settlement-rule-title settlement-rule-title--keep"/>
-                        <ui:Label text="✓ Active Rank and lifetime records" class="settlement-rule-line"/>
-                        <ui:Label text="✓ Power Coins, pets, weapons, and upgrades" class="settlement-rule-line"/>
-                        <ui:Label text="✓ Profile analytics and highest Stage" class="settlement-rule-line"/>
+                    <ui:VisualElement name="Component / Rebirth Comparison Row" class="rebirth-comparison-row rebirth-comparison-row--stage">
+                        <ui:VisualElement name="Before" class="rebirth-comparison-card">
+                            <pm:FigmaShadowElement class="rebirth-card-drop-shadow"/>
+                            <ui:VisualElement name="Enemy Ability" class="rebirth-card-surface">
+                                <pm:FigmaShadowElement class="rebirth-card-inner-light"/><pm:FigmaShadowElement class="rebirth-card-inner-dark"/>
+                                <ui:VisualElement name="Icon Slot" class="rebirth-icon-slot"><ui:VisualElement name="Map_Icon" class="rebirth-stat-icon rebirth-stat-icon--stage"/></ui:VisualElement>
+                                <ui:Label name="Before Number" text="61" class="rebirth-number rebirth-stage-before"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="Direction" class="rebirth-direction"><ui:VisualElement name="Rectangle 12" class="rebirth-direction-shaft"/><pm:RebirthDirectionHead name="Polygon 2" class="rebirth-direction-head"/></ui:VisualElement>
+                        <ui:VisualElement name="After" class="rebirth-comparison-card">
+                            <pm:FigmaShadowElement class="rebirth-card-drop-shadow"/>
+                            <ui:VisualElement name="Enemy Ability" class="rebirth-card-surface">
+                                <pm:FigmaShadowElement class="rebirth-card-inner-light"/><pm:FigmaShadowElement class="rebirth-card-inner-dark"/>
+                                <ui:VisualElement name="Icon Slot" class="rebirth-icon-slot"><ui:VisualElement name="Map_Icon" class="rebirth-stat-icon rebirth-stat-icon--stage"/></ui:VisualElement>
+                                <ui:Label name="Before Number" text="1" class="rebirth-number rebirth-stage-after"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="settlement-rule-card settlement-rule-card--reset">
-                        <ui:Label text="RESET" class="settlement-rule-title settlement-rule-title--reset"/>
-                        <ui:Label text="• Return to Stage 1" class="settlement-rule-line"/>
-                        <ui:Label text="• Hearts, temporary buffs, and run state" class="settlement-rule-line"/>
-                        <ui:Label text="• Current audit and question queue runtime" class="settlement-rule-line"/>
+                    <ui:VisualElement name="Component / Rebirth Comparison Row" class="rebirth-comparison-row rebirth-comparison-row--coins">
+                        <ui:VisualElement name="Before" class="rebirth-comparison-card">
+                            <pm:FigmaShadowElement class="rebirth-card-drop-shadow"/>
+                            <ui:VisualElement name="Enemy Ability" class="rebirth-card-surface">
+                                <pm:FigmaShadowElement class="rebirth-card-inner-light"/><pm:FigmaShadowElement class="rebirth-card-inner-dark"/>
+                                <ui:VisualElement name="Icon Slot" class="rebirth-icon-slot"><ui:VisualElement name="Power-Coin-Icon" class="rebirth-stat-icon rebirth-stat-icon--coins"/></ui:VisualElement>
+                                <ui:Label name="Before Number" text="13" class="rebirth-number rebirth-coins-before"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="Direction" class="rebirth-direction"><ui:VisualElement name="Rectangle 12" class="rebirth-direction-shaft"/><pm:RebirthDirectionHead name="Polygon 2" class="rebirth-direction-head"/></ui:VisualElement>
+                        <ui:VisualElement name="After" class="rebirth-comparison-card">
+                            <pm:FigmaShadowElement class="rebirth-card-drop-shadow"/>
+                            <ui:VisualElement name="Enemy Ability" class="rebirth-card-surface">
+                                <pm:FigmaShadowElement class="rebirth-card-inner-light"/><pm:FigmaShadowElement class="rebirth-card-inner-dark"/>
+                                <ui:VisualElement name="Icon Slot" class="rebirth-icon-slot"><ui:VisualElement name="Power-Coin-Icon" class="rebirth-stat-icon rebirth-stat-icon--coins"/></ui:VisualElement>
+                                <ui:Label name="Before Number" text="51" class="rebirth-number rebirth-coins-after"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:Label text="KEEP and RESET follow the authoritative run-settlement rules shown above." class="settlement-reset-note"/>
-            </ui:ScrollView>
-            <ui:Label name="run-settlement-status" text="" class="social-status mw-status settlement-status"/>
-            <ui:VisualElement class="settlement-actions">
-                <ui:Button name="run-settlement-close" text="BACK" class="social-close mw-button settlement-back"/>
-                <ui:Button name="run-settlement-confirm" text="CONFIRM" class="profile-name-save mw-button mw-button--primary settlement-confirm"/>
-                <ui:Button name="run-settlement-continue" text="CONTINUE" class="profile-name-save mw-button mw-button--primary settlement-continue"/>
+                <ui:VisualElement name="Progress Icon Panel" class="rebirth-progress-panel">
+                    <pm:FigmaShadowElement class="rebirth-progress-drop-shadow"/>
+                    <ui:VisualElement name="Progress Icon" class="rebirth-progress-track">
+                        <pm:FigmaGradientElement class="rebirth-progress-gradient"/><pm:FigmaShadowElement class="rebirth-progress-inner-top"/><pm:FigmaShadowElement class="rebirth-progress-inner-bottom"/>
+                        <ui:VisualElement name="Enemy Ability" class="rebirth-progress-fill"/><ui:Label name="Progress Value" text="3 / 50" class="rebirth-progress-value"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label name="run-settlement-status" text="" class="rebirth-status"/>
+                <ui:Button name="Button / Rebirth" class="rebirth-action-button">
+                    <pm:FigmaShadowElement class="rebirth-action-drop-shadow"/><ui:VisualElement name="Rectangle 9" class="rebirth-action-base"/><ui:VisualElement name="Rectangle 11" class="rebirth-action-highlight"/><pm:FigmaGradientElement name="Rectangle 10" class="rebirth-action-gradient"/><ui:VisualElement name="Line 5" class="rebirth-action-line"/>
+                    <ui:VisualElement name="Content" class="rebirth-action-content"><ui:VisualElement name="image 3" class="rebirth-action-icon"/><ui:VisualElement name="Rebirth" class="rebirth-action-label-group"><ui:Label name="Text Component" text="Rebirth" class="rebirth-action-label"/></ui:VisualElement></ui:VisualElement>
+                </ui:Button>
+                <ui:Button name="run-settlement-continue" class="rebirth-action-button rebirth-continue-button">
+                    <pm:FigmaShadowElement class="rebirth-action-drop-shadow"/><ui:VisualElement class="rebirth-action-base"/><ui:VisualElement class="rebirth-action-highlight"/><pm:FigmaGradientElement class="rebirth-action-gradient"/><ui:VisualElement class="rebirth-action-line"/><ui:VisualElement class="rebirth-action-content rebirth-action-content--continue"><ui:Label text="Continue" class="rebirth-action-label"/></ui:VisualElement>
+                </ui:Button>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

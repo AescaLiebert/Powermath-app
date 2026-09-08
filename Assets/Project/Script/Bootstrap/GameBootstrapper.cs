@@ -64,6 +64,7 @@ namespace PowerMath.Bootstrap
 #else
             _bootstrapService = new DirectFirestorePlayerBootstrapService(apiSettings);
 #endif
+            PowerMath.PlayerLifecycle.PlayerLifecycleRuntime.Configure(apiSettings);
             BeginBootstrap();
         }
 
@@ -90,7 +91,13 @@ namespace PowerMath.Bootstrap
             }
 #endif
 
-            if (apiSettings.EnableVersionCheck && !string.IsNullOrWhiteSpace(apiSettings.VersionManifestUrl))
+            if (apiSettings.EnableVersionCheck && string.IsNullOrWhiteSpace(apiSettings.VersionManifestUrl))
+            {
+                _isBootstrapping = false;
+                _view.Render(BootstrapState.Recovering, PowerMath.Localization.LocalizationService.Get("errors.policy"));
+                return;
+            }
+            if (apiSettings.EnableVersionCheck)
             {
                 _view.Render(BootstrapState.CheckingVersion);
                 StartCoroutine(CheckVersionThenFetchPlayer());
@@ -116,6 +123,7 @@ namespace PowerMath.Bootstrap
 
             if (manifest != null)
             {
+                _sessionStore?.SetVersionManifest(manifest);
                 var result = GameVersionChecker.EvaluateCompatibility(
                     manifest,
                     Application.version,
@@ -123,6 +131,12 @@ namespace PowerMath.Bootstrap
                     out string statusMessage
                 );
 
+                if (result == VersionCompatibilityResult.NetworkError)
+                {
+                    _isBootstrapping = false;
+                    _view.Render(BootstrapState.Recovering, PowerMath.Localization.LocalizationService.Get("errors.policy"));
+                    yield break;
+                }
                 if (result == VersionCompatibilityResult.MaintenanceActive)
                 {
                     _isBootstrapping = false;
@@ -138,18 +152,20 @@ namespace PowerMath.Bootstrap
                         BootstrapState.IncompatibleClient,
                         statusMessage + " Refreshing the page to update..."
                     );
-                    WebCacheBridge.PurgeCacheAndReload();
+                    WebCacheBridge.PurgeCacheAndReload(manifest.clientVersion);
                     yield break;
                 }
 
                 if (result == VersionCompatibilityResult.UpdateRecommended)
                 {
-                    Debug.Log($"[GameBootstrapper] Soft update available: {statusMessage}");
+                    PowerMath.Diagnostics.AppLog.Info("Bootstrap", $"Soft update available: {statusMessage}");
                 }
             }
             else if (!string.IsNullOrWhiteSpace(fetchError))
             {
-                Debug.LogWarning($"[GameBootstrapper] Version check skipped due to error: {fetchError}");
+                _isBootstrapping = false;
+                _view.Render(BootstrapState.Recovering, PowerMath.Localization.LocalizationService.Get("errors.policy"));
+                yield break;
             }
 
             _view.Render(BootstrapState.CheckingSession);
@@ -192,7 +208,41 @@ namespace PowerMath.Bootstrap
                 return;
             }
 
+            StartCoroutine(PreparePlayer());
+        }
+
+        private IEnumerator PreparePlayer()
+        {
+            if (!PlayerLifecyclePolicy.IsLocale(_sessionStore.Snapshot.preferences?.locale))
+            {
+                PlayerSnapshot saved = null;
+                yield return PowerMath.PlayerLifecycle.PlayerLifecycleRuntime.Commands.Execute(
+                    new PlayerLifecycleCommand
+                    {
+                        kind = PlayerLifecycleCommandKind.SetLocale,
+                        operationId = System.Guid.NewGuid().ToString("N"),
+                        playerId = _sessionStore.Snapshot.playerId,
+                        expectedRevision = _sessionStore.Snapshot.revision,
+                        value = PowerMath.Localization.LocalizationService.Locale
+                    }, player => saved = player, _ => { });
+                if (saved == null)
+                {
+                    _isBootstrapping = false;
+                    _view.Render(BootstrapState.Recovering, PowerMath.Localization.LocalizationService.Get("errors.save"));
+                    yield break;
+                }
+                _sessionStore.TryHydrate(new BootstrapResponse
+                { player = saved, schemaVersion = saved.schemaVersion, remembered = _sessionStore.IsRemembered });
+            }
             _view.Render(BootstrapState.Ready);
+            if (!PowerMath.Session.PlayerLifecyclePolicy.IsComplete(_sessionStore.Snapshot))
+            {
+                gameObject.AddComponent<PowerMath.PlayerLifecycle.PlayerPreparationPresenter>().Initialize(
+                    GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement,
+                    _sessionStore, PowerMath.PlayerLifecycle.PlayerLifecycleRuntime.Commands,
+                    () => LoadScene(apiSettings.MainMenuSceneName));
+                yield break;
+            }
             LoadScene(apiSettings.MainMenuSceneName);
         }
 
@@ -200,6 +250,11 @@ namespace PowerMath.Bootstrap
         {
             _isBootstrapping = false;
 
+            if (failure.Kind == FirestoreRestClient.FailureKind.IncompatibleClient)
+            {
+                _view.Render(BootstrapState.IncompatibleClient, failure.PlayerMessage);
+                return;
+            }
             if (failure.Kind == FirestoreRestClient.FailureKind.AuthenticationRequired)
             {
                 _sessionStore.Clear();

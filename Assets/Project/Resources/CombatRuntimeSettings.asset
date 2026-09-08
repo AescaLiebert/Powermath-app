@@ -16,7 +16,7 @@ MonoBehaviour:
   criticalRate: 0.2
   criticalDamagePercent: 50
   baseAttack: 20
-  baseWeaponAttack: 5
+  baseWeaponAttack: 0
   maximumHearts: 3
   maximumAnswerLength: 6
   preparationSeconds: 1

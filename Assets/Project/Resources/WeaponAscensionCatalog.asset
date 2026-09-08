@@ -17,7 +17,7 @@ MonoBehaviour:
     unlockLevel: 0
     localizedDisplayNameKey: weapon.base_sword
     displayName: Base Sword
-    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    icon: {fileID: 2585870654315560641, guid: 3aefe66a41532574680663ae25a71d04, type: 3}
     appearanceReference: base-sword
     milestoneFeedbackKey: weapon-base
     childFriendlyDescription: A trusty sword for starting your adventure.
@@ -25,7 +25,7 @@ MonoBehaviour:
     unlockLevel: 20
     localizedDisplayNameKey: weapon.champion_sword
     displayName: Champion Sword
-    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    icon: {fileID: 2585870654315560641, guid: 3aefe66a41532574680663ae25a71d04, type: 3}
     appearanceReference: champion-sword
     milestoneFeedbackKey: weapon-champion
     childFriendlyDescription: Bright champion trim celebrates your progress.
@@ -33,7 +33,7 @@ MonoBehaviour:
     unlockLevel: 40
     localizedDisplayNameKey: weapon.hero_sword
     displayName: Hero Sword
-    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    icon: {fileID: 2585870654315560641, guid: 3aefe66a41532574680663ae25a71d04, type: 3}
     appearanceReference: hero-sword
     milestoneFeedbackKey: weapon-hero
     childFriendlyDescription: A bold heroic sword with a larger silhouette.
@@ -41,7 +41,7 @@ MonoBehaviour:
     unlockLevel: 60
     localizedDisplayNameKey: weapon.mythic_sword
     displayName: Mythic Sword
-    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    icon: {fileID: 2585870654315560641, guid: 3aefe66a41532574680663ae25a71d04, type: 3}
     appearanceReference: mythic-sword
     milestoneFeedbackKey: weapon-mythic
     childFriendlyDescription: Magical glow and engravings mark a mythic milestone.
@@ -49,7 +49,7 @@ MonoBehaviour:
     unlockLevel: 80
     localizedDisplayNameKey: weapon.legendary_sword
     displayName: Legendary Sword
-    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    icon: {fileID: 2585870654315560641, guid: 3aefe66a41532574680663ae25a71d04, type: 3}
     appearanceReference: legendary-sword
     milestoneFeedbackKey: weapon-legendary
     childFriendlyDescription: A legendary aura rewards long-term effort.
@@ -57,7 +57,7 @@ MonoBehaviour:
     unlockLevel: 100
     localizedDisplayNameKey: weapon.power_wisdom_sword
     displayName: Power Wisdom Sword
-    icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
+    icon: {fileID: 2585870654315560641, guid: 3aefe66a41532574680663ae25a71d04, type: 3}
     appearanceReference: power-wisdom-sword
     milestoneFeedbackKey: weapon-final
     childFriendlyDescription: The final signature weapon for a Power Wisdom master.

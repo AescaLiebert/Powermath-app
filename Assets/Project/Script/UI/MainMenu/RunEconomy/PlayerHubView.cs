@@ -11,6 +11,7 @@ namespace PowerMath.UI.MainMenu
     {
         public readonly VisualElement Modal;
         public readonly Button OpenButton;
+        public readonly VisualElement LockOverlay;
         public readonly Button CloseButton;
         public readonly Button UpgradeButton;
         public readonly Label EffectiveAttack;
@@ -52,6 +53,7 @@ namespace PowerMath.UI.MainMenu
         {
             Modal = Require<VisualElement>(root, "player-hub-modal");
             OpenButton = Require<Button>(root, "player-hub-button");
+            LockOverlay = OpenButton.Q<VisualElement>("player-hub-lock");
             CloseButton = Require<Button>(root, "player-hub-close");
             UpgradeButton = Require<Button>(root, "player-hub-weapon-upgrade");
             EffectiveAttack = Require<Label>(root, "player-hub-effective-atk");

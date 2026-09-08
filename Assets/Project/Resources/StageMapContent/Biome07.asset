@@ -16,18 +16,29 @@ MonoBehaviour:
   fallbackTitle: Biome 7
   firstStage: 181
   lastStage: 200
-  backgroundSprite: {fileID: 0}
+  backgroundSprite: {fileID: 21300000, guid: b7cf0a0d473727c4c81b70fed80c7445, type: 3}
   mapLandmarkSprite: {fileID: 0}
   normalizedMapPosition: {x: 1, y: 0.42}
   normalMonsters:
-  - {fileID: 11400000, guid: c0000000000000000000000000000007, type: 2}
+  - {fileID: 11400000, guid: b5dc76719f9dae646a5e075e215d32f2, type: 2}
+  - {fileID: 11400000, guid: f17371ac60d1e164b937a24eeabaaba1, type: 2}
+  - {fileID: 11400000, guid: bb3c117bbbcc10c4096b1b8f9de82fe2, type: 2}
+  - {fileID: 11400000, guid: 0763c01e2d05e814e95b66a3e53d54b5, type: 2}
+  - {fileID: 11400000, guid: ff89ed1aecdf5434ead2eb92e50f53e3, type: 2}
+  - {fileID: 11400000, guid: 93b7d43083851704ea988864c7190205, type: 2}
+  - {fileID: 11400000, guid: cd982f152151a5f4cb491e9d7119da5a, type: 2}
+  - {fileID: 11400000, guid: 766b00451cca624459f5738d21fa98be, type: 2}
+  - {fileID: 11400000, guid: 0722f7bb2b2decf448a440c3f581a606, type: 2}
+  - {fileID: 11400000, guid: 74f2eeb39b0a8d34cba6a0f7604a36e3, type: 2}
+  - {fileID: 11400000, guid: e93438e65e69f424ebba3d687dba846b, type: 2}
   bossBindings:
-  - stage: 185
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000007, type: 2}
-  - stage: 190
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000007, type: 2}
-  - stage: 195
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000007, type: 2}
   - stage: 200
-    monster: {fileID: 11400000, guid: f0000000000000000000000000000200, type: 2}
-
+    monster: {fileID: 11400000, guid: 97a2dea15259dd5449f463ae5a1afc9c, type: 2}
+  - stage: 205
+    monster: {fileID: 11400000, guid: 196943dbca9f875458abcdda821057db, type: 2}
+  - stage: 210
+    monster: {fileID: 11400000, guid: 230fe6f9c3667654ba484678e0bc3315, type: 2}
+  - stage: 215
+    monster: {fileID: 11400000, guid: 724c1c863572fd543b627f528384e06e, type: 2}
+  - stage: 220
+    monster: {fileID: 11400000, guid: 336e31aa3ce7cd645813769b5e8b072a, type: 2}

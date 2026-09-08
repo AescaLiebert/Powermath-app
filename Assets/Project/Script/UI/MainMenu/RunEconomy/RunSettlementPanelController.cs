@@ -25,18 +25,18 @@ namespace PowerMath.UI.MainMenu
         private readonly IMainMenuPanelHost _panelHost;
         private readonly VisualElement _modal;
         private readonly Label _title;
-        private readonly Label _stage;
-        private readonly Label _coins;
-        private readonly Label _coinsGain;
-        private readonly Label _legacy;
-        private readonly Label _legacyGain;
-        private readonly Label _attack;
-        private readonly Label _prestige;
+        private readonly Label _attackBefore;
+        private readonly Label _attackAfter;
+        private readonly Label _stageBefore;
+        private readonly Label _stageAfter;
+        private readonly Label _coinsBefore;
+        private readonly Label _coinsAfter;
         private readonly Label _status;
-        private readonly ProgressBar _progressBar;
-        private readonly Label _progressLabel;
+        private readonly VisualElement _progressFill;
+        private readonly Label _progressValue;
         private readonly Button _rebirth;
         private readonly Button _confirm;
+        private readonly Label _confirmLabel;
         private readonly Button _close;
         private readonly Button _continue;
         private RunSettlementType? _pendingSettlement;
@@ -78,21 +78,23 @@ namespace PowerMath.UI.MainMenu
             _playerActor = playerActor;
             _reducedMotion = reducedMotion;
             _modal = Require<VisualElement>(root, "run-settlement-modal");
-            _title = Require<Label>(root, "run-settlement-title");
-            _stage = Require<Label>(root, "run-settlement-stage");
-            _coins = Require<Label>(root, "run-settlement-coins");
-            _coinsGain = Require<Label>(root, "run-settlement-coins-gain");
-            _legacy = Require<Label>(root, "run-settlement-legacy");
-            _legacyGain = Require<Label>(root, "run-settlement-legacy-gain");
-            _attack = Require<Label>(root, "run-settlement-attack");
-            _prestige = Require<Label>(root, "run-settlement-prestige");
+            _title = Require<Label>(root, "Title");
+            _attackBefore = RequireClass<Label>(root, "rebirth-atk-before");
+            _attackAfter = RequireClass<Label>(root, "rebirth-atk-after");
+            _stageBefore = RequireClass<Label>(root, "rebirth-stage-before");
+            _stageAfter = RequireClass<Label>(root, "rebirth-stage-after");
+            _coinsBefore = RequireClass<Label>(root, "rebirth-coins-before");
+            _coinsAfter = RequireClass<Label>(root, "rebirth-coins-after");
             _status = Require<Label>(root, "run-settlement-status");
-            _progressBar = root.Q<ProgressBar>("run-settlement-progress");
-            _progressLabel = root.Q<Label>("run-settlement-progress-label");
+            _progressFill = RequireClass<VisualElement>(root, "rebirth-progress-fill");
+            _progressValue = Require<Label>(root, "Progress Value");
             _rebirth = Require<Button>(root, "rebirth-button");
-            _confirm = Require<Button>(root, "run-settlement-confirm");
-            _close = Require<Button>(root, "run-settlement-close");
+            _confirm = Require<Button>(root, "Button / Rebirth");
+            _confirmLabel = Require<Label>(root, "Text Component");
+            _close = Require<Button>(root, "Button / Close");
             _continue = Require<Button>(root, "run-settlement-continue");
+            _attackBefore.enableRichText = true;
+            _attackAfter.enableRichText = true;
             _lifecycle = new UiToolkitLifecycleController(_modal);
 
             _rebirth.clicked += OpenRebirth;
@@ -185,18 +187,18 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
             SetSemanticState();
-            RenderPreview(_pendingPreview, "REBIRTH PREVIEW");
+            RenderPreview(_pendingPreview, "REBIRTH");
             bool canSettle = RunSettlementPolicy.CanSettle(_player, RunSettlementType.Rebirth, out string reason);
             if (canSettle)
             {
                 _status.text =
                     "Your Rank and lifetime records stay. Questions and the current audit restart.";
-                _confirm.text = "REBIRTH";
+                SetConfirmText("Rebirth");
             }
             else
             {
                 _status.text = reason;
-                _confirm.text = "LOCKED";
+                SetConfirmText("Locked");
             }
             _confirm.SetEnabled(canSettle);
         }
@@ -259,19 +261,12 @@ namespace PowerMath.UI.MainMenu
         private void RenderPreview(SettlementPreview preview, string title)
         {
             _title.text = title;
-            _stage.text = $"STAGE {preview.Award.StageReached}";
-            _coins.text =
-                $"{preview.CurrentCoins:N0}  ->  {preview.ResultingCoins:N0}";
-            _coinsGain.text = $"+{preview.Award.PowerCoins:N0} POWER COINS";
-            _legacy.text =
-                $"{FormatPercent(preview.CurrentLegacy)}  ->  {FormatPercent(preview.ResultingLegacy)}";
-            _legacyGain.text =
-                $"+{FormatPercent(preview.Award.LegacyBasisPoints)} PERMANENT ATK";
-            _attack.text =
-                $"EFFECTIVE ATK  {preview.CurrentAttack:N0}  ->  {preview.ResultingAttack:N0}";
-            _prestige.text = preview.Award.Prestige > 0
-                ? $"PRESTIGE  {preview.CurrentPrestige}  ->  {preview.ResultingPrestige}   (+1)"
-                : $"PRESTIGE  {preview.CurrentPrestige}  (unchanged)";
+            _attackBefore.text = FormatAttack(preview.CurrentAttack, preview.CurrentLegacy);
+            _attackAfter.text = FormatAttack(preview.ResultingAttack, preview.ResultingLegacy);
+            _stageBefore.text = preview.Award.StageReached.ToString("N0");
+            _stageAfter.text = "1";
+            _coinsBefore.text = preview.CurrentCoins.ToString("N0");
+            _coinsAfter.text = preview.ResultingCoins.ToString("N0");
             UpdateProgressBar(preview.Award.StageReached);
         }
 
@@ -294,7 +289,7 @@ namespace PowerMath.UI.MainMenu
             if (_store == null)
             {
                 _status.text = "Rebirth save is not configured in offline mode.";
-                _confirm.text = "OFFLINE";
+                SetConfirmText("Offline");
                 Show(true, false);
                 SetSemanticState("is-error");
                 yield break;
@@ -323,7 +318,7 @@ namespace PowerMath.UI.MainMenu
             if (!success)
             {
                 _status.text = failure;
-                _confirm.text = "RETRY SAVE";
+                SetConfirmText("Retry");
                 Show(true, false);
                 SetSemanticState("is-error");
                 yield break;
@@ -357,22 +352,16 @@ namespace PowerMath.UI.MainMenu
         {
             long resultingCoins = _player.wallet?.powerCoins ?? 0;
             long resultingLegacy = _player.progression?.legacyAtkBonusBasisPoints ?? 0;
-            int resultingPrestige = _player.progression?.prestige ?? 0;
             _title.text = title;
-            _stage.text = $"STAGE {award.StageReached}";
-            _coins.text =
-                $"{Math.Max(0, resultingCoins - award.PowerCoins):N0}  ->  {resultingCoins:N0}";
-            _coinsGain.text = $"+{award.PowerCoins:N0} POWER COINS";
-            _legacy.text =
-                $"{FormatPercent(Math.Max(0, resultingLegacy - award.LegacyBasisPoints))}  ->  " +
-                FormatPercent(resultingLegacy);
-            _legacyGain.text =
-                $"+{FormatPercent(award.LegacyBasisPoints)} PERMANENT ATK";
-            _attack.text = "EFFECTIVE ATK: RELOAD TO REFRESH";
-            _prestige.text = award.Prestige > 0
-                ? $"PRESTIGE  {Math.Max(0, resultingPrestige - award.Prestige)}  ->  " +
-                    $"{resultingPrestige}   (+1)"
-                : $"PRESTIGE  {resultingPrestige}  (unchanged)";
+            long sourceLegacy = Math.Max(0, resultingLegacy - award.LegacyBasisPoints);
+            PlayerStatProjection sourceStats = ProjectStats();
+            PlayerStatProjection resultStats = ProjectStats(award.LegacyBasisPoints);
+            _attackBefore.text = FormatAttack(sourceStats.EffectiveAttack, sourceLegacy);
+            _attackAfter.text = FormatAttack(resultStats.EffectiveAttack, resultingLegacy);
+            _stageBefore.text = award.StageReached.ToString("N0");
+            _stageAfter.text = "1";
+            _coinsBefore.text = Math.Max(0, resultingCoins - award.PowerCoins).ToString("N0");
+            _coinsAfter.text = resultingCoins.ToString("N0");
             UpdateProgressBar(award.StageReached);
         }
 
@@ -384,7 +373,7 @@ namespace PowerMath.UI.MainMenu
                 _player,
                 () => { },
                 message => warning = message);
-            if (!string.IsNullOrEmpty(warning)) Debug.LogWarning(warning);
+            if (!string.IsNullOrEmpty(warning)) PowerMath.Diagnostics.AppLog.Warning("Progression", warning);
         }
 
         private void RefreshButton()
@@ -446,7 +435,7 @@ namespace PowerMath.UI.MainMenu
                 _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
             _pendingSettlement = null;
             _pendingPreview = default;
-            _confirm.text = "CONFIRM";
+            SetConfirmText("Rebirth");
             SetSemanticState();
         }
 
@@ -520,43 +509,30 @@ namespace PowerMath.UI.MainMenu
             _title.text = type == RunSettlementType.Death
                 ? "RUN ENDED"
                 : "REBIRTH COMPLETE";
-            _stage.text = $"STAGE {value.stageReached}";
-            _coins.text = $"{value.sourcePowerCoins:N0}  ->  {value.resultingPowerCoins:N0}";
-            _coinsGain.text = $"+{value.powerCoinsGranted:N0} POWER COINS";
             long resultingLegacy = checked(
                 value.sourceLegacyAtkBasisPoints + value.legacyAtkBasisPointsGranted);
-            _legacy.text = $"{FormatPercent(value.sourceLegacyAtkBasisPoints)}  ->  " +
-                FormatPercent(resultingLegacy);
-            _legacyGain.text =
-                $"+{FormatPercent(value.legacyAtkBasisPointsGranted)} PERMANENT ATK";
-            _attack.text = $"EFFECTIVE ATK  {value.sourceEffectiveAttack:N0}  ->  " +
-                $"{value.resultingEffectiveAttack:N0}";
-            _prestige.text = value.prestigeGranted > 0
-                ? $"PRESTIGE  {value.sourcePrestige}  ->  " +
-                    $"{value.sourcePrestige + value.prestigeGranted}   (+1)"
-                : $"PRESTIGE  {value.sourcePrestige}  (unchanged)";
+            _attackBefore.text = FormatAttack(
+                value.sourceEffectiveAttack,
+                value.sourceLegacyAtkBasisPoints);
+            _attackAfter.text = FormatAttack(
+                value.resultingEffectiveAttack,
+                resultingLegacy);
+            _stageBefore.text = value.stageReached.ToString("N0");
+            _stageAfter.text = "1";
+            _coinsBefore.text = value.sourcePowerCoins.ToString("N0");
+            _coinsAfter.text = value.resultingPowerCoins.ToString("N0");
             UpdateProgressBar(value.stageReached);
         }
 
         private void UpdateProgressBar(int stageReached)
         {
-            if (_progressBar == null) return;
             int target = RunSettlementPolicy.MinimumRebirthStage;
             int clampedValue = Math.Min(target, Math.Max(0, stageReached));
-            _progressBar.lowValue = 0;
-            _progressBar.highValue = target;
-            _progressBar.value = clampedValue;
-            _progressBar.title = stageReached >= target
-                ? $"REQUIREMENT MET ({stageReached}/{target})"
-                : $"STAGE {stageReached} / {target}";
-            _progressBar.EnableInClassList("settlement-progress-bar--ready", stageReached >= target);
-
-            if (_progressLabel != null)
-            {
-                _progressLabel.text = stageReached >= target
-                    ? $"STAGE {stageReached} / {target} — READY"
-                    : $"STAGE {stageReached} / {target} (UNLOCKS AT STAGE {target})";
-            }
+            float width = clampedValue <= 0
+                ? 0f
+                : Math.Max(97f, 862f * clampedValue / target);
+            _progressFill.style.width = width;
+            _progressValue.text = $"{stageReached:N0} / {target:N0}";
         }
 
         private void AcknowledgeAndReload()
@@ -606,9 +582,14 @@ namespace PowerMath.UI.MainMenu
                     "Pending", StringComparison.Ordinal);
         }
 
-        private static string FormatPercent(long basisPoints)
+        private static string FormatAttack(long attack, long basisPoints)
         {
-            return $"{basisPoints / 100d:0.0}%";
+            return $"{attack:N0}<size=24>(+{basisPoints / 100d:0.##}%)</size>";
+        }
+
+        private void SetConfirmText(string value)
+        {
+            _confirmLabel.text = value;
         }
 
         private static T Require<T>(VisualElement root, string name)
@@ -616,6 +597,13 @@ namespace PowerMath.UI.MainMenu
         {
             return root.Q<T>(name) ?? throw new InvalidOperationException(
                 $"Main Menu UI is missing '{name}'.");
+        }
+
+        private static T RequireClass<T>(VisualElement root, string className)
+            where T : VisualElement
+        {
+            return root.Q<T>(className: className) ?? throw new InvalidOperationException(
+                $"Main Menu UI is missing class '{className}'.");
         }
 
         private void HideInitially()

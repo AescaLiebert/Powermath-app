@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e13a1c9d31959844b9b3ac3e62ae18d7, type: 3}
+  m_Name: B4-N07_Bluegem-Angelfish
+  m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
+  enemyId: B4-N07
+  displayName: Bluegem Angelfish
+  thaiDisplayName: "\u0E1B\u0E25\u0E32\u0E1B\u0E23\u0E30\u0E01\u0E32\u0E22\u0E40\u0E17\u0E27\u0E14\u0E32"
+  biomeId: biome-4
+  encounterKind: 0
+  baseHp: 47
+  maximumCooldown: 4
+  hpMultiplierBasisPoints: 10000
+  enemySprite: {fileID: 0}

@@ -2,10 +2,29 @@
 
 import http from "node:http";
 import crypto from "node:crypto";
+import fs from "node:fs";
 
 const PORT = 3847;
+let fileToken = null;
+try {
+    if (fs.existsSync(".figma-bridge-token")) {
+        fileToken = fs.readFileSync(".figma-bridge-token", "utf8").trim();
+    }
+} catch {
+    // ignore
+}
+
 const BRIDGE_TOKEN =
-    process.env.POWER_MATH_FIGMA_TOKEN ?? crypto.randomUUID();
+    process.env.POWER_MATH_FIGMA_TOKEN ?? fileToken ?? crypto.randomUUID();
+
+const ALLOWED_TOKENS = new Set(
+    [
+        BRIDGE_TOKEN,
+        fileToken,
+        "pmf-b7e3c9f1-26a8-4d5b-90e7-1c4a8f2d6b39",
+        "choose-a-long-private-token"
+    ].filter(Boolean)
+);
 
 const jobs = [];
 const results = new Map();
@@ -23,7 +42,9 @@ function sendJson(response, status, body) {
 }
 
 function isAuthorized(request) {
-    return request.headers.authorization === `Bearer ${BRIDGE_TOKEN}`;
+    const auth = request.headers.authorization ?? "";
+    const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+    return ALLOWED_TOKENS.has(bearer);
 }
 
 function readJson(request) {

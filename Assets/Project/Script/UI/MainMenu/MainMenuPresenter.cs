@@ -71,7 +71,8 @@ namespace PowerMath.UI.MainMenu
                 _view.RenderUnavailable();
                 GetComponent<MainMenuTransitionController>()?
                     .CancelAndApplyFinalState();
-                Debug.LogError(
+                PowerMath.Diagnostics.AppLog.Error(
+                    "UI",
                     "MainMenuScene requires a successful BootstrapScene player session."
                 );
                 return;

@@ -96,7 +96,7 @@ namespace PowerMath.UI.MainMenu
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogWarning($"Progression store offline: {exception.Message}");
+                    PowerMath.Diagnostics.AppLog.Warning("Progression", $"Progression store offline: {exception.Message}");
                 }
             }
 

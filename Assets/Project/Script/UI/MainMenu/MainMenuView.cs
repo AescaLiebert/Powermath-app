@@ -190,7 +190,8 @@ namespace PowerMath.UI.MainMenu
             if (!isBound && !_bindingErrorLogged)
             {
                 _bindingErrorLogged = true;
-                Debug.LogError(
+                PowerMath.Diagnostics.AppLog.Error(
+                    "UI",
                     "MainMenuView could not find its required UI Toolkit elements."
                 );
             }

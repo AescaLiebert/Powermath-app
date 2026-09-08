@@ -17,6 +17,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         [Tooltip("Pixel offset added to the FCT spawn position.")]
         [SerializeField] private Vector2 fctOffset = Vector2.zero;
 
+        [Header("State Machine Sprites")]
+        [SerializeField] private Sprite idleSprite;
+        [SerializeField] private Sprite attackSprite;
+        [SerializeField] private Sprite hurtSprite;
+
         private RectTransform _rectTransform;
         private CanvasGroup _canvasGroup;
         private Graphic _graphic;
@@ -35,12 +40,24 @@ namespace PowerMath.Gameplay.Combat.Unity
         public event Action RewardDropTriggered;
 
         public ActorVisualState State { get; private set; } = ActorVisualState.Hidden;
+        public bool IsPlayer => _actor == PresentationActor.Player;
         public bool IsIdle => State == ActorVisualState.Idle;
         public ICombatAnchor DamageTextAnchor { get; private set; }
         public Vector2 FctNormalizedAnchor => fctNormalizedAnchor;
         public Vector2 FctOffset => fctOffset;
         public Color AuthoredColor => _authoredColor;
         public Color CurrentColor => _graphic != null ? _graphic.color : _authoredColor;
+        public Sprite IdleSprite => idleSprite;
+        public Sprite AttackSprite => attackSprite;
+        public Sprite HurtSprite => hurtSprite;
+
+        public void ConfigureSprites(Sprite idle, Sprite attack = null, Sprite hurt = null)
+        {
+            idleSprite = idle;
+            attackSprite = attack;
+            hurtSprite = hurt;
+            UpdateSprite();
+        }
 
         public void Initialize(
             PresentationActor actor,
@@ -65,6 +82,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _authoredColor = _graphic.color;
                 if (_authoredColor.a <= 0.01f)
                     _authoredColor = new Color(_authoredColor.r, _authoredColor.g, _authoredColor.b, 1f);
+                if (_graphic is Image img && idleSprite == null && img.sprite != null)
+                    idleSprite = img.sprite;
             }
             else
             {
@@ -77,6 +96,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             gameObject.SetActive(true);
             _canvasGroup.alpha = 1f;
             State = ActorVisualState.Idle;
+            UpdateSprite();
         }
 
         public void SetAuthoredRestPosition(Vector2 restPosition)
@@ -134,6 +154,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
                 RestoreAuthoredPose(resetAlpha: false);
                 State = target;
+                UpdateSprite();
                 _whiteFlashTriggered = false;
                 float duration = ResolveDuration(target);
                 float elapsed = 0f;
@@ -157,6 +178,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 {
                     RestoreAuthoredPose(resetAlpha: false);
                     State = ActorVisualState.Hidden;
+                    UpdateSprite();
                     if (_canvasGroup != null) _canvasGroup.alpha = 0f;
                     if (_graphic != null) _graphic.color = _authoredColor;
                     gameObject.SetActive(false);
@@ -165,6 +187,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 {
                     RestoreAuthoredPose(resetAlpha: true);
                     State = ActorVisualState.Idle;
+                    UpdateSprite();
                 }
             }
             finally
@@ -182,6 +205,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _isPlaying = false;
             RestoreAuthoredPose(resetAlpha: false);
             State = finalState;
+            UpdateSprite();
             if (_graphic != null) _graphic.color = _authoredColor;
             if (_canvasGroup != null)
                 _canvasGroup.alpha = finalState == ActorVisualState.Hidden ? 0f : 1f;
@@ -359,6 +383,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _rectTransform.localScale = Vector3.one;
             if (_graphic != null) _graphic.color = _authoredColor;
             if (resetAlpha && _canvasGroup != null) _canvasGroup.alpha = 1f;
+            UpdateSprite();
         }
 
         private void OnDisable()
@@ -368,7 +393,26 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (_rectTransform != null) RestoreAuthoredPose(resetAlpha: false);
             if (_graphic != null) _graphic.color = _authoredColor;
             State = ActorVisualState.Hidden;
+            UpdateSprite();
             if (_canvasGroup != null) _canvasGroup.alpha = 0f;
+        }
+
+        private void UpdateSprite()
+        {
+            if (_graphic is Image image)
+            {
+                Sprite target = State switch
+                {
+                    ActorVisualState.Attacking => attackSprite != null ? attackSprite : idleSprite,
+                    ActorVisualState.TakingDamage or ActorVisualState.Dying => hurtSprite != null ? hurtSprite : idleSprite,
+                    _ => idleSprite
+                };
+                if (target != null)
+                {
+                    image.sprite = target;
+                    image.overrideSprite = null;
+                }
+            }
         }
     }
 }

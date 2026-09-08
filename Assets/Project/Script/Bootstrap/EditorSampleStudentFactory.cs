@@ -17,6 +17,10 @@ namespace PowerMath.Bootstrap
                 remembered = false,
                 player = new PlayerSnapshot
                 {
+                    schemaVersion = PlayerSessionStore.SupportedSchemaVersion,
+                    preferences = new PlayerSnapshot.PreferencesData(),
+                    onboarding = new PlayerSnapshot.OnboardingData { version = 1, phase = "opening" },
+                    tutorial = new PlayerSnapshot.TutorialData { version = 1 },
                     playerId = "level1:sample-student",
                     revision = 1,
                     profile = new PlayerSnapshot.ProfileData

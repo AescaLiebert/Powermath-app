@@ -17,6 +17,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
     {
         public string PlayerId;
         public string DisplayName;
+        public string CharacterId;
         public int CurrentStage;
         public int HighestStage;
         public long Silver;
@@ -168,6 +169,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 {
                     PlayerId = pair.Key,
                     DisplayName = displayName,
+                    CharacterId = ReadString(value, "characterId"),
                     CurrentStage = (int)currentStage,
                     HighestStage = (int)highestStage,
                     Silver = silver,
@@ -225,13 +227,26 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private readonly Label _status;
         private readonly Label _cohort;
         private readonly Label _throne;
+        private readonly Label _throneStage;
+        private readonly Label _throneSilver;
+        private readonly Label _throneGold;
+        private readonly Label _throneDiamond;
         private readonly Label _self;
+        private readonly Label _selfRank;
+        private readonly Label _selfCurrent;
+        private readonly Label _selfBest;
+        private readonly Label _selfDamage;
+        private readonly VisualElement _selfCurrencies;
+        private readonly VisualElement _selfLoadout;
+        private readonly Button _jumpToSelf;
         private readonly ScrollView _list;
         private readonly VisualElement _attemptPanel;
         private readonly FirestoreLeaderboardRepository _repository;
         private readonly PlayerSnapshot _player;
         private readonly string _levelId;
         private readonly IMainMenuPanelHost _panelHost;
+        private readonly LeaderboardCharacterVideoPresenter _characterVideo;
+        private readonly Label _powerCoins;
         private List<RankedLeaderboardEntry> _cached;
         private bool _bound;
         private bool _loading;
@@ -250,13 +265,28 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _status = root.Q<Label>("leaderboard-status");
             _cohort = root.Q<Label>("leaderboard-cohort");
             _throne = root.Q<Label>("leaderboard-throne");
+            _throneStage = root.Q<Label>("leaderboard-throne-stage");
+            _throneSilver = root.Q<Label>("leaderboard-throne-silver");
+            _throneGold = root.Q<Label>("leaderboard-throne-gold");
+            _throneDiamond = root.Q<Label>("leaderboard-throne-diamond");
+            _powerCoins = root.Q<Label>("leaderboard-power-coins");
             _self = root.Q<Label>("leaderboard-self");
+            _selfRank = root.Q<Label>("leaderboard-self-rank");
+            _selfCurrent = root.Q<Label>("leaderboard-self-current");
+            _selfBest = root.Q<Label>("leaderboard-self-best");
+            _selfDamage = root.Q<Label>("leaderboard-self-damage");
+            _selfCurrencies = root.Q<VisualElement>("leaderboard-self-currencies");
+            _selfLoadout = root.Q<VisualElement>("leaderboard-self-loadout");
+            _jumpToSelf = root.Q<Button>("leaderboard-jump-to-self");
             _list = root.Q<ScrollView>("leaderboard-list");
             _attemptPanel = root.Q<VisualElement>("combat-attempt-panel");
             _repository = new FirestoreLeaderboardRepository(host, settings);
             _player = player;
             _levelId = ResolveLevel(player == null ? null : player.playerId);
             _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
+            _characterVideo = host.GetComponent<LeaderboardCharacterVideoPresenter>() ??
+                host.gameObject.AddComponent<LeaderboardCharacterVideoPresenter>();
+            _characterVideo.Bind(root);
         }
 
         public bool IsValid => _open != null && _modal != null && _close != null &&
@@ -268,6 +298,10 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _open.clicked += Open;
             _close.clicked += Close;
             _refresh.clicked += Load;
+            if (_jumpToSelf != null) _jumpToSelf.clicked += JumpToSelf;
+            if (PlayerSessionStore.Instance != null)
+                PlayerSessionStore.Instance.Changed += OnPlayerChanged;
+            UpdatePowerCoins(_player ?? PlayerSessionStore.Instance?.Snapshot);
             _modal.style.display = DisplayStyle.None;
             _bound = true;
         }
@@ -275,10 +309,14 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         public void Dispose()
         {
             if (!_bound) return;
+            if (PlayerSessionStore.Instance != null)
+                PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
             _open.clicked -= Open;
             _close.clicked -= Close;
             _refresh.clicked -= Load;
+            if (_jumpToSelf != null) _jumpToSelf.clicked -= JumpToSelf;
             _repository.Cancel();
+            _characterVideo.Hide();
             if (_panelHost.OpenPanel == MainMenuPanelId.Leaderboard)
                 _panelHost.TryClose(MainMenuPanelId.Leaderboard, _open);
             _bound = false;
@@ -292,6 +330,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                     MainMenuPanelId.Leaderboard,
                     _modal,
                     _open)) return;
+            UpdatePowerCoins(_player ?? PlayerSessionStore.Instance?.Snapshot);
             _cohort.text = (_player?.profile?.gradeBand ?? "Your Grade") + " · " + _levelId.ToUpperInvariant();
             if (_cached != null) Render(_cached, "Showing saved standings · refreshing…");
             else
@@ -302,11 +341,24 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             Load();
         }
 
+        private void OnPlayerChanged(PlayerSnapshot player)
+        {
+            UpdatePowerCoins(player);
+        }
+
+        private void UpdatePowerCoins(PlayerSnapshot player)
+        {
+            if (_powerCoins == null) return;
+            long coins = player?.wallet?.powerCoins ?? 0;
+            _powerCoins.text = coins.ToString("N0");
+        }
+
         private void Close()
         {
             _repository.Cancel();
             _loading = false;
             _panelHost.TryClose(MainMenuPanelId.Leaderboard, _open);
+            _characterVideo.Hide();
             _refresh.SetEnabled(true);
             SetSemanticState();
         }
@@ -335,7 +387,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                     }
                     catch (Exception exception)
                     {
-                        Debug.LogError("Leaderboard ranking failed: " + exception.Message);
+                        PowerMath.Diagnostics.AppLog.Error("Leaderboard", "Leaderboard ranking failed: " + exception.Message);
                         _status.text = "Leaderboard values are invalid.";
                         SetSemanticState("is-error");
                     }
@@ -411,6 +463,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 DisplayName = string.IsNullOrWhiteSpace(profile.displayName)
                     ? "You"
                     : profile.displayName,
+                CharacterId = profile.characterId ?? string.Empty,
                 CurrentStage = currentStage,
                 HighestStage = highestStage,
                 Silver = silver,
@@ -431,17 +484,31 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _status.text = status;
             _list.Clear();
             RankedLeaderboardEntry first = entries.FirstOrDefault();
-            _throne.text = first == null
-                ? "No standings yet"
-                : "♛  #1 " + first.Entry.DisplayName + "\nBest Stage " + first.Entry.HighestStage +
-                  "\nPet: " + DisplayItem(first.Entry.PetId) + "  Weapon: " + DisplayWeapon(first.Entry);
+            _throne.text = first == null ? "No standings yet" : first.Entry.DisplayName;
+            _throneStage.text = first == null ? "--" : first.Entry.HighestStage.ToString(CultureInfo.CurrentCulture);
+            _throneSilver.text = FormatNumber(first?.Entry.Silver ?? 0);
+            _throneGold.text = FormatNumber(first?.Entry.Gold ?? 0);
+            _throneDiamond.text = FormatNumber(first?.Entry.Diamond ?? 0);
+            _characterVideo.Show(first?.Entry.CharacterId);
+
             RankedLeaderboardEntry self = entries.FirstOrDefault(value => value.IsSelf);
-            _self.text = self == null
-                ? "YOUR STANDING · Rank updating…"
-                : "YOUR STANDING · #" + self.Rank + " · " + self.Entry.DisplayName +
-                  " · Best Stage " + self.Entry.HighestStage;
+            RenderSelf(self);
             foreach (RankedLeaderboardEntry ranked in entries)
                 _list.Add(CreateRow(ranked));
+        }
+
+        private void RenderSelf(RankedLeaderboardEntry self)
+        {
+            _self.text = self == null ? "Rank updating…" : self.Entry.DisplayName;
+            _selfRank.text = self == null ? "--" : "#" + self.Rank;
+            _selfCurrent.text = self == null ? "--" : self.Entry.CurrentStage.ToString(CultureInfo.CurrentCulture);
+            _selfBest.text = self == null ? "--" : self.Entry.HighestStage.ToString(CultureInfo.CurrentCulture);
+            _selfDamage.text = self == null ? "0" : FormatCompact(self.Entry.TotalDamage);
+            _selfCurrencies.Clear();
+            _selfLoadout.Clear();
+            if (self == null) return;
+            AddCurrencyRows(_selfCurrencies, self.Entry);
+            AddLoadoutSlots(_selfLoadout, self.Entry);
         }
 
         private static VisualElement CreateRow(RankedLeaderboardEntry ranked)
@@ -452,35 +519,101 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             else if (ranked.Rank == 2) row.AddToClassList("leaderboard-row--gold");
             else if (ranked.Rank == 3) row.AddToClassList("leaderboard-row--silver");
             if (ranked.IsSelf) row.AddToClassList("leaderboard-row--self");
-            string tied = ranked.IsTied ? " TIED" : string.Empty;
-            row.Add(CreateCell("#" + ranked.Rank + tied, "leaderboard-row-rank"));
-            row.Add(CreateCell(
-                (ranked.IsSelf ? "YOU · " : string.Empty) + ranked.Entry.DisplayName,
-                "leaderboard-row-player"));
-            row.Add(CreateCell(
-                "CURRENT " + ranked.Entry.CurrentStage + "\nBEST " + ranked.Entry.HighestStage,
-                "leaderboard-row-stage"));
-            row.Add(CreateCell(
-                "S " + ranked.Entry.Silver.ToString("N0", CultureInfo.CurrentCulture) +
-                "\nG " + ranked.Entry.Gold.ToString("N0", CultureInfo.CurrentCulture) +
-                "\nD " + ranked.Entry.Diamond.ToString("N0", CultureInfo.CurrentCulture),
-                "leaderboard-row-currency"));
-            row.Add(CreateCell(
-                "Avatar: " + DisplayItem(ranked.Entry.AvatarId) +
-                "\nPet: " + DisplayItem(ranked.Entry.PetId) +
-                "\nWeapon: " + DisplayWeapon(ranked.Entry),
-                "leaderboard-row-loadout"));
-            row.Add(CreateCell(
-                ranked.Entry.TotalDamage.ToString("N0", CultureInfo.CurrentCulture),
-                "leaderboard-row-damage"));
+            row.name = ".leaderboard-row--rank-" + ranked.Rank;
+            var rankSlot = CreateElement(".row-rank-slot", "leaderboard-row-rank-slot");
+            if (ranked.Rank > 3)
+                rankSlot.Add(CreateLabel("Rank Number", ranked.Rank.ToString(CultureInfo.CurrentCulture), "leaderboard-row-rank-number"));
+            rankSlot.tooltip = ranked.IsTied ? "Tied rank" : "Rank " + ranked.Rank;
+            row.Add(rankSlot);
+
+            var avatar = CreateElement(".row-avatar-slot", "leaderboard-avatar-slot");
+            avatar.tooltip = DisplayItem(ranked.Entry.AvatarId);
+            avatar.Add(CreateLabel("Slot Label", "ProfilePic Slot", "leaderboard-slot-label"));
+            row.Add(avatar);
+
+            var identity = CreateElement(".row-identity", "leaderboard-row-identity");
+            identity.Add(CreateLabel(".player-name", ranked.Entry.DisplayName, "leaderboard-player-name"));
+            identity.Add(CreateStagesRow(ranked.Entry));
+            row.Add(identity);
+
+            var currencies = CreateElement(".row-currencies", "leaderboard-row-currencies");
+            AddCurrencyRows(currencies, ranked.Entry);
+            row.Add(currencies);
+
+            var loadout = CreateElement(".row-loadout", "leaderboard-row-loadout");
+            AddLoadoutSlots(loadout, ranked.Entry);
+            row.Add(loadout);
+
+            var damage = CreateElement(".row-damage", "leaderboard-row-damage");
+            damage.Add(CreateLabel(".dmg-label", "TOTAL DMG", "leaderboard-damage-label"));
+            damage.Add(CreateLabel(".dmg-value", FormatCompact(ranked.Entry.TotalDamage), "leaderboard-damage-value"));
+            row.Add(damage);
             return row;
         }
 
-        private static Label CreateCell(string text, string className)
+        private static VisualElement CreateStagesRow(LeaderboardEntry entry)
         {
-            var label = new Label(text);
+            var stages = CreateElement(".stages-row", "leaderboard-stages-row");
+            var current = CreateElement(".stage-col-current", "leaderboard-stage-column");
+            current.Add(CreateLabel("lbl", "CURRENT", "leaderboard-stage-label"));
+            current.Add(CreateLabel("val", entry.CurrentStage.ToString(CultureInfo.CurrentCulture), "leaderboard-stage-current"));
+            var best = CreateElement(".stage-col-best", "leaderboard-stage-column");
+            best.Add(CreateLabel("lbl", "BEST", "leaderboard-stage-label"));
+            best.Add(CreateLabel("val", entry.HighestStage.ToString(CultureInfo.CurrentCulture), "leaderboard-stage-best"));
+            stages.Add(current);
+            stages.Add(best);
+            return stages;
+        }
+
+        private static void AddCurrencyRows(VisualElement parent, LeaderboardEntry entry)
+        {
+            parent.Add(CreateCurrencyRow(".currency-silver", "Silver Amount", entry.Silver, "leaderboard-currency-icon--silver"));
+            parent.Add(CreateCurrencyRow(".currency-gold", "Gold Amount", entry.Gold, "leaderboard-currency-icon--gold"));
+            parent.Add(CreateCurrencyRow(".currency-diamond", "Diamond Amount", entry.Diamond, "leaderboard-currency-icon--diamond"));
+        }
+
+        private static VisualElement CreateCurrencyRow(string name, string valueName, long value, string iconClass)
+        {
+            var row = CreateElement(name, "leaderboard-currency-row");
+            var icon = CreateElement("Vector / Currency Icon", "leaderboard-currency-icon");
+            icon.AddToClassList(iconClass);
+            row.Add(icon);
+            row.Add(CreateLabel(valueName, FormatNumber(value), "leaderboard-currency-value"));
+            return row;
+        }
+
+        private static void AddLoadoutSlots(VisualElement parent, LeaderboardEntry entry)
+        {
+            parent.Add(CreateLoadoutSlot(".slot-pet", "Pet\nSlot", DisplayItem(entry.PetId)));
+            parent.Add(CreateLoadoutSlot(".slot-weapon", "Weapon\nSlot", DisplayWeapon(entry)));
+        }
+
+        private static VisualElement CreateLoadoutSlot(string name, string label, string tooltip)
+        {
+            var slot = CreateElement(name, "leaderboard-loadout-slot");
+            slot.tooltip = tooltip;
+            slot.Add(CreateLabel("Slot Label", label, "leaderboard-slot-label"));
+            return slot;
+        }
+
+        private static VisualElement CreateElement(string name, string className)
+        {
+            var element = new VisualElement { name = name };
+            element.AddToClassList(className);
+            return element;
+        }
+
+        private static Label CreateLabel(string name, string text, string className)
+        {
+            var label = new Label(text) { name = name };
             label.AddToClassList(className);
             return label;
+        }
+
+        private void JumpToSelf()
+        {
+            VisualElement row = _list.Q<VisualElement>(className: "leaderboard-row--self");
+            if (row != null) _list.ScrollTo(row);
         }
 
         private void SetSemanticState(string state = null)
@@ -502,6 +635,17 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private static string DisplayWeapon(LeaderboardEntry entry) =>
             DisplayItem(entry.WeaponId) + (entry.WeaponLevel > 0 ? " Lv." + entry.WeaponLevel : string.Empty);
+
+        private static string FormatNumber(long value) =>
+            Math.Max(0, value).ToString("N0", CultureInfo.CurrentCulture);
+
+        private static string FormatCompact(long value)
+        {
+            value = Math.Max(0, value);
+            if (value >= 1_000_000) return (value / 1_000_000d).ToString("0.#", CultureInfo.CurrentCulture) + "M";
+            if (value >= 1_000) return (value / 1_000d).ToString("0.#", CultureInfo.CurrentCulture) + "K";
+            return value.ToString(CultureInfo.CurrentCulture);
+        }
 
         internal static string ResolveLevel(string playerId)
         {

@@ -10,6 +10,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         [Header("Identity")]
         [SerializeField] private string enemyId = "rock-titan";
         [SerializeField] private string displayName = "Rock Titan";
+        [SerializeField] private string thaiDisplayName = string.Empty;
         [SerializeField] private string biomeId = "biome-1";
         [SerializeField] private StageEncounterKind encounterKind = StageEncounterKind.NormalMonster;
 
@@ -27,13 +28,25 @@ namespace PowerMath.Gameplay.Combat.Unity
         public Sprite EnemySprite => enemySprite;
         public string EnemyId => enemyId;
         public string DisplayName => displayName;
+        public string ThaiDisplayName => thaiDisplayName;
+        public string EnglishDisplayName => displayName;
         public string BiomeId => biomeId;
         public StageEncounterKind EncounterKind => encounterKind;
+        public int BaseHp => baseHp;
+        public int MaximumCooldown => maximumCooldown;
+        public int HpMultiplierBasisPoints => hpMultiplierBasisPoints;
+
+        public string GetDisplayName(string locale = "en")
+        {
+            if (string.Equals(locale, "th", System.StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(thaiDisplayName))
+                return thaiDisplayName;
+            return displayName;
+        }
 
         public MonsterData ToMonsterData()
         {
             return new MonsterData(enemyId, displayName, encounterKind, biomeId,
-                Mathf.Max(1, maximumCooldown), Mathf.Max(1, hpMultiplierBasisPoints));
+                Mathf.Max(1, maximumCooldown), Mathf.Max(1, baseHp), Mathf.Max(1, hpMultiplierBasisPoints));
         }
 
         public EnemyDefinitionData ToDomainData()
@@ -52,10 +65,12 @@ namespace PowerMath.Gameplay.Combat.Unity
             string name,
             int hp,
             int cooldown,
-            Sprite sprite)
+            Sprite sprite,
+            string thaiName = "")
         {
             enemyId = id;
             displayName = name;
+            thaiDisplayName = thaiName;
             baseHp = hp;
             maximumCooldown = cooldown;
             enemySprite = sprite;

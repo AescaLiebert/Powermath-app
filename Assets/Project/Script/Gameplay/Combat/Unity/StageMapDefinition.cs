@@ -89,7 +89,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (biomes != null && biomes.Length > 0 && !TryMap(out _, out string error)) Debug.LogError(error, this);
+            if (biomes != null && biomes.Length > 0 && !TryMap(out _, out string error)) PowerMath.Diagnostics.AppLog.Error("Combat", error, this);
         }
 #endif
     }

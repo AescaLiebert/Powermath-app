@@ -4,23 +4,28 @@
         <ui:VisualElement class="mw-card combat-map-card navigator-card">
             <ui:VisualElement class="navigator-header">
                 <ui:VisualElement>
-                    <ui:Label text="NAVIGATOR" class="mw-kicker navigator-kicker"/>
-                    <ui:Label text="WORLD JOURNEY" class="combat-map-title navigator-title"/>
-                    <ui:Label text="Your marker shows the current biome. This map is informational." class="combat-map-subtitle navigator-subtitle"/>
+                    <ui:Label text="NAVIGATOR" class="loc-menu.navigator mw-kicker navigator-kicker"/>
+                    <ui:Label text="WORLD JOURNEY" class="loc-menu.world combat-map-title navigator-title"/>
+                    <ui:Label text="Your marker shows the current biome. This map is informational." class="loc-menu.routeHelp combat-map-subtitle navigator-subtitle"/>
                 </ui:VisualElement>
-                <ui:VisualElement class="navigator-compass"><ui:Label text="✦"/></ui:VisualElement>
+                <ui:VisualElement class="navigator-header-controls">
+                    <ui:VisualElement class="navigator-balance-pill">
+                        <ui:VisualElement class="navigator-coin-icon" picking-mode="Ignore"/>
+                        <ui:Label name="combat-map-balance" text="0" class="navigator-balance"/>
+                    </ui:VisualElement>
+                    <ui:Button name="combat-map-close" text="×" tooltip="Close Map" class="combat-map-close navigator-close"/>
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement class="navigator-legend">
                 <ui:VisualElement class="navigator-current-dot"/>
-                <ui:Label text="CURRENT BIOME"/>
-                <ui:Label text="ROUTE PREVIEW — NO FAST TRAVEL" class="navigator-readonly"/>
+                <ui:Label class="loc-menu.currentBiome" text="CURRENT BIOME"/>
+                <ui:Label text="ROUTE PREVIEW — NO FAST TRAVEL" class="loc-menu.route navigator-readonly"/>
             </ui:VisualElement>
             <ui:ScrollView class="navigator-scroll">
                 <ui:VisualElement name="combat-map-route" class="combat-map-route navigator-route">
                     <ui:Label text="Preparing your saved route..." class="navigator-empty"/>
                 </ui:VisualElement>
             </ui:ScrollView>
-            <ui:Button name="combat-map-close" text="BACK TO BATTLE" class="mw-button mw-button--primary combat-map-close navigator-close"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

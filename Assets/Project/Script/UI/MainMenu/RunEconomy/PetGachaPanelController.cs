@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Pets;
 using PowerMath.PlayerData;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace PowerMath.UI.MainMenu
             new PetGachaProbabilityCalculator();
 
         private readonly Button _open;
+        private readonly VisualElement _lockOverlay;
         private readonly VisualElement _modal;
         private readonly Button _close;
         private readonly Label _balance;
@@ -78,6 +80,7 @@ namespace PowerMath.UI.MainMenu
             _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
 
             _open = Require<Button>(root, "pet-gacha-button");
+            _lockOverlay = _open.Q<VisualElement>("pet-gacha-lock");
             _modal = Require<VisualElement>(root, "pet-gacha-modal");
             _close = Require<Button>(root, "pet-gacha-close");
             _balance = Require<Label>(root, "pet-gacha-balance");
@@ -141,6 +144,21 @@ namespace PowerMath.UI.MainMenu
 
         private void RefreshAvailability()
         {
+            bool gachaAvailable = GameVersionChecker.IsFeatureAvailable(GameFeature.PetGacha);
+            if (!gachaAvailable)
+            {
+                _open.SetEnabled(false);
+                _open.pickingMode = PickingMode.Ignore;
+                _open.tooltip = "Pet Gacha (Locked in v1.0)";
+                _open.AddToClassList("is-feature-locked");
+                _lockOverlay?.RemoveFromClassList("is-hidden");
+                return;
+            }
+
+            _open.RemoveFromClassList("is-feature-locked");
+            _open.pickingMode = PickingMode.Position;
+            _lockOverlay?.AddToClassList("is-hidden");
+
             bool safe = string.IsNullOrEmpty(_player.activeRun?.committedAttemptId) &&
                 !string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal);
             _open.SetEnabled(IsConfigured && safe && !_busy);
@@ -155,6 +173,7 @@ namespace PowerMath.UI.MainMenu
 
         private void Open()
         {
+            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PetGacha)) return;
             if (!IsConfigured || _busy) return;
             if (!_panelHost.TryOpen(
                     MainMenuPanelId.PetGacha,
@@ -202,7 +221,7 @@ namespace PowerMath.UI.MainMenu
 
             _previewRevision = Math.Max(0, _player.revision);
             long coins = Math.Max(0, _player.wallet?.powerCoins ?? 0);
-            _balance.text = $"YOUR POWER COINS: {coins:N0}";
+            _balance.text = coins.ToString("N0");
             _cost.text = $"ONE PULL: {PetGachaTransactionPolicy.PullCost:N0} POWER COINS";
             _projectedBalance.text = coins >= PetGachaTransactionPolicy.PullCost
                 ? $"AFTER PULL: {coins - PetGachaTransactionPolicy.PullCost:N0}"
@@ -393,7 +412,7 @@ namespace PowerMath.UI.MainMenu
                     _player,
                     () => { },
                     message => warning = message);
-                if (!string.IsNullOrEmpty(warning)) Debug.LogWarning(warning);
+                if (!string.IsNullOrEmpty(warning)) PowerMath.Diagnostics.AppLog.Warning("Pets", warning);
             }
         }
 

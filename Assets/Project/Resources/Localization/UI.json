@@ -1,0 +1,824 @@
+{
+  "entries": [
+    {
+      "key": "auth.title",
+      "en": "SIGN IN",
+      "th": "เข้าสู่ระบบ"
+    },
+    {
+      "key": "auth.user",
+      "en": "USER",
+      "th": "ชื่อผู้ใช้"
+    },
+    {
+      "key": "auth.password",
+      "en": "PASSWORD",
+      "th": "รหัสผ่าน"
+    },
+    {
+      "key": "auth.remember",
+      "en": "Remember this device",
+      "th": "จดจำอุปกรณ์นี้"
+    },
+    {
+      "key": "auth.privacy",
+      "en": "Private device only. Remembering this device stores your school login details in this browser.",
+      "th": "ใช้กับอุปกรณ์ส่วนตัวเท่านั้น ข้อมูลเข้าสู่ระบบจะถูกบันทึกในเบราว์เซอร์นี้"
+    },
+    {
+      "key": "auth.help",
+      "en": "Enter the account details provided by your school.",
+      "th": "กรอกข้อมูลบัญชีที่ได้รับจากโรงเรียน"
+    },
+    {
+      "key": "auth.enter",
+      "en": "ENTER     →",
+      "th": "เข้าสู่เกม     →"
+    },
+    {
+      "key": "auth.busy",
+      "en": "Signing in...",
+      "th": "กำลังเข้าสู่ระบบ..."
+    },
+    {
+      "key": "auth.success",
+      "en": "Signed in. Loading your progress...",
+      "th": "เข้าสู่ระบบแล้ว กำลังโหลดความคืบหน้า..."
+    },
+    {
+      "key": "common.back",
+      "en": "BACK",
+      "th": "กลับ"
+    },
+    {
+      "key": "common.cancel",
+      "en": "CANCEL",
+      "th": "ยกเลิก"
+    },
+    {
+      "key": "common.continue",
+      "en": "CONTINUE",
+      "th": "ดำเนินการต่อ"
+    },
+    {
+      "key": "common.confirm",
+      "en": "CONFIRM",
+      "th": "ยืนยัน"
+    },
+    {
+      "key": "common.close",
+      "en": "CLOSE",
+      "th": "ปิด"
+    },
+    {
+      "key": "common.retry",
+      "en": "TRY AGAIN",
+      "th": "ลองอีกครั้ง"
+    },
+    {
+      "key": "common.saving",
+      "en": "Saving...",
+      "th": "กำลังบันทึก..."
+    },
+    {
+      "key": "common.saved",
+      "en": "Saved",
+      "th": "บันทึกแล้ว"
+    },
+    {
+      "key": "common.language",
+      "en": "Language",
+      "th": "ภาษา"
+    },
+    {
+      "key": "menu.navigator",
+      "en": "NAVIGATOR",
+      "th": "แผนที่"
+    },
+    {
+      "key": "menu.world",
+      "en": "WORLD JOURNEY",
+      "th": "เส้นทางผจญภัย"
+    },
+    {
+      "key": "menu.currentBiome",
+      "en": "CURRENT BIOME",
+      "th": "พื้นที่ปัจจุบัน"
+    },
+    {
+      "key": "menu.route",
+      "en": "ROUTE PREVIEW — NO FAST TRAVEL",
+      "th": "ดูเส้นทาง — ไม่สามารถเดินทางลัดได้"
+    },
+    {
+      "key": "menu.routeHelp",
+      "en": "Your marker shows the current biome. This map is informational.",
+      "th": "หมุดแสดงพื้นที่ปัจจุบัน แผนที่นี้ใช้ดูข้อมูลเส้นทาง"
+    },
+    {
+      "key": "menu.battle",
+      "en": "BACK TO BATTLE",
+      "th": "กลับสู่การต่อสู้"
+    },
+    {
+      "key": "menu.pets",
+      "en": "PET GACHA",
+      "th": "สุ่มสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.odds",
+      "en": "CURRENT ODDS",
+      "th": "โอกาสได้รับปัจจุบัน"
+    },
+    {
+      "key": "menu.newPet",
+      "en": "NEW PET",
+      "th": "สัตว์เลี้ยงใหม่"
+    },
+    {
+      "key": "menu.rarity",
+      "en": "RARITY",
+      "th": "ระดับความหายาก"
+    },
+    {
+      "key": "menu.pet",
+      "en": "PET",
+      "th": "สัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.profile",
+      "en": "PROFILE",
+      "th": "โปรไฟล์"
+    },
+    {
+      "key": "menu.leaderboard",
+      "en": "LEADERBOARD",
+      "th": "อันดับผู้เล่น"
+    },
+    {
+      "key": "menu.settings",
+      "en": "SETTINGS",
+      "th": "ตั้งค่า"
+    },
+    {
+      "key": "menu.logout",
+      "en": "LOG OUT",
+      "th": "ออกจากระบบ"
+    },
+    {
+      "key": "menu.hub",
+      "en": "PLAYER HUB",
+      "th": "ข้อมูลผู้เล่น"
+    },
+    {
+      "key": "combat.attack",
+      "en": "ATTACK",
+      "th": "โจมตี"
+    },
+    {
+      "key": "combat.backspace",
+      "en": "BACKSPACE",
+      "th": "ลบ"
+    },
+    {
+      "key": "combat.clear",
+      "en": "CLEAR",
+      "th": "ล้าง"
+    },
+    {
+      "key": "combat.submit",
+      "en": "SUBMIT",
+      "th": "ตอบ"
+    },
+    {
+      "key": "combat.correct",
+      "en": "CORRECT",
+      "th": "ถูกต้อง"
+    },
+    {
+      "key": "combat.attackBuild",
+      "en": "Building your attack",
+      "th": "กำลังเตรียมการโจมตี"
+    },
+    {
+      "key": "combat.biomeEnter",
+      "en": "ENTERING NEW BIOME",
+      "th": "เข้าสู่พื้นที่ใหม่"
+    },
+    {
+      "key": "combat.biome",
+      "en": "BIOME",
+      "th": "พื้นที่"
+    },
+    {
+      "key": "combat.rankUp",
+      "en": "RANK UP",
+      "th": "เลื่อนระดับ"
+    },
+    {
+      "key": "onboarding.openingTitle",
+      "en": "Your adventure begins",
+      "th": "การผจญภัยของคุณกำลังเริ่มต้น"
+    },
+    {
+      "key": "onboarding.openingPlaceholder",
+      "en": "Opening content has not been configured. Continue to choose your character.",
+      "th": "ยังไม่ได้กำหนดเนื้อหาเปิดเรื่อง ดำเนินการต่อเพื่อเลือกตัวละคร"
+    },
+    {
+      "key": "onboarding.skip",
+      "en": "Skip opening",
+      "th": "ข้ามบทนำ"
+    },
+    {
+      "key": "onboarding.select",
+      "en": "Choose your character",
+      "th": "เลือกตัวละครของคุณ"
+    },
+    {
+      "key": "onboarding.choose",
+      "en": "Select",
+      "th": "เลือก"
+    },
+    {
+      "key": "onboarding.name",
+      "en": "Enter your display name",
+      "th": "ตั้งชื่อที่แสดงในเกม"
+    },
+    {
+      "key": "onboarding.permanent",
+      "en": "Your character choice will be saved permanently.",
+      "th": "ตัวละครที่เลือกจะถูกบันทึกอย่างถาวร"
+    },
+    {
+      "key": "onboarding.invalidName",
+      "en": "Enter a name using 1–24 characters, without markup or control characters.",
+      "th": "กรุณาตั้งชื่อ 1–24 ตัวอักษร โดยไม่ใช้แท็กหรืออักขระควบคุม"
+    },
+    {
+      "key": "onboarding.missingArt",
+      "en": "Character art preview unavailable",
+      "th": "ยังไม่มีภาพตัวอย่างตัวละคร"
+    },
+    {
+      "key": "onboarding.ricko",
+      "en": "Ricko",
+      "th": "ริกโก้"
+    },
+    {
+      "key": "onboarding.stellar",
+      "en": "Stellar",
+      "th": "สเตลลาร์"
+    },
+    {
+      "key": "errors.updateRequired",
+      "en": "A game update is required. Refresh to continue.",
+      "th": "กรุณารีเฟรชเพื่ออัปเดตเกมก่อนเล่นต่อ"
+    },
+    {
+      "key": "errors.policy",
+      "en": "Could not verify the game version. Please retry.",
+      "th": "ตรวจสอบเวอร์ชันเกมไม่ได้ กรุณาลองอีกครั้ง"
+    },
+    {
+      "key": "errors.save",
+      "en": "Could not confirm the save. Retry to check the same operation.",
+      "th": "ยังยืนยันการบันทึกไม่ได้ ลองอีกครั้งเพื่อตรวจสอบรายการเดิม"
+    },
+    {
+      "key": "errors.conflict",
+      "en": "Your data changed in another session. Reload to continue.",
+      "th": "ข้อมูลถูกเปลี่ยนจากอีกเซสชัน กรุณาโหลดใหม่"
+    },
+    {
+      "key": "common.reload",
+      "en": "Reload",
+      "th": "โหลดใหม่"
+    },
+    {
+      "key": "menu.adventure",
+      "en": "ADVENTURE",
+      "th": "การผจญภัย"
+    },
+    {
+      "key": "menu.ascend",
+      "en": "ASCEND",
+      "th": "ยกระดับ"
+    },
+    {
+      "key": "menu.ascensionCost",
+      "en": "ASCENSION COST",
+      "th": "ค่ายกระดับ"
+    },
+    {
+      "key": "menu.ascensionHelp",
+      "en": "Build permanent power. New forms awaken at milestones.",
+      "th": "เพิ่มพลังถาวร รูปลักษณ์ใหม่จะปลดล็อกเมื่อถึงระดับที่กำหนด"
+    },
+    {
+      "key": "menu.statsByQuestion",
+      "en": "BY RANK & QUESTION",
+      "th": "ตามระดับและคำถาม"
+    },
+    {
+      "key": "menu.leaderboardSort",
+      "en": "Best Stage first, then weighted Rank Currency",
+      "th": "เรียงตามด่านสูงสุด แล้วตามคะแนนสกุลเงินระดับ"
+    },
+    {
+      "key": "menu.confirmPull",
+      "en": "CONFIRM PULL",
+      "th": "ยืนยันการสุ่ม"
+    },
+    {
+      "key": "menu.confirmOnePull",
+      "en": "CONFIRM ONE PULL",
+      "th": "ยืนยันสุ่มหนึ่งครั้ง"
+    },
+    {
+      "key": "menu.critical",
+      "en": "CRITICAL",
+      "th": "คริติคอล"
+    },
+    {
+      "key": "menu.current",
+      "en": "CURRENT",
+      "th": "ปัจจุบัน"
+    },
+    {
+      "key": "menu.petHelp",
+      "en": "Choose an owned pet to see what it can do.",
+      "th": "เลือกสัตว์เลี้ยงที่มีเพื่อดูความสามารถ"
+    },
+    {
+      "key": "menu.economy",
+      "en": "ECONOMY & LOADOUT",
+      "th": "ทรัพยากรและอุปกรณ์"
+    },
+    {
+      "key": "menu.attack",
+      "en": "EFFECTIVE ATTACK",
+      "th": "พลังโจมตีรวม"
+    },
+    {
+      "key": "menu.answer",
+      "en": "Enter your answer",
+      "th": "กรอกคำตอบของคุณ"
+    },
+    {
+      "key": "menu.first",
+      "en": "FIRST PLACE",
+      "th": "อันดับหนึ่ง"
+    },
+    {
+      "key": "menu.forge",
+      "en": "FORGE OF ASCENSION",
+      "th": "แท่นยกระดับอาวุธ"
+    },
+    {
+      "key": "menu.ready",
+      "en": "GET READY",
+      "th": "เตรียมพร้อม"
+    },
+    {
+      "key": "menu.gold",
+      "en": "GOLD",
+      "th": "ทอง"
+    },
+    {
+      "key": "menu.home",
+      "en": "Home",
+      "th": "หน้าหลัก"
+    },
+    {
+      "key": "menu.keep",
+      "en": "KEEP",
+      "th": "เก็บไว้"
+    },
+    {
+      "key": "menu.keepHelp",
+      "en": "KEEP and RESET follow the authoritative run-settlement rules shown above.",
+      "th": "รายการที่เก็บไว้และรีเซ็ตเป็นไปตามกติกาจบรอบที่แสดงด้านบน"
+    },
+    {
+      "key": "menu.learning",
+      "en": "LEARNING",
+      "th": "การเรียนรู้"
+    },
+    {
+      "key": "menu.legacyAttack",
+      "en": "LEGACY ATK",
+      "th": "พลังโจมตีสืบทอด"
+    },
+    {
+      "key": "menu.loadout",
+      "en": "LOADOUT",
+      "th": "อุปกรณ์"
+    },
+    {
+      "key": "menu.privacy",
+      "en": "Learning analytics stay private. Login credentials and hidden audit values are never shown here.",
+      "th": "สถิติการเรียนเป็นข้อมูลส่วนตัว ข้อมูลเข้าสู่ระบบและค่าประเมินภายในจะไม่แสดงที่นี่"
+    },
+    {
+      "key": "menu.challenge",
+      "en": "MATH CHALLENGE",
+      "th": "โจทย์คณิตศาสตร์"
+    },
+    {
+      "key": "menu.milestone",
+      "en": "MILESTONE AWAKENED",
+      "th": "ปลดล็อกขั้นใหม่"
+    },
+    {
+      "key": "menu.move",
+      "en": "MOVE",
+      "th": "เคลื่อนที่"
+    },
+    {
+      "key": "menu.newWeapon",
+      "en": "NEW WEAPON FORM",
+      "th": "รูปลักษณ์อาวุธใหม่"
+    },
+    {
+      "key": "menu.next",
+      "en": "NEXT",
+      "th": "ถัดไป"
+    },
+    {
+      "key": "menu.none",
+      "en": "NONE",
+      "th": "ไม่มี"
+    },
+    {
+      "key": "menu.emptyStandings",
+      "en": "No standings yet",
+      "th": "ยังไม่มีอันดับ"
+    },
+    {
+      "key": "menu.pullPrice",
+      "en": "ONE PULL: 25 POWER COINS",
+      "th": "สุ่มหนึ่งครั้ง: 25 เหรียญพลัง"
+    },
+    {
+      "key": "menu.pullHelp",
+      "en": "One transparent pull. Review the live odds before spending.",
+      "th": "ตรวจสอบโอกาสได้รับก่อนใช้เหรียญสุ่ม"
+    },
+    {
+      "key": "menu.refresh",
+      "en": "Open to refresh",
+      "th": "เปิดเพื่อโหลดใหม่"
+    },
+    {
+      "key": "menu.duplicatePet",
+      "en": "Owned pets can be empty duplicates.",
+      "th": "อาจได้รับสัตว์เลี้ยงซ้ำโดยไม่มีรางวัลเพิ่ม"
+    },
+    {
+      "key": "menu.permanentPower",
+      "en": "PERMANENT POWER",
+      "th": "พลังถาวร"
+    },
+    {
+      "key": "menu.permanentRewards",
+      "en": "PERMANENT REWARDS",
+      "th": "รางวัลถาวร"
+    },
+    {
+      "key": "menu.collection",
+      "en": "PET COLLECTION",
+      "th": "สัตว์เลี้ยงสะสม"
+    },
+    {
+      "key": "menu.powerCoins",
+      "en": "POWER COINS",
+      "th": "เหรียญพลัง"
+    },
+    {
+      "key": "menu.private",
+      "en": "PRIVATE VIEW",
+      "th": "ข้อมูลส่วนตัว"
+    },
+    {
+      "key": "menu.analytics",
+      "en": "PROFILE ANALYTICS",
+      "th": "สถิติผู้เล่น"
+    },
+    {
+      "key": "menu.publicName",
+      "en": "PUBLIC DISPLAY NAME",
+      "th": "ชื่อที่แสดงต่อผู้อื่น"
+    },
+    {
+      "key": "menu.pull",
+      "en": "PULL FOR 25",
+      "th": "สุ่มด้วย 25 เหรียญ"
+    },
+    {
+      "key": "menu.publicOnly",
+      "en": "Public progression and equipped loadout only",
+      "th": "แสดงเฉพาะความคืบหน้าและอุปกรณ์ที่เปิดเผยได้"
+    },
+    {
+      "key": "menu.rank",
+      "en": "RANK",
+      "th": "ระดับ"
+    },
+    {
+      "key": "menu.rankPlayer",
+      "en": "RANK / PLAYER",
+      "th": "อันดับ / ผู้เล่น"
+    },
+    {
+      "key": "menu.rankCurrency",
+      "en": "RANK CURRENCY",
+      "th": "สกุลเงินระดับ"
+    },
+    {
+      "key": "menu.rebirthPreview",
+      "en": "REBIRTH PREVIEW",
+      "th": "ตัวอย่างการเกิดใหม่"
+    },
+    {
+      "key": "menu.rebirthRequirement",
+      "en": "REBIRTH REQUIREMENT",
+      "th": "เงื่อนไขการเกิดใหม่"
+    },
+    {
+      "key": "menu.reset",
+      "en": "RESET",
+      "th": "รีเซ็ต"
+    },
+    {
+      "key": "menu.runReset",
+      "en": "RUN RESET",
+      "th": "เริ่มรอบใหม่"
+    },
+    {
+      "key": "menu.rebirth",
+      "en": "Rebirth",
+      "th": "เกิดใหม่"
+    },
+    {
+      "key": "menu.rebirthHelp",
+      "en": "Review the permanent rewards before beginning again.",
+      "th": "ตรวจสอบรางวัลถาวรก่อนเริ่มต้นใหม่"
+    },
+    {
+      "key": "menu.saveName",
+      "en": "SAVE NAME",
+      "th": "บันทึกชื่อ"
+    },
+    {
+      "key": "menu.selectPet",
+      "en": "SELECT A PET",
+      "th": "เลือกสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.silver",
+      "en": "SILVER",
+      "th": "เงิน"
+    },
+    {
+      "key": "menu.stage",
+      "en": "STAGE",
+      "th": "ด่าน"
+    },
+    {
+      "key": "menu.spend",
+      "en": "Spend 25 Power Coins?",
+      "th": "ใช้เหรียญพลัง 25 เหรียญหรือไม่?"
+    },
+    {
+      "key": "menu.summon",
+      "en": "Summon",
+      "th": "อัญเชิญ"
+    },
+    {
+      "key": "menu.tapContinue",
+      "en": "TAP ANYWHERE TO CONTINUE",
+      "th": "แตะที่ใดก็ได้เพื่อดำเนินการต่อ"
+    },
+    {
+      "key": "menu.totalDamage",
+      "en": "TOTAL DAMAGE",
+      "th": "ความเสียหายรวม"
+    },
+    {
+      "key": "menu.equipHelp",
+      "en": "Tap a pet to equip instantly",
+      "th": "แตะสัตว์เลี้ยงเพื่อใช้งานทันที"
+    },
+    {
+      "key": "menu.renameHelp",
+      "en": "Visible to your grade peers. The first accepted change is immediate; later changes use the authoritative seven-day cooldown.",
+      "th": "เพื่อนในระดับชั้นจะเห็นชื่อนี้ เปลี่ยนชื่อครั้งแรกได้ทันที หลังจากนั้นต้องรอเจ็ดวัน"
+    },
+    {
+      "key": "menu.weaponAscend",
+      "en": "WEAPON ASCEND",
+      "th": "ยกระดับอาวุธ"
+    },
+    {
+      "key": "menu.whatNext",
+      "en": "WHAT HAPPENS NEXT",
+      "th": "สิ่งที่จะเกิดขึ้นต่อไป"
+    },
+    {
+      "key": "menu.grade",
+      "en": "YOUR GRADE",
+      "th": "ระดับชั้นของคุณ"
+    },
+    {
+      "key": "menu.yourPets",
+      "en": "YOUR PETS",
+      "th": "สัตว์เลี้ยงของคุณ"
+    },
+    {
+      "key": "menu.yourStanding",
+      "en": "YOUR STANDING · YOU",
+      "th": "อันดับของคุณ"
+    },
+    {
+      "key": "menu.privateRecord",
+      "en": "Your private learning and adventure record",
+      "th": "บันทึกการเรียนและการผจญภัยส่วนตัว"
+    },
+    {
+      "key": "menu.resetAudit",
+      "en": "• Current audit and question queue runtime",
+      "th": "• การประเมินและคิวคำถามของรอบนี้"
+    },
+    {
+      "key": "menu.resetHearts",
+      "en": "• Hearts, temporary buffs, and run state",
+      "th": "• หัวใจ บัฟชั่วคราว และสถานะรอบ"
+    },
+    {
+      "key": "menu.resetStage",
+      "en": "• Return to Stage 1",
+      "th": "• กลับไปยังด่าน 1"
+    },
+    {
+      "key": "menu.keepRank",
+      "en": "✓ Active Rank and lifetime records",
+      "th": "✓ ระดับปัจจุบันและสถิติสะสม"
+    },
+    {
+      "key": "menu.keepEquipment",
+      "en": "✓ Power Coins, pets, weapons, and upgrades",
+      "th": "✓ เหรียญพลัง สัตว์เลี้ยง อาวุธ และการอัปเกรด"
+    },
+    {
+      "key": "menu.keepProfile",
+      "en": "✓ Profile analytics and highest Stage",
+      "th": "✓ สถิติผู้เล่นและด่านสูงสุด"
+    },
+    {
+      "key": "bootstrap.checkingVersion",
+      "en": "Checking for updates...",
+      "th": "กำลังตรวจสอบอัปเดต..."
+    },
+    {
+      "key": "bootstrap.versionDetail",
+      "en": "Verifying game version and live content.",
+      "th": "กำลังตรวจสอบเวอร์ชันเกมและเนื้อหา"
+    },
+    {
+      "key": "bootstrap.checkingSession",
+      "en": "Checking this device...",
+      "th": "กำลังตรวจสอบอุปกรณ์นี้..."
+    },
+    {
+      "key": "bootstrap.sessionDetail",
+      "en": "Looking for a saved school session.",
+      "th": "กำลังค้นหาบัญชีที่บันทึกไว้"
+    },
+    {
+      "key": "bootstrap.loading",
+      "en": "Loading your progress...",
+      "th": "กำลังโหลดความคืบหน้า..."
+    },
+    {
+      "key": "bootstrap.ready",
+      "en": "Ready to play.",
+      "th": "พร้อมเล่น"
+    },
+    {
+      "key": "bootstrap.entering",
+      "en": "Opening your game...",
+      "th": "กำลังเข้าสู่เกม..."
+    },
+    {
+      "key": "bootstrap.enterDetail",
+      "en": "Preparing the Main Menu and current encounter.",
+      "th": "กำลังเตรียมหน้าหลักและการต่อสู้ปัจจุบัน"
+    },
+    {
+      "key": "bootstrap.interrupted",
+      "en": "We could not finish loading.",
+      "th": "โหลดข้อมูลไม่สำเร็จ"
+    },
+    {
+      "key": "bootstrap.retryDetail",
+      "en": "Check your connection, then try again.",
+      "th": "ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง"
+    },
+    {
+      "key": "bootstrap.signIn",
+      "en": "Opening sign in...",
+      "th": "กำลังเปิดหน้าเข้าสู่ระบบ..."
+    },
+    {
+      "key": "bootstrap.accountDetail",
+      "en": "A school account is needed to restore your progress.",
+      "th": "ต้องใช้บัญชีโรงเรียนเพื่อโหลดความคืบหน้า"
+    },
+    {
+      "key": "bootstrap.update",
+      "en": "Game update required",
+      "th": "ต้องอัปเดตเกม"
+    },
+    {
+      "key": "bootstrap.updateDetail",
+      "en": "Install the latest version before continuing.",
+      "th": "อัปเดตเป็นเวอร์ชันล่าสุดก่อนดำเนินการต่อ"
+    },
+    {
+      "key": "bootstrap.maintenance",
+      "en": "Maintenance in progress",
+      "th": "กำลังปิดปรับปรุง"
+    },
+    {
+      "key": "bootstrap.maintenanceDetail",
+      "en": "The game is currently undergoing maintenance. Please try again later.",
+      "th": "เกมกำลังปิดปรับปรุง กรุณากลับมาใหม่ภายหลัง"
+    },
+    {
+      "key": "bootstrap.retry",
+      "en": "READY TO RETRY",
+      "th": "พร้อมลองอีกครั้ง"
+    },
+    {
+      "key": "bootstrap.updateNeeded",
+      "en": "UPDATE NEEDED",
+      "th": "ต้องอัปเดต"
+    },
+    {
+      "key": "bootstrap.versionPhase",
+      "en": "CHECKING VERSION",
+      "th": "ตรวจสอบเวอร์ชัน"
+    },
+    {
+      "key": "bootstrap.sessionPhase",
+      "en": "CHECKING SESSION",
+      "th": "ตรวจสอบบัญชี"
+    },
+    {
+      "key": "bootstrap.loadPhase",
+      "en": "LOADING PLAYER",
+      "th": "โหลดผู้เล่น"
+    },
+    {
+      "key": "bootstrap.readyPhase",
+      "en": "READY",
+      "th": "พร้อม"
+    },
+    {
+      "key": "bootstrap.enterPhase",
+      "en": "ENTERING MATH:WORLD",
+      "th": "เข้าสู่ MATH:WORLD"
+    },
+    {
+      "key": "bootstrap.interruptPhase",
+      "en": "LOAD INTERRUPTED",
+      "th": "โหลดถูกขัดจังหวะ"
+    },
+    {
+      "key": "bootstrap.authPhase",
+      "en": "SIGN IN REQUIRED",
+      "th": "กรุณาเข้าสู่ระบบ"
+    },
+    {
+      "key": "bootstrap.updatePhase",
+      "en": "UPDATE REQUIRED",
+      "th": "กรุณาอัปเดต"
+    },
+    {
+      "key": "bootstrap.maintenancePhase",
+      "en": "MAINTENANCE",
+      "th": "ปิดปรับปรุง"
+    },
+    {
+      "key": "common.play",
+      "en": "Play opening",
+      "th": "เล่นบทนำ"
+    },
+    {
+      "key": "onboarding.videoUnavailable",
+      "en": "Video unavailable. Read the opening text or continue.",
+      "th": "เล่นวิดีโอไม่ได้ อ่านข้อความบทนำหรือดำเนินการต่อ"
+    }
+  ]
+}

@@ -126,7 +126,7 @@ namespace PowerMath.Gameplay.Pets
         private void OnValidate()
         {
             if ((rarities?.Length ?? 0) > 0 && !TryBuildCatalog(out _, out string error))
-                Debug.LogError(error, this);
+                PowerMath.Diagnostics.AppLog.Error("Pets", error, this);
         }
 #endif
     }

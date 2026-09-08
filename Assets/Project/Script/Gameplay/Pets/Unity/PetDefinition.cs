@@ -49,7 +49,7 @@ namespace PowerMath.Gameplay.Pets
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (!TryBuild(out _, out string error)) Debug.LogError(error, this);
+            if (!TryBuild(out _, out string error)) PowerMath.Diagnostics.AppLog.Error("Pets", error, this);
         }
 #endif
     }

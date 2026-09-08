@@ -1,41 +1,44 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="leaderboard-modal" enabled="true" focusable="true" class="social-modal leaderboard-modal is-hidden">
-        <ui:VisualElement class="leaderboard-backdrop leaderboard-backdrop--cyan" picking-mode="Ignore"/>
-        <ui:VisualElement class="leaderboard-backdrop leaderboard-backdrop--cobalt" picking-mode="Ignore"/>
-        <ui:Label text="RANK" class="leaderboard-watermark" picking-mode="Ignore"/>
-        <ui:VisualElement class="leaderboard-shell">
-            <ui:VisualElement class="leaderboard-header">
-                <ui:VisualElement class="leaderboard-heading">
-                    <ui:Label text="LEADERBOARD" class="leaderboard-title"/>
-                    <ui:Label text="Best Stage first, then weighted Rank Currency" class="leaderboard-rule"/>
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="leaderboard-modal" focusable="true" class="social-modal leaderboard-screen is-hidden">
+        <pm:FigmaShadowElement name="Leaderboard / Modal Shadow" class="leaderboard-modal-shadow"/>
+        <ui:VisualElement name=".leaderboard-screen" class="leaderboard-window">
+            <pm:FigmaGradientElement name="Leaderboard / Screen Gradient" class="leaderboard-screen-gradient"/>
+            <pm:FigmaShadowElement name="Leaderboard / Modal Inner Shadow" class="leaderboard-modal-inner-shadow"/>
+            <ui:VisualElement name="Ellipse 1" picking-mode="Ignore" class="leaderboard-decoration leaderboard-decoration--ellipse-1"/>
+            <ui:VisualElement name="Ellipse 2" picking-mode="Ignore" class="leaderboard-decoration leaderboard-decoration--ellipse-2"/>
+            <ui:VisualElement name="Rectangle 13" picking-mode="Ignore" class="leaderboard-decoration leaderboard-decoration--rectangle-13"/>
+            <ui:VisualElement name="Rectangle 14" picking-mode="Ignore" class="leaderboard-decoration leaderboard-decoration--rectangle-14"/>
+            <ui:VisualElement name="Rectangle 15" picking-mode="Ignore" class="leaderboard-decoration leaderboard-decoration--rectangle-15"/>
+            <ui:VisualElement name=".leaderboard-header" class="leaderboard-header">
+                <ui:VisualElement name=".header-title-block" class="leaderboard-title-block"><ui:Label name=".title-label" text="LEADERBOARD" class="loc-menu.leaderboard leaderboard-title"/><ui:Label name=".title-sparkle" text="✦" class="leaderboard-title-sparkle"/></ui:VisualElement>
+                <ui:VisualElement name=".header-center-block" class="leaderboard-header-center">
+                    <ui:VisualElement name=".header-cohort-badge" class="leaderboard-cohort-badge"><pm:LeaderboardLockVector name="Vector / Lock Icon" class="leaderboard-lock-icon"/><ui:Label name="leaderboard-cohort" text="GRADE 4 · LEVEL 1" tooltip="Leaderboard cohort is locked to your authenticated grade." class="leaderboard-cohort-text"/></ui:VisualElement>
+                    <ui:VisualElement name=".header-scoring-legend" class="leaderboard-scoring-legend"><ui:VisualElement name=".legend-rule-left" class="leaderboard-legend-rule"/><ui:Label name=".star-left" text="✦" class="leaderboard-legend-star"/><ui:Label name=".legend-text" text="Best Stage first, then weighted Rank Currency" class="loc-menu.leaderboardSort leaderboard-legend-text"/><ui:Label name=".star-right" text="✦" class="leaderboard-legend-star"/><ui:VisualElement name=".legend-rule-right" class="leaderboard-legend-rule"/></ui:VisualElement>
                 </ui:VisualElement>
-                <ui:Label name="leaderboard-cohort" text="YOUR GRADE" tooltip="Leaderboard cohort is locked to your authenticated grade." class="leaderboard-cohort"/>
-                <ui:VisualElement class="leaderboard-header-actions">
-                    <ui:Label name="leaderboard-status" text="Open to refresh" class="social-status leaderboard-status"/>
+                <ui:VisualElement name=".header-controls" class="leaderboard-header-controls">
+                    <ui:VisualElement name="leaderboard-power-coin-pill" class="leaderboard-power-coin-pill" tooltip="Power Coins">
+                        <ui:VisualElement class="leaderboard-power-coin-icon" picking-mode="Ignore"/>
+                        <ui:Label name="leaderboard-power-coins" text="0" class="leaderboard-power-coin-value"/>
+                    </ui:VisualElement>
+                    <ui:Label name="leaderboard-status" text="Updated --:--" class="leaderboard-freshness-label"/>
                     <ui:Button name="leaderboard-refresh" text="↻" tooltip="Refresh standings" class="leaderboard-icon-button leaderboard-refresh"/>
-                    <ui:Button name="leaderboard-close" text="×" tooltip="Close Leaderboard" class="leaderboard-icon-button leaderboard-close"/>
+                    <ui:Button name="leaderboard-close" tooltip="Close Leaderboard" class="leaderboard-icon-button leaderboard-close"><pm:LeaderboardCloseVector name="Vector / Close" class="leaderboard-close-vector"/></ui:Button>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement class="leaderboard-content">
-                <ui:VisualElement class="leaderboard-showcase">
-                    <ui:Label text="FIRST PLACE" class="leaderboard-showcase-kicker"/>
-                    <ui:Label text="♛" class="leaderboard-crown" picking-mode="Ignore"/>
-                    <ui:Label name="leaderboard-throne" text="No standings yet" class="leaderboard-throne"/>
-                    <ui:Label text="Public progression and equipped loadout only" class="leaderboard-public-note"/>
+            <ui:VisualElement name=".leaderboard-body" class="leaderboard-body">
+                <ui:VisualElement name=".leaderboard-throne" class="leaderboard-throne">
+                    <pm:FigmaShadowElement name="Leaderboard / Card Shadow" class="leaderboard-card-shadow leaderboard-throne-drop-shadow"/>
+                    <ui:VisualElement name="MW-Leaderboard-Throne-bg 1" picking-mode="Ignore" class="leaderboard-throne-background"/>
+                    <pm:FigmaShadowElement name="Leaderboard / Throne Inner Highlight" picking-mode="Ignore" class="leaderboard-throne-inner-highlight"/>
+                    <pm:FigmaShadowElement name="Leaderboard / Throne Inner Shade" picking-mode="Ignore" class="leaderboard-throne-inner-shade"/>
+                    <ui:VisualElement name=".throne-stage-viewport" class="leaderboard-throne-stage"><ui:VisualElement name=".hero-sprite-group" class="leaderboard-hero-group"><ui:Image name=".character-sprite-placeholder" picking-mode="Ignore" scale-mode="ScaleToFit" class="leaderboard-character-slot"><ui:Label name="Slot Label" text="Character Hero Sprite Slot" class="leaderboard-slot-label leaderboard-character-placeholder-label"/></ui:Image><ui:VisualElement name=".pet-sprite-placeholder" picking-mode="Ignore" class="leaderboard-pet-slot"><ui:Label name="Slot Label" text="Pet Sprite Slot" class="leaderboard-slot-label"/></ui:VisualElement></ui:VisualElement><pm:LeaderboardPodiumVector name="Vector / Throne Podium" class="leaderboard-throne-podium"/></ui:VisualElement>
+                    <pm:FigmaShadowElement name="Leaderboard / Throne Info Drop Shadow" picking-mode="Ignore" class="leaderboard-throne-info-drop-shadow"/>
+                    <ui:VisualElement name=".throne-info-card" class="leaderboard-throne-info-card"><pm:FigmaShadowElement name="Leaderboard / Throne Info Inner Shadow" picking-mode="Ignore" class="leaderboard-throne-info-inner-shadow"/><ui:Label name="leaderboard-throne" text="No standings yet" class="leaderboard-throne-player-name"/><ui:VisualElement name=".throne-stage-pill" class="leaderboard-throne-stage-pill"><ui:Label name=".pill-text" text="BEST STAGE" class="leaderboard-throne-pill-text"/></ui:VisualElement><ui:Label name="leaderboard-throne-stage" text="--" class="leaderboard-throne-stage-number"/><ui:VisualElement name=".throne-currency-bar" class="leaderboard-throne-currency-bar"><ui:VisualElement name=".currency-item-silver" class="leaderboard-throne-currency-item"><ui:VisualElement name="Vector / Silver Icon" class="leaderboard-currency-icon leaderboard-currency-icon--silver"/><ui:Label name="leaderboard-throne-silver" text="0" class="leaderboard-currency-value"/></ui:VisualElement><ui:VisualElement name=".currency-item-gold" class="leaderboard-throne-currency-item"><ui:VisualElement name="Vector / Gold Icon" class="leaderboard-currency-icon leaderboard-currency-icon--gold"/><ui:Label name="leaderboard-throne-gold" text="0" class="leaderboard-currency-value"/></ui:VisualElement><ui:VisualElement name=".currency-item-diamond" class="leaderboard-throne-currency-item"><ui:VisualElement name="Vector / Diamond Icon" class="leaderboard-currency-icon leaderboard-currency-icon--diamond"/><ui:Label name="leaderboard-throne-diamond" text="0" class="leaderboard-currency-value"/></ui:VisualElement></ui:VisualElement></ui:VisualElement>
+                    <ui:VisualElement name=".throne-header-ribbon" picking-mode="Ignore" class="leaderboard-throne-ribbon-group"><ui:VisualElement name="MW-Leaderboard-Crown 1" picking-mode="Ignore" class="leaderboard-throne-crown"/><ui:VisualElement name=".ribbon-banner" picking-mode="Ignore" class="leaderboard-ribbon-banner"><pm:FigmaShadowElement name="Leaderboard / Button Shadow" class="leaderboard-button-shadow"/><ui:Label name=".ribbon-text" text="FIRST PLACE" class="leaderboard-ribbon-text"/></ui:VisualElement></ui:VisualElement>
                 </ui:VisualElement>
-                <ui:VisualElement class="leaderboard-standing-column">
-                    <ui:VisualElement class="leaderboard-self-card">
-                        <ui:Label text="YOUR STANDING · YOU" class="leaderboard-self-kicker"/>
-                        <ui:Label name="leaderboard-self" text="Rank updating…" class="leaderboard-self"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="leaderboard-column-headings">
-                        <ui:Label text="RANK / PLAYER" class="leaderboard-column-heading leaderboard-column-heading--player"/>
-                        <ui:Label text="STAGE" class="leaderboard-column-heading"/>
-                        <ui:Label text="RANK CURRENCY" class="leaderboard-column-heading"/>
-                        <ui:Label text="LOADOUT" class="leaderboard-column-heading"/>
-                        <ui:Label text="TOTAL DAMAGE" class="leaderboard-column-heading"/>
-                    </ui:VisualElement>
-                    <ui:ScrollView name="leaderboard-list" class="leaderboard-list"/>
+                <ui:VisualElement name=".leaderboard-list-column" class="leaderboard-list-column">
+                    <ui:VisualElement name=".leaderboard-pinned-self" class="leaderboard-pinned-self"><pm:FigmaShadowElement name="Leaderboard / Pinned Card Shadow" class="leaderboard-card-shadow"/><ui:VisualElement name=".pinned-self-header" class="leaderboard-pinned-header"><ui:Label name=".header-text" text="★   YOUR STANDING · YOU   ★" class="leaderboard-pinned-header-text"/></ui:VisualElement><ui:VisualElement name=".pinned-self-row" class="leaderboard-pinned-row"><ui:VisualElement name=".rank-badge-self" class="leaderboard-self-rank"><ui:Label name="leaderboard-self-rank" text="--" class="leaderboard-self-rank-text"/></ui:VisualElement><ui:VisualElement name=".row-avatar-slot" class="leaderboard-avatar-slot leaderboard-avatar-slot--self"><ui:Label name="Slot Label" text="ProfilePic Slot" class="leaderboard-slot-label"/></ui:VisualElement><ui:VisualElement name=".row-identity" class="leaderboard-row-identity leaderboard-self-identity"><ui:Label name="leaderboard-self" text="Rank updating…" class="leaderboard-player-name"/><ui:VisualElement name=".stages-row" class="leaderboard-stages-row"><ui:VisualElement name=".stage-col-current" class="leaderboard-stage-column"><ui:Label name="lbl" text="CURRENT" class="leaderboard-stage-label"/><ui:Label name="leaderboard-self-current" text="--" class="leaderboard-stage-current"/></ui:VisualElement><ui:VisualElement name=".stage-col-best" class="leaderboard-stage-column"><ui:Label name="lbl" text="BEST" class="leaderboard-stage-label"/><ui:Label name="leaderboard-self-best" text="--" class="leaderboard-stage-best"/></ui:VisualElement></ui:VisualElement></ui:VisualElement><ui:VisualElement name="leaderboard-self-currencies" class="leaderboard-row-currencies"/><ui:VisualElement name="leaderboard-self-loadout" class="leaderboard-row-loadout"/><ui:VisualElement name=".row-action-block" class="leaderboard-self-action"><ui:Label name=".dmg-label" text="TOTAL DMG" class="leaderboard-damage-label"/><ui:Label name="leaderboard-self-damage" text="0" class="leaderboard-damage-value"/><ui:Button name="leaderboard-jump-to-self" text="JUMP TO MY ROW ⌵" class="leaderboard-jump-button"/></ui:VisualElement></ui:VisualElement></ui:VisualElement>
+                    <ui:VisualElement name=".leaderboard-scroll-view" class="leaderboard-scroll-card"><pm:FigmaShadowElement name="Leaderboard / List Card Shadow" class="leaderboard-card-shadow"/><ui:ScrollView name="leaderboard-list" mode="Vertical" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="AlwaysVisible" mouse-wheel-scroll-size="120" touch-scroll-type="Clamped" class="leaderboard-list"/></ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

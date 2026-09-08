@@ -34,6 +34,12 @@ namespace PowerMath.UI.Authentication
         private Button _loginButton;
         private Label _statusLabel;
         private VisualElement _root;
+        private Button _worldwideButton;
+        private VisualElement _languageFlyout;
+        private Button _thButton;
+        private Button _enButton;
+        private bool _isLanguageFlyoutOpen;
+        private string _statusKey = "auth.help";
         private bool _eventsBound;
         private bool _bindingErrorLogged;
 
@@ -46,7 +52,8 @@ namespace PowerMath.UI.Authentication
 
             SetInteractive(true);
             _root.SetSemanticState(UiSemanticState.Ready);
-            _statusLabel.text = "Enter the account details provided by your school.";
+            _statusKey = "auth.help";
+            RefreshLocale();
             _statusLabel.RemoveFromClassList("auth-status--error");
             _statusLabel.RemoveFromClassList("auth-status--success");
             _usernameField.Focus();
@@ -61,7 +68,8 @@ namespace PowerMath.UI.Authentication
 
             SetInteractive(false);
             _root.SetSemanticState(UiSemanticState.Busy);
-            _statusLabel.text = "Signing in...";
+            _statusKey = "auth.busy";
+            RefreshLocale();
             _statusLabel.RemoveFromClassList("auth-status--error");
             _statusLabel.RemoveFromClassList("auth-status--success");
         }
@@ -75,9 +83,12 @@ namespace PowerMath.UI.Authentication
 
             SetInteractive(true);
             _root.SetSemanticState(UiSemanticState.Error);
+            _statusKey = null;
             _statusLabel.text = playerMessage;
             _statusLabel.AddToClassList("auth-status--error");
             _statusLabel.RemoveFromClassList("auth-status--success");
+
+            PowerMath.UI.Core.StatusMessageService.ShowError(playerMessage);
 
             if (clearPassword)
             {
@@ -96,9 +107,12 @@ namespace PowerMath.UI.Authentication
             _passwordField.value = string.Empty;
             SetInteractive(false);
             _root.SetSemanticState(UiSemanticState.Success);
-            _statusLabel.text = "Signed in. Loading your progress...";
+            _statusKey = "auth.success";
+            RefreshLocale();
             _statusLabel.RemoveFromClassList("auth-status--error");
             _statusLabel.AddToClassList("auth-status--success");
+
+            PowerMath.UI.Core.StatusMessageService.ShowSuccess(PowerMath.Localization.LocalizationService.Get("auth.success"));
         }
 
         private bool TryBindElements()
@@ -116,6 +130,10 @@ namespace PowerMath.UI.Authentication
                 _rememberToggle = _root.Q<Toggle>("remember-device-toggle");
                 _loginButton = _root.Q<Button>("login-button");
                 _statusLabel = _root.Q<Label>("auth-status");
+                _worldwideButton = _root.Q<Button>("worldwide-button") ?? _root.Q<Button>("Utility / Language");
+                _languageFlyout = _root.Q<VisualElement>("auth-language-flyout");
+                _thButton = _root.Q<Button>("language-button-th");
+                _enButton = _root.Q<Button>("language-button-en");
             }
 
             bool isBound = _root != null && _usernameField != null &&
@@ -124,15 +142,23 @@ namespace PowerMath.UI.Authentication
 
             if (isBound && !_eventsBound)
             {
+                PowerMath.UI.Core.StatusToastOverlay.Attach(_root);
                 _loginButton.clicked += Submit;
                 _root.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                PowerMath.Localization.LocalizationService.Changed += RefreshLocale;
+                if (_worldwideButton != null) _worldwideButton.clicked += ToggleLanguageFlyout;
+                if (_thButton != null) _thButton.clicked += OnThClicked;
+                if (_enButton != null) _enButton.clicked += OnEnClicked;
+                _statusLabel.RemoveFromClassList("loc-auth.help");
                 _eventsBound = true;
+                RefreshLocale();
             }
 
             if (!isBound && !_bindingErrorLogged)
             {
                 _bindingErrorLogged = true;
-                Debug.LogError(
+                PowerMath.Diagnostics.AppLog.Error(
+                    "Auth",
                     "AuthenticationView could not find its required UI Toolkit elements."
                 );
             }
@@ -149,7 +175,68 @@ namespace PowerMath.UI.Authentication
 
             _loginButton.clicked -= Submit;
             _root.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+            PowerMath.Localization.LocalizationService.Changed -= RefreshLocale;
+            if (_worldwideButton != null) _worldwideButton.clicked -= ToggleLanguageFlyout;
+            if (_thButton != null) _thButton.clicked -= OnThClicked;
+            if (_enButton != null) _enButton.clicked -= OnEnClicked;
             _eventsBound = false;
+        }
+
+        private void OnThClicked() => SelectLanguage("th");
+        private void OnEnClicked() => SelectLanguage("en");
+
+        private void SelectLanguage(string locale)
+        {
+            PowerMath.Diagnostics.AppLog.Info("Localization", $"Language changed to: {locale}");
+            PowerMath.Localization.LocalizationService.SetLocale(locale);
+            PowerMath.UI.Core.StatusMessageService.ShowInfo(locale == "th" ? "ภาษาไทย" : "English", 1800);
+            CloseLanguageFlyout();
+        }
+
+        public void ToggleLanguageFlyout()
+        {
+            SetLanguageFlyoutOpen(!_isLanguageFlyoutOpen);
+        }
+
+        public void CloseLanguageFlyout()
+        {
+            if (_isLanguageFlyoutOpen)
+            {
+                SetLanguageFlyoutOpen(false);
+            }
+        }
+
+        private void SetLanguageFlyoutOpen(bool open)
+        {
+            _isLanguageFlyoutOpen = open;
+            if (_languageFlyout == null) return;
+
+            if (open)
+            {
+                _languageFlyout.style.display = DisplayStyle.Flex;
+                _languageFlyout.schedule.Execute(() =>
+                {
+                    if (_isLanguageFlyoutOpen)
+                        _languageFlyout.EnableInClassList("is-open", true);
+                });
+            }
+            else
+            {
+                _languageFlyout.EnableInClassList("is-open", false);
+                _languageFlyout.schedule.Execute(() =>
+                {
+                    if (!_isLanguageFlyoutOpen)
+                        _languageFlyout.style.display = DisplayStyle.None;
+                }).StartingIn(220);
+            }
+        }
+
+        private void RefreshLocale()
+        {
+            if (_statusLabel != null && _statusKey != null) _statusLabel.text = PowerMath.Localization.LocalizationService.Get(_statusKey);
+            string currentLocale = PowerMath.Localization.LocalizationService.Locale;
+            _thButton?.EnableInClassList("is-active", currentLocale == "th");
+            _enButton?.EnableInClassList("is-active", currentLocale == "en");
         }
 
         private void OnKeyDown(KeyDownEvent keyEvent)

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e13a1c9d31959844b9b3ac3e62ae18d7, type: 3}
+  m_Name: B2-B01_Sylvazure-Empyrean
+  m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
+  enemyId: B2-B01
+  displayName: Sylvazure Empyrean
+  thaiDisplayName: "\u0E40\u0E17\u0E1E\u0E21\u0E31\u0E07\u0E01\u0E23\u0E1E\u0E24\u0E01\u0E29\u0E32
+    \u0E0B\u0E34\u0E25\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E27\u0E39\u0E1F\u0E25\u0E4C"
+  biomeId: biome-2
+  encounterKind: 2
+  baseHp: 125
+  maximumCooldown: 2
+  hpMultiplierBasisPoints: 10000
+  enemySprite: {fileID: 21300000, guid: 45f8f3feb1bd71742bad6c8fca6cfe52, type: 3}

@@ -89,7 +89,7 @@ namespace PowerMath.Gameplay.Academic
                     () => { },
                     message => projectionFailure = message);
                 if (!string.IsNullOrEmpty(projectionFailure))
-                    Debug.LogWarning(projectionFailure);
+                    PowerMath.Diagnostics.AppLog.Warning("Academic", projectionFailure);
             }
             _operation = null;
             completed?.Invoke();

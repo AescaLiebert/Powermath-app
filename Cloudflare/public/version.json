@@ -7,6 +7,11 @@
     "stageMap": "1.0.0",
     "petGacha": "1.0.0"
   },
+  "features": {
+    "biomeMap": false,
+    "playerHub": false,
+    "petGacha": false
+  },
   "maintenance": {
     "isActive": false,
     "message": "The game is currently undergoing scheduled maintenance. Please check back shortly."

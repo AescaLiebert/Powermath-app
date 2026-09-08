@@ -480,5 +480,59 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(crossfadedDuration, Is.GreaterThan(0f));
             Assert.That(renderedEncounter, Is.EqualTo("biome-2-scout"));
         }
+
+        [Test]
+        public void CombatLobbyView_ResolvesLocalizedEnemyNameAndRefreshesOnLocaleChange()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MainMenuUxml);
+            VisualElement root = asset.CloneTree();
+            using var view = new CombatLobbyView(root, reducedMotion: true);
+
+            string currentLocale = "en";
+            string resolvedEncounter = null;
+            view.ConfigureStageMap(
+                DevelopmentStageMapFactory.Create(),
+                _ => { },
+                id => resolvedEncounter = id,
+                null,
+                encounterId =>
+                {
+                    if (encounterId == "B1-N01")
+                    {
+                        return currentLocale == "th" ? "สไลม์น้ำแข็ง" : "Frost Slime";
+                    }
+                    return null;
+                }
+            );
+
+            var snapshot = new CombatSnapshot(
+                new StageId(1),
+                "B1-N01",
+                "Frost Slime",
+                30,
+                30,
+                3,
+                3,
+                3,
+                3,
+                CombatPhase.EnemyReady,
+                true,
+                "biome-1",
+                "Verdant Grove",
+                StageEncounterKind.NormalMonster,
+                string.Empty,
+                0
+            );
+
+            view.Render(snapshot);
+            Assert.That(root.Q<Label>("combat-enemy-name").text, Is.EqualTo("Frost Slime"));
+
+            // Switch to Thai locale and refresh
+            currentLocale = "th";
+            view.RefreshLocalizedEnemyName();
+            Assert.That(root.Q<Label>("combat-enemy-name").text, Is.EqualTo("สไลม์น้ำแข็ง"));
+            Assert.That(root.Q<Label>("combat-enemy-name-shadow").text, Is.EqualTo("สไลม์น้ำแข็ง"));
+        }
     }
 }
+

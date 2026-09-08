@@ -2,50 +2,56 @@
     <ui:VisualElement name="profile-analytics-modal" enabled="true" focusable="true" class="social-modal profile-analytics-modal is-hidden">
         <ui:VisualElement class="profile-backdrop profile-backdrop--cyan" picking-mode="Ignore"/>
         <ui:VisualElement class="profile-backdrop profile-backdrop--blue" picking-mode="Ignore"/>
-        <ui:Label text="PROFILE" class="profile-watermark" picking-mode="Ignore"/>
+        <ui:Label text="PROFILE" class="loc-menu.profile profile-watermark" picking-mode="Ignore"/>
         <ui:VisualElement class="profile-shell">
             <ui:VisualElement class="profile-header">
                 <ui:VisualElement>
-                    <ui:Label text="PROFILE ANALYTICS" class="profile-title"/>
-                    <ui:Label text="Your private learning and adventure record" class="profile-subtitle"/>
+                    <ui:Label text="PROFILE ANALYTICS" class="loc-menu.analytics profile-title"/>
+                    <ui:Label text="Your private learning and adventure record" class="loc-menu.privateRecord profile-subtitle"/>
                 </ui:VisualElement>
-                <ui:Button name="profile-analytics-close" text="×" tooltip="Close Profile Analytics" class="profile-close"/>
+                <ui:VisualElement class="profile-header-controls">
+                    <ui:VisualElement class="profile-balance-pill">
+                        <ui:VisualElement class="profile-coin-icon" picking-mode="Ignore"/>
+                        <ui:Label name="profile-balance" text="0" class="profile-balance"/>
+                    </ui:VisualElement>
+                    <ui:Button name="profile-analytics-close" text="×" tooltip="Close Profile Analytics" class="profile-close"/>
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:ScrollView class="profile-scroll">
                 <ui:VisualElement class="profile-identity-row">
                     <ui:VisualElement class="profile-avatar-placeholder"><ui:Label text="★" class="profile-avatar-mark"/></ui:VisualElement>
                     <ui:Label name="profile-summary" text="Student" class="profile-summary"/>
                     <ui:VisualElement class="profile-privacy-card">
-                        <ui:Label text="PRIVATE VIEW" class="profile-privacy-title"/>
-                        <ui:Label text="Learning analytics stay private. Login credentials and hidden audit values are never shown here." class="profile-privacy-copy"/>
+                        <ui:Label text="PRIVATE VIEW" class="loc-menu.private profile-privacy-title"/>
+                        <ui:Label text="Learning analytics stay private. Login credentials and hidden audit values are never shown here." class="loc-menu.privacy profile-privacy-copy"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement class="profile-grid">
                     <ui:VisualElement class="profile-stat-card profile-stat-card--blue">
-                        <ui:Label text="ADVENTURE" class="profile-stat-heading"/>
+                        <ui:Label text="ADVENTURE" class="loc-menu.adventure profile-stat-heading"/>
                         <ui:Label name="profile-adventure" text="Adventure data unavailable" class="profile-stat-copy"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="profile-stat-card profile-stat-card--gold">
-                        <ui:Label text="ECONOMY &amp; LOADOUT" class="profile-stat-heading"/>
+                        <ui:Label text="ECONOMY &amp; LOADOUT" class="loc-menu.economy profile-stat-heading"/>
                         <ui:Label name="profile-economy" text="Economy data unavailable" class="profile-stat-copy"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="profile-stat-card profile-stat-card--green">
-                        <ui:Label text="LEARNING" class="profile-stat-heading"/>
+                        <ui:Label text="LEARNING" class="loc-menu.learning profile-stat-heading"/>
                         <ui:Label name="profile-learning" text="Learning data unavailable" class="profile-stat-copy"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="profile-stat-card profile-stat-card--purple">
-                        <ui:Label text="BY RANK &amp; QUESTION" class="profile-stat-heading"/>
+                        <ui:Label text="BY RANK &amp; QUESTION" class="loc-menu.statsByQuestion profile-stat-heading"/>
                         <ui:Label name="profile-ranks" text="Rank data unavailable" class="profile-stat-copy"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement class="profile-rename-card">
                     <ui:VisualElement class="profile-rename-copy">
-                        <ui:Label text="PUBLIC DISPLAY NAME" class="profile-rename-title"/>
-                        <ui:Label text="Visible to your grade peers. The first accepted change is immediate; later changes use the authoritative seven-day cooldown." class="profile-rename-help"/>
+                        <ui:Label text="PUBLIC DISPLAY NAME" class="loc-menu.publicName profile-rename-title"/>
+                        <ui:Label text="Visible to your grade peers. The first accepted change is immediate; later changes use the authoritative seven-day cooldown." class="loc-menu.renameHelp profile-rename-help"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="profile-rename-controls">
                         <ui:TextField name="profile-display-name-input" max-length="20" class="profile-name-input"/>
-                        <ui:Button name="profile-display-name-save" text="SAVE NAME" class="profile-name-save"/>
+                        <ui:Button name="profile-display-name-save" text="SAVE NAME" class="loc-menu.saveName profile-name-save"/>
                     </ui:VisualElement>
                     <ui:Label name="profile-display-name-status" text="Rename availability is loading." class="social-status profile-name-status"/>
                 </ui:VisualElement>

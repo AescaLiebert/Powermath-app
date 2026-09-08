@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac229b97aa77224190262d9105e833a, type: 3}
+  m_Name: CharacterPresentationCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.PlayerLifecycle.CharacterPresentationCatalog
+  chromaKeyMaterial: {fileID: 2100000, guid: 845b127df65f4c3093164837bda14ee2, type: 2}
+  characters:
+  - id: ricko
+    selectionArt: {fileID: 21300000, guid: 85f0fc2d3c6854447ae9010d45b690df, type: 3}
+    profileIcon: {fileID: 21300000, guid: dcb3aa4df8f06ce4596356c530659994, type: 3}
+    hubSprite: {fileID: 3064498052761967988, guid: 6a8a137f48c8fe54eaa563d95a20b7c3, type: 3}
+    battleSprite: {fileID: 21300000, guid: 6a8a137f48c8fe54eaa563d95a20b7c3, type: 3}
+    battleAttackSprite: {fileID: 21300000, guid: 18eae1a3cc3e16646b3153498f3d3498, type: 3}
+    battleHurtSprite: {fileID: 21300000, guid: 4455c33fad9612648a3b0591450c6972, type: 3}
+    hubVideo: {fileID: 32900000, guid: 7d91a41b3757d3447b08347210186684, type: 3}
+  - id: stellar
+    selectionArt: {fileID: 21300000, guid: ffad266a8ee944e49a9d7ba14dace9fe, type: 3}
+    profileIcon: {fileID: 21300000, guid: 34f074add1130244a95535b432c07e1e, type: 3}
+    hubSprite: {fileID: 21300000, guid: e4b43ff941ee280429750f0e17338876, type: 3}
+    battleSprite: {fileID: 21300000, guid: e4b43ff941ee280429750f0e17338876, type: 3}
+    battleAttackSprite: {fileID: 21300000, guid: ebf0a8ee1f8fdf745bcb2cd617cba6d1, type: 3}
+    battleHurtSprite: {fileID: 21300000, guid: 7f206560e3f115b4094c8a3c6c43cf63, type: 3}
+    hubVideo: {fileID: 32900000, guid: a67cf298eb9928b489b5e7d868576b8d, type: 3}

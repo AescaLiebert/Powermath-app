@@ -12,11 +12,32 @@ namespace PowerMath.Session
                 throw new ArgumentException("Student must be a Firestore map value.", nameof(studentValue));
             }
 
+            int storedVersion = PlayerSaveContract.Inspect(studentValue, out bool isNewPlayer);
             var builder = new FirestorePatchDocumentBuilder();
             string[] root = { username, "gamedata" };
             studentFields.TryGet("gamedata", out JsonValue gameDataValue);
             FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData);
 
+            if (storedVersion < PowerMath.PlayerData.PlayerSchemaMigrator.CurrentSchemaVersion)
+            {
+                builder.AddInteger(Combine(root, "schemaVersion"), PowerMath.PlayerData.PlayerSchemaMigrator.CurrentSchemaVersion);
+                if (gameData != null && gameData.TryGet("revision", out var revisionValue))
+                {
+                    if (!FirestoreJsonNavigator.TryReadInteger(revisionValue, out long revision) || revision < 0 || revision == long.MaxValue)
+                        throw new FormatException("Invalid player revision.");
+                    builder.AddInteger(Combine(root, "revision"), revision + 1);
+                }
+            }
+            AddString(builder, root, gameData, new[] { "preferences", "locale" }, string.Empty);
+            AddString(builder, root, gameData, new[] { "profile", "characterId" }, string.Empty);
+            AddInteger(builder, root, gameData, new[] { "onboarding", "version" }, 1);
+            AddString(builder, root, gameData, new[] { "onboarding", "phase" }, isNewPlayer ? "opening" : "character");
+            AddBoolean(builder, root, gameData, new[] { "onboarding", "legacyPlayer" }, !isNewPlayer);
+            AddString(builder, root, gameData, new[] { "onboarding", "openingCheckpointId" }, isNewPlayer ? string.Empty : "complete");
+            AddString(builder, root, gameData, new[] { "onboarding", "selectedCharacterId" }, string.Empty);
+            AddString(builder, root, gameData, new[] { "onboarding", "completionOperationId" }, string.Empty);
+            AddInteger(builder, root, gameData, new[] { "tutorial", "version" }, 1);
+            AddString(builder, root, gameData, new[] { "tutorial", "checkpointId" }, string.Empty);
             AddInteger(builder, root, gameData, "revision", 0);
             AddString(builder, root, gameData, new[] { "profile", "displayName" }, username);
             AddString(builder, root, gameData, new[] { "profile", "iconId" }, "avatar-default");
@@ -117,26 +138,46 @@ namespace PowerMath.Session
         private static void AddString(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path, string value)
         {
             if (!HasPath(fields, path)) builder.AddString(Combine(root, path), value);
+            else if (!ReadLeaf(fields, path).TryGet("stringValue", out var text) || text.Kind != JsonValueKind.String)
+                throw new FormatException("Invalid string in player data: " + string.Join(".", path));
         }
         private static void AddInteger(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string name, long value) =>
             AddInteger(builder, root, fields, new[] { name }, value);
         private static void AddInteger(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path, long value)
         {
             if (!HasPath(fields, path)) builder.AddInteger(Combine(root, path), value);
+            else if (!FirestoreJsonNavigator.TryReadInteger(ReadLeaf(fields, path), out _))
+                throw new FormatException("Invalid integer in player data: " + string.Join(".", path));
         }
         private static void AddBoolean(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path, bool value)
         {
             if (!HasPath(fields, path)) builder.AddBoolean(Combine(root, path), value);
+            else if (!FirestoreJsonNavigator.TryReadBoolean(ReadLeaf(fields, path), out _))
+                throw new FormatException("Invalid boolean in player data: " + string.Join(".", path));
         }
         private static void AddEmptyArray(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string name) =>
             AddEmptyArray(builder, root, fields, new[] { name });
         private static void AddEmptyArray(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path)
         {
             if (!HasPath(fields, path)) builder.AddEmptyArray(Combine(root, path));
+            else if (!FirestoreJsonNavigator.TryGetArrayValues(ReadLeaf(fields, path), out _))
+                throw new FormatException("Invalid array in player data: " + string.Join(".", path));
         }
         private static void AddNull(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path)
         {
             if (!HasPath(fields, path)) builder.AddNull(Combine(root, path));
+        }
+
+        private static JsonValue ReadLeaf(JsonValue fields, IReadOnlyList<string> path)
+        {
+            JsonValue current = fields;
+            for (int index = 0; index < path.Count; index++)
+            {
+                current.TryGet(path[index], out var value);
+                if (index == path.Count - 1) return value;
+                FirestoreJsonNavigator.TryGetMapFields(value, out current);
+            }
+            return null;
         }
 
         private static bool HasPath(JsonValue fields, IReadOnlyList<string> path)
@@ -146,7 +187,8 @@ namespace PowerMath.Session
             {
                 if (current == null || !current.TryGet(path[index], out JsonValue value)) return false;
                 if (index == path.Count - 1) return true;
-                if (!FirestoreJsonNavigator.TryGetMapFields(value, out current)) return false;
+                if (!FirestoreJsonNavigator.TryGetMapFields(value, out current))
+                    throw new FormatException("Invalid map in player data: " + path[index]);
             }
             return false;
         }

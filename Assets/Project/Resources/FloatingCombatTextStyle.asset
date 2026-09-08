@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: FloatingCombatTextStyle
   m_EditorClassIdentifier: 
   poolCapacity: 8
-  fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  fontAsset: {fileID: 11400000, guid: 0c66c71c8499efd40bcd6fe005f778b4, type: 2}
   fontMaterial: {fileID: 0}
-  normalColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
   criticalColor: {r: 1, g: 0.78, b: 0.18, a: 1}
   fontSize: 60
   popSeconds: 0.12

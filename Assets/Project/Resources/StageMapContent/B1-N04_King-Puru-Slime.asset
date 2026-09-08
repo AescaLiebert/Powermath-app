@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e13a1c9d31959844b9b3ac3e62ae18d7, type: 3}
+  m_Name: B1-N04_King-Puru-Slime
+  m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
+  enemyId: B1-N04
+  displayName: King Puru Slime
+  thaiDisplayName: "\u0E23\u0E32\u0E0A\u0E32 \u0E1B\u0E38\u0E23\u0E38"
+  biomeId: biome-1
+  encounterKind: 0
+  baseHp: 30
+  maximumCooldown: 4
+  hpMultiplierBasisPoints: 10000
+  enemySprite: {fileID: 21300000, guid: 6f27507cb46abd940a888ce2e8c49409, type: 3}

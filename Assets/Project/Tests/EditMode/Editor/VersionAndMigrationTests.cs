@@ -130,7 +130,7 @@ namespace PowerMath.Tests.EditMode
             Assert.That(migrated.activeRun.pendingPresentation, Is.Null);
             Assert.That(migrated.lastRunSettlement.presentationStatus,
                 Is.EqualTo("None"));
-            Assert.That(PlayerSessionStore.SupportedSchemaVersion, Is.EqualTo(2));
+            Assert.That(PlayerSessionStore.SupportedSchemaVersion, Is.EqualTo(3));
         }
     }
 }

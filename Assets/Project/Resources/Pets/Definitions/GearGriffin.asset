@@ -11,10 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8e149883eb6525249becd1942abd7762, type: 3}
   m_Name: GearGriffin
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   petId: gear_griffin
   displayName: Gear Griffin
-  icon: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-  previewSprite: {fileID: -7008412969330441016, guid: 60165c397ce6edf45b559872509bafda, type: 3}
-  abilityRichText:
+  icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  previewSprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  abilityRichText: 
   attackBonus: 0

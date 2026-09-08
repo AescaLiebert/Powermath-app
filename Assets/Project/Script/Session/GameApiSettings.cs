@@ -253,7 +253,8 @@ namespace PowerMath.Session
             if (levelDocumentIds == null || gradeBands == null ||
                 levelDocumentIds.Length != gradeBands.Length)
             {
-                Debug.LogWarning(
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Session",
                     "GameApiSettings needs one grade band for each level document."
                 );
             }

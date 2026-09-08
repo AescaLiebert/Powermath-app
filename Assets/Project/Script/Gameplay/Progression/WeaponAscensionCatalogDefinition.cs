@@ -63,7 +63,7 @@ namespace PowerMath.Gameplay.Progression
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (!TryValidate(out string error)) Debug.LogError(error, this);
+            if (!TryValidate(out string error)) PowerMath.Diagnostics.AppLog.Error("Progression", error, this);
         }
 #endif
     }

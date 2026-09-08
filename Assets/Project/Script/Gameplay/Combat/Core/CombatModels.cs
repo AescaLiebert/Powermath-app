@@ -73,6 +73,7 @@ namespace PowerMath.Gameplay.Combat
 
         public StageId Stage { get; }
         public string EnemyId { get; }
+        public string EncounterId => EnemyId;
         public string EnemyName { get; }
         public int EnemyCurrentHp { get; }
         public int EnemyMaximumHp { get; }

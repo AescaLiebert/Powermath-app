@@ -41,6 +41,8 @@ async function executeCommand(command: BridgeCommand): Promise<unknown> {
         pageName: figma.currentPage.name,
         selectionCount: figma.currentPage.selection.length,
       };
+    case 'ping2':
+      return { ping2: true };
     case 'inspect-selection':
       return inspectSelection();
     case 'inspect-node':
@@ -81,6 +83,10 @@ async function executeCommand(command: BridgeCommand): Promise<unknown> {
       return buildRebirthWireframe();
     case 'finalize-player-hub-interactions':
       return finalizePlayerHubInteractions();
+    case 'build-leaderboard-wireframe':
+      return buildLeaderboardWireframe(command);
+    case 'build-question-sequence-wireframe':
+      return buildQuestionSequenceWireframe(command);
     default:
       throw new Error(`Unsupported command: ${command.type}`);
   }
@@ -3048,6 +3054,1592 @@ const COIN_SVG = `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://
 const UP_SVG = `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><path d="M36 8 64 39H48v25H24V39H8L36 8Z" fill="#FFF8EC" stroke="#12396B" stroke-width="5" stroke-linejoin="round"/></svg>`;
 const CLOSE_SVG = `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><path d="m17 17 38 38M55 17 17 55" fill="none" stroke="#12396B" stroke-width="10" stroke-linecap="round"/></svg>`;
 const CHECK_SVG = `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><circle cx="36" cy="36" r="29" fill="#67B85F" stroke="#FFF8EC" stroke-width="4"/><path d="m20 37 10 10 23-25" fill="none" stroke="#FFF8EC" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const LEADERBOARD_CROWN_SVG = `<svg width="84" height="56" viewBox="0 0 84 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M42 4L49 18L64 8L58 34H26L20 8L35 18L42 4Z" fill="#F8C63E" stroke="#A86E12" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M42 10L46 20L56 13L51 32H33L28 13L38 20L42 10Z" fill="#FFEAA8"/>
+  <path d="M42 14L49 26H35L42 14Z" fill="#32BEFF" stroke="#125F96" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M42 26L49 26L42 36L35 26H42Z" fill="#1788D6" stroke="#125F96" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="20" cy="8" r="3.5" fill="#FFEAA8" stroke="#A86E12" stroke-width="1.5"/>
+  <circle cx="64" cy="8" r="3.5" fill="#FFEAA8" stroke="#A86E12" stroke-width="1.5"/>
+  <circle cx="42" cy="4" r="4" fill="#FFEAA8" stroke="#A86E12" stroke-width="1.5"/>
+  <rect x="23" y="34" width="38" height="6" rx="3" fill="#E89F18" stroke="#A86E12" stroke-width="2"/>
+</svg>`;
+
+const RANK1_VIP_SVG = `<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M28 2L35 10L45 8L46 19L54 24L50 34L54 44L44 46L40 54L30 50L24 54L18 48L8 46L10 36L2 30L6 20L5 10L15 10L20 2L28 2Z" fill="#2071DB" stroke="#0F3876" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M28 6L33 12L41 10L42 18L49 22L45 30L49 38L41 40L37 46L29 43L24 46L19 41L11 40L13 32L7 27L10 19L9 11L17 11L21 6L28 6Z" fill="#3E90F7"/>
+  <circle cx="28" cy="27" r="16" fill="#13479B" stroke="#87C4FF" stroke-width="2"/>
+  <path d="M25.5 21H28.5V34H25.5V21ZM24 23.5L28.5 20V23.5H24Z" fill="#FFFFFF"/>
+</svg>`;
+
+const RANK2_VIP_SVG = `<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M28 2L35 10L45 8L46 19L54 24L50 34L54 44L44 46L40 54L30 50L24 54L18 48L8 46L10 36L2 30L6 20L5 10L15 10L20 2L28 2Z" fill="#E89F18" stroke="#8C5305" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M28 6L33 12L41 10L42 18L49 22L45 30L49 38L41 40L37 46L29 43L24 46L19 41L11 40L13 32L7 27L10 19L9 11L17 11L21 6L28 6Z" fill="#FFC93E"/>
+  <circle cx="28" cy="27" r="16" fill="#A86408" stroke="#FFE98F" stroke-width="2"/>
+  <path d="M24 23C24 21.34 25.34 20 27 20H29C30.66 20 32 21.34 32 23C32 24.5 31 25.6 29.8 26.5L25.5 30.5V33H33V35H24V31.5L28.5 27.5C29.4 26.7 30 26 30 25C30 24.4 29.6 24 29 24H27C26.4 24 26 24.4 26 25H24V23Z" fill="#FFFFFF"/>
+</svg>`;
+
+const RANK3_VIP_SVG = `<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M28 2L35 10L45 8L46 19L54 24L50 34L54 44L44 46L40 54L30 50L24 54L18 48L8 46L10 36L2 30L6 20L5 10L15 10L20 2L28 2Z" fill="#B38059" stroke="#664124" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M28 6L33 12L41 10L42 18L49 22L45 30L49 38L41 40L37 46L29 43L24 46L19 41L11 40L13 32L7 27L10 19L9 11L17 11L21 6L28 6Z" fill="#D6A37C"/>
+  <circle cx="28" cy="27" r="16" fill="#754724" stroke="#F0D5C0" stroke-width="2"/>
+  <path d="M24 21H32V23.5L28.5 26.5C30.5 27 32 28.5 32 30.5C32 32.5 30.5 34 28 34C25.5 34 24 32.5 24 31H26.5C26.5 31.8 27.1 32.3 28 32.3C28.9 32.3 29.5 31.7 29.5 30.8C29.5 29.8 28.8 29.2 27.5 29.2H26.5V27.5H27.5C28.5 27.5 29.2 27 29.2 26.2C29.2 25.5 28.7 25 28 25C27.2 25 26.6 25.5 26.6 26.2H24.1V21Z" fill="#FFFFFF"/>
+</svg>`;
+
+const SILVER_COIN_SVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="11" cy="11" r="9.5" fill="#C5D7E8" stroke="#5A7694" stroke-width="1.5"/>
+  <circle cx="11" cy="11" r="7" fill="#E2ECF5" stroke="#90A7C2" stroke-width="1"/>
+  <path d="M11 6.5L12.1 9.5L15.3 9.5L12.7 11.4L13.7 14.5L11 12.6L8.3 14.5L9.3 11.4L6.7 9.5L9.9 9.5L11 6.5Z" fill="#FFFFFF"/>
+</svg>`;
+
+const GOLD_INGOT_SVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M11 2L19 6.5V15.5L11 20L3 15.5V6.5L11 2Z" fill="#F4B728" stroke="#9A6B0A" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M11 4L17 7.5L11 11L5 7.5L11 4Z" fill="#FFE272"/>
+  <path d="M11 11L17 7.5V14.5L11 18V11Z" fill="#DB9910"/>
+  <path d="M11 11L5 7.5V14.5L11 18V11Z" fill="#F0B020"/>
+</svg>`;
+
+const DIAMOND_GEM_SVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6.5 3H15.5L20 8.5L11 20L2 8.5L6.5 3Z" fill="#1FA0F0" stroke="#0C528B" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M6.5 3L11 8.5L15.5 3M2 8.5H20M11 8.5V20M11 8.5L6.5 20M11 8.5L15.5 20" stroke="#B0E6FF" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M6.5 3L2 8.5L11 8.5L6.5 3Z" fill="#58C2FF"/>
+  <path d="M15.5 3L11 8.5L20 8.5L15.5 3Z" fill="#0C78C4"/>
+</svg>`;
+
+const COHORT_LOCK_SVG = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="3" y="8.5" width="14" height="9.5" rx="2.5" fill="#0B2545"/>
+  <path d="M6 8.5V6C6 3.79086 7.79086 2 10 2C12.2091 2 14 3.79086 14 6V8.5" stroke="#0B2545" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="10" cy="13" r="1.5" fill="#FFFFFF"/>
+</svg>`;
+
+const REFRESH_CW_SVG = `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M22 6.5V12H16.5" stroke="#0B2545" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6 21.5V16H11.5" stroke="#0B2545" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M21.2 12C20.3 8.3 17 5.5 13 5.8C8.5 6.1 4.8 9.9 4.8 14.5M6.8 16C7.7 19.7 11 22.5 15 22.2C19.5 21.9 23.2 18.1 23.2 13.5" stroke="#0B2545" stroke-width="2.5" stroke-linecap="round"/>
+</svg>`;
+
+const THRONE_PODIUM_SVG = `<svg width="280" height="70" viewBox="0 0 280 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 30L140 2L260 30L140 58L20 30Z" fill="#D2ECFC" stroke="#87BDE8" stroke-width="2"/>
+  <path d="M20 30L140 58V70L20 42V30Z" fill="#6FB3E8" stroke="#377DB5" stroke-width="1.5"/>
+  <path d="M140 58L260 30V42L140 70V58Z" fill="#4B95D1" stroke="#377DB5" stroke-width="1.5"/>
+  <path d="M55 24L140 4L225 24L140 44L55 24Z" fill="#E8F6FF" stroke="#A7D2F2" stroke-width="1.5"/>
+</svg>`;
+
+async function buildLeaderboardWireframe(command: BridgeCommand) {
+  await Promise.all([
+    figma.loadFontAsync({ family: 'Inter', style: 'Regular' }),
+    figma.loadFontAsync({ family: 'Inter', style: 'Bold' }),
+    figma.loadFontAsync({ family: 'Inter', style: 'Extra Bold' }),
+  ]);
+
+  const existing = figma.currentPage.children.find(
+    (node) => node.type === 'SECTION' && node.name === 'Generated / Leaderboard UI Wireframe',
+  );
+  if (existing && existing.type === 'SECTION') {
+    existing.remove();
+  }
+
+  const created: string[] = [];
+  const variableIds: string[] = [];
+  const styleIds: string[] = [];
+
+  const colors = {
+    navy: '#0B2545',
+    navyDeep: '#06172E',
+    bluePrimary: '#1E65D6',
+    blueLight: '#52B3EC',
+    skySurface: '#EAF4FD',
+    cream: '#FFF8EB',
+    cardCream: '#FFFDF7',
+    borderBlue: '#93BBDC',
+    borderLight: '#D8E5F0',
+    greenSelf: '#64A55C',
+    greenSurface: '#F0F8EE',
+    greenBorder: '#74B26C',
+    goldVip: '#E89F18',
+    silverVip: '#B38059',
+    mutedText: '#667B92',
+    white: '#FFFFFF',
+  };
+
+  function track<T extends SceneNode>(node: T): T {
+    created.push(node.id);
+    return node;
+  }
+
+  function rgb(hex: string): RGB {
+    return parseColor(hex);
+  }
+
+  function rgba(hex: string, a: number): RGBA {
+    return { ...parseColor(hex), a };
+  }
+
+  function solidPaint(hex: string, opacity = 1): SolidPaint {
+    return { type: 'SOLID', color: rgb(hex), opacity };
+  }
+
+  function gradient(top: string, bottom: string): GradientPaint {
+    return {
+      type: 'GRADIENT_LINEAR',
+      gradientTransform: [[0, 1, 0], [-1, 0, 1]],
+      gradientStops: [
+        { position: 0, color: rgba(top, 1) },
+        { position: 1, color: rgba(bottom, 1) },
+      ],
+    };
+  }
+
+  // Tokens & Variables
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+  let collection = collections.find((item) => item.name === 'Leaderboard / Theme');
+  if (!collection) {
+    collection = figma.variables.createVariableCollection('Leaderboard / Theme');
+    collection.renameMode(collection.defaultModeId, 'Light Fantasy');
+  }
+  const modeId = collection.defaultModeId;
+  const localVariables = await figma.variables.getLocalVariablesAsync();
+
+  function colorVariable(name: string, value: string) {
+    let variable = localVariables.find(
+      (item) => item.name === name && item.variableCollectionId === collection!.id,
+    );
+    if (!variable) variable = figma.variables.createVariable(name, collection!, 'COLOR');
+    variable.scopes = ['FRAME_FILL', 'SHAPE_FILL', 'TEXT_FILL', 'STROKE_COLOR'];
+    variable.setValueForMode(modeId, rgb(value));
+    variable.setVariableCodeSyntax('WEB', `--${name.replace(/\//g, '-').toLowerCase()}`);
+    variableIds.push(variable.id);
+    return variable;
+  }
+
+  const vars = {
+    navy: colorVariable('color/navy', colors.navy),
+    blue: colorVariable('color/header-blue', colors.bluePrimary),
+    cream: colorVariable('color/surface-cream', colors.cardCream),
+    border: colorVariable('color/border-default', colors.borderBlue),
+    green: colorVariable('color/self-green', colors.greenSelf),
+  };
+
+  function boundPaint(variable: Variable, fallback: string): SolidPaint {
+    return figma.variables.setBoundVariableForPaint(solidPaint(fallback), 'color', variable);
+  }
+
+  // Effect styles
+  const localEffects = await figma.getLocalEffectStylesAsync();
+  function ensureEffectStyle(name: string, effects: Effect[]) {
+    let style = localEffects.find((item) => item.name === name);
+    if (!style) {
+      style = figma.createEffectStyle();
+      style.name = name;
+    }
+    style.effects = effects;
+    styleIds.push(style.id);
+    return style;
+  }
+
+  const modalShadow = ensureEffectStyle('Leaderboard / Modal Shadow', [
+    { type: 'DROP_SHADOW', color: rgba(colors.navyDeep, 0.22), offset: { x: 0, y: 14 }, radius: 24, spread: 0, visible: true, blendMode: 'NORMAL' },
+    { type: 'INNER_SHADOW', color: rgba(colors.white, 0.7), offset: { x: 0, y: 3 }, radius: 4, spread: 0, visible: true, blendMode: 'NORMAL' },
+  ]);
+
+  const cardShadow = ensureEffectStyle('Leaderboard / Card Shadow', [
+    { type: 'DROP_SHADOW', color: rgba(colors.navy, 0.12), offset: { x: 0, y: 6 }, radius: 10, spread: 0, visible: true, blendMode: 'NORMAL' },
+  ]);
+
+  const btnShadow = ensureEffectStyle('Leaderboard / Button Shadow', [
+    { type: 'DROP_SHADOW', color: rgba(colors.navy, 0.16), offset: { x: 0, y: 4 }, radius: 6, spread: 0, visible: true, blendMode: 'NORMAL' },
+  ]);
+
+  // Text styles
+  const localTextStyles = await figma.getLocalTextStylesAsync();
+  function ensureTextStyle(name: string, size: number, styleName: 'Bold' | 'Extra Bold' | 'Regular') {
+    let style = localTextStyles.find((item) => item.name === name);
+    if (!style) {
+      style = figma.createTextStyle();
+      style.name = name;
+    }
+    style.fontName = { family: 'Inter', style: styleName };
+    style.fontSize = size;
+    style.lineHeight = { unit: 'AUTO' };
+    styleIds.push(style.id);
+    return style;
+  }
+
+  const titleStyle = ensureTextStyle('Leaderboard / Title', 44, 'Extra Bold');
+  const stageBigStyle = ensureTextStyle('Leaderboard / Stage Number', 46, 'Extra Bold');
+  const rowNameStyle = ensureTextStyle('Leaderboard / Row Name', 20, 'Extra Bold');
+  const currencyStyle = ensureTextStyle('Leaderboard / Currency Value', 12, 'Bold');
+
+  // Auto Layout helpers
+  function auto(
+    parent: ChildrenMixin,
+    name: string,
+    width: number,
+    height: number,
+    direction: 'HORIZONTAL' | 'VERTICAL',
+    gap: number,
+    padding: number | [number, number] | [number, number, number, number],
+    fills: Paint[],
+    radius: number,
+    stroke?: Paint,
+    strokeWeight = 0,
+  ): FrameNode {
+    const node = track(figma.createFrame());
+    node.name = name;
+    node.resize(width, height);
+    node.layoutMode = direction;
+    node.primaryAxisSizingMode = 'FIXED';
+    node.counterAxisSizingMode = 'FIXED';
+    node.itemSpacing = gap;
+    if (typeof padding === 'number') {
+      node.paddingTop = padding;
+      node.paddingRight = padding;
+      node.paddingBottom = padding;
+      node.paddingLeft = padding;
+    } else if (padding.length === 2) {
+      node.paddingTop = padding[0];
+      node.paddingBottom = padding[0];
+      node.paddingLeft = padding[1];
+      node.paddingRight = padding[1];
+    } else {
+      node.paddingTop = padding[0];
+      node.paddingRight = padding[1];
+      node.paddingBottom = padding[2];
+      node.paddingLeft = padding[3];
+    }
+    node.fills = fills;
+    node.cornerRadius = radius;
+    node.cornerSmoothing = 0.6;
+    node.strokes = stroke ? [stroke] : [];
+    node.strokeWeight = stroke ? strokeWeight : 0;
+    parent.appendChild(node);
+    return node;
+  }
+
+  function text(
+    parent: ChildrenMixin,
+    name: string,
+    value: string,
+    size: number,
+    styleName: 'Regular' | 'Bold' | 'Extra Bold',
+    colorHex: string,
+    width?: number,
+    align: 'LEFT' | 'CENTER' | 'RIGHT' = 'LEFT',
+  ): TextNode {
+    const node = track(figma.createText());
+    node.name = name;
+    node.fontName = { family: 'Inter', style: styleName };
+    node.fontSize = size;
+    node.characters = value;
+    node.fills = [solidPaint(colorHex)];
+    node.textAlignHorizontal = align;
+    if (width) {
+      node.textAutoResize = 'HEIGHT';
+      node.resize(width, Math.max(16, size * 1.3));
+    } else {
+      node.textAutoResize = 'WIDTH_AND_HEIGHT';
+    }
+    parent.appendChild(node);
+    return node;
+  }
+
+  function icon(parent: ChildrenMixin, name: string, svg: string, size: number): FrameNode {
+    const node = track(figma.createNodeFromSvg(svg));
+    node.name = `Vector / ${name}`;
+    node.resize(size, size);
+    parent.appendChild(node);
+    return node;
+  }
+
+  function placeholderSlot(
+    parent: ChildrenMixin,
+    name: string,
+    width: number,
+    height: number,
+    label: string,
+    radius = 14,
+    strokeColor = colors.borderLight,
+    fillColor = colors.skySurface,
+  ): FrameNode {
+    const node = auto(
+      parent,
+      name,
+      width,
+      height,
+      'VERTICAL',
+      4,
+      4,
+      [solidPaint(fillColor)],
+      radius,
+      solidPaint(strokeColor),
+      1.5,
+    );
+    node.primaryAxisAlignItems = 'CENTER';
+    node.counterAxisAlignItems = 'CENTER';
+    text(node, 'Slot Label', label, 9, 'Bold', colors.mutedText, width - 8, 'CENTER');
+    return node;
+  }
+
+  function currencyRow(parent: ChildrenMixin, silver: string, gold: string, diamond: string) {
+    const col = auto(parent, '.row-currencies', 110, 58, 'VERTICAL', 3, 0, [], 0);
+    col.counterAxisAlignItems = 'MIN';
+
+    const sRow = auto(col, '.currency-silver', 105, 16, 'HORIZONTAL', 6, 0, [], 0);
+    sRow.counterAxisAlignItems = 'CENTER';
+    icon(sRow, 'Silver Coin', SILVER_COIN_SVG, 16);
+    const sTxt = text(sRow, 'Silver Amount', silver, 12, 'Bold', colors.navy);
+    sTxt.setTextStyleIdAsync(currencyStyle.id);
+
+    const gRow = auto(col, '.currency-gold', 105, 16, 'HORIZONTAL', 6, 0, [], 0);
+    gRow.counterAxisAlignItems = 'CENTER';
+    icon(gRow, 'Gold Ingot', GOLD_INGOT_SVG, 16);
+    const gTxt = text(gRow, 'Gold Amount', gold, 12, 'Bold', colors.navy);
+    gTxt.setTextStyleIdAsync(currencyStyle.id);
+
+    const dRow = auto(col, '.currency-diamond', 105, 16, 'HORIZONTAL', 6, 0, [], 0);
+    dRow.counterAxisAlignItems = 'CENTER';
+    icon(dRow, 'Diamond Gem', DIAMOND_GEM_SVG, 16);
+    const dTxt = text(dRow, 'Diamond Amount', diamond, 12, 'Bold', colors.navy);
+    dTxt.setTextStyleIdAsync(currencyStyle.id);
+
+    return col;
+  }
+
+  // Position on canvas
+  let maxX = 0;
+  for (const child of figma.currentPage.children) {
+    maxX = Math.max(maxX, child.x + child.width);
+  }
+
+  const section = figma.createSection();
+  section.name = 'Generated / Leaderboard UI Wireframe';
+  section.resizeWithoutConstraints(2200, 1260);
+  section.x = maxX + 200;
+  section.y = 0;
+  figma.currentPage.appendChild(section);
+  created.push(section.id);
+  section.fills = [solidPaint('#D9E2EC')];
+
+  const sectionTitle = text(section, 'Section Title', 'LEADERBOARD — GAME-READY AUTO LAYOUT UI', 28, 'Extra Bold', colors.navy);
+  sectionTitle.x = 40;
+  sectionTitle.y = 36;
+  const sectionNote = text(
+    section,
+    'Section Note',
+    'Hard-referenced v13 specification • Full Auto Layout & Flexbox USS mapping • Labeled placeholders for character/pet/weapon/avatar • Visual Diamond/Gold/Silver VIP hierarchy',
+    14,
+    'Regular',
+    colors.navy,
+  );
+  sectionNote.x = 40;
+  sectionNote.y = 76;
+
+  // Main 16:9 Screen (1680x945)
+  const screen = auto(
+    section,
+    '.leaderboard-screen',
+    1680,
+    945,
+    'VERTICAL',
+    18,
+    28,
+    [gradient('#EBF5FE', '#D8ECFB')],
+    32,
+    solidPaint(colors.borderBlue),
+    3,
+  );
+  screen.x = 40;
+  screen.y = 120;
+  screen.clipsContent = true;
+  await screen.setEffectStyleIdAsync(modalShadow.id);
+
+  // 1. Header Bar (.leaderboard-header)
+  const header = auto(screen, '.leaderboard-header', 1624, 76, 'HORIZONTAL', 0, [0, 8], [], 0);
+  header.layoutAlign = 'STRETCH';
+  header.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  header.counterAxisAlignItems = 'CENTER';
+
+  // Header Left: Title
+  const titleGroup = auto(header, '.header-title-block', 380, 56, 'HORIZONTAL', 10, 0, [], 0);
+  titleGroup.counterAxisAlignItems = 'CENTER';
+  const title = text(titleGroup, '.title-label', 'LEADERBOARD', 44, 'Extra Bold', colors.navy);
+  await title.setTextStyleIdAsync(titleStyle.id);
+  text(titleGroup, '.title-sparkle', '✦', 28, 'Extra Bold', colors.bluePrimary);
+
+  // Header Center: Cohort Pill & Scoring Subtitle
+  const headerCenter = auto(header, '.header-center-block', 460, 68, 'VERTICAL', 6, 0, [], 0);
+  headerCenter.primaryAxisAlignItems = 'CENTER';
+  headerCenter.counterAxisAlignItems = 'CENTER';
+
+  const cohortPill = auto(
+    headerCenter,
+    '.header-cohort-badge',
+    230,
+    36,
+    'HORIZONTAL',
+    8,
+    [6, 18],
+    [solidPaint('#C8DCF0')],
+    18,
+    solidPaint(colors.navy),
+    2,
+  );
+  cohortPill.primaryAxisAlignItems = 'CENTER';
+  cohortPill.counterAxisAlignItems = 'CENTER';
+  icon(cohortPill, 'Lock Icon', COHORT_LOCK_SVG, 18);
+  text(cohortPill, '.cohort-text', 'GRADE 4 · LEVEL 1', 15, 'Extra Bold', colors.navy);
+
+  const subtitleGroup = auto(headerCenter, '.header-scoring-legend', 420, 20, 'HORIZONTAL', 8, 0, [], 0);
+  subtitleGroup.primaryAxisAlignItems = 'CENTER';
+  subtitleGroup.counterAxisAlignItems = 'CENTER';
+  const leftLine = track(figma.createRectangle());
+  leftLine.name = '.legend-rule-left';
+  leftLine.resize(28, 2);
+  leftLine.fills = [solidPaint(colors.borderBlue)];
+  subtitleGroup.appendChild(leftLine);
+  text(subtitleGroup, '.star-left', '✦', 11, 'Extra Bold', colors.bluePrimary);
+  text(subtitleGroup, '.legend-text', 'Best Stage first, then weighted Rank Currency', 13, 'Bold', colors.navy);
+  text(subtitleGroup, '.star-right', '✦', 11, 'Extra Bold', colors.bluePrimary);
+  const rightLine = track(figma.createRectangle());
+  rightLine.name = '.legend-rule-right';
+  rightLine.resize(28, 2);
+  rightLine.fills = [solidPaint(colors.borderBlue)];
+  subtitleGroup.appendChild(rightLine);
+
+  // Header Right: Freshness + Refresh + Close
+  const headerRight = auto(header, '.header-controls', 260, 56, 'HORIZONTAL', 14, 0, [], 0);
+  headerRight.primaryAxisAlignItems = 'MAX';
+  headerRight.counterAxisAlignItems = 'CENTER';
+  text(headerRight, '.freshness-label', 'Updated 12:42', 13, 'Bold', colors.mutedText);
+
+  const btnRefresh = auto(
+    headerRight,
+    '.btn-refresh',
+    52,
+    52,
+    'HORIZONTAL',
+    0,
+    0,
+    [solidPaint(colors.cream)],
+    16,
+    solidPaint(colors.navy),
+    2.5,
+  );
+  btnRefresh.primaryAxisAlignItems = 'CENTER';
+  btnRefresh.counterAxisAlignItems = 'CENTER';
+  await btnRefresh.setEffectStyleIdAsync(btnShadow.id);
+  icon(btnRefresh, 'Refresh', REFRESH_CW_SVG, 26);
+
+  const btnClose = auto(
+    headerRight,
+    '.btn-close',
+    52,
+    52,
+    'HORIZONTAL',
+    0,
+    0,
+    [solidPaint(colors.cream)],
+    16,
+    solidPaint(colors.navy),
+    2.5,
+  );
+  btnClose.primaryAxisAlignItems = 'CENTER';
+  btnClose.counterAxisAlignItems = 'CENTER';
+  await btnClose.setEffectStyleIdAsync(btnShadow.id);
+  icon(btnClose, 'Close', CLOSE_SVG, 24);
+
+  // 2. Main Body Container (.leaderboard-body)
+  const body = auto(screen, '.leaderboard-body', 1624, 785, 'HORIZONTAL', 24, 0, [], 0);
+  body.layoutAlign = 'STRETCH';
+  body.layoutGrow = 1;
+
+  // 2A. Left Throne / First Place Showcase (.leaderboard-throne)
+  const throne = auto(
+    body,
+    '.leaderboard-throne',
+    440,
+    785,
+    'VERTICAL',
+    0,
+    [12, 16, 16, 16],
+    [gradient('#2184D7', '#57B9EF')],
+    28,
+    solidPaint(colors.cream),
+    4,
+  );
+  throne.counterAxisAlignItems = 'CENTER';
+  throne.clipsContent = true;
+  await throne.setEffectStyleIdAsync(cardShadow.id);
+
+  // Throne Top: Crown & First Place Ribbon
+  const ribbonGroup = auto(throne, '.throne-header-ribbon', 408, 96, 'VERTICAL', -2, 0, [], 0);
+  ribbonGroup.primaryAxisAlignItems = 'CENTER';
+  ribbonGroup.counterAxisAlignItems = 'CENTER';
+  icon(ribbonGroup, 'Throne Crown', LEADERBOARD_CROWN_SVG, 84);
+
+  const ribbon = auto(
+    ribbonGroup,
+    '.ribbon-banner',
+    350,
+    42,
+    'HORIZONTAL',
+    0,
+    [6, 16],
+    [solidPaint(colors.cream)],
+    8,
+    solidPaint(colors.goldVip),
+    2.5,
+  );
+  ribbon.primaryAxisAlignItems = 'CENTER';
+  ribbon.counterAxisAlignItems = 'CENTER';
+  await ribbon.setEffectStyleIdAsync(btnShadow.id);
+  text(ribbon, '.ribbon-text', '✦   FIRST PLACE   ✦', 18, 'Extra Bold', colors.navy);
+
+  // Throne Middle: Character & Pet Stage Viewport
+  const stageViewport = auto(throne, '.throne-stage-viewport', 408, 450, 'VERTICAL', 8, [12, 8], [], 0);
+  stageViewport.layoutGrow = 1;
+  stageViewport.primaryAxisAlignItems = 'CENTER';
+  stageViewport.counterAxisAlignItems = 'CENTER';
+
+  // Hero Characters Slot Group
+  const heroGroup = auto(stageViewport, '.hero-sprite-group', 380, 310, 'HORIZONTAL', 12, 0, [], 0);
+  heroGroup.primaryAxisAlignItems = 'CENTER';
+  heroGroup.counterAxisAlignItems = 'CENTER';
+
+  placeholderSlot(
+    heroGroup,
+    '.character-sprite-placeholder',
+    240,
+    290,
+    'Character Hero Sprite Slot\n(Empty Placeholder)',
+    20,
+    '#FFFFFF',
+    '#3290D9',
+  );
+
+  placeholderSlot(
+    heroGroup,
+    '.pet-sprite-placeholder',
+    100,
+    110,
+    'Pet Sprite Slot\n(Empty Placeholder)',
+    16,
+    '#FFFFFF',
+    '#3898E0',
+  );
+
+  // Podium base vector
+  icon(stageViewport, 'Throne Podium', THRONE_PODIUM_SVG, 280);
+
+  // Throne Bottom Info Card (.throne-info-card)
+  const throneCard = auto(
+    throne,
+    '.throne-info-card',
+    408,
+    170,
+    'VERTICAL',
+    4,
+    [12, 14],
+    [solidPaint(colors.cardCream)],
+    22,
+    solidPaint(colors.borderBlue),
+    2,
+  );
+  throneCard.counterAxisAlignItems = 'CENTER';
+
+  text(throneCard, '.throne-player-name', 'MIRA', 28, 'Extra Bold', colors.navy);
+
+  const bestStagePill = auto(
+    throneCard,
+    '.throne-stage-pill',
+    110,
+    24,
+    'HORIZONTAL',
+    0,
+    [3, 10],
+    [solidPaint('#A2DAFF')],
+    10,
+  );
+  bestStagePill.primaryAxisAlignItems = 'CENTER';
+  bestStagePill.counterAxisAlignItems = 'CENTER';
+  text(bestStagePill, '.pill-text', 'BEST STAGE', 11, 'Extra Bold', '#083D69');
+
+  const bigStageNum = text(throneCard, '.throne-stage-number', '200', 46, 'Extra Bold', colors.navy);
+  await bigStageNum.setTextStyleIdAsync(stageBigStyle.id);
+
+  // Currency Row on bottom of card
+  const throneCurrencies = auto(throneCard, '.throne-currency-bar', 380, 26, 'HORIZONTAL', 0, [4, 12, 0, 12], [], 0);
+  throneCurrencies.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  throneCurrencies.counterAxisAlignItems = 'CENTER';
+
+  const tc1 = auto(throneCurrencies, '.currency-item-silver', 100, 22, 'HORIZONTAL', 6, 0, [], 0);
+  tc1.counterAxisAlignItems = 'CENTER';
+  icon(tc1, 'Silver Icon', SILVER_COIN_SVG, 18);
+  text(tc1, 'Val', '82,450', 12, 'Bold', colors.navy);
+
+  const tc2 = auto(throneCurrencies, '.currency-item-gold', 100, 22, 'HORIZONTAL', 6, 0, [], 0);
+  tc2.counterAxisAlignItems = 'CENTER';
+  icon(tc2, 'Gold Icon', GOLD_INGOT_SVG, 18);
+  text(tc2, 'Val', '64,210', 12, 'Bold', colors.navy);
+
+  const tc3 = auto(throneCurrencies, '.currency-item-diamond', 100, 22, 'HORIZONTAL', 6, 0, [], 0);
+  tc3.counterAxisAlignItems = 'CENTER';
+  icon(tc3, 'Diamond Icon', DIAMOND_GEM_SVG, 18);
+  text(tc3, 'Val', '21,350', 12, 'Bold', colors.navy);
+
+  // 2B. Right Column (.leaderboard-list-column)
+  const rightCol = auto(body, '.leaderboard-list-column', 1160, 785, 'VERTICAL', 16, 0, [], 0);
+  rightCol.layoutGrow = 1;
+
+  // Pinned Self Row (.leaderboard-pinned-self)
+  const pinnedSelf = auto(
+    rightCol,
+    '.leaderboard-pinned-self',
+    1160,
+    132,
+    'VERTICAL',
+    0,
+    0,
+    [solidPaint(colors.greenSurface)],
+    20,
+    solidPaint(colors.greenBorder),
+    2.5,
+  );
+  pinnedSelf.layoutAlign = 'STRETCH';
+  pinnedSelf.clipsContent = true;
+  await pinnedSelf.setEffectStyleIdAsync(cardShadow.id);
+
+  // Pinned Tag
+  const pinnedHeader = auto(
+    pinnedSelf,
+    '.pinned-self-header',
+    1160,
+    24,
+    'HORIZONTAL',
+    0,
+    0,
+    [solidPaint(colors.greenSelf)],
+    0,
+  );
+  pinnedHeader.layoutAlign = 'STRETCH';
+  pinnedHeader.primaryAxisAlignItems = 'CENTER';
+  pinnedHeader.counterAxisAlignItems = 'CENTER';
+  text(pinnedHeader, '.header-text', '★   YOUR STANDING · YOU   ★', 12, 'Extra Bold', colors.white);
+
+  // Pinned Row Content
+  const pinnedContent = auto(
+    pinnedSelf,
+    '.pinned-self-row',
+    1160,
+    108,
+    'HORIZONTAL',
+    16,
+    [10, 18],
+    [],
+    0,
+  );
+  pinnedContent.layoutAlign = 'STRETCH';
+  pinnedContent.counterAxisAlignItems = 'CENTER';
+  pinnedContent.primaryAxisAlignItems = 'SPACE_BETWEEN';
+
+  // Rank #24
+  const selfRank = auto(
+    pinnedContent,
+    '.rank-badge-self',
+    68,
+    68,
+    'HORIZONTAL',
+    0,
+    0,
+    [solidPaint('#D8EED3')],
+    16,
+    solidPaint('#80BD78'),
+    2,
+  );
+  selfRank.primaryAxisAlignItems = 'CENTER';
+  selfRank.counterAxisAlignItems = 'CENTER';
+  text(selfRank, 'Rank Text', '#24', 26, 'Extra Bold', '#276C23');
+
+  // Avatar Slot Placeholder
+  placeholderSlot(pinnedContent, '.row-avatar-slot', 68, 68, 'ProfilePic\nSlot', 16, '#80BD78', '#E1EFE0');
+
+  // Identity Block
+  const selfId = auto(pinnedContent, '.row-identity', 140, 68, 'VERTICAL', 4, 0, [], 0);
+  selfId.primaryAxisAlignItems = 'CENTER';
+  text(selfId, '.player-name', 'NOVA', 22, 'Extra Bold', colors.navy);
+  const selfStages = auto(selfId, '.stages-row', 140, 36, 'HORIZONTAL', 14, 0, [], 0);
+  selfStages.primaryAxisAlignItems = 'CENTER';
+  const sc1 = auto(selfStages, '.stage-col-current', 55, 36, 'VERTICAL', 0, 0, [], 0);
+  sc1.primaryAxisAlignItems = 'CENTER';
+  text(sc1, 'lbl', 'CURRENT', 9, 'Bold', colors.mutedText);
+  text(sc1, 'val', '68', 19, 'Extra Bold', '#276C23');
+  const sc2 = auto(selfStages, '.stage-col-best', 55, 36, 'VERTICAL', 0, 0, [], 0);
+  sc2.primaryAxisAlignItems = 'CENTER';
+  text(sc2, 'lbl', 'BEST', 9, 'Bold', colors.mutedText);
+  text(sc2, 'val', '91', 19, 'Extra Bold', colors.bluePrimary);
+
+  // Currencies
+  currencyRow(pinnedContent, '18,240', '12,870', '4,690');
+
+  // Loadout slots (Pet & Weapon empty placeholders)
+  const selfLoadout = auto(pinnedContent, '.row-loadout', 136, 64, 'HORIZONTAL', 8, 0, [], 0);
+  placeholderSlot(selfLoadout, '.slot-pet', 64, 64, 'Pet\nSlot', 12, colors.greenBorder, colors.cardCream);
+  placeholderSlot(selfLoadout, '.slot-weapon', 64, 64, 'Weapon\nSlot', 12, colors.greenBorder, colors.cardCream);
+
+  // Damage & Jump Button
+  const selfAction = auto(pinnedContent, '.row-action-block', 130, 76, 'VERTICAL', 4, 0, [], 0);
+  selfAction.primaryAxisAlignItems = 'CENTER';
+  selfAction.counterAxisAlignItems = 'MAX';
+  text(selfAction, '.dmg-label', 'TOTAL DMG', 11, 'Bold', colors.mutedText);
+  text(selfAction, '.dmg-value', '125K', 22, 'Extra Bold', colors.navy);
+  const btnJump = auto(
+    selfAction,
+    '.btn-jump-to-row',
+    128,
+    28,
+    'HORIZONTAL',
+    0,
+    [4, 10],
+    [solidPaint('#448D55')],
+    8,
+  );
+  btnJump.primaryAxisAlignItems = 'CENTER';
+  btnJump.counterAxisAlignItems = 'CENTER';
+  text(btnJump, 'btn-txt', 'JUMP TO MY ROW ⌵', 10, 'Extra Bold', colors.white);
+
+  // Leaderboard Scroll List Container (.leaderboard-scroll-view)
+  const listCard = auto(
+    rightCol,
+    '.leaderboard-scroll-view',
+    1160,
+    637,
+    'HORIZONTAL',
+    10,
+    [10, 8, 10, 14],
+    [solidPaint(colors.cardCream)],
+    24,
+    solidPaint(colors.borderBlue),
+    2.5,
+  );
+  listCard.layoutAlign = 'STRETCH';
+  listCard.layoutGrow = 1;
+  await listCard.setEffectStyleIdAsync(cardShadow.id);
+
+  // Rows Stack (.leaderboard-rows-stack)
+  const rowsStack = auto(listCard, '.leaderboard-rows-stack', 1118, 617, 'VERTICAL', 8, 0, [], 0);
+  rowsStack.layoutGrow = 1;
+
+  type LeaderboardRowDef = {
+    rank: number;
+    name: string;
+    currentStage: string;
+    bestStage: string;
+    silver: string;
+    gold: string;
+    diamond: string;
+    damage: string;
+    vipType: 'diamond' | 'gold' | 'silver' | 'none';
+  };
+
+  const rowsData: LeaderboardRowDef[] = [
+    { rank: 1, name: 'MIRA', currentStage: '200', bestStage: '200', silver: '82,450', gold: '64,210', diamond: '21,350', damage: '512K', vipType: 'diamond' },
+    { rank: 2, name: 'LEO', currentStage: '178', bestStage: '190', silver: '65,780', gold: '50,190', diamond: '17,820', damage: '368K', vipType: 'gold' },
+    { rank: 3, name: 'ARIN', currentStage: '156', bestStage: '170', silver: '49,210', gold: '37,890', diamond: '13,450', damage: '289K', vipType: 'silver' },
+    { rank: 4, name: 'KAI', currentStage: '132', bestStage: '152', silver: '38,640', gold: '28,710', diamond: '10,580', damage: '236K', vipType: 'none' },
+    { rank: 5, name: 'LUNA', currentStage: '118', bestStage: '138', silver: '31,280', gold: '22,940', diamond: '8,290', damage: '198K', vipType: 'none' },
+  ];
+
+  for (const def of rowsData) {
+    let rowFill = colors.white;
+    let rowStroke = colors.borderLight;
+    if (def.vipType === 'diamond') {
+      rowFill = '#F0F7FD';
+      rowStroke = '#85BEE8';
+    } else if (def.vipType === 'gold') {
+      rowFill = '#FFFBF2';
+      rowStroke = '#F2CE76';
+    } else if (def.vipType === 'silver') {
+      rowFill = '#FAF7F3';
+      rowStroke = '#DFCAC0';
+    }
+
+    const row = auto(
+      rowsStack,
+      `.leaderboard-row--rank-${def.rank}`,
+      1118,
+      112,
+      'HORIZONTAL',
+      16,
+      [10, 16],
+      [solidPaint(rowFill)],
+      16,
+      solidPaint(rowStroke),
+      def.vipType !== 'none' ? 2 : 1.5,
+    );
+    row.layoutAlign = 'STRETCH';
+    row.counterAxisAlignItems = 'CENTER';
+    row.primaryAxisAlignItems = 'SPACE_BETWEEN';
+
+    // Rank Slot (Crest for top 3, number for 4-5)
+    const rankSlot = auto(row, '.row-rank-slot', 60, 60, 'HORIZONTAL', 0, 0, [], 0);
+    rankSlot.primaryAxisAlignItems = 'CENTER';
+    rankSlot.counterAxisAlignItems = 'CENTER';
+    if (def.vipType === 'diamond') {
+      icon(rankSlot, 'Rank 1 Diamond Crest', RANK1_VIP_SVG, 56);
+    } else if (def.vipType === 'gold') {
+      icon(rankSlot, 'Rank 2 Gold Crest', RANK2_VIP_SVG, 56);
+    } else if (def.vipType === 'silver') {
+      icon(rankSlot, 'Rank 3 Silver Crest', RANK3_VIP_SVG, 56);
+    } else {
+      text(rankSlot, 'Rank Number', String(def.rank), 28, 'Extra Bold', colors.navy);
+    }
+
+    // Avatar Placeholder
+    placeholderSlot(
+      row,
+      '.row-avatar-slot',
+      60,
+      60,
+      'ProfilePic\nSlot',
+      14,
+      rowStroke,
+      def.vipType === 'diamond' ? '#E1F0FA' : def.vipType === 'gold' ? '#FFF6DF' : '#F2ECE5',
+    );
+
+    // Identity (Name + Current/Best Stage)
+    const idBlock = auto(row, '.row-identity', 140, 60, 'VERTICAL', 2, 0, [], 0);
+    idBlock.primaryAxisAlignItems = 'CENTER';
+    const rName = text(idBlock, '.player-name', def.name, 20, 'Extra Bold', colors.navy);
+    rName.setTextStyleIdAsync(rowNameStyle.id);
+
+    const stagesRow = auto(idBlock, '.stages-row', 140, 32, 'HORIZONTAL', 12, 0, [], 0);
+    stagesRow.primaryAxisAlignItems = 'CENTER';
+    const stCur = auto(stagesRow, '.stage-col-current', 55, 32, 'VERTICAL', 0, 0, [], 0);
+    stCur.primaryAxisAlignItems = 'CENTER';
+    text(stCur, 'lbl', 'CURRENT', 9, 'Bold', colors.mutedText);
+    text(stCur, 'val', def.currentStage, 16, 'Extra Bold', '#276C23');
+
+    const stBest = auto(stagesRow, '.stage-col-best', 55, 32, 'VERTICAL', 0, 0, [], 0);
+    stBest.primaryAxisAlignItems = 'CENTER';
+    text(stBest, 'lbl', 'BEST', 9, 'Bold', colors.mutedText);
+    text(stBest, 'val', def.bestStage, 16, 'Extra Bold', colors.bluePrimary);
+
+    // Currencies
+    currencyRow(row, def.silver, def.gold, def.diamond);
+
+    // Loadout slots (Pet & Weapon)
+    const loadout = auto(row, '.row-loadout', 128, 58, 'HORIZONTAL', 8, 0, [], 0);
+    placeholderSlot(loadout, '.slot-pet', 58, 58, 'Pet\nSlot', 12, rowStroke, colors.cardCream);
+    placeholderSlot(loadout, '.slot-weapon', 58, 58, 'Weapon\nSlot', 12, rowStroke, colors.cardCream);
+
+    // Damage
+    const dmgBlock = auto(row, '.row-damage', 110, 56, 'VERTICAL', 2, 0, [], 0);
+    dmgBlock.primaryAxisAlignItems = 'CENTER';
+    dmgBlock.counterAxisAlignItems = 'CENTER';
+    text(dmgBlock, '.dmg-label', 'TOTAL DMG', 10, 'Bold', colors.mutedText);
+    text(dmgBlock, '.dmg-value', def.damage, 22, 'Extra Bold', colors.navy);
+  }
+
+  // Scrollbar Track & Thumb
+  const scrollbar = auto(
+    listCard,
+    '.scrollbar-track',
+    10,
+    617,
+    'VERTICAL',
+    0,
+    [4, 2],
+    [solidPaint('#E3EEF6')],
+    5,
+  );
+  scrollbar.layoutAlign = 'STRETCH';
+
+  const thumb = track(figma.createRectangle());
+  thumb.name = '.scrollbar-thumb';
+  thumb.resize(6, 120);
+  thumb.cornerRadius = 3;
+  thumb.fills = [solidPaint('#8DAECB')];
+  scrollbar.appendChild(thumb);
+
+  figma.currentPage.selection = [screen];
+  figma.viewport.scrollAndZoomIntoView([screen]);
+
+  return {
+    reused: false,
+    sectionNodeId: section.id,
+    screenNodeId: screen.id,
+    variableCollectionId: collection.id,
+    variableIds,
+    styleIds,
+    createdNodeIds: created,
+  };
+}
+
+const QS_RUNNER_SVG = `<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="36" cy="14" r="7" fill="#0284C7"/><path d="M22 28L32 23L42 27L48 37" stroke="#0284C7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 33L24 45L14 51" stroke="#0284C7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M35 34L41 46L54 50" stroke="#0284C7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 25L16 35" stroke="#0284C7" stroke-width="5" stroke-linecap="round"/></svg>`;
+const QS_SHIELD_SVG = `<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 8L52 16V32C52 45 43 53 32 58C21 53 12 45 12 32V16L32 8Z" fill="#38BDF8" stroke="#0284C7" stroke-width="4" stroke-linejoin="round"/><path d="M32 16V50C39 46 45 40 45 32V22L32 16Z" fill="#0284C7"/><path d="M20 22L32 16V50C25 46 19 40 19 32V22H20Z" fill="#7DD3FC"/></svg>`;
+const QS_SWORDS_SVG = `<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 14L48 48M48 14L14 48" stroke="#DC2626" stroke-width="5" stroke-linecap="round"/><path d="M10 52L16 46M52 52L46 46" stroke="#991B1B" stroke-width="6" stroke-linecap="round"/><path d="M12 44L18 50M50 44L44 50" stroke="#991B1B" stroke-width="4" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="#DC2626"/><circle cx="52" cy="12" r="3" fill="#DC2626"/></svg>`;
+const QS_BACKSPACE_SVG = `<svg width="48" height="36" viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 6L6 18L16 30H40C42.2 30 44 28.2 44 26V10C44 7.8 42.2 6 40 6H16Z" fill="#E2E8F0" stroke="#0B2545" stroke-width="3" stroke-linejoin="round"/><path d="M24 12L34 24M34 12L24 24" stroke="#0B2545" stroke-width="3.5" stroke-linecap="round"/></svg>`;
+const QS_CIRCULAR_TIMER_SVG = `<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="80" r="66" stroke="#E0F2FE" stroke-width="12"/><path d="M80 14A66 66 0 1 1 22 110" stroke="#0EA5E9" stroke-width="12" stroke-linecap="round"/><path d="M22 110L25 99L33 107L22 110Z" fill="#38BDF8"/><circle cx="22" cy="110" r="7" fill="#0284C7"/><path d="M80 6L82 12L88 14L82 16L80 22L78 16L72 14L78 12L80 6Z" fill="#38BDF8"/></svg>`;
+const QS_LAUREL_WREATH_SVG = `<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="62" fill="#FEF9C3" stroke="#FACC15" stroke-width="6"/><circle cx="90" cy="90" r="54" fill="#FFFFFF" stroke="#38BDF8" stroke-width="3"/><path d="M48 128C38 114 36 94 42 76C48 58 62 46 76 40" stroke="#84CC16" stroke-width="5" stroke-linecap="round"/><path d="M132 128C142 114 144 94 138 76C132 58 118 46 104 40" stroke="#84CC16" stroke-width="5" stroke-linecap="round"/><circle cx="38" cy="94" r="6" fill="#84CC16"/><circle cx="44" cy="74" r="6" fill="#84CC16"/><circle cx="56" cy="56" r="6" fill="#84CC16"/><circle cx="142" cy="94" r="6" fill="#84CC16"/><circle cx="136" cy="74" r="6" fill="#84CC16"/><circle cx="124" cy="56" r="6" fill="#84CC16"/></svg>`;
+const QS_BROKEN_SWORD_SVG = `<svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="70" cy="70" r="58" fill="#FEE2E2" stroke="#F87171" stroke-width="5"/><path d="M38 102L56 84M50 102L40 92" stroke="#991B1B" stroke-width="7" stroke-linecap="round"/><path d="M54 86L70 70L62 66L68 60" stroke="#DC2626" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M78 54L86 60L102 38" stroke="#DC2626" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M60 48L68 40M88 76L96 68M92 48L100 56" stroke="#F87171" stroke-width="3" stroke-linecap="round"/></svg>`;
+const QS_WARNING_ALERT_SVG = `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 5L36 33H4L20 5Z" fill="#EF4444" stroke="#B91C1C" stroke-width="3" stroke-linejoin="round"/><path d="M20 15V23" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/><circle cx="20" cy="28" r="2" fill="#FFFFFF"/></svg>`;
+
+async function buildQuestionSequenceWireframe(command: BridgeCommand) {
+  await Promise.all([
+    figma.loadFontAsync({ family: 'Inter', style: 'Regular' }),
+    figma.loadFontAsync({ family: 'Inter', style: 'Bold' }),
+    figma.loadFontAsync({ family: 'Inter', style: 'Extra Bold' }),
+  ]);
+
+  const existing = figma.currentPage.children.find(
+    (node) => node.type === 'SECTION' && node.name === 'Generated / Question Sequence UI Wireframe',
+  );
+  if (existing && existing.type === 'SECTION') {
+    existing.remove();
+  }
+
+  const created: string[] = [];
+  const variableIds: string[] = [];
+  const styleIds: string[] = [];
+
+  const colors = {
+    navy: '#0B2545',
+    navyDeep: '#06172E',
+    slateMuted: '#64748B',
+    borderBlue: '#93BBDC',
+    borderCard: '#BFD7EA',
+    borderInput: '#85B6DE',
+    borderLight: '#D4E2EE',
+    surfaceScreen: '#F2F6FA',
+    surfaceCard: '#FFFFFF',
+    surfaceInput: '#F4F8FD',
+    surfaceKey: '#F0F5FA',
+    surfaceKeyBorder: '#D4E2EE',
+    buffBlueBg: '#E0F2FE',
+    buffBlueBorder: '#BAE6FD',
+    buffBlueIcon: '#0284C7',
+    buffRedBg: '#FEE2E2',
+    buffRedBorder: '#FECACA',
+    buffRedIcon: '#DC2626',
+    hpRedBg: '#FEE2E2',
+    hpRedBorder: '#FECACA',
+    hpRedFill: '#EF4444',
+    btnOrangeTop: '#FF8533',
+    btnOrangeBottom: '#F24E2E',
+    btnOrangeBorder: '#E03E20',
+    greenCorrect: '#22C55E',
+    blueDamage: '#1E65D6',
+    redFailure: '#EF4444',
+    white: '#FFFFFF',
+  };
+
+  function track<T extends SceneNode>(node: T): T {
+    created.push(node.id);
+    return node;
+  }
+
+  function rgb(hex: string): RGB {
+    return parseColor(hex);
+  }
+
+  function rgba(hex: string, a: number): RGBA {
+    return { ...parseColor(hex), a };
+  }
+
+  function solidPaint(hex: string, opacity = 1): SolidPaint {
+    return { type: 'SOLID', color: rgb(hex), opacity };
+  }
+
+  function gradient(top: string, bottom: string): GradientPaint {
+    return {
+      type: 'GRADIENT_LINEAR',
+      gradientTransform: [[0, 1, 0], [-1, 0, 1]],
+      gradientStops: [
+        { position: 0, color: rgba(top, 1) },
+        { position: 1, color: rgba(bottom, 1) },
+      ],
+    };
+  }
+
+  // Tokens & Variables
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+  let collection = collections.find((item) => item.name === 'Question Sequence / Theme');
+  if (!collection) {
+    collection = figma.variables.createVariableCollection('Question Sequence / Theme');
+    collection.renameMode(collection.defaultModeId, 'Light Fantasy');
+  }
+  const modeId = collection.defaultModeId;
+  const localVariables = await figma.variables.getLocalVariablesAsync();
+
+  function colorVariable(name: string, value: string) {
+    let variable = localVariables.find(
+      (item) => item.name === name && item.variableCollectionId === collection!.id,
+    );
+    if (!variable) variable = figma.variables.createVariable(name, collection!, 'COLOR');
+    variable.scopes = ['FRAME_FILL', 'SHAPE_FILL', 'TEXT_FILL', 'STROKE_COLOR'];
+    variable.setValueForMode(modeId, rgb(value));
+    variable.setVariableCodeSyntax('WEB', `--${name.replace(/\//g, '-').toLowerCase()}`);
+    variableIds.push(variable.id);
+    return variable;
+  }
+
+  const vars = {
+    navy: colorVariable('color/navy', colors.navy),
+    border: colorVariable('color/border-default', colors.borderBlue),
+    card: colorVariable('color/surface-card', colors.surfaceCard),
+    orange: colorVariable('color/btn-orange', colors.btnOrangeBottom),
+  };
+
+  function boundPaint(variable: Variable, fallback: string): SolidPaint {
+    return figma.variables.setBoundVariableForPaint(solidPaint(fallback), 'color', variable);
+  }
+
+  // Effect styles
+  const localEffects = await figma.getLocalEffectStylesAsync();
+  function ensureEffectStyle(name: string, effects: Effect[]) {
+    let style = localEffects.find((item) => item.name === name);
+    if (!style) {
+      style = figma.createEffectStyle();
+      style.name = name;
+    }
+    style.effects = effects;
+    styleIds.push(style.id);
+    return style;
+  }
+
+  const cardShadowStyle = ensureEffectStyle('Question Sequence / Card Shadow', [
+    {
+      type: 'DROP_SHADOW',
+      color: rgba('#0B2545', 0.08),
+      offset: { x: 0, y: 10 },
+      radius: 28,
+      spread: 0,
+      visible: true,
+      blendMode: 'NORMAL',
+    },
+  ]);
+
+  const submitShadowStyle = ensureEffectStyle('Question Sequence / Submit Button Shadow', [
+    {
+      type: 'DROP_SHADOW',
+      color: rgba('#F24E2E', 0.38),
+      offset: { x: 0, y: 8 },
+      radius: 20,
+      spread: 0,
+      visible: true,
+      blendMode: 'NORMAL',
+    },
+  ]);
+
+  // Auto Layout helpers
+  function auto(
+    parent: ChildrenMixin,
+    name: string,
+    width: number,
+    height: number,
+    direction: 'HORIZONTAL' | 'VERTICAL',
+    gap: number,
+    padding: number | [number, number] | [number, number, number, number],
+    fills: Paint[],
+    radius: number,
+    stroke?: Paint,
+    strokeWeight = 0,
+  ): FrameNode {
+    const node = track(figma.createFrame());
+    node.name = name;
+    node.resize(width, height);
+    node.layoutMode = direction;
+    node.primaryAxisSizingMode = 'FIXED';
+    node.counterAxisSizingMode = 'FIXED';
+    node.itemSpacing = gap;
+    if (typeof padding === 'number') {
+      node.paddingTop = padding;
+      node.paddingRight = padding;
+      node.paddingBottom = padding;
+      node.paddingLeft = padding;
+    } else if (padding.length === 2) {
+      node.paddingTop = padding[0];
+      node.paddingBottom = padding[0];
+      node.paddingLeft = padding[1];
+      node.paddingRight = padding[1];
+    } else {
+      node.paddingTop = padding[0];
+      node.paddingRight = padding[1];
+      node.paddingBottom = padding[2];
+      node.paddingLeft = padding[3];
+    }
+    node.fills = fills;
+    node.cornerRadius = radius;
+    node.cornerSmoothing = 0.6;
+    node.strokes = stroke ? [stroke] : [];
+    node.strokeWeight = stroke ? strokeWeight : 0;
+    parent.appendChild(node);
+    return node;
+  }
+
+  function text(
+    parent: ChildrenMixin,
+    name: string,
+    value: string,
+    size: number,
+    styleName: 'Regular' | 'Bold' | 'Extra Bold',
+    colorHex: string,
+    align: 'LEFT' | 'CENTER' | 'RIGHT' = 'LEFT',
+    letterSpacing = 0,
+  ): TextNode {
+    const node = track(figma.createText());
+    node.name = name;
+    node.fontName = { family: 'Inter', style: styleName };
+    node.fontSize = size;
+    node.characters = value;
+    node.fills = [solidPaint(colorHex)];
+    node.textAlignHorizontal = align;
+    node.letterSpacing = { value: letterSpacing, unit: 'PIXELS' };
+    node.textAutoResize = 'WIDTH_AND_HEIGHT';
+    parent.appendChild(node);
+    return node;
+  }
+
+  function icon(parent: ChildrenMixin, name: string, svg: string, size: number): FrameNode {
+    const node = track(figma.createNodeFromSvg(svg));
+    node.name = `Vector / ${name}`;
+    node.resize(size, size);
+    parent.appendChild(node);
+    return node;
+  }
+
+  // Section placement
+  let maxX = 0;
+  for (const child of figma.currentPage.children) {
+    maxX = Math.max(maxX, child.x + child.width);
+  }
+
+  const section = figma.createSection();
+  section.name = 'Generated / Question Sequence UI Wireframe';
+  section.resizeWithoutConstraints(2160, 1220);
+  section.x = maxX + 200;
+  section.y = 0;
+  figma.currentPage.appendChild(section);
+  created.push(section.id);
+  section.fills = [solidPaint('#D9E2EC')];
+
+  const sectionTitle = text(
+    section,
+    'Section Title',
+    'QUESTION SEQUENCE — GAME-READY AUTO LAYOUT UI',
+    28,
+    'Extra Bold',
+    colors.navy,
+  );
+  sectionTitle.x = 40;
+  sectionTitle.y = 36;
+  const sectionNote = text(
+    section,
+    'Section Note',
+    'Hard-referenced Question Sequence • Full Auto Layout & Flexbox USS mapping • Combat HUD, Challenge Modal, Keypad Grid & Modular Sequence State Shelf • Background Abandoned for Game Overlay Ready',
+    14,
+    'Regular',
+    colors.navy,
+  );
+  sectionNote.x = 40;
+  sectionNote.y = 76;
+
+  // 1. MAIN UI SAMPLE SCREEN (430 x 940)
+  const screen = auto(
+    section,
+    '.question-sequence-screen',
+    430,
+    940,
+    'VERTICAL',
+    16,
+    [24, 20, 28, 20],
+    [solidPaint(colors.surfaceScreen)],
+    36,
+    solidPaint(colors.borderBlue),
+    2,
+  );
+  screen.x = 40;
+  screen.y = 130;
+
+  // Top Combat HUD Card
+  const battleHud = auto(
+    screen,
+    '.battle-hud',
+    390,
+    116,
+    'VERTICAL',
+    8,
+    [14, 16],
+    [solidPaint(colors.surfaceCard)],
+    18,
+    solidPaint(colors.borderLight),
+    1.5,
+  );
+  battleHud.layoutAlign = 'STRETCH';
+
+  // Stage Tag Row
+  const stageRow = auto(battleHud, '.stage-tag-row', 358, 20, 'HORIZONTAL', 8, 0, [], 0);
+  stageRow.primaryAxisAlignItems = 'CENTER';
+  stageRow.counterAxisAlignItems = 'CENTER';
+  stageRow.layoutAlign = 'STRETCH';
+  text(stageRow, 'star-l', '✦', 12, 'Extra Bold', colors.navy);
+  text(stageRow, '.stage-label', 'STAGE 12', 15, 'Extra Bold', colors.navy, 'CENTER', 1.5);
+  text(stageRow, 'star-r', '✦', 12, 'Extra Bold', colors.navy);
+
+  // Boss Row
+  const bossRow = auto(battleHud, '.boss-row', 358, 24, 'HORIZONTAL', 10, 0, [], 0);
+  bossRow.counterAxisAlignItems = 'CENTER';
+  bossRow.layoutAlign = 'STRETCH';
+  text(bossRow, '.boss-name', 'STONEWARD', 13, 'Extra Bold', colors.navy, 'LEFT', 0.5);
+
+  const hpTrack = auto(bossRow, '.health-bar-track', 160, 16, 'HORIZONTAL', 0, 0, [solidPaint(colors.hpRedBg)], 8, solidPaint(colors.hpRedBorder), 1);
+  hpTrack.layoutGrow = 1;
+  const hpFill = auto(hpTrack, '.health-bar-fill', 135, 16, 'HORIZONTAL', 0, 0, [gradient('#F87171', '#DC2626')], 8);
+  
+  text(bossRow, '.health-value', '780 / 1000', 12, 'Bold', colors.navy);
+
+  // Status Buffs Row
+  const buffsRow = auto(battleHud, '.status-buffs-row', 358, 34, 'HORIZONTAL', 8, 0, [], 0);
+  buffsRow.counterAxisAlignItems = 'CENTER';
+  buffsRow.layoutAlign = 'STRETCH';
+
+  // Slot 1: Speed
+  const slotSpeed1 = auto(buffsRow, '.buff-slot--speed-1', 32, 32, 'HORIZONTAL', 0, 0, [solidPaint(colors.buffBlueBg)], 8, solidPaint(colors.buffBlueBorder), 1);
+  slotSpeed1.primaryAxisAlignItems = 'CENTER';
+  slotSpeed1.counterAxisAlignItems = 'CENTER';
+  icon(slotSpeed1, 'Speed Icon 1', QS_RUNNER_SVG, 22);
+
+  // Slot 2: Speed
+  const slotSpeed2 = auto(buffsRow, '.buff-slot--speed-2', 32, 32, 'HORIZONTAL', 0, 0, [solidPaint(colors.buffBlueBg)], 8, solidPaint(colors.buffBlueBorder), 1);
+  slotSpeed2.primaryAxisAlignItems = 'CENTER';
+  slotSpeed2.counterAxisAlignItems = 'CENTER';
+  icon(slotSpeed2, 'Speed Icon 2', QS_RUNNER_SVG, 22);
+
+  // Slot 3: Shield
+  const slotShield = auto(buffsRow, '.buff-slot--shield', 32, 32, 'HORIZONTAL', 0, 0, [solidPaint(colors.buffBlueBg)], 8, solidPaint(colors.buffBlueBorder), 1);
+  slotShield.primaryAxisAlignItems = 'CENTER';
+  slotShield.counterAxisAlignItems = 'CENTER';
+  icon(slotShield, 'Shield Icon', QS_SHIELD_SVG, 22);
+
+  // Slot 4: Swords Buff with Count Badge 2
+  const slotSwords = auto(buffsRow, '.buff-slot--swords', 32, 32, 'HORIZONTAL', 0, 0, [solidPaint(colors.buffRedBg)], 8, solidPaint(colors.buffRedBorder), 1);
+  slotSwords.primaryAxisAlignItems = 'CENTER';
+  slotSwords.counterAxisAlignItems = 'CENTER';
+  icon(slotSwords, 'Swords Icon', QS_SWORDS_SVG, 22);
+
+  const swordBadge = auto(slotSwords, '.badge-count', 14, 14, 'HORIZONTAL', 0, 0, [solidPaint(colors.buffBlueIcon)], 7);
+  swordBadge.primaryAxisAlignItems = 'CENTER';
+  swordBadge.counterAxisAlignItems = 'CENTER';
+  text(swordBadge, 'num', '2', 9, 'Extra Bold', colors.white);
+
+  // Math Challenge Card Modal
+  const challengeCard = auto(
+    screen,
+    '.math-challenge-card',
+    390,
+    580,
+    'VERTICAL',
+    14,
+    [20, 20, 24, 20],
+    [solidPaint(colors.surfaceCard)],
+    24,
+    solidPaint(colors.borderCard),
+    2,
+  );
+  challengeCard.layoutAlign = 'STRETCH';
+  challengeCard.setEffectStyleIdAsync(cardShadowStyle.id);
+
+  // Card Header Row
+  const cardHeader = auto(challengeCard, '.card-header', 350, 24, 'HORIZONTAL', 8, 0, [], 0);
+  cardHeader.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  cardHeader.counterAxisAlignItems = 'CENTER';
+  cardHeader.layoutAlign = 'STRETCH';
+  text(cardHeader, 'c-star-l', '✦', 13, 'Bold', colors.borderBlue);
+  text(cardHeader, '.card-title', '✦ MATH CHALLENGE ✦', 15, 'Extra Bold', colors.navy, 'CENTER', 2);
+  text(cardHeader, 'c-star-r', '✦', 13, 'Bold', colors.borderBlue);
+
+  // Equation Row
+  const eqRow = auto(challengeCard, '.equation-row', 350, 48, 'HORIZONTAL', 0, 0, [], 0);
+  eqRow.primaryAxisAlignItems = 'CENTER';
+  eqRow.counterAxisAlignItems = 'CENTER';
+  eqRow.layoutAlign = 'STRETCH';
+  text(eqRow, '.equation-text', '48 ÷ 6 = ?', 32, 'Extra Bold', colors.navy, 'CENTER');
+
+  // Answer Input Display Box
+  const answerBox = auto(
+    challengeCard,
+    '.answer-display-box',
+    350,
+    54,
+    'HORIZONTAL',
+    0,
+    [0, 18],
+    [solidPaint(colors.surfaceInput)],
+    14,
+    solidPaint(colors.borderInput),
+    2,
+  );
+  answerBox.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  answerBox.counterAxisAlignItems = 'CENTER';
+  answerBox.layoutAlign = 'STRETCH';
+  text(answerBox, 'dec-l', '✦', 14, 'Bold', colors.borderInput);
+  text(answerBox, '.input-value', '8', 28, 'Extra Bold', colors.navy, 'CENTER');
+  text(answerBox, 'dec-r', '✦', 14, 'Bold', colors.borderInput);
+
+  // Keypad Grid (3x4)
+  const keypad = auto(challengeCard, '.keypad-grid', 350, 240, 'VERTICAL', 8, 0, [], 0);
+  keypad.layoutAlign = 'STRETCH';
+
+  function keypadRow(keys: Array<{ label: string; isAction?: boolean; isSvg?: boolean }>) {
+    const row = auto(keypad, '.keypad-row', 350, 52, 'HORIZONTAL', 8, 0, [], 0);
+    row.layoutAlign = 'STRETCH';
+    for (const k of keys) {
+      const btn = auto(
+        row,
+        `.key-btn--${k.label.toLowerCase()}`,
+        110,
+        52,
+        'HORIZONTAL',
+        0,
+        0,
+        [solidPaint(colors.surfaceKey)],
+        12,
+        solidPaint(colors.surfaceKeyBorder),
+        1.5,
+      );
+      btn.primaryAxisAlignItems = 'CENTER';
+      btn.counterAxisAlignItems = 'CENTER';
+      btn.layoutGrow = 1;
+
+      if (k.isSvg) {
+        icon(btn, 'Backspace Key', QS_BACKSPACE_SVG, 26);
+      } else if (k.isAction) {
+        text(btn, '.key-text', k.label, 12, 'Extra Bold', colors.navy, 'CENTER', 0.5);
+      } else {
+        text(btn, '.key-text', k.label, 20, 'Extra Bold', colors.navy, 'CENTER');
+      }
+    }
+    return row;
+  }
+
+  keypadRow([{ label: '1' }, { label: '2' }, { label: '3' }]);
+  keypadRow([{ label: '4' }, { label: '5' }, { label: '6' }]);
+  keypadRow([{ label: '7' }, { label: '8' }, { label: '9' }]);
+  keypadRow([{ label: 'CLEAR', isAction: true }, { label: '0' }, { label: 'BACKSPACE', isSvg: true }]);
+
+  // Submit Button
+  const submitBtn = auto(
+    challengeCard,
+    '.btn-submit',
+    350,
+    58,
+    'HORIZONTAL',
+    0,
+    0,
+    [gradient(colors.btnOrangeTop, colors.btnOrangeBottom)],
+    18,
+    solidPaint(colors.btnOrangeBorder),
+    1.5,
+  );
+  submitBtn.primaryAxisAlignItems = 'CENTER';
+  submitBtn.counterAxisAlignItems = 'CENTER';
+  submitBtn.layoutAlign = 'STRETCH';
+  submitBtn.setEffectStyleIdAsync(submitShadowStyle.id);
+  text(submitBtn, '.btn-label', 'SUBMIT', 16, 'Extra Bold', colors.white, 'CENTER', 1.5);
+
+  // Battlefield Viewport Placeholder (Background Abandoned as instructed)
+  const viewport = auto(
+    screen,
+    '.battlefield-viewport-placeholder',
+    390,
+    140,
+    'VERTICAL',
+    6,
+    [16, 16],
+    [solidPaint('#EAF1F8')],
+    18,
+    solidPaint('#C5D8E8'),
+    1.5,
+  );
+  viewport.primaryAxisAlignItems = 'CENTER';
+  viewport.counterAxisAlignItems = 'CENTER';
+  viewport.layoutAlign = 'STRETCH';
+  text(viewport, '.vp-title', '⚔️ 3D Battle Arena Viewport (Background Abandoned)', 13, 'Bold', colors.slateMuted, 'CENTER');
+  text(viewport, '.vp-desc', 'Player heroine & Boss golem live in the underlying Unity scene layer', 11, 'Regular', '#8CA2B6', 'CENTER');
+
+  // 2. MODULAR SEQUENCE STATES COMPONENT SHELF (Right Side)
+  const shelf = auto(
+    section,
+    '.sequence-states-shelf',
+    1580,
+    940,
+    'VERTICAL',
+    18,
+    24,
+    [solidPaint(colors.surfaceCard)],
+    32,
+    solidPaint(colors.borderCard),
+    2,
+  );
+  shelf.x = screen.x + screen.width + 50;
+  shelf.y = 130;
+
+  const shelfHeader = auto(shelf, '.shelf-header', 1532, 54, 'VERTICAL', 4, 0, [], 0);
+  shelfHeader.layoutAlign = 'STRETCH';
+  text(shelfHeader, '.shelf-title', 'QUESTION SEQUENCE — MODULAR FEEDBACK COMPONENTS & STATES', 22, 'Extra Bold', colors.navy);
+  text(shelfHeader, '.shelf-desc', 'Game-ready component variants matching States 02 (Countdown), 03 (Score & Multiplier), and 04 (Failure & Penalty) — clean USS modular blocks without duplicated backgrounds', 13, 'Regular', colors.slateMuted);
+
+  const cardsRow = auto(shelf, '.state-cards-row', 1532, 820, 'HORIZONTAL', 20, 0, [], 0);
+  cardsRow.layoutAlign = 'STRETCH';
+
+  // --- STATE 02: COUNTDOWN TIMER CARD ---
+  const cardCountdown = auto(cardsRow, '.state-card--countdown', 480, 810, 'VERTICAL', 16, 20, [solidPaint('#F7FAFD')], 24, solidPaint(colors.borderCard), 2);
+  cardCountdown.layoutGrow = 1;
+
+  const cHeader = auto(cardCountdown, '.card-state-tag', 440, 28, 'HORIZONTAL', 8, 0, [], 0);
+  cHeader.counterAxisAlignItems = 'CENTER';
+  text(cHeader, 'tag', '02 • COUNTING DOWN STATE', 14, 'Extra Bold', '#0284C7');
+
+  const cEqBox = auto(cardCountdown, '.eq-box', 440, 42, 'HORIZONTAL', 0, 0, [solidPaint(colors.surfaceInput)], 12, solidPaint(colors.borderInput), 1.5);
+  cEqBox.primaryAxisAlignItems = 'CENTER';
+  cEqBox.counterAxisAlignItems = 'CENTER';
+  cEqBox.layoutAlign = 'STRETCH';
+  text(cEqBox, 'eq', '48 ÷ 6 = ?', 20, 'Extra Bold', colors.navy);
+
+  const cInput = auto(cardCountdown, '.input-box', 440, 48, 'HORIZONTAL', 0, [0, 16], [solidPaint(colors.surfaceCard)], 12, solidPaint(colors.borderInput), 1.5);
+  cInput.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  cInput.counterAxisAlignItems = 'CENTER';
+  cInput.layoutAlign = 'STRETCH';
+  text(cInput, 'dec-l', '✦', 12, 'Bold', colors.borderInput);
+  text(cInput, 'val', '8', 24, 'Extra Bold', colors.navy);
+  text(cInput, 'dec-r', '✦', 12, 'Bold', colors.borderInput);
+
+  // Timer Widget
+  const timerWidget = auto(cardCountdown, '.timer-widget', 440, 200, 'VERTICAL', 8, 12, [solidPaint(colors.surfaceCard)], 20, solidPaint(colors.buffBlueBorder), 1.5);
+  timerWidget.primaryAxisAlignItems = 'CENTER';
+  timerWidget.counterAxisAlignItems = 'CENTER';
+  timerWidget.layoutAlign = 'STRETCH';
+  icon(timerWidget, 'Timer Ring', QS_CIRCULAR_TIMER_SVG, 120);
+  text(timerWidget, '.seconds-left', '6', 40, 'Extra Bold', colors.navy, 'CENTER');
+  text(timerWidget, '.seconds-lbl', 'SECONDS REMAINING', 11, 'Bold', colors.slateMuted, 'CENTER', 1.2);
+
+  // Ghost Keypad
+  const ghostPad = auto(cardCountdown, '.ghost-keypad-preview', 440, 160, 'VERTICAL', 6, 8, [solidPaint('#EBF2F8')], 14);
+  ghostPad.primaryAxisAlignItems = 'CENTER';
+  ghostPad.counterAxisAlignItems = 'CENTER';
+  ghostPad.layoutAlign = 'STRETCH';
+  ghostPad.opacity = 0.45;
+  text(ghostPad, 'gh-lbl', 'KEYPAD DISABLED DURING COUNTDOWN', 12, 'Bold', colors.slateMuted, 'CENTER');
+
+  // --- STATE 03: SCORE MULTIPLYING CARD ---
+  const cardReward = auto(cardsRow, '.state-card--reward', 480, 810, 'VERTICAL', 16, 20, [solidPaint('#F7FAFD')], 24, solidPaint(colors.borderCard), 2);
+  cardReward.layoutGrow = 1;
+
+  const rHeader = auto(cardReward, '.card-state-tag', 440, 28, 'HORIZONTAL', 8, 0, [], 0);
+  rHeader.counterAxisAlignItems = 'CENTER';
+  text(rHeader, 'tag', '03 • SCORE MULTIPLYING STATE', 14, 'Extra Bold', '#16A34A');
+
+  // Correct Green Banner
+  const correctBanner = auto(cardReward, '.banner-correct', 440, 48, 'HORIZONTAL', 0, 0, [solidPaint(colors.greenCorrect)], 14);
+  correctBanner.primaryAxisAlignItems = 'CENTER';
+  correctBanner.counterAxisAlignItems = 'CENTER';
+  correctBanner.layoutAlign = 'STRETCH';
+  text(correctBanner, '.banner-text', '✦ CORRECT ✦', 18, 'Extra Bold', colors.white, 'CENTER', 2);
+
+  // Solved Equation
+  const rEq = auto(cardReward, '.eq-solved', 440, 36, 'HORIZONTAL', 0, 0, [], 0);
+  rEq.primaryAxisAlignItems = 'CENTER';
+  rEq.counterAxisAlignItems = 'CENTER';
+  rEq.layoutAlign = 'STRETCH';
+  text(rEq, 'eq', '48 ÷ 6 = 8', 22, 'Extra Bold', colors.navy);
+
+  // Score Laurel Badge
+  const scoreBadge = auto(cardReward, '.score-laurel-badge', 440, 180, 'VERTICAL', 4, 8, [solidPaint(colors.surfaceCard)], 20, solidPaint('#FEF08A'), 1.5);
+  scoreBadge.primaryAxisAlignItems = 'CENTER';
+  scoreBadge.counterAxisAlignItems = 'CENTER';
+  scoreBadge.layoutAlign = 'STRETCH';
+  icon(scoreBadge, 'Laurel Wreath', QS_LAUREL_WREATH_SVG, 110);
+  text(scoreBadge, '.score-lbl', 'SCORE', 12, 'Bold', colors.navy, 'CENTER', 1);
+  text(scoreBadge, '.score-val', '9', 42, 'Extra Bold', colors.navy, 'CENTER');
+
+  // Multiplier Formula
+  const multiBox = auto(cardReward, '.multiplier-calc-box', 440, 44, 'HORIZONTAL', 0, 0, [solidPaint('#F1F5F9')], 12, solidPaint(colors.borderLight), 1);
+  multiBox.primaryAxisAlignItems = 'CENTER';
+  multiBox.counterAxisAlignItems = 'CENTER';
+  multiBox.layoutAlign = 'STRETCH';
+  text(multiBox, '.formula', '9 × 20% = 180%', 16, 'Extra Bold', colors.navy, 'CENTER');
+
+  // Damage Banner Ribbon
+  const dmgBanner = auto(cardReward, '.banner-damage', 440, 60, 'VERTICAL', 2, [6, 12], [gradient('#2563EB', '#1D4ED8')], 14, solidPaint('#1E40AF'), 1.5);
+  dmgBanner.primaryAxisAlignItems = 'CENTER';
+  dmgBanner.counterAxisAlignItems = 'CENTER';
+  dmgBanner.layoutAlign = 'STRETCH';
+  text(dmgBanner, '.dmg-lbl', 'DAMAGE', 12, 'Extra Bold', '#BFDBFE', 'CENTER', 1.2);
+  text(dmgBanner, '.dmg-mult', '× 1.8', 26, 'Extra Bold', colors.white, 'CENTER');
+
+  // --- STATE 04: FAILURE & PENALTY CARD ---
+  const cardFailure = auto(cardsRow, '.state-card--failure', 480, 810, 'VERTICAL', 16, 20, [solidPaint('#F7FAFD')], 24, solidPaint(colors.borderCard), 2);
+  cardFailure.layoutGrow = 1;
+
+  const fHeader = auto(cardFailure, '.card-state-tag', 440, 28, 'HORIZONTAL', 8, 0, [], 0);
+  fHeader.counterAxisAlignItems = 'CENTER';
+  text(fHeader, 'tag', '04 • FAILURE STATE', 14, 'Extra Bold', '#DC2626');
+
+  // Incorrect Red Banner
+  const incorrectBanner = auto(cardFailure, '.banner-incorrect', 440, 48, 'HORIZONTAL', 0, 0, [solidPaint(colors.redFailure)], 14);
+  incorrectBanner.primaryAxisAlignItems = 'CENTER';
+  incorrectBanner.counterAxisAlignItems = 'CENTER';
+  incorrectBanner.layoutAlign = 'STRETCH';
+  text(incorrectBanner, '.banner-text', '✦ INCORRECT ✦', 18, 'Extra Bold', colors.white, 'CENTER', 2);
+
+  // Correct Equation Reference
+  const fEq = auto(cardFailure, '.eq-ref', 440, 32, 'HORIZONTAL', 0, 0, [], 0);
+  fEq.primaryAxisAlignItems = 'CENTER';
+  fEq.counterAxisAlignItems = 'CENTER';
+  fEq.layoutAlign = 'STRETCH';
+  text(fEq, 'eq', '48 ÷ 6 = 8', 18, 'Bold', colors.navy);
+
+  // Wrong User Input Box
+  const fInput = auto(cardFailure, '.wrong-input-box', 440, 48, 'HORIZONTAL', 0, [0, 16], [solidPaint('#FEF2F2')], 12, solidPaint('#FCA5A5'), 1.5);
+  fInput.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  fInput.counterAxisAlignItems = 'CENTER';
+  fInput.layoutAlign = 'STRETCH';
+  text(fInput, 'dec-l', '✦', 12, 'Bold', '#F87171');
+  text(fInput, 'val', '7', 24, 'Extra Bold', '#DC2626');
+  text(fInput, 'dec-r', '✦', 12, 'Bold', '#F87171');
+
+  // Broken Sword Emblem
+  const brokenSwordEmblem = auto(cardFailure, '.broken-sword-badge', 440, 180, 'VERTICAL', 6, 12, [solidPaint(colors.surfaceCard)], 20, solidPaint('#FECACA'), 1.5);
+  brokenSwordEmblem.primaryAxisAlignItems = 'CENTER';
+  brokenSwordEmblem.counterAxisAlignItems = 'CENTER';
+  brokenSwordEmblem.layoutAlign = 'STRETCH';
+  icon(brokenSwordEmblem, 'Broken Sword', QS_BROKEN_SWORD_SVG, 100);
+  text(brokenSwordEmblem, '.no-dmg-lbl', '→ NO DAMAGE ←', 16, 'Extra Bold', colors.navy, 'CENTER', 1.2);
+
+  // Enemy Attack Alert Warning Pill
+  const attackAlert = auto(cardFailure, '.warning-pill', 440, 50, 'HORIZONTAL', 10, [0, 16], [solidPaint('#FEF2F2')], 14, solidPaint('#FECACA'), 1.5);
+  attackAlert.primaryAxisAlignItems = 'CENTER';
+  attackAlert.counterAxisAlignItems = 'CENTER';
+  attackAlert.layoutAlign = 'STRETCH';
+  icon(attackAlert, 'Warning Triangle', QS_WARNING_ALERT_SVG, 22);
+  text(attackAlert, '.alert-lbl', 'ENEMY ATTACK', 14, 'Extra Bold', '#DC2626', 'CENTER', 1.2);
+
+  // Focus & Viewport
+  figma.currentPage.selection = [screen];
+  figma.viewport.scrollAndZoomIntoView([screen, shelf]);
+
+  return {
+    reused: false,
+    sectionNodeId: section.id,
+    screenNodeId: screen.id,
+    shelfNodeId: shelf.id,
+    variableCollectionId: collection.id,
+    variableIds,
+    styleIds,
+    createdNodeIds: created,
+  };
+}
 
 async function requireSceneNode(
   idValue: unknown,

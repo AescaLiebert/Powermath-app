@@ -7,11 +7,13 @@ using UnityEngine.Networking;
 
 namespace PowerMath.Session
 {
-    public sealed class FirestoreRestClient
+    public sealed partial class FirestoreRestClient
     {
         public enum FailureKind
         {
             Configuration,
+            IncompatibleClient,
+            Conflict,
             Network,
             AuthenticationRequired,
             InvalidCredentials,
@@ -109,7 +111,12 @@ namespace PowerMath.Session
                 // Existing users are repaired with update masks. No missing student is created.
                 for (int patchAttempt = 0; patchAttempt < 2; patchAttempt++)
                 {
-                    FirestorePatchPlan plan = PlayerDefaultsPlanner.Plan(student, normalizedUsername);
+                    FirestorePatchPlan plan = null;
+                    Failure? planningFailure = null;
+                    try { plan = PlayerDefaultsPlanner.Plan(student, normalizedUsername); }
+                    catch (NotSupportedException) { planningFailure = new Failure(FailureKind.IncompatibleClient, "This save requires a newer game version."); }
+                    catch (FormatException) { planningFailure = InvalidResponseFailure(); }
+                    if (planningFailure.HasValue) { onFailure?.Invoke(planningFailure.Value); yield break; }
                     if (plan.IsEmpty) break;
 
                     string updateTime = ReadRawStringProperty(document, "updateTime");
@@ -144,7 +151,12 @@ namespace PowerMath.Session
                         yield break;
                     }
 
-                    if (patchAttempt == 1 && !PlayerDefaultsPlanner.Plan(student, normalizedUsername).IsEmpty)
+                    bool incomplete = false;
+                    try { incomplete = !PlayerDefaultsPlanner.Plan(student, normalizedUsername).IsEmpty; }
+                    catch (NotSupportedException) { planningFailure = new Failure(FailureKind.IncompatibleClient, "This save requires a newer game version."); }
+                    catch (FormatException) { planningFailure = InvalidResponseFailure(); }
+                    if (planningFailure.HasValue) { onFailure?.Invoke(planningFailure.Value); yield break; }
+                    if (patchAttempt == 1 && incomplete)
                     {
                         onFailure?.Invoke(new Failure(
                             FailureKind.ServiceUnavailable,
@@ -195,10 +207,10 @@ namespace PowerMath.Session
 
             onSuccess?.Invoke(new BootstrapResponse
             {
-                schemaVersion = PlayerSessionStore.SupportedSchemaVersion,
+                schemaVersion = account.Player.schemaVersion,
                 remembered = remembered,
                 player = account.Player,
-                serverTimeUtc = DateTime.UtcNow.ToString("O")
+                serverTimeUtc = string.Empty // Direct prototype access has no trusted server clock.
             });
         }
 
@@ -286,14 +298,29 @@ namespace PowerMath.Session
             TryGetMapFromFields(gameData, "economy", out JsonValue economy);
             TryGetMapFromFields(gameData, "lastRunSettlement", out JsonValue lastRunSettlement);
 
+            TryGetMapFromFields(gameData, "preferences", out JsonValue preferences);
+            TryGetMapFromFields(gameData, "onboarding", out JsonValue onboarding);
+            TryGetMapFromFields(gameData, "tutorial", out JsonValue tutorial);
             string displayName = ReadString(profile, "displayName", username);
             string iconId = ReadString(profile, "iconId", "avatar-default");
             player = new PlayerSnapshot
             {
+                schemaVersion = ReadInt(gameData, "schemaVersion"),
+                preferences = new PlayerSnapshot.PreferencesData { locale = ReadString(preferences, "locale") },
+                onboarding = new PlayerSnapshot.OnboardingData
+                {
+                    version = ReadInt(onboarding, "version"), phase = ReadString(onboarding, "phase"),
+                    openingCheckpointId = ReadString(onboarding, "openingCheckpointId"),
+                    selectedCharacterId = ReadString(onboarding, "selectedCharacterId"),
+                    completionOperationId = ReadString(onboarding, "completionOperationId"),
+                    legacyPlayer = ReadBool(onboarding, "legacyPlayer")
+                },
+                tutorial = new PlayerSnapshot.TutorialData { version = ReadInt(tutorial, "version"), checkpointId = ReadString(tutorial, "checkpointId") },
                 playerId = levelDocumentId + ":" + username,
                 revision = ReadLong(gameData, "revision"),
                 profile = new PlayerSnapshot.ProfileData
                 {
+                    characterId = ReadString(profile, "characterId"),
                     displayName = displayName,
                     gradeBand = gradeBand,
                     iconId = iconId,

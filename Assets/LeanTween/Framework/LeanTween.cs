@@ -318,8 +318,19 @@ public class LeanTween : MonoBehaviour {
         init(maxSimultaneousTweens, maxSequences);
     }
         
+    [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetForPlayMode()
+    {
+        reset();
+    }
+
     public static void init(int maxSimultaneousTweens, int maxSimultaneousSequences){
-        if(tweens==null){
+        if(tweens==null || _tweenEmpty==null){
+            if (_tweenEmpty == null && tweens != null)
+            {
+                reset();
+            }
+
             maxTweens = maxSimultaneousTweens;
             tweens = new LTDescr[maxTweens];
             tweensFinished = new int[maxTweens];
@@ -362,7 +373,13 @@ public class LeanTween : MonoBehaviour {
             }
         }
         tweens = null;
-        Destroy(_tweenEmpty);
+        tweenMaxSearch = -1;
+        frameRendered = -1;
+        if (_tweenEmpty != null)
+        {
+            Destroy(_tweenEmpty);
+        }
+        _tweenEmpty = null;
     }
 
     public void Update(){

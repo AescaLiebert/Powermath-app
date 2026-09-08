@@ -112,10 +112,3 @@
     white-space: normal;
     -unity-text-align: middle-center;
 }
-
-.profile-close,
-.leaderboard-close,
-.pet-gacha-close,
-.navigator-close {
-    display: none;
-}

@@ -7,18 +7,18 @@ namespace PowerMath.Bootstrap
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
-        private static extern void PowerMathPurgeCacheAndReload();
+        private static extern void PowerMathPurgeCacheAndReload(string targetVersion);
 
         [DllImport("__Internal")]
         private static extern void PowerMathHardReload();
 #endif
 
-        public static void PurgeCacheAndReload()
+        public static void PurgeCacheAndReload(string targetVersion = "update")
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
-            PowerMathPurgeCacheAndReload();
+            PowerMathPurgeCacheAndReload(targetVersion);
 #else
-            Debug.Log("[WebCacheBridge] PurgeCacheAndReload requested (Editor/Standalone mock).");
+            PowerMath.Diagnostics.AppLog.Info("WebCache", "PurgeCacheAndReload requested (Editor/Standalone mock).");
 #endif
         }
 
@@ -27,7 +27,7 @@ namespace PowerMath.Bootstrap
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathHardReload();
 #else
-            Debug.Log("[WebCacheBridge] HardReload requested (Editor/Standalone mock).");
+            PowerMath.Diagnostics.AppLog.Info("WebCache", "HardReload requested (Editor/Standalone mock).");
 #endif
         }
     }

@@ -48,7 +48,7 @@ namespace PowerMath.Bootstrap
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogWarning($"[GameVersionChecker] Failed to read local version manifest ({chosenPath}): {ex.Message}");
+                        PowerMath.Diagnostics.AppLog.Warning("Version", $"Failed to read local version manifest ({chosenPath}): {ex.Message}");
                     }
                 }
 
@@ -104,9 +104,14 @@ namespace PowerMath.Bootstrap
             out string statusMessage)
         {
             statusMessage = string.Empty;
-            if (manifest == null)
+            if (manifest == null || manifest.schemaVersion < 1 ||
+                !Version.TryParse(NormalizeVersion(currentAppVersion), out _) ||
+                !Version.TryParse(NormalizeVersion(manifest.clientVersion), out _) ||
+                !Version.TryParse(NormalizeVersion(manifest.minSupportedVersion), out _) ||
+                IsVersionOlder(manifest.clientVersion, manifest.minSupportedVersion))
             {
-                return VersionCompatibilityResult.Compatible;
+                statusMessage = "Invalid release policy. Please retry.";
+                return VersionCompatibilityResult.NetworkError;
             }
 
             if (manifest.maintenance != null && manifest.maintenance.isActive)
@@ -157,12 +162,34 @@ namespace PowerMath.Bootstrap
                 return current < target;
             }
 
-            return string.Compare(currentVersion.Trim(), targetVersion.Trim(), StringComparison.OrdinalIgnoreCase) < 0;
+            throw new FormatException("Release versions must be numeric major.minor.patch versions.");
+        }
+
+        public static bool IsFeatureAvailable(GameFeature feature, GameVersionManifest manifest = null)
+        {
+            if (manifest == null && PlayerSessionStore.Instance != null)
+            {
+                manifest = PlayerSessionStore.Instance.VersionManifest;
+            }
+
+            if (manifest?.features != null)
+            {
+                return feature switch
+                {
+                    GameFeature.BiomeMap => manifest.features.biomeMap,
+                    GameFeature.PlayerHub => manifest.features.playerHub,
+                    GameFeature.PetGacha => manifest.features.petGacha,
+                    _ => false
+                };
+            }
+
+            // In Version 1.0 (first release), Biome Map, PlayerHub, and Pet Gacha are not available.
+            return false;
         }
 
         private static string NormalizeVersion(string version)
         {
-            if (string.IsNullOrWhiteSpace(version)) return "0.0.0.0";
+            if (string.IsNullOrWhiteSpace(version)) return string.Empty;
             string[] parts = version.Trim().Split('.');
             if (parts.Length == 1) return parts[0] + ".0.0.0";
             if (parts.Length == 2) return parts[0] + "." + parts[1] + ".0.0";

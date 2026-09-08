@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
@@ -117,13 +118,33 @@ namespace PowerMath.UI.MainMenu
                 player.activeRun?.phase,
                 "RunDefeat",
                 StringComparison.Ordinal);
-            _view.OpenButton.SetEnabled(safe && !_busy);
+
+            bool hubAvailable = GameVersionChecker.IsFeatureAvailable(GameFeature.PlayerHub);
+            if (!hubAvailable)
+            {
+                _view.OpenButton.SetEnabled(false);
+                _view.OpenButton.pickingMode = PickingMode.Ignore;
+                _view.OpenButton.tooltip = "Player Hub (Locked in v1.0)";
+                _view.OpenButton.AddToClassList("is-feature-locked");
+                _view.LockOverlay?.RemoveFromClassList("is-hidden");
+            }
+            else
+            {
+                _view.OpenButton.SetEnabled(safe && !_busy);
+                _view.OpenButton.pickingMode = PickingMode.Position;
+                _view.OpenButton.tooltip = "Player Hub";
+                _view.OpenButton.RemoveFromClassList("is-feature-locked");
+                _view.LockOverlay?.AddToClassList("is-hidden");
+            }
+
             if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub && !_busy)
                 Render();
         }
 
         private void Open()
         {
+            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PlayerHub)) return;
+
             if (_busy || !_panelHost.TryOpen(
                     MainMenuPanelId.PlayerHub,
                     _view.Modal,
@@ -155,6 +176,7 @@ namespace PowerMath.UI.MainMenu
         private void Render()
         {
             _view.Status.text = string.Empty;
+            _view.Balance.text = (_player?.wallet?.powerCoins ?? 0).ToString("N0");
             try
             {
                 PlayerStatProjection stats = ProjectStats();
@@ -209,7 +231,7 @@ namespace PowerMath.UI.MainMenu
             _view.WeaponCurrent.text =
                 $"ATK {current.Attack:N0}\nCR +{current.CriticalRatePercent}%   CD +{current.CriticalDamagePercent}%";
             long coins = _player.wallet?.powerCoins ?? 0;
-            _view.Balance.text = $"⚡ {coins:N0} POWER COINS";
+            _view.Balance.text = coins.ToString("N0");
 
             if (current.Level >= WeaponAscensionPolicy.MaximumLevel)
             {
@@ -456,7 +478,7 @@ namespace PowerMath.UI.MainMenu
                 _player,
                 () => { },
                 message => warning = message);
-            if (!string.IsNullOrEmpty(warning)) Debug.LogWarning(warning);
+            if (!string.IsNullOrEmpty(warning)) PowerMath.Diagnostics.AppLog.Warning("PlayerHub", warning);
         }
 
         private void SetBusy(bool busy, string message = null)

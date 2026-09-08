@@ -1,4 +1,5 @@
 using System;
+using PowerMath.Bootstrap;
 using PowerMath.Session;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace PowerMath.PlayerData
             InvalidPlayer
         }
 
-        public const int SupportedSchemaVersion = 2;
+        public const int SupportedSchemaVersion = PlayerSchemaMigrator.CurrentSchemaVersion;
 
         public static PlayerSessionStore Instance { get; private set; }
 
@@ -22,6 +23,7 @@ namespace PowerMath.PlayerData
         public bool IsReady { get; private set; }
         public bool IsRemembered { get; private set; }
         public PlayerSnapshot Snapshot { get; private set; }
+        public GameVersionManifest VersionManifest { get; private set; }
 
         private void Awake()
         {
@@ -45,7 +47,7 @@ namespace PowerMath.PlayerData
 
         public HydrationResult TryHydrate(BootstrapResponse response)
         {
-            if (response == null || response.schemaVersion > SupportedSchemaVersion)
+            if (response == null || response.schemaVersion < 0 || response.schemaVersion > SupportedSchemaVersion)
             {
                 return HydrationResult.IncompatibleSchema;
             }
@@ -64,6 +66,9 @@ namespace PowerMath.PlayerData
                 response.schemaVersion = SupportedSchemaVersion;
             }
 
+            response.player.schemaVersion = response.schemaVersion;
+            PlayerSchemaMigrator.EnsureBaselineDefaults(response.player);
+            PowerMath.PlayerLifecycle.PlayerLifecycleRuntime.ApplyAccountLocale(response.player);
             IsRemembered = response.remembered;
             Snapshot = response.player;
             IsReady = true;
@@ -78,6 +83,11 @@ namespace PowerMath.PlayerData
             Snapshot = null;
             IsReady = false;
             Changed?.Invoke(null);
+        }
+
+        public void SetVersionManifest(GameVersionManifest manifest)
+        {
+            VersionManifest = manifest;
         }
 
         public void NotifyAuthoritativeUpdate()

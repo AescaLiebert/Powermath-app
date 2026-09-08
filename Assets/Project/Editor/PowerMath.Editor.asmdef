@@ -1,0 +1,20 @@
+{
+  "name": "PowerMath.Editor",
+  "rootNamespace": "PowerMath.Editor",
+  "references": [
+    "PowerMath.Gameplay.Combat.Core",
+    "PowerMath.Gameplay.Combat.Unity",
+    "PowerMath.Diagnostics"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -439,6 +439,31 @@ namespace PowerMath.Gameplay.Combat.Tests
             public double NowSeconds { get; set; }
         }
 
+        [Test]
+        public void StageHpPolicy_ScalesFromMonsterBaseHpWithWorldLevelGrowth()
+        {
+            var map = DevelopmentStageMapFactory.Create();
+            string runId = "test-run";
+
+            // Stage 1: World Level 1 -> Growth = 1.0x
+            var normalMonster = new MonsterData("test-normal", "Test Normal", StageEncounterKind.NormalMonster, "biome-1", 3, 30);
+            int stage1Hp = StageHpPolicy.Calculate(map, normalMonster, runId, new StageId(1));
+            // Expect 30 +/- 7% variation -> between 27 and 33
+            Assert.That(stage1Hp, Is.InRange(27, 33));
+
+            // Stage 30: World Level 6 -> Growth = 1.0 + 5 * 0.12 = 1.60x
+            var bigBoss = new MonsterData("test-boss", "Test Big Boss", StageEncounterKind.BigBoss, "biome-1", 2, 100);
+            int stage30Hp = StageHpPolicy.Calculate(map, bigBoss, runId, new StageId(30));
+            // 100 * 1.60 = 160 +/- 7% variation -> between 148 and 172
+            Assert.That(stage30Hp, Is.InRange(148, 172));
+
+            // Stage 200: World Level 40 -> Growth = 1.0 + 39 * 0.12 = 5.68x
+            var finalBoss = new MonsterData("test-final", "Test Final Boss", StageEncounterKind.FinalBoss, "biome-7", 2, 5000);
+            int stage200Hp = StageHpPolicy.Calculate(map, finalBoss, runId, new StageId(200));
+            // 5000 * 5.68 = 28400 +/- 7% variation -> between 26412 and 30388
+            Assert.That(stage200Hp, Is.InRange(26412, 30388));
+        }
+
         private sealed class MinimumRandomSource : IRandomSource
         {
             public int NextInclusive(int minimum, int maximum) => minimum;

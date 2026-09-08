@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Academic.Infrastructure;
 using PowerMath.Gameplay.Academic.Unity;
@@ -9,9 +10,11 @@ using PowerMath.Gameplay.Combat.Unity;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
+using PowerMath.PlayerLifecycle;
 using PowerMath.Session;
 using PowerMath.UI.Core;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 using LegacyImage = UnityEngine.UI.Image;
 
@@ -71,7 +74,6 @@ namespace PowerMath.UI.MainMenu
         private CombatWorldImpulsePlayer _impactImpulse;
         private ActorPresentationController _playerActor;
         private ActorPresentationController _enemyActor;
-        private ActorPresentationController _backgroundActor;
         private IMainMenuInteractionGate _interactionGate;
         private InteractionShieldView _interactionShield;
         private UiSceneContext _uiContext;
@@ -100,7 +102,7 @@ namespace PowerMath.UI.MainMenu
             VisualElement root = document?.rootVisualElement;
             if (root == null)
             {
-                Debug.LogError("Combat Lobby requires the Main Menu UIDocument.");
+                PowerMath.Diagnostics.AppLog.Error("Combat", "Combat Lobby requires the Main Menu UIDocument.");
                 return;
             }
             root.pickingMode = PickingMode.Ignore;
@@ -134,12 +136,13 @@ namespace PowerMath.UI.MainMenu
                 _view = new CombatLobbyView(
                     root,
                     _panelHost,
-                    runtimeSettings != null && runtimeSettings.ReducedMotion
+                    runtimeSettings != null && runtimeSettings.ReducedMotion,
+                    GameVersionChecker.IsFeatureAvailable(GameFeature.BiomeMap)
                 );
             }
             catch (System.InvalidOperationException exception)
             {
-                Debug.LogError(exception.Message);
+                PowerMath.Diagnostics.AppLog.Error("Combat", exception.Message);
                 return;
             }
 
@@ -150,6 +153,10 @@ namespace PowerMath.UI.MainMenu
                 SetUnavailable("Combat unavailable until player data is loaded.");
                 return;
             }
+
+            _view?.SetPowerCoins(sessionStore.Snapshot?.wallet?.powerCoins ?? 0);
+            sessionStore.Changed += OnSessionChangedForMap;
+            PowerMath.Localization.LocalizationService.Changed += OnLocaleChanged;
 
             GameApiSettings settings = GetComponent<MainMenuPresenter>()?.ApiSettings;
 #if UNITY_EDITOR
@@ -164,6 +171,11 @@ namespace PowerMath.UI.MainMenu
 
         private void OnDisable()
         {
+            PowerMath.Localization.LocalizationService.Changed -= OnLocaleChanged;
+            if (PlayerSessionStore.Instance != null)
+            {
+                PlayerSessionStore.Instance.Changed -= OnSessionChangedForMap;
+            }
             if (_presenter != null && _runEconomyController != null)
                 _presenter.TerminalPresentationCompleted -=
                     _runEconomyController.NotifyTerminalPresentationCompleted;
@@ -184,10 +196,6 @@ namespace PowerMath.UI.MainMenu
             _interactionShield?.Dispose();
             _interactionShield = null;
             _interactionGate = null;
-            if (_backgroundActor != null)
-            {
-                _backgroundActor.Clicked -= OnActorTapped;
-            }
             if (_playerActor != null)
             {
                 _playerActor.Clicked -= OnActorTapped;
@@ -214,6 +222,12 @@ namespace PowerMath.UI.MainMenu
         public void StopCombatRoutines()
         {
             StopAllCoroutines();
+        }
+
+        private void OnSessionChangedForMap(PlayerSnapshot snapshot)
+        {
+            _view?.SetPowerCoins(snapshot?.wallet?.powerCoins ?? 0);
+            _view?.SetBiomeMapAvailable(GameVersionChecker.IsFeatureAvailable(GameFeature.BiomeMap));
         }
 
         private void InitializeSimulation(PlayerSnapshot snapshot)
@@ -271,7 +285,7 @@ namespace PowerMath.UI.MainMenu
                     if (result != null)
                     {
                         foreach (string error in result.Errors)
-                            Debug.LogWarning($"Question catalog fallback: {error}");
+                            PowerMath.Diagnostics.AppLog.Warning("Combat", $"Question catalog fallback: {error}");
                     }
 
                     InitializeLiveQuestionFallback(snapshot, progressionStore, map);
@@ -289,7 +303,8 @@ namespace PowerMath.UI.MainMenu
                     _questionCatalogLoadCompleted = true;
                     if (eventCatalog == null)
                     {
-                        Debug.LogWarning(
+                        PowerMath.Diagnostics.AppLog.Warning(
+                            "Combat",
                             $"Event question catalog fallback: {eventError}");
                         eventCatalog = BuildDevelopmentEventQuestions(
                             result.Catalog,
@@ -338,7 +353,8 @@ namespace PowerMath.UI.MainMenu
             _questionCatalogLoadCompleted = true;
             _questionCatalogRepository?.Cancel();
             _eventQuestionRepository?.Cancel();
-            Debug.LogWarning(
+            PowerMath.Diagnostics.AppLog.Warning(
+                "Combat",
                 "Question catalog startup timed out. Activating development question catalog with live player persistence.");
             InitializeLiveQuestionFallback(snapshot, progressionStore, map);
         }
@@ -355,7 +371,8 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
 
-            Debug.LogWarning(
+            PowerMath.Diagnostics.AppLog.Warning(
+                "Combat",
                 "Shared Question Firebase is unavailable. Using development question catalog with live player persistence.");
             InitializeRuntime(
                 snapshot,
@@ -417,7 +434,7 @@ namespace PowerMath.UI.MainMenu
             }
             catch (System.ArgumentOutOfRangeException exception)
             {
-                Debug.LogError(exception.Message);
+                PowerMath.Diagnostics.AppLog.Error("Combat", exception.Message);
                 SetUnavailable("Player Rank Currency data is invalid.");
                 return;
             }
@@ -450,7 +467,7 @@ namespace PowerMath.UI.MainMenu
                     out runtimePetCatalog,
                     out string petCatalogError))
             {
-                Debug.LogError($"Pet catalog is invalid: {petCatalogError}");
+                PowerMath.Diagnostics.AppLog.Error("Combat", $"Pet catalog is invalid: {petCatalogError}");
                 SetUnavailable("Saved pet progression is unavailable.");
                 return;
             }
@@ -467,7 +484,7 @@ namespace PowerMath.UI.MainMenu
             }
             catch (System.Exception exception)
             {
-                Debug.LogError($"Player combat stats are invalid: {exception.Message}");
+                PowerMath.Diagnostics.AppLog.Error("Combat", $"Player combat stats are invalid: {exception.Message}");
                 SetUnavailable("Saved weapon progression is invalid.");
                 return;
             }
@@ -498,7 +515,7 @@ namespace PowerMath.UI.MainMenu
                     restoredCombat.Phase == CombatPhase.Resolving ||
                     (restoredCombat.Phase == CombatPhase.PresentingResult && pendingPresentation == null))
                 {
-                    Debug.LogWarning("An unfinished saved attempt was interrupted. Restoring encounter in ready state.");
+                    PowerMath.Diagnostics.AppLog.Warning("Combat", "An unfinished saved attempt was interrupted. Restoring encounter in ready state.");
                     restoredCombat = new CombatSnapshot(
                         restoredCombat.Stage,
                         restoredCombat.EnemyId,
@@ -531,7 +548,8 @@ namespace PowerMath.UI.MainMenu
                 engine.Snapshot.Phase != CombatPhase.RunDefeat &&
                 engine.Snapshot.Phase != CombatPhase.RunComplete)
             {
-                Debug.LogWarning(
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Combat",
                     $"Pending presentation '{pendingPresentation.PresentationId}' does not match combat phase '{engine.Snapshot.Phase}' and was discarded.");
                 pendingPresentation = null;
             }
@@ -557,7 +575,8 @@ namespace PowerMath.UI.MainMenu
                 }
                 catch (System.Exception exception)
                 {
-                    Debug.LogWarning(
+                    PowerMath.Diagnostics.AppLog.Warning(
+                        "Combat",
                         $"Academic progression inventory mismatch with active catalog: {exception.Message}. " +
                         "Re-seeding queue for active rank.");
                     academicState = academicEngine.CreateInitialState(activeRank, balances);
@@ -634,7 +653,8 @@ namespace PowerMath.UI.MainMenu
                 rankFeedback
             );
             _view.ConfigureStageMap(resolvedMap, RenderBiomeOnCanvas,
-                RenderEncounterOnCanvas, CrossfadeBiomeBackground);
+                RenderEncounterOnCanvas, CrossfadeBiomeBackground,
+                ResolveLocalizedEnemyName);
 
             _presenter = new CombatLobbyPresenter(
                 _view,
@@ -679,7 +699,7 @@ namespace PowerMath.UI.MainMenu
             }
             catch (System.Exception exception)
             {
-                Debug.LogError($"Run progression controls could not start: {exception.Message}");
+                PowerMath.Diagnostics.AppLog.Error("Combat", $"Run progression controls could not start: {exception.Message}");
             }
 
             GetComponent<MainMenuTransitionController>()?.NotifySessionReady();
@@ -714,7 +734,7 @@ namespace PowerMath.UI.MainMenu
                 {
                     foreach (string error in loadResult.Errors)
                     {
-                        Debug.LogError($"Question catalog: {error}");
+                        PowerMath.Diagnostics.AppLog.Error("Combat", $"Question catalog: {error}");
                     }
                 }
 
@@ -820,7 +840,7 @@ namespace PowerMath.UI.MainMenu
             _scenePlayer = GameObject.Find("playerPresentation")?.GetComponent<LegacyImage>();
             if (_sceneBackground != null)
             {
-                _sceneBackground.raycastTarget = true;
+                _sceneBackground.raycastTarget = false;
                 _sceneBackground.gameObject.SetActive(true);
             }
             if (_scenePlayer != null)
@@ -850,15 +870,12 @@ namespace PowerMath.UI.MainMenu
 
             if (_sceneBackground != null)
             {
-                _backgroundActor = _sceneBackground.GetComponent<ActorPresentationController>();
-                if (_backgroundActor == null)
-                    _backgroundActor = _sceneBackground.gameObject.AddComponent<ActorPresentationController>();
-                _backgroundActor.Clicked -= OnActorTapped;
-                _backgroundActor.Clicked += OnActorTapped;
-                _backgroundActor.Initialize(
-                    PowerMath.Gameplay.Combat.Presentation.PresentationActor.Player,
-                    reducedMotion,
-                    combatJuiceProfile);
+                _sceneBackground.raycastTarget = false;
+                ActorPresentationController legacyActor = _sceneBackground.GetComponent<ActorPresentationController>();
+                if (legacyActor != null)
+                {
+                    Destroy(legacyActor);
+                }
             }
             if (_scenePlayer != null)
             {
@@ -875,6 +892,7 @@ namespace PowerMath.UI.MainMenu
                     reducedMotion,
                     combatJuiceProfile,
                     playerRest);
+                CharacterPresentationBinding.ApplyToPlayerActor(_playerActor);
             }
             if (_sceneEnemy != null)
             {
@@ -1091,6 +1109,23 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
+        private string ResolveLocalizedEnemyName(string encounterId)
+        {
+            EnemyDefinition monster = stageMapDefinition?.FindMonster(encounterId);
+            if (monster != null)
+            {
+                return PowerMath.Localization.LocalizationService.Locale == "th" && !string.IsNullOrWhiteSpace(monster.ThaiDisplayName)
+                    ? monster.ThaiDisplayName
+                    : monster.DisplayName;
+            }
+            return null;
+        }
+
+        private void OnLocaleChanged()
+        {
+            _view?.RefreshLocalizedEnemyName();
+        }
+
         private Sprite ResolveFallbackEnemySprite()
         {
             if (enemyTexture != null)
@@ -1154,7 +1189,7 @@ namespace PowerMath.UI.MainMenu
             int separator = playerId.IndexOf(':');
             if (separator <= 0 || separator >= playerId.Length - 1)
             {
-                Debug.LogWarning("Player ID cannot identify the Firestore level and student fields. Running with local persistence.");
+                PowerMath.Diagnostics.AppLog.Warning("Combat", "Player ID cannot identify the Firestore level and student fields. Running with local persistence.");
                 return null;
             }
             return new FirestoreAcademicProgressionStore(

@@ -10,6 +10,8 @@ namespace PowerMath.Bootstrap
     {
         public event Action RetryRequested;
 
+        private BootstrapState _lastState;
+        private string _lastDetail;
         private Label _statusLabel;
         private Label _detailLabel;
         private ProgressBar _progressBar;
@@ -29,13 +31,14 @@ namespace PowerMath.Bootstrap
                 _statusLabel == null || _detailLabel == null ||
                 _progressBar == null || _retryButton == null)
             {
-                Debug.LogError("BootstrapView could not find its required UI Toolkit elements.");
+                PowerMath.Diagnostics.AppLog.Error("Bootstrap", "BootstrapView could not find its required UI Toolkit elements.");
                 enabled = false;
             }
         }
 
         private void OnEnable()
         {
+            PowerMath.Localization.LocalizationService.Changed += RefreshLocale;
             if (_retryButton != null)
             {
                 _retryButton.clicked += OnRetryClicked;
@@ -44,19 +47,24 @@ namespace PowerMath.Bootstrap
 
         private void OnDisable()
         {
+            PowerMath.Localization.LocalizationService.Changed -= RefreshLocale;
             if (_retryButton != null)
             {
                 _retryButton.clicked -= OnRetryClicked;
             }
         }
 
+        private void RefreshLocale() => Render(_lastState, _lastDetail);
+
         public void Render(BootstrapState state, string detail = null)
         {
+            _lastState = state; _lastDetail = detail;
             if (!enabled)
             {
                 return;
             }
 
+            _retryButton.text = PowerMath.Localization.LocalizationService.Get("common.retry");
             _retryButton.AddToClassList("is-hidden");
             _retryButton.SetEnabled(false);
 
@@ -64,24 +72,24 @@ namespace PowerMath.Bootstrap
             {
                 case BootstrapState.CheckingVersion:
                     SetProgress(
-                        "CHECKING VERSION",
-                        "Checking for updates...",
-                        detail ?? "Verifying game version and live content.",
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.versionPhase"),
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.checkingVersion"),
+                        detail ?? PowerMath.Localization.LocalizationService.Get("bootstrap.versionDetail"),
                         10f
                     );
                     break;
                 case BootstrapState.CheckingSession:
                     SetProgress(
-                        "CHECKING SESSION",
-                        "Checking this device...",
-                        detail ?? "Looking for a saved school session.",
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.sessionPhase"),
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.checkingSession"),
+                        detail ?? PowerMath.Localization.LocalizationService.Get("bootstrap.sessionDetail"),
                         25f
                     );
                     break;
                 case BootstrapState.LoadingPlayer:
                     SetProgress(
                         "RESTORING PROGRESS",
-                        "Loading your progress...",
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.loading"),
                         detail ?? "Restoring your Stage, loadout, and learning progress.",
                         70f
                     );
@@ -96,39 +104,39 @@ namespace PowerMath.Bootstrap
                     break;
                 case BootstrapState.LoadingScene:
                     SetProgress(
-                        "ENTERING MATH:WORLD",
-                        "Opening your game...",
-                        detail ?? "Preparing the Main Menu and current encounter.",
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.enterPhase"),
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.entering"),
+                        detail ?? PowerMath.Localization.LocalizationService.Get("bootstrap.enterDetail"),
                         100f
                     );
                     break;
                 case BootstrapState.Recovering:
                     ShowRetry(
-                        "LOAD INTERRUPTED",
-                        "We could not finish loading.",
-                        detail ?? "Check your connection, then try again."
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.interruptPhase"),
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.interrupted"),
+                        detail ?? PowerMath.Localization.LocalizationService.Get("bootstrap.retryDetail")
                     );
                     break;
                 case BootstrapState.AuthenticationRequired:
                     SetProgress(
-                        "SIGN IN REQUIRED",
-                        "Opening sign in...",
-                        detail ?? "A school account is needed to restore your progress.",
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.authPhase"),
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.signIn"),
+                        detail ?? PowerMath.Localization.LocalizationService.Get("bootstrap.accountDetail"),
                         50f
                     );
                     break;
                 case BootstrapState.IncompatibleClient:
                     ShowBlocked(
-                        "UPDATE REQUIRED",
-                        "Game update required",
-                        detail ?? "Install the latest version before continuing."
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.updatePhase"),
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.update"),
+                        detail ?? PowerMath.Localization.LocalizationService.Get("bootstrap.updateDetail")
                     );
                     break;
                 case BootstrapState.MaintenanceMode:
                     ShowBlocked(
-                        "MAINTENANCE",
-                        "Maintenance in progress",
-                        detail ?? "The game is currently undergoing maintenance. Please try again later."
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.maintenancePhase"),
+                        PowerMath.Localization.LocalizationService.Get("bootstrap.maintenance"),
+                        detail ?? PowerMath.Localization.LocalizationService.Get("bootstrap.maintenanceDetail")
                     );
                     break;
             }
@@ -155,7 +163,7 @@ namespace PowerMath.Bootstrap
             _statusLabel.text = status;
             _detailLabel.text = detail;
             _progressBar.value = 0f;
-            _progressBar.title = "READY TO RETRY";
+            _progressBar.title = PowerMath.Localization.LocalizationService.Get("bootstrap.retry");
             _retryButton.RemoveFromClassList("is-hidden");
             _retryButton.SetEnabled(true);
         }
@@ -166,12 +174,19 @@ namespace PowerMath.Bootstrap
             _statusLabel.text = status;
             _detailLabel.text = detail;
             _progressBar.value = 0f;
-            _progressBar.title = "UPDATE NEEDED";
+            _progressBar.title = phase;
+            if (_lastState == BootstrapState.IncompatibleClient)
+            {
+                _retryButton.text = PowerMath.Localization.LocalizationService.Get("common.reload");
+                _retryButton.RemoveFromClassList("is-hidden");
+                _retryButton.SetEnabled(true);
+            }
         }
 
         private void OnRetryClicked()
         {
-            RetryRequested?.Invoke();
+            if (_lastState == BootstrapState.IncompatibleClient) WebCacheBridge.HardReload();
+            else RetryRequested?.Invoke();
         }
     }
 }

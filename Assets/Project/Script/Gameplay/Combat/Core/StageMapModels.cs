@@ -17,21 +17,24 @@ namespace PowerMath.Gameplay.Combat
     public sealed class MonsterData
     {
         public MonsterData(string id, string name, StageEncounterKind kind,
-            string biomeId, int maximumCooldown, int hpMultiplierBasisPoints)
+            string biomeId, int maximumCooldown, int baseHp, int hpMultiplierBasisPoints = 10000)
         {
             if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(name) ||
                 string.IsNullOrWhiteSpace(biomeId)) throw new ArgumentException("Monster identity is required.");
             if (kind == StageEncounterKind.ChallengeEvent) throw new ArgumentException("Events are not monsters.");
-            if (maximumCooldown <= 0 || hpMultiplierBasisPoints <= 0)
+            if (maximumCooldown <= 0 || baseHp <= 0 || hpMultiplierBasisPoints <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maximumCooldown));
             Id = id.Trim(); Name = name.Trim(); Kind = kind; BiomeId = biomeId.Trim();
-            MaximumCooldown = maximumCooldown; HpMultiplierBasisPoints = hpMultiplierBasisPoints;
+            MaximumCooldown = maximumCooldown;
+            BaseHp = baseHp;
+            HpMultiplierBasisPoints = hpMultiplierBasisPoints;
         }
         public string Id { get; }
         public string Name { get; }
         public StageEncounterKind Kind { get; }
         public string BiomeId { get; }
         public int MaximumCooldown { get; }
+        public int BaseHp { get; }
         public int HpMultiplierBasisPoints { get; }
     }
 
@@ -176,7 +179,8 @@ namespace PowerMath.Gameplay.Combat
             ulong hash = StableHash64.Compute(runId, map.CatalogVersion, stage.Value.ToString(), "hp");
             int span = map.VariationBasisPoints * 2 + 1;
             long variation = 10000L - map.VariationBasisPoints + (long)(hash % (ulong)span);
-            long numerator = checked((long)map.NormalHpBaseline * growth);
+            long baseline = monster.BaseHp > 0 ? (long)monster.BaseHp : (long)map.NormalHpBaseline;
+            long numerator = checked(baseline * growth);
             numerator = checked(numerator * monster.HpMultiplierBasisPoints);
             numerator = checked(numerator * variation);
             return Math.Max(1, checked((int)((numerator + 500000000000L) / 1000000000000L)));
@@ -210,12 +214,13 @@ namespace PowerMath.Gameplay.Combat
                 int first = biomeIndex * 30 + 1;
                 int last = biomeIndex == 6 ? 200 : first + 29;
                 string biomeId = $"biome-{biomeIndex + 1}";
+                int normalBaseHp = 30 + biomeIndex * 5;
                 var normals = new[]
                 {
                     new MonsterData($"{biomeId}-monster-a", $"Biome {biomeIndex + 1} Scout",
-                        StageEncounterKind.NormalMonster, biomeId, 3, 10000),
+                        StageEncounterKind.NormalMonster, biomeId, 3, normalBaseHp, 10000),
                     new MonsterData($"{biomeId}-monster-b", $"Biome {biomeIndex + 1} Guardian",
-                        StageEncounterKind.NormalMonster, biomeId, 2, 11000)
+                        StageEncounterKind.NormalMonster, biomeId, 2, normalBaseHp + 5, 10000)
                 };
                 var bosses = new Dictionary<int, MonsterData>();
                 for (int stage = first; stage <= last; stage++)
@@ -223,11 +228,11 @@ namespace PowerMath.Gameplay.Combat
                     StageId stageId = new StageId(stage);
                     StageEncounterKind kind = StageClassificationPolicy.Classify(stageId);
                     if (kind == StageEncounterKind.NormalMonster) continue;
-                    int multiplier = kind == StageEncounterKind.MiniBoss ? 15000
-                        : kind == StageEncounterKind.BigBoss ? 22000 : 30000;
+                    int bossBaseHp = kind == StageEncounterKind.MiniBoss ? 45 + biomeIndex * 15
+                        : kind == StageEncounterKind.BigBoss ? 100 + biomeIndex * 50 : 500;
                     bosses.Add(stage, new MonsterData($"boss-{stage}",
                         kind == StageEncounterKind.FinalBoss ? "Final Boss" : $"{kind} {stage}",
-                        kind, biomeId, kind == StageEncounterKind.MiniBoss ? 3 : 2, multiplier));
+                        kind, biomeId, kind == StageEncounterKind.MiniBoss ? 3 : 2, bossBaseHp, 10000));
                 }
                 biomes.Add(new BiomeData(biomeId, $"Biome {biomeIndex + 1}",
                     first, last, normals, bosses));

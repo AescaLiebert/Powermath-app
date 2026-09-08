@@ -5,6 +5,10 @@ namespace PowerMath.PlayerData
     [Serializable]
     public sealed class PlayerSnapshot
     {
+        public int schemaVersion;
+        public PreferencesData preferences;
+        public OnboardingData onboarding;
+        public TutorialData tutorial;
         public string playerId;
         public long revision;
         public ProfileData profile;
@@ -19,8 +23,33 @@ namespace PowerMath.PlayerData
         public RunSettlementData lastRunSettlement;
 
         [Serializable]
+        public sealed class PreferencesData
+        {
+            public string locale;
+        }
+
+        [Serializable]
+        public sealed class OnboardingData
+        {
+            public int version;
+            public string phase;
+            public string openingCheckpointId;
+            public string selectedCharacterId;
+            public string completionOperationId;
+            public bool legacyPlayer;
+        }
+
+        [Serializable]
+        public sealed class TutorialData
+        {
+            public int version;
+            public string checkpointId;
+        }
+
+        [Serializable]
         public sealed class ProfileData
         {
+            public string characterId;
             public string displayName;
             public string gradeBand;
             public string iconId;

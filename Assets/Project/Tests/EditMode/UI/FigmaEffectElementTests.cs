@@ -39,5 +39,28 @@ namespace PowerMath.UI.Core.Tests
             Assert.That(element, Is.InstanceOf<FigmaVectorPathElement>());
             Assert.That(element.pickingMode, Is.EqualTo(PickingMode.Ignore));
         }
+
+        [Test]
+        public void RebirthDirection_UsesReusableVectorPathElement()
+        {
+            var element = new RebirthDirectionHead();
+
+            Assert.That(element, Is.InstanceOf<FigmaVectorPathElement>());
+            Assert.That(element.pickingMode, Is.EqualTo(PickingMode.Ignore));
+        }
+
+        [Test]
+        public void LeaderboardVectors_UseReusableNonInteractivePaths()
+        {
+            FigmaVectorPathElement[] elements =
+            {
+                new LeaderboardLockVector(),
+                new LeaderboardCloseVector(),
+                new LeaderboardPodiumVector()
+            };
+
+            foreach (FigmaVectorPathElement element in elements)
+                Assert.That(element.pickingMode, Is.EqualTo(PickingMode.Ignore));
+        }
     }
 }

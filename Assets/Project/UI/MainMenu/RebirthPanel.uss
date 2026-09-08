@@ -1,434 +1,327 @@
 .settlement-modal {
-    background-color: rgba(20, 48, 91, 0.92);
-}
-
-.settlement-backdrop-ring {
+    --rebirth-navy-950: rgb(7, 31, 67);
+    --rebirth-navy-900: rgb(10, 46, 95);
+    --rebirth-navy-800: rgb(18, 57, 107);
+    --rebirth-blue-700: rgb(31, 83, 164);
+    --rebirth-blue-600: rgb(33, 94, 194);
+    --rebirth-blue-500: rgb(73, 152, 238);
+    --rebirth-blue-400: rgb(74, 145, 240);
+    --rebirth-cream-100: rgb(255, 248, 232);
+    --rebirth-cream-50: rgb(255, 253, 242);
+    --rebirth-card: rgb(234, 242, 248);
+    --rebirth-card-stroke: rgb(155, 178, 200);
+    --rebirth-card-shadow: rgb(111, 133, 153);
+    --rebirth-white: rgb(255, 255, 255);
+    --rebirth-orange-600: rgb(237, 99, 61);
+    --rebirth-orange-500: rgb(255, 131, 92);
+    --rebirth-gold-800: rgb(151, 91, 33);
+    --rebirth-gold-700: rgb(166, 133, 52);
+    --rebirth-gold-500: rgb(255, 200, 61);
     position: absolute;
-    border-left-width: 6px;
-    border-right-width: 6px;
-    border-top-width: 6px;
-    border-bottom-width: 6px;
-    border-left-color: rgba(255, 184, 68, 0.34);
-    border-right-color: rgba(255, 184, 68, 0.34);
-    border-top-color: rgba(255, 184, 68, 0.34);
-    border-bottom-color: rgba(255, 184, 68, 0.34);
-    border-top-left-radius: 50%;
-    border-top-right-radius: 50%;
-    border-bottom-left-radius: 50%;
-    border-bottom-right-radius: 50%;
-}
-
-.settlement-backdrop-ring--one {
-    width: 760px;
-    height: 760px;
-    left: -320px;
-    top: -360px;
-}
-
-.settlement-backdrop-ring--two {
-    width: 620px;
-    height: 620px;
-    right: -250px;
-    bottom: -300px;
-    border-left-color: rgba(95, 211, 225, 0.3);
-    border-right-color: rgba(95, 211, 225, 0.3);
-    border-top-color: rgba(95, 211, 225, 0.3);
-    border-bottom-color: rgba(95, 211, 225, 0.3);
-}
-
-.settlement-card {
-    width: 1080px;
-    max-width: 92%;
-    height: 850px;
-    max-height: 90%;
-    padding: 27px 32px 28px 32px;
-    color: rgb(20, 48, 91);
-    background-color: rgb(255, 249, 232);
-    border-left-color: rgb(244, 111, 83);
-    border-right-color: rgb(244, 111, 83);
-    border-top-color: rgb(244, 111, 83);
-    border-bottom-color: rgb(244, 111, 83);
-    transition-property: scale, opacity, translate;
-    transition-duration: 0.24s;
-    transition-timing-function: ease-out-back;
-}
-
-.settlement-header {
-    min-height: 92px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.settlement-heading {
-    flex-grow: 1;
-}
-
-.settlement-kicker,
-.settlement-section-title,
-.settlement-value-title {
-    color: rgb(32, 92, 183);
-    font-size: 12px;
-    -unity-font-style: bold;
-    letter-spacing: 1.4px;
-}
-
-.settlement-title {
-    color: rgb(20, 48, 91);
-    font-size: 37px;
-    -unity-text-align: upper-left;
-}
-
-.settlement-subtitle {
-    margin-top: 3px;
-    color: rgb(77, 101, 134);
-}
-
-.settlement-stage {
-    min-width: 170px;
-    height: 60px;
-    margin-top: 0;
-    padding: 12px 20px;
+    left: 0; right: 0; top: 0; bottom: 0;
     align-items: center;
     justify-content: center;
-    color: rgb(20, 48, 91);
-    background-color: rgb(255, 184, 68);
-    border-top-left-radius: 30px;
-    border-top-right-radius: 30px;
-    border-bottom-left-radius: 30px;
-    border-bottom-right-radius: 30px;
-    font-size: 22px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-center;
-    transition-property: scale;
+    background-color: rgba(7, 31, 67, 0.76);
+}
+
+.rebirth-window-shadow {
+    position: absolute; width: 980px; height: 820px;
+    --figma-shadow-color: rgba(7, 31, 67, 0.42);
+    --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 12;
+    --figma-shadow-blur: 18; --figma-shadow-spread: 0; --figma-shadow-radius: 28;
+}
+.rebirth-window {
+    width: 980px; height: 820px; flex-shrink: 0; overflow: visible;
+    border-left-width: 6px; border-right-width: 6px; border-top-width: 6px; border-bottom-width: 6px;
+    border-left-color: var(--rebirth-navy-950); border-right-color: var(--rebirth-navy-950); border-top-color: var(--rebirth-navy-950); border-bottom-color: var(--rebirth-navy-950);
+    border-top-left-radius: 28px; border-top-right-radius: 28px; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px;
+    transition-property: opacity, scale, translate;
     transition-duration: 0.22s;
     transition-timing-function: ease-out-back;
 }
-
-.settlement-scroll {
-    flex-grow: 1;
-    margin-top: 10px;
+.rebirth-window-inner-shadow {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-color: rgba(255, 255, 255, 0.60);
+    --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 3;
+    --figma-shadow-blur: 4; --figma-shadow-spread: 0;
+    --figma-shadow-radius: 22; --figma-shadow-inset: 1;
 }
 
-.settlement-progress-section {
-    margin-top: 4px;
-    margin-bottom: 8px;
-    padding: 12px 16px;
-    background-color: rgb(232, 242, 239);
-    border-left-width: 2px;
-    border-right-width: 2px;
-    border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-left-color: rgb(166, 199, 195);
-    border-right-color: rgb(166, 199, 195);
-    border-top-color: rgb(166, 199, 195);
-    border-bottom-color: rgb(166, 199, 195);
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
+.rebirth-header {
+    width: 968px; height: 130px; flex-shrink: 0; overflow: hidden;
+    border-top-left-radius: 22px; border-top-right-radius: 22px;
+    border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
+    border-left-color: var(--rebirth-white); border-right-color: var(--rebirth-white); border-top-color: var(--rebirth-white); border-bottom-color: var(--rebirth-white);
+}
+.rebirth-header-gradient, .rebirth-body-gradient, .rebirth-close-gradient,
+.rebirth-progress-gradient, .rebirth-action-gradient {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+}
+.rebirth-header-gradient {
+    --figma-gradient-stop-count: 2;
+    --figma-gradient-color-0: var(--rebirth-blue-400); --figma-gradient-stop-0: 0;
+    --figma-gradient-color-1: var(--rebirth-blue-600); --figma-gradient-stop-1: 1;
+    --figma-gradient-start-x: 0.5; --figma-gradient-start-y: 0;
+    --figma-gradient-end-x: 0.5; --figma-gradient-end-y: 1; --figma-gradient-radius: 22;
+}
+.rebirth-header-inner-shadow {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-color: rgba(255, 255, 255, 0.25);
+    --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 5;
+    --figma-shadow-blur: 0; --figma-shadow-spread: 0;
+    --figma-shadow-radius: 22; --figma-shadow-inset: 1;
+}
+.rebirth-title-group {
+    position: absolute; left: 169px; top: 16px; width: 630px; height: 98px;
+    flex-direction: row; align-items: center; justify-content: center;
+}
+.rebirth-title-icon {
+    width: 103px; height: 103px; margin-right: 18px; flex-shrink: 0;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=-2324710863503425689&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth_0");
+    -unity-background-scale-mode: scale-to-fit;
+}
+.rebirth-title {
+    width: 267px; height: 68px; margin: 0; padding: 0;
+    color: var(--rebirth-white); font-size: 56px; -unity-font-style: bold;
+    -unity-text-align: middle-center; text-shadow: 0 5px 2px rgba(7, 31, 67, 0.74);
 }
 
-.settlement-progress-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-.settlement-progress-title {
-    color: rgb(32, 92, 183);
-    font-size: 12px;
-    -unity-font-style: bold;
-    letter-spacing: 1.4px;
-}
-
-.settlement-progress-label {
-    color: rgb(20, 48, 91);
-    font-size: 14px;
-    -unity-font-style: bold;
-}
-
-.settlement-progress-bar {
-    height: 24px;
-    margin: 0;
-}
-
-.settlement-progress-bar .unity-progress-bar__background {
-    background-color: rgb(215, 228, 225);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    border-left-width: 0;
-    border-right-width: 0;
-    border-top-width: 0;
-    border-bottom-width: 0;
-}
-
-.settlement-progress-bar .unity-progress-bar__progress {
-    background-color: rgb(32, 184, 193);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    transition-property: width;
-    transition-duration: 0.28s;
-    transition-timing-function: ease-out;
-}
-
-.settlement-progress-bar--ready .unity-progress-bar__progress {
-    background-color: rgb(244, 111, 83);
-}
-
-.settlement-progress-bar .unity-progress-bar__title {
-    color: rgb(20, 48, 91);
-    font-size: 12px;
-    -unity-font-style: bold;
-    letter-spacing: 1px;
-}
-
-.settlement-grid {
-    min-height: 132px;
-    margin-top: 7px;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.settlement-value-card {
-    width: 49%;
-    min-height: 128px;
-    padding: 17px 19px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    background-color: rgb(232, 242, 239);
-    border-left-width: 2px;
-    border-right-width: 2px;
-    border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-left-color: rgb(166, 199, 195);
-    border-right-color: rgb(166, 199, 195);
-    border-top-color: rgb(166, 199, 195);
-    border-bottom-color: rgb(166, 199, 195);
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
-    border-bottom-left-radius: 18px;
-    border-bottom-right-radius: 18px;
-}
-
-.settlement-value-card--coins {
-    margin-right: 10px;
-    background-color: rgb(255, 239, 195);
-    border-left-color: rgb(255, 184, 68);
-    border-right-color: rgb(255, 184, 68);
-    border-top-color: rgb(255, 184, 68);
-    border-bottom-color: rgb(255, 184, 68);
-}
-
-.settlement-value-icon {
-    width: 66px;
-    height: 66px;
-    margin-right: 16px;
-    align-items: center;
-    justify-content: center;
-    background-color: rgb(32, 184, 193);
-    border-top-left-radius: 33px;
-    border-top-right-radius: 33px;
-    border-bottom-left-radius: 33px;
-    border-bottom-right-radius: 33px;
-}
-
-.settlement-value-icon--coins {
-    background-color: rgb(255, 184, 68);
-}
-
-.settlement-value-symbol {
-    color: rgb(20, 48, 91);
-    font-size: 36px;
-    -unity-font-style: bold;
-}
-
-.settlement-value-copy {
-    flex-grow: 1;
-}
-
-.settlement-value {
-    margin-top: 3px;
-    color: rgb(20, 48, 91);
-    font-size: 24px;
-    -unity-font-style: bold;
-    -unity-text-align: upper-left;
-}
-
-.settlement-gain {
-    margin-top: 3px;
-    color: rgb(18, 112, 81);
-    font-size: 15px;
-    -unity-font-style: bold;
-    -unity-text-align: upper-left;
-}
-
-.settlement-result-row {
-    min-height: 64px;
-    margin-top: 11px;
-    flex-direction: row;
-}
-
-.settlement-result {
-    min-height: 58px;
-    margin-top: 0;
-    padding: 13px 15px;
-    flex-grow: 1;
-    color: rgb(255, 249, 232);
-    background-color: rgb(32, 92, 183);
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
-    border-bottom-left-radius: 14px;
-    border-bottom-right-radius: 14px;
-    font-size: 17px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-center;
-}
-
-.settlement-result--attack {
-    margin-right: 10px;
-}
-
-.settlement-result--prestige {
-    background-color: rgb(244, 111, 83);
-}
-
-.settlement-section-title--rules {
-    margin-top: 17px;
-}
-
-.settlement-rules {
-    min-height: 164px;
-    margin-top: 7px;
-    flex-direction: row;
-}
-
-.settlement-rule-card {
-    width: 49%;
-    min-height: 156px;
-    padding: 16px 18px;
-    background-color: rgb(232, 242, 239);
-    border-left-width: 5px;
-    border-left-color: rgb(32, 184, 193);
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
-    border-bottom-left-radius: 14px;
-    border-bottom-right-radius: 14px;
-}
-
-.settlement-rule-card--keep {
-    margin-right: 10px;
-}
-
-.settlement-rule-card--reset {
-    background-color: rgb(255, 232, 219);
-    border-left-color: rgb(244, 111, 83);
-}
-
-.settlement-rule-title {
-    margin-bottom: 7px;
-    color: rgb(18, 112, 81);
-    font-size: 18px;
-    -unity-font-style: bold;
-    letter-spacing: 1px;
-}
-
-.settlement-rule-title--reset {
-    color: rgb(151, 54, 58);
-}
-
-.settlement-rule-line {
-    min-height: 30px;
-    color: rgb(20, 48, 91);
-    font-size: 14px;
-    white-space: normal;
-}
-
-.settlement-reset-note {
-    margin-top: 9px;
-    padding: 7px;
-    color: rgb(77, 101, 134);
+.rebirth-close-button {
+    position: absolute; right: 32px; top: 23px; width: 72px; height: 72px;
+    margin: 0; padding: 8px; align-items: center; justify-content: center; overflow: visible;
     background-color: rgba(0, 0, 0, 0);
-    font-size: 12px;
-    -unity-text-align: middle-center;
-}
-
-.settlement-status {
-    min-height: 44px;
-    margin-top: 8px;
-    -unity-text-align: middle-center;
-}
-
-.settlement-actions {
-    min-height: 58px;
-    margin-top: 10px;
-    flex-direction: row;
-    justify-content: flex-end;
-}
-
-.settlement-actions > Button {
-    width: 205px;
-    height: 56px;
-    margin-left: 10px;
-    margin-right: 0;
-    transition-property: scale, translate, background-color, border-color;
-    transition-duration: 0.16s;
+    border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px;
+    border-left-color: rgb(168, 61, 37); border-right-color: rgb(168, 61, 37); border-top-color: rgb(168, 61, 37); border-bottom-color: rgb(168, 61, 37);
+    border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px;
+    transition-property: scale, translate; transition-duration: 0.14s;
     transition-timing-function: ease-out-back;
 }
+.rebirth-close-button:hover, .rebirth-close-button:focus { scale: 1.05 1.05; translate: 0 -1px; }
+.rebirth-close-button:active { scale: 0.93 0.93; translate: 0 2px; }
+.rebirth-close-gradient {
+    --figma-gradient-stop-count: 2;
+    --figma-gradient-color-0: var(--rebirth-orange-500); --figma-gradient-stop-0: 0;
+    --figma-gradient-color-1: var(--rebirth-orange-600); --figma-gradient-stop-1: 1;
+    --figma-gradient-start-x: 0.5; --figma-gradient-start-y: 0;
+    --figma-gradient-end-x: 0.5; --figma-gradient-end-y: 1; --figma-gradient-radius: 15;
+}
+.rebirth-close-highlight {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-color: rgba(255, 255, 255, 0.76);
+    --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 2;
+    --figma-shadow-blur: 3; --figma-shadow-spread: 0;
+    --figma-shadow-radius: 15; --figma-shadow-inset: 1;
+}
+.rebirth-close-vector { width: 48px; height: 48px; }
+.rebirth-close-line {
+    position: absolute; left: 7px; top: 21px; width: 34px; height: 6px;
+    background-color: var(--rebirth-navy-800);
+    border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px;
+}
+.rebirth-close-line--forward { rotate: 45deg; }
+.rebirth-close-line--back { rotate: -45deg; }
 
-.settlement-actions > Button:hover,
-.settlement-actions > Button:focus {
-    scale: 1.04 1.04;
-    translate: 0 -2px;
+.rebirth-body {
+    width: 968px; height: 678px; padding: 28px; flex-shrink: 0;
+    align-items: center; overflow: hidden;
+    border-bottom-left-radius: 22px; border-bottom-right-radius: 22px;
+}
+.rebirth-body-gradient {
+    --figma-gradient-stop-count: 2;
+    --figma-gradient-color-0: var(--rebirth-cream-50); --figma-gradient-stop-0: 0;
+    --figma-gradient-color-1: var(--rebirth-cream-100); --figma-gradient-stop-1: 1;
+    --figma-gradient-start-x: 0.5; --figma-gradient-start-y: 0;
+    --figma-gradient-end-x: 0.5; --figma-gradient-end-y: 1; --figma-gradient-radius: 22;
+}
+.rebirth-comparison-list { width: 868px; height: 364px; flex-shrink: 0; align-items: center; }
+.rebirth-comparison-row {
+    width: 868px; height: 112px; margin-bottom: 12px; flex-shrink: 0;
+    flex-direction: row; align-items: center;
+}
+.rebirth-comparison-row--coins { margin-bottom: 0; }
+.rebirth-comparison-card { width: 330px; height: 104px; flex-shrink: 0; overflow: visible; }
+.rebirth-card-drop-shadow {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-color: rgba(0, 0, 0, 0.10);
+    --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 4;
+    --figma-shadow-blur: 4; --figma-shadow-spread: 0; --figma-shadow-radius: 14;
+}
+.rebirth-card-surface {
+    width: 330px; height: 104px; overflow: hidden;
+    background-color: var(--rebirth-card);
+    border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px;
+    border-left-color: var(--rebirth-card-stroke); border-right-color: var(--rebirth-card-stroke); border-top-color: var(--rebirth-card-stroke); border-bottom-color: var(--rebirth-card-stroke);
+    border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;
+}
+.rebirth-card-inner-light, .rebirth-card-inner-dark {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-spread: 0; --figma-shadow-blur: 0;
+    --figma-shadow-radius: 11; --figma-shadow-inset: 1;
+}
+.rebirth-card-inner-light {
+    --figma-shadow-color: var(--rebirth-white); --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 6.5;
+}
+.rebirth-card-inner-dark {
+    --figma-shadow-color: var(--rebirth-card-shadow); --figma-shadow-offset-x: 0; --figma-shadow-offset-y: -7;
+}
+.rebirth-icon-slot {
+    position: absolute; left: 11px; top: 11px; width: 80px; height: 76px; padding: 8px;
+    align-items: center; justify-content: center; overflow: visible;
+    background-color: rgba(255, 255, 255, 0.24);
+    border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;
+}
+.rebirth-stat-icon { flex-shrink: 0; -unity-background-scale-mode: scale-to-fit; }
+.rebirth-stat-icon--attack {
+    width: 86px; height: 86px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_Icon_ATK.png?fileID=8986973979633021719&guid=861292fb80b3c0445896c23a0ff57e34&type=3#player_Icon_ATK_0");
+}
+.rebirth-stat-icon--stage {
+    width: 86px; height: 86px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_stage.png?fileID=-7899887828367425398&guid=d13800569fa011f4aa1e471cd01717a6&type=3#Icon_stage_0");
+}
+.rebirth-stat-icon--coins {
+    width: 80px; height: 80px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+}
+.rebirth-number {
+    position: absolute; right: 24px; top: 25px; width: 178px; height: 47px;
+    margin: 0; padding: 0; color: var(--rebirth-navy-900); font-size: 36px;
+    -unity-font-style: bold; -unity-text-align: middle-right; white-space: nowrap;
+}
+.rebirth-direction {
+    width: 68px; height: 73px; margin-left: 70px; margin-right: 70px;
+    flex-shrink: 0; overflow: visible;
+}
+.rebirth-direction-shaft {
+    position: absolute; left: 0; top: 17.5px; width: 36px; height: 38px;
+    background-color: var(--rebirth-blue-600);
+}
+.rebirth-direction-head {
+    position: absolute; right: 0; top: 0; width: 45px; height: 73px;
+    --rebirth-arrow-color: var(--rebirth-blue-600);
 }
 
-.settlement-actions > Button:active {
-    scale: 0.94 0.94;
-    translate: 0 1px;
-    transition-duration: 0.08s;
+.rebirth-progress-panel { width: 868px; height: 70px; margin-top: 32px; flex-shrink: 0; overflow: visible; }
+.rebirth-progress-drop-shadow {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-color: rgba(10, 46, 95, 0.29);
+    --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 5;
+    --figma-shadow-blur: 8; --figma-shadow-spread: 0; --figma-shadow-radius: 16;
+}
+.rebirth-progress-track {
+    width: 868px; height: 70px; overflow: hidden;
+    border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px;
+    border-left-color: var(--rebirth-navy-950); border-right-color: var(--rebirth-navy-950); border-top-color: var(--rebirth-navy-950); border-bottom-color: var(--rebirth-navy-950);
+    border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
+}
+.rebirth-progress-gradient {
+    --figma-gradient-stop-count: 2;
+    --figma-gradient-color-0: rgb(35, 77, 139); --figma-gradient-stop-0: 0;
+    --figma-gradient-color-1: var(--rebirth-navy-900); --figma-gradient-stop-1: 1;
+    --figma-gradient-start-x: 0.5; --figma-gradient-start-y: 0;
+    --figma-gradient-end-x: 0.5; --figma-gradient-end-y: 1; --figma-gradient-radius: 13;
+}
+.rebirth-progress-inner-top, .rebirth-progress-inner-bottom {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-offset-x: 0; --figma-shadow-spread: 0;
+    --figma-shadow-radius: 13; --figma-shadow-inset: 1;
+}
+.rebirth-progress-inner-top {
+    --figma-shadow-color: rgba(0, 0, 0, 0.76); --figma-shadow-offset-y: 4; --figma-shadow-blur: 3;
+}
+.rebirth-progress-inner-bottom {
+    --figma-shadow-color: rgba(4, 4, 4, 0.65); --figma-shadow-offset-y: -4; --figma-shadow-blur: 4;
+}
+.rebirth-progress-fill {
+    position: absolute; left: 0; top: 0; width: 97px; height: 64px;
+    background-color: var(--rebirth-blue-500);
+    border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px;
+    border-left-color: var(--rebirth-blue-700); border-right-color: var(--rebirth-blue-700); border-top-color: var(--rebirth-blue-700); border-bottom-color: var(--rebirth-blue-700);
+    border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;
+    transition-property: width; transition-duration: 0.28s; transition-timing-function: ease-out;
+}
+.rebirth-progress-value {
+    position: absolute; left: 0; right: 0; top: 8px; height: 44px;
+    margin: 0; padding: 0; color: var(--rebirth-white); font-size: 34px;
+    -unity-font-style: bold; -unity-text-align: middle-center;
 }
 
-.settlement-actions > Button:disabled {
-    opacity: 0.52;
-    scale: 1 1;
-    translate: 0 0;
-    background-color: rgb(215, 224, 222);
-    border-left-color: rgb(184, 196, 194);
-    border-right-color: rgb(184, 196, 194);
-    border-top-color: rgb(184, 196, 194);
-    border-bottom-color: rgb(184, 196, 194);
-    color: rgb(120, 140, 160);
+.rebirth-status {
+    position: absolute; left: 225px; bottom: 137px; width: 518px; min-height: 36px;
+    padding: 5px 10px; display: none; color: var(--rebirth-navy-900);
+    background-color: rgba(255, 255, 255, 0.94);
+    border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;
+    font-size: 13px; -unity-font-style: bold; -unity-text-align: middle-center; white-space: normal;
 }
+.settlement-modal.is-busy .rebirth-status, .settlement-modal.is-error .rebirth-status { display: flex; }
+.settlement-modal.is-error .rebirth-status { color: rgb(151, 54, 58); }
 
-.settlement-back {
-    color: rgb(20, 48, 91);
-    background-color: rgb(232, 242, 239);
+.rebirth-action-button {
+    width: 518px; height: 98px; margin: 32px 0 0 0; padding: 0;
+    flex-shrink: 0; overflow: visible; background-color: rgba(0, 0, 0, 0);
+    border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px;
+    border-left-color: var(--rebirth-gold-800); border-right-color: var(--rebirth-gold-800); border-top-color: var(--rebirth-gold-800); border-bottom-color: var(--rebirth-gold-800);
+    border-top-left-radius: 28px; border-top-right-radius: 28px; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px;
+    transition-property: scale, translate, opacity; transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
 }
-
-.settlement-confirm,
-.settlement-continue {
-    color: rgb(20, 48, 91);
+.rebirth-action-button:hover, .rebirth-action-button:focus { scale: 1.025 1.025; translate: 0 -2px; }
+.rebirth-action-button:active { scale: 0.97 0.97; translate: 0 3px; }
+.rebirth-action-button:disabled { opacity: 0.58; scale: 1 1; translate: 0 0; }
+.rebirth-action-drop-shadow {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    --figma-shadow-color: rgba(0, 0, 0, 0.25);
+    --figma-shadow-offset-x: 0; --figma-shadow-offset-y: 10;
+    --figma-shadow-blur: 10; --figma-shadow-spread: 0; --figma-shadow-radius: 28;
 }
-
-.settlement-modal.is-busy .settlement-card {
-    border-left-color: rgb(32, 184, 193);
-    border-right-color: rgb(32, 184, 193);
-    border-top-color: rgb(32, 184, 193);
-    border-bottom-color: rgb(32, 184, 193);
+.rebirth-action-base, .rebirth-action-highlight {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    border-top-left-radius: 27px; border-top-right-radius: 27px; border-bottom-left-radius: 27px; border-bottom-right-radius: 27px;
 }
-
-.settlement-modal.is-success .settlement-status {
-    color: rgb(18, 99, 68);
-    background-color: rgb(219, 241, 218);
+.rebirth-action-base {
+    background-color: var(--rebirth-gold-500);
+    border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
+    border-left-color: var(--rebirth-gold-700); border-right-color: var(--rebirth-gold-700); border-top-color: var(--rebirth-gold-700); border-bottom-color: var(--rebirth-gold-700);
 }
-
-.settlement-modal.is-error .settlement-status {
-    color: rgb(151, 54, 58);
-    background-color: rgb(255, 224, 214);
+.rebirth-action-highlight { left: 2px; right: 2px; height: 52px; background-color: var(--rebirth-white); }
+.rebirth-action-gradient {
+    left: 2px; right: 2px; top: 3px; bottom: 8px;
+    --figma-gradient-stop-count: 5;
+    --figma-gradient-color-0: rgb(255, 180, 42); --figma-gradient-stop-0: 0;
+    --figma-gradient-color-1: rgb(253, 196, 106); --figma-gradient-stop-1: 0.177884609;
+    --figma-gradient-color-2: rgb(237, 198, 99); --figma-gradient-stop-2: 0.346153855;
+    --figma-gradient-color-3: rgb(243, 203, 103); --figma-gradient-stop-3: 0.528846145;
+    --figma-gradient-color-4: rgb(248, 237, 219); --figma-gradient-stop-4: 0.874266326;
+    --figma-gradient-start-x: 0.6166; --figma-gradient-start-y: 1.5;
+    --figma-gradient-end-x: 0.6039; --figma-gradient-end-y: -0.6436; --figma-gradient-radius: 27;
+}
+.rebirth-action-line {
+    position: absolute; left: 23px; right: 23px; top: 1px; height: 1px;
+    background-color: var(--rebirth-white);
+}
+.rebirth-action-content {
+    position: absolute; left: 0; right: 0; top: 7px; height: 80px;
+    padding-left: 118px; padding-right: 118px;
+    flex-direction: row; align-items: center; justify-content: space-between;
+}
+.rebirth-action-icon {
+    width: 80px; height: 80px; flex-shrink: 0;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=-2324710863503425689&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth_0");
+    -unity-background-scale-mode: scale-to-fit;
+}
+.rebirth-action-label-group { width: 198px; height: 39px; overflow: visible; }
+.rebirth-action-label {
+    margin: 0; padding: 0; color: rgb(80, 80, 80); font-size: 48px;
+    -unity-font-style: bold; -unity-text-align: middle-center; white-space: nowrap;
+}
+.rebirth-action-label-group .rebirth-action-label {
+    position: absolute; left: 0; top: -10px; width: 195px; height: 58px;
+}
+.rebirth-action-content--continue { padding-left: 80px; padding-right: 80px; justify-content: center; }
+.rebirth-continue-button { display: none; }
+.settlement-modal.ui-lifecycle--entering .rebirth-window {
+    opacity: 0; scale: 0.92 0.92; translate: 0 24px;
+}
+.settlement-modal.ui-lifecycle--exiting .rebirth-window {
+    opacity: 0; scale: 0.96 0.96; translate: 0 16px;
 }

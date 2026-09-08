@@ -6,17 +6,20 @@
         <ui:Label text="CALL" class="pet-gacha-watermark pet-gacha-watermark--right" picking-mode="Ignore"/>
         <ui:VisualElement class="pet-gacha-shell">
             <ui:VisualElement class="pet-gacha-topbar">
-                <ui:VisualElement class="pet-gacha-balance-pill"><ui:Label text="●" class="pet-gacha-coin-icon"/><ui:Label name="pet-gacha-balance" text="YOUR POWER COINS: —" class="pet-gacha-balance"/></ui:VisualElement>
+                <ui:VisualElement class="pet-gacha-balance-pill">
+                    <ui:VisualElement class="pet-gacha-coin-icon" picking-mode="Ignore"/>
+                    <ui:Label name="pet-gacha-balance" text="0" class="pet-gacha-balance"/>
+                </ui:VisualElement>
                 <ui:Button name="pet-gacha-close" text="×" tooltip="Close Pet Gacha" class="pet-gacha-close"/>
             </ui:VisualElement>
             <ui:VisualElement class="pet-gacha-main">
                 <ui:VisualElement class="pet-gacha-info-column">
                     <ui:Label text="ANIMO CALL" class="pet-gacha-kicker"/>
-                    <ui:Label text="PET GACHA" class="pet-gacha-title"/>
-                    <ui:Label text="One transparent pull. Review the live odds before spending." class="pet-gacha-subtitle"/>
-                    <ui:Label name="pet-gacha-catalog-status" text="CURRENT ODDS" class="pet-gacha-catalog-status"/>
+                    <ui:Label text="PET GACHA" class="loc-menu.pets pet-gacha-title"/>
+                    <ui:Label text="One transparent pull. Review the live odds before spending." class="loc-menu.pullHelp pet-gacha-subtitle"/>
+                    <ui:Label name="pet-gacha-catalog-status" text="CURRENT ODDS" class="loc-menu.odds pet-gacha-catalog-status"/>
                     <ui:ScrollView name="pet-gacha-odds-list" class="pet-gacha-odds-list"/>
-                    <ui:Label name="pet-gacha-warning" text="Owned pets can be empty duplicates." class="pet-gacha-warning"/>
+                    <ui:Label name="pet-gacha-warning" text="Owned pets can be empty duplicates." class="loc-menu.duplicatePet pet-gacha-warning"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="pet-gacha-call-column">
                     <ui:VisualElement class="pet-gacha-orbit" picking-mode="Ignore">
@@ -28,10 +31,10 @@
                         <ui:Label text="◆" class="pet-gacha-capsule pet-gacha-capsule--four"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="pet-gacha-wallet-row">
-                        <ui:Label name="pet-gacha-cost" text="ONE PULL: 25 POWER COINS" class="pet-gacha-wallet pet-gacha-wallet--cost"/>
+                        <ui:Label name="pet-gacha-cost" text="ONE PULL: 25 POWER COINS" class="loc-menu.pullPrice pet-gacha-wallet pet-gacha-wallet--cost"/>
                         <ui:Label name="pet-gacha-projected-balance" text="AFTER PULL: —" class="pet-gacha-wallet pet-gacha-wallet--projected"/>
                     </ui:VisualElement>
-                    <ui:Button name="pet-gacha-pull" text="PULL FOR 25" class="pet-gacha-pull mw-button mw-button--primary"/>
+                    <ui:Button name="pet-gacha-pull" text="PULL FOR 25" class="loc-menu.pull pet-gacha-pull mw-button mw-button--primary"/>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="pet-gacha-status" text="" class="social-status mw-status pet-gacha-status"/>
@@ -39,22 +42,22 @@
         <ui:VisualElement name="pet-gacha-confirmation" focusable="true" class="pet-gacha-overlay pet-gacha-confirmation is-hidden">
             <ui:VisualElement class="pet-gacha-confirmation-orbit" picking-mode="Ignore"><ui:Label text="✦" class="pet-gacha-confirmation-mark"/></ui:VisualElement>
             <ui:VisualElement class="pet-gacha-confirmation-card">
-                <ui:Label text="CONFIRM ONE PULL" class="pet-gacha-overlay-title"/>
-                <ui:Label name="pet-gacha-confirmation-summary" text="Spend 25 Power Coins?" class="pet-gacha-confirmation-summary"/>
+                <ui:Label text="CONFIRM ONE PULL" class="loc-menu.confirmOnePull pet-gacha-overlay-title"/>
+                <ui:Label name="pet-gacha-confirmation-summary" text="Spend 25 Power Coins?" class="loc-menu.spend pet-gacha-confirmation-summary"/>
                 <ui:VisualElement class="pet-gacha-actions">
-                    <ui:Button name="pet-gacha-cancel" text="CANCEL" class="social-close pet-gacha-cancel"/>
-                    <ui:Button name="pet-gacha-confirm" text="CONFIRM PULL" class="pet-gacha-pull pet-gacha-confirm"/>
+                    <ui:Button name="pet-gacha-cancel" text="CANCEL" class="loc-common.cancel social-close pet-gacha-cancel"/>
+                    <ui:Button name="pet-gacha-confirm" text="CONFIRM PULL" class="loc-menu.confirmPull pet-gacha-pull pet-gacha-confirm"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="pet-gacha-result" focusable="true" class="pet-gacha-overlay pet-gacha-result is-hidden">
             <ui:VisualElement class="pet-gacha-result-copy">
-                <ui:Label name="pet-gacha-result-state" text="NEW PET" class="pet-gacha-result-state"/>
-                <ui:Label name="pet-gacha-result-rarity" text="RARITY" class="pet-gacha-result-rarity"/>
-                <ui:Label name="pet-gacha-result-name" text="PET" class="pet-gacha-result-name"/>
+                <ui:Label name="pet-gacha-result-state" text="NEW PET" class="loc-menu.newPet pet-gacha-result-state"/>
+                <ui:Label name="pet-gacha-result-rarity" text="RARITY" class="loc-menu.rarity pet-gacha-result-rarity"/>
+                <ui:Label name="pet-gacha-result-name" text="PET" class="loc-menu.pet pet-gacha-result-name"/>
                 <ui:VisualElement class="pet-gacha-result-divider"/>
                 <ui:Label name="pet-gacha-result-balance" text="POWER COINS: —" class="pet-gacha-result-balance"/>
-                <ui:Button name="pet-gacha-continue" text="CONTINUE" class="pet-gacha-pull pet-gacha-continue"/>
+                <ui:Button name="pet-gacha-continue" text="CONTINUE" class="loc-common.continue pet-gacha-pull pet-gacha-continue"/>
             </ui:VisualElement>
             <ui:VisualElement class="pet-gacha-result-showcase">
                 <ui:VisualElement class="pet-gacha-result-halo" picking-mode="Ignore"/>

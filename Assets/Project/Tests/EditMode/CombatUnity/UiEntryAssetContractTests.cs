@@ -17,6 +17,8 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             "Assets/Project/UI/MainMenuUI.uxml";
         private const string PlayerMenuUxml =
             "Assets/Project/UI/MainMenu/PlayerMenuPanel.uxml";
+        private const string RebirthUxml =
+            "Assets/Project/UI/MainMenu/RebirthPanel.uxml";
         private const string MainMenuTransitionViewScript =
             "Assets/Project/Script/UI/MainMenu/Transitions/MainMenuTransitionView.cs";
         private const string MainMenuTransitionControllerScript =
@@ -68,6 +70,32 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
 
         [Test]
+        public void RebirthAsset_PreservesFigmaHierarchyAndRuntimeContract()
+        {
+            VisualElement root = Clone(RebirthUxml);
+
+            VisualElement modal = Require<VisualElement>(root, "run-settlement-modal");
+            VisualElement window = Require<VisualElement>(root, "Rebirth / Window");
+            VisualElement header = Require<VisualElement>(window, "Rebirth / Header");
+            VisualElement body = Require<VisualElement>(window, "Rebirth / Body");
+            Require<VisualElement>(header, "Rebirth / Title Group");
+            Require<Label>(header, "Title");
+            Require<Button>(header, "Button / Close");
+            Require<VisualElement>(body, "Rebirth / Comparison List");
+            Require<Label>(body, "Progress Value");
+            Require<Button>(body, "Button / Rebirth");
+            Require<Button>(body, "run-settlement-continue");
+            Require<Label>(body, "run-settlement-status");
+
+            Assert.That(root.Query<VisualElement>(
+                name: "Component / Rebirth Comparison Row").ToList().Count, Is.EqualTo(3));
+            Assert.That(root.Query<Label>(className: "rebirth-number").ToList().Count, Is.EqualTo(6));
+            Assert.That(root.Query<RebirthDirectionHead>().ToList().Count, Is.EqualTo(3));
+            Assert.That(root.Query<Label>().ToList().Any(label => label.text == "MOVE"), Is.False);
+            Assert.That(modal.ClassListContains("is-hidden"), Is.True);
+        }
+
+        [Test]
         public void MainMenuAsset_PreservesShellCombatAndNavigatorContracts()
         {
             VisualElement root = Clone(MainMenuUxml);
@@ -83,11 +111,15 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Label>(root, "loadout-summary");
             Require<Button>(root, "logout-button");
             Require<Button>(root, "leaderboard");
-            Require<Button>(root, "rebirth-button");
-            Require<Button>(root, "player-hub-button");
-            Require<Button>(root, "pet-gacha-button");
+            Button rebirthButton = Require<Button>(root, "rebirth-button");
+            Button playerHubButton = Require<Button>(root, "player-hub-button");
+            Button petGachaButton = Require<Button>(root, "pet-gacha-button");
             Require<VisualElement>(root, "combat-layer");
-            Require<Button>(root, "combat-map-button");
+            Button mapButton = Require<Button>(root, "combat-map-button");
+            Assert.That(mapButton.Q<ChainLockVectorElement>("combat-map-lock"), Is.Not.Null);
+            Assert.That(playerHubButton.Q<ChainLockVectorElement>("player-hub-lock"), Is.Not.Null);
+            Assert.That(petGachaButton.Q<ChainLockVectorElement>("pet-gacha-lock"), Is.Not.Null);
+            Assert.That(rebirthButton.Q<ChainLockVectorElement>(), Is.Null);
             VisualElement navigator = Require<VisualElement>(
                 root,
                 "combat-map-modal"
@@ -219,20 +251,23 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 root,
                 "run-settlement-modal"
             );
-            Require<Label>(root, "run-settlement-title");
-            Require<Label>(root, "run-settlement-stage");
-            Require<Label>(root, "run-settlement-coins");
-            Require<Label>(root, "run-settlement-coins-gain");
-            Require<Label>(root, "run-settlement-legacy");
-            Require<Label>(root, "run-settlement-legacy-gain");
-            Require<Label>(root, "run-settlement-attack");
-            Require<Label>(root, "run-settlement-prestige");
+            Require<VisualElement>(root, "Rebirth / Window");
+            Require<VisualElement>(root, "Rebirth / Header");
+            Require<VisualElement>(root, "Rebirth / Title Group");
+            Require<Label>(root, "Title");
+            Require<VisualElement>(root, "Rebirth / Body");
+            Require<VisualElement>(root, "Rebirth / Comparison List");
+            Assert.That(root.Query<VisualElement>(
+                name: "Component / Rebirth Comparison Row").ToList().Count, Is.EqualTo(3));
+            Assert.That(root.Query<Label>(className: "rebirth-number").ToList().Count, Is.EqualTo(6));
+            Require<Label>(root, "Progress Value");
+            Assert.That(root.Query<RebirthDirectionHead>().ToList().Count, Is.EqualTo(3));
             Require<Label>(root, "run-settlement-status");
-            Require<ProgressBar>(root, "run-settlement-progress");
-            Require<Label>(root, "run-settlement-progress-label");
-            Require<Button>(root, "run-settlement-close");
-            Require<Button>(root, "run-settlement-confirm");
+            Require<Button>(root, "Button / Close");
+            Require<Button>(root, "Button / Rebirth");
             Require<Button>(root, "run-settlement-continue");
+            Assert.That(root.Q<Label>("run-settlement-title"), Is.Null);
+            Assert.That(root.Query<Label>().ToList().Any(label => label.text == "MOVE"), Is.False);
 
             Assert.That(playerHub.ClassListContains("is-hidden"), Is.True);
             Assert.That(rebirth.ClassListContains("is-hidden"), Is.True);
@@ -344,7 +379,31 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Label>(root, "leaderboard-status");
             Require<Button>(root, "leaderboard-refresh");
             Require<Button>(root, "leaderboard-close");
-            Require<ScrollView>(root, "leaderboard-list");
+            ScrollView leaderboardList = Require<ScrollView>(
+                root,
+                "leaderboard-list"
+            );
+            Require<Image>(root, ".character-sprite-placeholder");
+            Require<VisualElement>(root, "MW-Leaderboard-Throne-bg 1");
+            Require<VisualElement>(root, "MW-Leaderboard-Crown 1");
+            Require<Label>(root, "leaderboard-throne-stage");
+            Require<Label>(root, "leaderboard-throne-silver");
+            Require<Label>(root, "leaderboard-self-rank");
+            Require<Button>(root, "leaderboard-jump-to-self");
+            Assert.That(leaderboard.Q<FigmaGradientElement>(
+                "Leaderboard / Screen Gradient"), Is.Not.Null);
+            Assert.That(leaderboard.Q<FigmaShadowElement>(
+                "Leaderboard / Modal Shadow"), Is.Not.Null);
+            Assert.That(leaderboard.Q<LeaderboardPodiumVector>(
+                "Vector / Throne Podium"), Is.Not.Null);
+            Assert.That(leaderboardList.mode, Is.EqualTo(ScrollViewMode.Vertical));
+            Assert.That(
+                leaderboardList.horizontalScrollerVisibility,
+                Is.EqualTo(ScrollerVisibility.Hidden));
+            Assert.That(
+                leaderboardList.verticalScrollerVisibility,
+                Is.EqualTo(ScrollerVisibility.AlwaysVisible));
+            Assert.That(leaderboardList.mouseWheelScrollSize, Is.EqualTo(120f));
 
             VisualElement profile = Require<VisualElement>(
                 root,
@@ -419,7 +478,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 ".hud-player-menu-toggle.is-collapsed");
             Assert.That(collapsedToggle, Does.Contain("translate: -230px 0"));
             Assert.That(style, Does.Contain(
-                "power-coin-orange-white-green.png"));
+                "coin_power.png"));
             Assert.That(style, Does.Contain("--power-coin-field-fill"));
             Assert.That(style, Does.Contain("--figma-shadow-inset: 1"));
             Assert.That(style, Does.Contain("--loadout-slot-fill-0"));

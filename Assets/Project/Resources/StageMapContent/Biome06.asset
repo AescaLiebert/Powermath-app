@@ -16,22 +16,30 @@ MonoBehaviour:
   fallbackTitle: Biome 6
   firstStage: 151
   lastStage: 180
-  backgroundSprite: {fileID: 0}
+  backgroundSprite: {fileID: 21300000, guid: 8c9edf39a1de9624db2b8fc85ef59a5f, type: 3}
   mapLandmarkSprite: {fileID: 0}
-  normalizedMapPosition: {x: 0.8333333333333334, y: 0.58}
+  normalizedMapPosition: {x: 0.8333333, y: 0.58}
   normalMonsters:
-  - {fileID: 11400000, guid: c0000000000000000000000000000006, type: 2}
+  - {fileID: 11400000, guid: 6ebffc3b4786a934b8de24da0ade85f9, type: 2}
+  - {fileID: 11400000, guid: 84dabd0e438b360479ca25c8c0d48df9, type: 2}
+  - {fileID: 11400000, guid: 93f3398b4135cbe4aafbd13e1e165cad, type: 2}
+  - {fileID: 11400000, guid: 6ce7746436bc59343a73b7e8b7663147, type: 2}
+  - {fileID: 11400000, guid: f0568c8727d50214ba2c041a40abf9a4, type: 2}
+  - {fileID: 11400000, guid: 76487ddbce72c9b4b828baf5f2ba43de, type: 2}
+  - {fileID: 11400000, guid: b4b8fa540146b0449984730c2beb6cda, type: 2}
+  - {fileID: 11400000, guid: 19262ea960e139541843f3814aae98aa, type: 2}
+  - {fileID: 11400000, guid: 34857a1c9a02ff64dbe2fa632887362c, type: 2}
+  - {fileID: 11400000, guid: 392d8264a632c924e86f66b74aa7906b, type: 2}
   bossBindings:
-  - stage: 155
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000006, type: 2}
-  - stage: 160
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000006, type: 2}
   - stage: 165
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000006, type: 2}
+    monster: {fileID: 11400000, guid: 06c524e6d1231cd4b84573129588aa3a, type: 2}
   - stage: 170
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000006, type: 2}
+    monster: {fileID: 11400000, guid: 9191a22f686e2d34ba2779c00de6cda2, type: 2}
   - stage: 175
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000006, type: 2}
+    monster: {fileID: 11400000, guid: 67ea5a6652da8e346b7ad59f45755cb8, type: 2}
   - stage: 180
-    monster: {fileID: 11400000, guid: e0000000000000000000000000000006, type: 2}
-
+    monster: {fileID: 11400000, guid: c5b51cdf75afd1c40b8b53d70b8ffe50, type: 2}
+  - stage: 185
+    monster: {fileID: 11400000, guid: 356939b853eb7444d974c5f3d790a8be, type: 2}
+  - stage: 190
+    monster: {fileID: 11400000, guid: 35300b86b09cfb44fb6e81c1a4736c7c, type: 2}

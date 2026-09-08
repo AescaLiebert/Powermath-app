@@ -3,6 +3,7 @@
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <Style src="project://database/Assets/Project/UI/QuestionSequence/QuestionSequencePalette.uss?fileID=7433441132597879392&amp;guid=73c93a98f8534bd8b43afedd91eaddd9&amp;type=3#QuestionSequencePalette"/>
     <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden">
         <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel main-menu-transition-top">
             <ui:Label name="combat-stage-label-compat" text="STAGE 1" class="hud-stage-label"/>
@@ -44,7 +45,7 @@
                     <ui:VisualElement name="star-frame" picking-mode="Ignore" class="hud-loadout-star-frame">
                         <ui:VisualElement name="star" picking-mode="Ignore" class="hud-loadout-star"/>
                     </ui:VisualElement>
-                    <ui:Label name="dashboard-pet" text="NONE" picking-mode="Ignore" class="hud-compat-hidden"/>
+                    <ui:Label name="dashboard-pet" text="NONE" picking-mode="Ignore" class="loc-menu.none hud-compat-hidden"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="Quick Slot / Weapon" tooltip="Equipped Weapon" class="hud-loadout-slot hud-loadout-slot--large">
                     <pm:FigmaShadowElement name="Quick Slot / Weapon Shadow" class="hud-loadout-slot-shadow hud-loadout-slot-shadow--large"/>
@@ -56,7 +57,7 @@
                     <ui:VisualElement name="star-frame" picking-mode="Ignore" class="hud-loadout-star-frame">
                         <ui:VisualElement name="star" picking-mode="Ignore" class="hud-loadout-star"/>
                     </ui:VisualElement>
-                    <ui:Label name="dashboard-weapon" text="NONE" picking-mode="Ignore" class="hud-compat-hidden"/>
+                    <ui:Label name="dashboard-weapon" text="NONE" picking-mode="Ignore" class="loc-menu.none hud-compat-hidden"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="Quick Slot / Not Empty" class="hud-loadout-slot hud-loadout-slot--small">
                     <pm:FigmaShadowElement name="Quick Slot / Not Empty Shadow" class="hud-loadout-slot-shadow hud-loadout-slot-shadow--small"/>
@@ -81,36 +82,58 @@
         </ui:VisualElement>
         <ui:Label name="combat-biome-label" text="PREPARING BIOME" picking-mode="Ignore" class="hud-compat-hidden"/>
         <ui:Label name="combat-damage-label" text="" picking-mode="Ignore" class="combat-damage-label"/>
-        <ui:Label name="combat-critical-label" text="CRITICAL" picking-mode="Ignore" class="combat-critical-label is-hidden"/>
+        <ui:Label name="combat-critical-label" text="CRITICAL" picking-mode="Ignore" class="loc-menu.critical combat-critical-label is-hidden"/>
         <ui:Label name="combat-battle-banner" text="" picking-mode="Ignore" class="combat-battle-banner is-hidden"/>
-        <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel is-hidden">
-            <ui:Label text="MATH CHALLENGE" class="combat-attempt-title"/>
-            <ui:VisualElement name="combat-answer-content" class="combat-answer-content">
-                <ui:Label name="academic-question-meta" text="silver-001 • Silver" class="academic-question-meta"/>
-                <ui:Label name="academic-question-prompt" text="QA target answer: 7" class="academic-question-prompt"/>
-                <ui:Label name="combat-timer-label" text="10" class="combat-timer"/>
-                <ui:Label name="combat-timer-caption" text="GET READY" class="combat-timer-caption"/>
-                <ui:Label name="combat-answer-display" text="Enter your answer" class="combat-answer-display combat-answer--placeholder"/>
-                <ui:VisualElement class="combat-numpad">
-                    <ui:Button name="combat-digit-1" text="1" class="combat-key"/>
-                    <ui:Button name="combat-digit-2" text="2" class="combat-key"/>
-                    <ui:Button name="combat-digit-3" text="3" class="combat-key"/>
-                    <ui:Button name="combat-digit-4" text="4" class="combat-key"/>
-                    <ui:Button name="combat-digit-5" text="5" class="combat-key"/>
-                    <ui:Button name="combat-digit-6" text="6" class="combat-key"/>
-                    <ui:Button name="combat-digit-7" text="7" class="combat-key"/>
-                    <ui:Button name="combat-digit-8" text="8" class="combat-key"/>
-                    <ui:Button name="combat-digit-9" text="9" class="combat-key"/>
-                    <ui:Button name="combat-digit-0" text="0" class="combat-key"/>
-                    <ui:Button name="combat-backspace-button" text="BACKSPACE" class="combat-key combat-key--utility"/>
-                    <ui:Button name="combat-clear-button" text="CLEAR" class="combat-key combat-key--utility"/>
-                    <ui:Button name="combat-submit-button" text="SUBMIT" class="combat-key combat-key--submit"/>
-                </ui:VisualElement>
+        <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel math-challenge-card is-hidden">
+            <ui:VisualElement name="combat-attempt-header" class="combat-attempt-header card-header">
+                <ui:Label text="✦" class="combat-attempt-star card-star"/>
+                <ui:Label text="MATH CHALLENGE" class="loc-menu.challenge combat-attempt-title card-title"/>
+                <ui:Label text="✦" class="combat-attempt-star card-star"/>
             </ui:VisualElement>
-            <ui:VisualElement name="combat-feedback-card" class="combat-feedback-card is-hidden">
-                <ui:Label name="combat-feedback-icon" text="✓" class="combat-feedback-icon"/>
-                <ui:Label name="combat-feedback-title" text="CORRECT" class="combat-feedback-title"/>
-                <ui:Label name="combat-feedback-subtitle" text="Building your attack" class="combat-feedback-subtitle"/>
+            <ui:VisualElement name="combat-answer-content" class="combat-answer-content">
+                <ui:Label name="academic-question-meta" text="SILVER-001 • SILVER" class="academic-question-meta academic-meta"/>
+                <ui:VisualElement name="equation-row" class="equation-row">
+                    <ui:Label name="academic-question-prompt" text="48 ÷ 6 = ?" class="academic-question-prompt equation-text"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="combat-timer-widget" class="combat-timer-widget timer-widget">
+                    <ui:Label name="combat-timer-label" text="10" class="combat-timer seconds-left"/>
+                    <ui:Label name="combat-timer-caption" text="GET READY" class="loc-menu.ready combat-timer-caption seconds-lbl"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="answer-display-box" class="answer-display-box">
+                    <ui:Label text="✦" class="bracket-star"/>
+                    <ui:Label name="combat-answer-display" text="Enter your answer" class="loc-menu.answer combat-answer-display input-value combat-answer--placeholder"/>
+                    <ui:Label text="✦" class="bracket-star"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="combat-numpad" class="combat-numpad keypad-grid">
+                    <ui:VisualElement class="keypad-row">
+                        <ui:Button name="combat-digit-1" text="1" class="combat-key key-btn key-btn--1"/>
+                        <ui:Button name="combat-digit-2" text="2" class="combat-key key-btn key-btn--2"/>
+                        <ui:Button name="combat-digit-3" text="3" class="combat-key key-btn key-btn--3"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="keypad-row">
+                        <ui:Button name="combat-digit-4" text="4" class="combat-key key-btn key-btn--4"/>
+                        <ui:Button name="combat-digit-5" text="5" class="combat-key key-btn key-btn--5"/>
+                        <ui:Button name="combat-digit-6" text="6" class="combat-key key-btn key-btn--6"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="keypad-row">
+                        <ui:Button name="combat-digit-7" text="7" class="combat-key key-btn key-btn--7"/>
+                        <ui:Button name="combat-digit-8" text="8" class="combat-key key-btn key-btn--8"/>
+                        <ui:Button name="combat-digit-9" text="9" class="combat-key key-btn key-btn--9"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="keypad-row">
+                        <ui:Button name="combat-clear-button" text="CLEAR" class="loc-combat.clear combat-key combat-key--utility key-btn key-btn--clear"/>
+                        <ui:Button name="combat-digit-0" text="0" class="combat-key key-btn key-btn--0"/>
+                        <ui:Button name="combat-backspace-button" text="⌫" class="loc-combat.backspace combat-key combat-key--utility key-btn key-btn--backspace"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Button name="combat-submit-button" text="SUBMIT" class="loc-combat.submit btn-submit combat-key--submit combat-submit-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="combat-feedback-card" class="combat-feedback-card state-overlay is-hidden">
+                <ui:VisualElement class="combat-feedback-banner banner-feedback banner-correct">
+                    <ui:Label name="combat-feedback-icon" text="✓" class="combat-feedback-icon"/>
+                    <ui:Label name="combat-feedback-title" text="CORRECT" class="loc-combat.correct combat-feedback-title banner-text"/>
+                </ui:VisualElement>
+                <ui:Label name="combat-feedback-subtitle" text="Building your attack" class="loc-combat.attackBuild combat-feedback-subtitle"/>
                 <ui:VisualElement name="combat-score-stack" class="combat-score-stack"/>
             </ui:VisualElement>
             <ui:Label name="combat-result-label" text="" class="combat-result"/>
@@ -119,8 +142,8 @@
         <ui:VisualElement name="combat-biome-transition" picking-mode="Ignore" class="combat-biome-transition is-hidden">
             <ui:VisualElement name="combat-biome-transition-backdrop" picking-mode="Ignore" class="combat-biome-transition-backdrop"/>
             <ui:VisualElement name="combat-biome-transition-card" picking-mode="Ignore" class="combat-biome-transition-card">
-                <ui:Label name="combat-biome-transition-kicker" text="ENTERING NEW BIOME" picking-mode="Ignore" class="combat-biome-transition-kicker"/>
-                <ui:Label name="combat-biome-transition-title" text="BIOME" picking-mode="Ignore" class="combat-biome-transition-title"/>
+                <ui:Label name="combat-biome-transition-kicker" text="ENTERING NEW BIOME" picking-mode="Ignore" class="loc-combat.biomeEnter combat-biome-transition-kicker"/>
+                <ui:Label name="combat-biome-transition-title" text="BIOME" picking-mode="Ignore" class="loc-combat.biome combat-biome-transition-title"/>
                 <ui:VisualElement name="combat-biome-transition-accent" picking-mode="Ignore" class="combat-biome-transition-accent"/>
             </ui:VisualElement>
         </ui:VisualElement>
@@ -131,24 +154,24 @@
             <ui:VisualElement name="academic-rank-notification" picking-mode="Ignore" class="academic-rank-notification">
                 <ui:VisualElement name="academic-rank-banner" picking-mode="Ignore" class="academic-rank-banner">
                     <ui:VisualElement name="academic-rank-banner-glow" picking-mode="Ignore" class="academic-rank-banner-glow"/>
-                    <ui:Label name="academic-rank-modal-header" text="RANK UP" picking-mode="Ignore" class="academic-rank-modal-header"/>
+                    <ui:Label name="academic-rank-modal-header" text="RANK UP" picking-mode="Ignore" class="loc-combat.rankUp academic-rank-modal-header"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="academic-rank-route-container" picking-mode="Ignore" class="academic-rank-route-container">
                     <ui:VisualElement name="academic-rank-route-badges" picking-mode="Ignore" class="academic-rank-route-badges">
                         <ui:VisualElement name="academic-rank-badge-prev" picking-mode="Ignore" class="academic-rank-badge academic-rank-badge--silver">
                             <ui:Label name="academic-rank-icon-prev" text="S" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--silver academic-rank-badge-icon"/>
-                            <ui:Label name="academic-rank-name-prev" text="SILVER" picking-mode="Ignore" class="academic-rank-badge-name"/>
+                            <ui:Label name="academic-rank-name-prev" text="SILVER" picking-mode="Ignore" class="loc-menu.silver academic-rank-badge-name"/>
                         </ui:VisualElement>
                         <ui:Label name="academic-rank-arrow" text="➔" picking-mode="Ignore" class="academic-rank-arrow"/>
                         <ui:VisualElement name="academic-rank-badge-curr" picking-mode="Ignore" class="academic-rank-badge academic-rank-badge--gold">
                             <ui:Label name="academic-rank-icon-curr" text="G" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--gold academic-rank-badge-icon"/>
-                            <ui:Label name="academic-rank-name-curr" text="GOLD" picking-mode="Ignore" class="academic-rank-badge-name"/>
+                            <ui:Label name="academic-rank-name-curr" text="GOLD" picking-mode="Ignore" class="loc-menu.gold academic-rank-badge-name"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:Label name="academic-rank-modal-route" text="Silver  →  Gold" picking-mode="Ignore" class="academic-rank-modal-route hud-compat-hidden"/>
                     <ui:Label name="academic-rank-modal-body" text="" picking-mode="Ignore" class="hud-compat-hidden"/>
                     <ui:Label name="academic-rank-modal-multiplier" text="" picking-mode="Ignore" class="hud-compat-hidden"/>
-                    <ui:Label name="academic-rank-tap-prompt" text="TAP ANYWHERE TO CONTINUE" picking-mode="Ignore" class="academic-rank-tap-prompt"/>
+                    <ui:Label name="academic-rank-tap-prompt" text="TAP ANYWHERE TO CONTINUE" picking-mode="Ignore" class="loc-menu.tapContinue academic-rank-tap-prompt"/>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Button name="academic-rank-continue-button" focusable="true" picking-mode="Position" class="academic-rank-continue-button academic-rank-touch-surface"/>

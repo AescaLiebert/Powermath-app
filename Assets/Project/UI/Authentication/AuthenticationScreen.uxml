@@ -4,7 +4,7 @@
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <Style src="project://database/Assets/Project/UI/Authentication/AuthenticationScreen.uss?fileID=7433441132597879392&amp;guid=9f1b74330a223c54aaa2e321b93f1f97&amp;type=3#AuthenticationScreen"/>
     <ui:VisualElement name="Authentication / Desktop / 1680x945" enabled="true" class="mw-screen auth-root is-ready">
-        <ui:VisualElement name="Background Artwork / Reference" enabled="true" picking-mode="Ignore" class="auth-background"/>
+        <ui:VisualElement name="Background Artwork / Reference" enabled="true" picking-mode="Ignore" class="auth-background" style="background-image: url(&quot;project://database/Assets/Project/Art/UI/illustration/LogInScreen.png?fileID=2800000&amp;guid=4af4e25d6d3ca274397465c3504c8e99&amp;type=3#LogInScreen&quot;);"/>
         <ui:VisualElement name="Atmosphere / Soft Blue Veil" enabled="true" picking-mode="Ignore" class="auth-atmosphere" style="opacity: 0;"/>
         <ui:VisualElement name="safe-area" class="mw-safe-area auth-safe-area">
             <ui:VisualElement name="Logo" picking-mode="Ignore" class="auth-logo"/>
@@ -15,7 +15,7 @@
                         <ui:Label name="Ornament / Star" text="✦" class="auth-divider-star"/>
                         <ui:VisualElement name="Divider / Right" class="auth-divider-line"/>
                     </ui:VisualElement>
-                    <ui:Label name="Title / Sign In" text="SIGN IN" class="mw-title auth-title"/>
+                    <ui:Label name="Title / Sign In" text="SIGN IN" class="loc-auth.title mw-title auth-title"/>
                     <ui:VisualElement name="Input / Email" class="auth-input-wrapper">
                         <ui:TextField label="" name="username-field" max-length="64" placeholder-text="USER" hide-placeholder-on-focus="true" class="mw-field login-input auth-input-email"/>
                     </ui:VisualElement>
@@ -23,10 +23,10 @@
                         <ui:TextField label="" name="password-field" password="true" max-length="6" keyboard-type="NumberPad" placeholder-text="PASSWORD" hide-placeholder-on-focus="true" class="mw-field login-input auth-input-password"/>
                     </ui:VisualElement>
                     <ui:Toggle text="Remember this device" name="remember-device-toggle" value="false" class="remember-toggle"/>
-                    <ui:Label text="Private device only. Remembering this device stores your school login details in this browser." name="Shared Device Warning" class="shared-device-warning"/>
-                    <ui:Label text="Enter the account details provided by your school." name="auth-status" class="mw-status auth-status"/>
+                    <ui:Label text="Private device only. Remembering this device stores your school login details in this browser." name="Shared Device Warning" class="loc-auth.privacy shared-device-warning"/>
+                    <ui:Label text="Enter the account details provided by your school." name="auth-status" class="loc-auth.help mw-status auth-status"/>
                     <ui:VisualElement name="Button / Enter" class="auth-button-wrapper">
-                        <ui:Button text="ENTER     →" name="login-button" class="mw-button mw-button--primary login-button"/>
+                        <ui:Button text="ENTER     →" name="login-button" class="loc-auth.enter mw-button mw-button--primary login-button"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="Ornament / Bottom Divider" class="auth-bottom-divider">
                         <ui:VisualElement name="Divider / Bottom Left" class="auth-bottom-line"/>
@@ -35,7 +35,11 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Button name="Utility / Language" text="◎" class="auth-utility auth-language"/>
+            <ui:Button name="worldwide-button" text="🌐" class="auth-utility auth-language auth-worldwide"/>
+            <ui:VisualElement name="auth-language-flyout" class="auth-language-flyout">
+                <ui:Button name="language-button-th" text="ไทย" class="auth-language-btn auth-language-btn--th"/>
+                <ui:Button name="language-button-en" text="EN" class="auth-language-btn auth-language-btn--en"/>
+            </ui:VisualElement>
             <ui:Button name="Utility / Settings" text="⚙" class="auth-utility auth-settings"/>
             <ui:Label name="Version" text="1.0" class="auth-version"/>
         </ui:VisualElement>

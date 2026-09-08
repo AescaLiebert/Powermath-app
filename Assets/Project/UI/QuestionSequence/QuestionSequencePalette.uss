@@ -1,0 +1,41 @@
+:root {
+    /* ✦ FIGMA THEME TOKENS: Question Sequence / Theme ✦ */
+    --color-navy: rgb(11, 37, 69);
+    --color-navy-deep: rgb(6, 23, 46);
+    --color-slate-muted: rgb(100, 116, 139);
+    --color-border-blue: rgb(147, 187, 220);
+    --color-border-card: rgb(191, 215, 234);
+    --color-border-input: rgb(133, 182, 222);
+    --color-border-light: rgb(212, 226, 238);
+
+    /* Surfaces */
+    --color-surface-screen: rgb(242, 246, 250);
+    --color-surface-card: rgb(255, 255, 255);
+    --color-surface-input: rgb(244, 248, 253);
+    --color-surface-key: rgb(240, 245, 250);
+    --color-surface-key-border: rgb(212, 226, 238);
+
+    /* Combat Buff Badges */
+    --color-buff-blue-bg: rgb(224, 242, 254);
+    --color-buff-blue-border: rgb(186, 230, 253);
+    --color-buff-blue-icon: rgb(2, 132, 199);
+    --color-buff-red-bg: rgb(254, 226, 226);
+    --color-buff-red-border: rgb(254, 202, 202);
+    --color-buff-red-icon: rgb(220, 38, 38);
+
+    /* Health Bar */
+    --color-hp-red-bg: rgb(254, 226, 226);
+    --color-hp-red-border: rgb(254, 202, 202);
+    --color-hp-red-fill: rgb(239, 68, 68);
+
+    /* Actions & Buttons */
+    --color-btn-orange-top: rgb(255, 133, 51);
+    --color-btn-orange-bottom: rgb(242, 78, 46);
+    --color-btn-orange-border: rgb(224, 62, 32);
+
+    /* Sequence State Feedback Accents */
+    --color-correct-green: rgb(34, 197, 94);
+    --color-damage-blue-top: rgb(37, 99, 235);
+    --color-damage-blue-bottom: rgb(29, 78, 216);
+    --color-failure-red: rgb(239, 68, 68);
+}

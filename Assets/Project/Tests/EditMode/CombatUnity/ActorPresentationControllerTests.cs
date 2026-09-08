@@ -163,5 +163,85 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Object.DestroyImmediate(go);
             }
         }
+
+        [Test]
+        public void ConfigureSprites_SwapsSpriteOnStateChange_IdleAttackHurt()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            var tex = new Texture2D(4, 4);
+            var idle = Sprite.Create(tex, new Rect(0, 0, 4, 4), Vector2.zero);
+            var attack = Sprite.Create(tex, new Rect(0, 0, 4, 4), Vector2.zero);
+            var hurt = Sprite.Create(tex, new Rect(0, 0, 4, 4), Vector2.zero);
+            try
+            {
+                var image = go.GetComponent<Image>();
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, true);
+                controller.ConfigureSprites(idle, attack, hurt);
+
+                Assert.That(image.sprite, Is.EqualTo(idle));
+
+                // Attack transition
+                var attackRoutine = controller.Play(PresentationActionKind.PlayerPrimaryAttack);
+                attackRoutine.MoveNext();
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Attacking));
+                Assert.That(image.sprite, Is.EqualTo(attack));
+                while (attackRoutine.MoveNext()) { }
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Idle));
+                Assert.That(image.sprite, Is.EqualTo(idle));
+
+                // Take damage transition
+                var damageRoutine = controller.Play(PresentationActionKind.PlayerTakeDamage);
+                damageRoutine.MoveNext();
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.TakingDamage));
+                Assert.That(image.sprite, Is.EqualTo(hurt));
+                while (damageRoutine.MoveNext()) { }
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Idle));
+                Assert.That(image.sprite, Is.EqualTo(idle));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+                Object.DestroyImmediate(idle);
+                Object.DestroyImmediate(attack);
+                Object.DestroyImmediate(hurt);
+                Object.DestroyImmediate(tex);
+            }
+        }
+
+        [Test]
+        public void ConfigureSprites_FallbackToIdle_WhenAttackOrHurtNull()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            var tex = new Texture2D(4, 4);
+            var idle = Sprite.Create(tex, new Rect(0, 0, 4, 4), Vector2.zero);
+            try
+            {
+                var image = go.GetComponent<Image>();
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, true);
+                controller.ConfigureSprites(idle, null, null);
+
+                Assert.That(image.sprite, Is.EqualTo(idle));
+
+                var attackRoutine = controller.Play(PresentationActionKind.PlayerPrimaryAttack);
+                attackRoutine.MoveNext();
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Attacking));
+                Assert.That(image.sprite, Is.EqualTo(idle));
+                while (attackRoutine.MoveNext()) { }
+
+                var damageRoutine = controller.Play(PresentationActionKind.PlayerTakeDamage);
+                damageRoutine.MoveNext();
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.TakingDamage));
+                Assert.That(image.sprite, Is.EqualTo(idle));
+                while (damageRoutine.MoveNext()) { }
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+                Object.DestroyImmediate(idle);
+                Object.DestroyImmediate(tex);
+            }
+        }
     }
 }

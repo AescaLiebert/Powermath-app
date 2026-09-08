@@ -903,26 +903,89 @@
     border-color: rgb(125, 255, 178);
 }
 
-.combat-map-close {
-    height: 48px;
-    color: white;
-    background-color: rgb(45, 99, 166);
-    border-radius: 14px;
+.navigator-header {
+    min-height: 75px;
+    padding-bottom: 12px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.combat-map-title.navigator-title {
+    -unity-text-align: middle-left;
+}
+
+.combat-map-subtitle.navigator-subtitle {
+    -unity-text-align: middle-left;
+}
+
+.navigator-header-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.navigator-balance-pill {
+    min-width: 130px;
+    height: 54px;
+    padding: 7px 18px 7px 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(255, 249, 232);
+    border-radius: 27px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+}
+
+.navigator-coin-icon {
+    width: 34px;
+    height: 34px;
+    margin-right: 10px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.navigator-balance {
+    color: rgb(20, 48, 91);
     font-size: 18px;
     -unity-font-style: bold;
-    transition-property: scale, translate, background-color;
+    -unity-text-align: middle-left;
+}
+
+.combat-map-close,
+.navigator-close {
+    display: flex;
+    min-width: 54px;
+    width: 54px;
+    min-height: 54px;
+    height: 54px;
+    margin-left: 14px;
+    padding: 0;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 15px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+    font-size: 34px;
+    -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
     transition-duration: 0.16s;
     transition-timing-function: ease-out-back;
 }
 
 .combat-map-close:hover,
-.combat-map-close:focus {
-    scale: 1.04 1.04;
+.combat-map-close:focus,
+.navigator-close:hover,
+.navigator-close:focus {
+    scale: 1.06 1.06;
     translate: 0 -2px;
-    background-color: rgb(60, 125, 205);
+    border-color: rgb(255, 194, 64);
+    background-color: white;
 }
 
-.combat-map-close:active {
+.combat-map-close:active,
+.navigator-close:active {
     scale: 0.94 0.94;
     translate: 0 1px;
     transition-duration: 0.08s;
@@ -1028,142 +1091,380 @@
 
 .combat-attempt-panel {
     position: absolute;
-    left: 18%;
-    right: 18%;
-    top: 35px;
-    bottom: 35px;
-    padding: 22px;
+    width: 460px;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    top: 40px;
+    bottom: 40px;
+    padding: 20px 24px;
+    background-color: var(--color-surface-card, rgb(255, 255, 255));
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: var(--color-border-card, rgb(191, 215, 234));
+    border-right-color: var(--color-border-card, rgb(191, 215, 234));
+    border-top-color: var(--color-border-card, rgb(191, 215, 234));
+    border-bottom-color: var(--color-border-card, rgb(191, 215, 234));
+    align-items: stretch;
+    justify-content: space-between;
+}
+
+.combat-attempt-header {
+    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    background-color: rgba(5, 10, 24, 0.97);
-    border-radius: 30px;
-    border-width: 3px;
-    border-color: rgb(104, 181, 255);
+    margin-bottom: 8px;
+}
+
+.combat-attempt-star {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-border-blue, rgb(147, 187, 220));
 }
 
 .combat-attempt-title {
-    font-size: 20px;
-    color: rgb(255, 209, 95);
+    font-size: 15px;
+    color: var(--color-navy, rgb(11, 37, 69));
     -unity-font-style: bold;
+    letter-spacing: 2px;
     -unity-text-align: middle-center;
+}
+
+.combat-answer-content {
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
 }
 
 .academic-question-meta {
-    display: none;
-    margin-top: 4px;
-    font-size: 14px;
-    color: rgb(167, 185, 214);
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-slate-muted, rgb(100, 116, 139));
+    letter-spacing: 1px;
     -unity-text-align: middle-center;
+    margin-bottom: 4px;
+}
+
+.equation-row {
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 6px;
 }
 
 .academic-question-prompt {
-    display: none;
-    margin-top: 5px;
-    padding: 7px 14px;
-    border-radius: 10px;
-    background-color: rgba(76, 51, 121, 0.75);
-    font-size: 18px;
+    font-size: 30px;
     -unity-font-style: bold;
-    color: rgb(244, 230, 255);
+    color: var(--color-navy, rgb(11, 37, 69));
     -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.combat-timer-widget {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
 .combat-timer {
-    font-size: 64px;
+    font-size: 18px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    color: rgb(126, 216, 255);
+    color: var(--color-navy, rgb(11, 37, 69));
+    margin-right: 6px;
     transition-property: scale, color;
     transition-duration: 0.15s;
 }
 
+.combat-timer--danger {
+    color: var(--color-failure-red, rgb(239, 68, 68));
+    scale: 1.1 1.1;
+}
+
 .combat-timer-caption {
-    font-size: 15px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
     -unity-text-align: middle-center;
-    color: rgb(187, 202, 226);
+    color: var(--color-slate-muted, rgb(100, 116, 139));
+}
+
+.answer-display-box {
+    height: 52px;
+    background-color: var(--color-surface-input, rgb(244, 248, 253));
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: var(--color-border-input, rgb(133, 182, 222));
+    border-right-color: var(--color-border-input, rgb(133, 182, 222));
+    border-top-color: var(--color-border-input, rgb(133, 182, 222));
+    border-bottom-color: var(--color-border-input, rgb(133, 182, 222));
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-bottom: 12px;
+    transition-property: border-left-color, border-right-color, border-top-color, border-bottom-color, background-color;
+    transition-duration: 0.15s;
+}
+
+.bracket-star {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-border-input, rgb(133, 182, 222));
 }
 
 .combat-answer-display {
-    width: 70%;
-    min-height: 60px;
-    margin: 10px 0;
-    padding: 10px 18px;
-    font-size: 34px;
+    font-size: 26px;
     -unity-font-style: bold;
+    color: var(--color-navy, rgb(11, 37, 69));
     -unity-text-align: middle-center;
-    background-color: rgb(238, 243, 255);
-    color: rgb(17, 28, 52);
-    border-radius: 14px;
+    background-color: transparent;
+    border-width: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .combat-answer--placeholder {
-    color: rgb(111, 122, 143);
+    color: var(--color-slate-muted, rgb(100, 116, 139));
+    font-size: 16px;
     -unity-font-style: normal;
 }
 
 .combat-numpad {
-    width: 440px;
+    align-items: stretch;
+    margin-bottom: 12px;
+}
+
+.keypad-row {
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    align-items: stretch;
+    margin-bottom: 8px;
 }
 
 .combat-key {
-    width: 92px;
-    height: 64px;
-    margin: 5px;
-    font-size: 25px;
+    flex-grow: 1;
+    height: 50px;
+    margin-left: 4px;
+    margin-right: 4px;
+    background-color: var(--color-surface-key, rgb(240, 245, 250));
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-color: var(--color-surface-key-border, rgb(212, 226, 238));
+    border-right-color: var(--color-surface-key-border, rgb(212, 226, 238));
+    border-top-color: var(--color-surface-key-border, rgb(212, 226, 238));
+    border-bottom-color: var(--color-surface-key-border, rgb(212, 226, 238));
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
     -unity-font-style: bold;
-    border-radius: 13px;
-    transition-property: scale, translate, background-color;
-    transition-duration: 0.14s;
-    transition-timing-function: ease-out-back;
+    color: var(--color-navy, rgb(11, 37, 69));
+    -unity-text-align: middle-center;
+    transition-property: scale, background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
 }
 
 .combat-key:hover,
 .combat-key:focus {
-    scale: 1.06 1.06;
-    translate: 0 -2px;
+    scale: 1.04 1.04;
+    background-color: rgb(232, 242, 252);
+    border-left-color: var(--color-border-input, rgb(133, 182, 222));
+    border-right-color: var(--color-border-input, rgb(133, 182, 222));
+    border-top-color: var(--color-border-input, rgb(133, 182, 222));
+    border-bottom-color: var(--color-border-input, rgb(133, 182, 222));
 }
 
 .combat-key:active {
-    scale: 0.92 0.92;
+    scale: 0.94 0.94;
+    background-color: rgb(218, 233, 248);
+}
+
+.combat-key--utility {
+    font-size: 14px;
+    -unity-font-style: bold;
+    letter-spacing: 0.5px;
+}
+
+.combat-submit-button {
+    height: 54px;
+    background-color: var(--color-btn-orange-bottom, rgb(242, 78, 46));
+    border-left-width: 1.5px;
+    border-right-width: 1.5px;
+    border-top-width: 1.5px;
+    border-bottom-width: 1.5px;
+    border-left-color: var(--color-btn-orange-border, rgb(224, 62, 32));
+    border-right-color: var(--color-btn-orange-border, rgb(224, 62, 32));
+    border-top-color: var(--color-btn-orange-border, rgb(224, 62, 32));
+    border-bottom-color: var(--color-btn-orange-border, rgb(224, 62, 32));
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: white;
+    letter-spacing: 1.5px;
+    -unity-text-align: middle-center;
+    transition-property: scale, translate, background-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.combat-submit-button:hover,
+.combat-submit-button:focus {
+    scale: 1.03 1.03;
+    translate: 0 -2px;
+    background-color: var(--color-btn-orange-top, rgb(255, 133, 51));
+}
+
+.combat-submit-button:active {
+    scale: 0.95 0.95;
     translate: 0 2px;
     transition-duration: 0.08s;
 }
 
-.combat-key--utility {
-    width: 143px;
-    font-size: 17px;
+.combat-feedback-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-surface-card, rgb(255, 255, 255));
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    padding: 24px 20px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
 }
 
-.combat-key--submit {
-    width: 196px;
-    background-color: rgb(38, 146, 89);
+.combat-feedback-banner {
+    background-color: var(--color-correct-green, rgb(34, 197, 94));
+    border-radius: 12px;
+    padding: 8px 24px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.combat-feedback-card--negative .combat-feedback-banner {
+    background-color: var(--color-failure-red, rgb(239, 68, 68));
+}
+
+.combat-feedback-icon {
+    font-size: 18px;
+    -unity-font-style: bold;
     color: white;
+    margin-right: 8px;
+}
+
+.combat-feedback-title {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: white;
+    letter-spacing: 1.5px;
+    -unity-text-align: middle-center;
+}
+
+.combat-feedback-subtitle {
+    font-size: 14px;
+    color: var(--color-navy, rgb(11, 37, 69));
+    -unity-text-align: middle-center;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.combat-score-stack {
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.combat-score-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    padding: 8px 14px;
+    background-color: var(--color-surface-input, rgb(244, 248, 253));
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: var(--color-border-input, rgb(133, 182, 222));
+    margin-bottom: 4px;
+}
+
+.combat-score-row--final {
+    background-color: var(--color-buff-blue-bg, rgb(224, 242, 254));
+    border-color: var(--color-buff-blue-icon, rgb(2, 132, 199));
+}
+
+.combat-score-label {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-navy, rgb(11, 37, 69));
+}
+
+.combat-score-value {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--color-buff-blue-icon, rgb(2, 132, 199));
+}
+
+.combat-score-connector {
+    font-size: 10px;
+    color: var(--color-border-input, rgb(133, 182, 222));
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .combat-result {
-    min-height: 34px;
-    margin-top: 8px;
-    font-size: 21px;
+    min-height: 24px;
+    margin-top: 4px;
+    font-size: 16px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
 
 .combat-result--positive {
-    color: rgb(103, 239, 152);
+    color: var(--color-correct-green, rgb(34, 197, 94));
 }
 
 .combat-result--negative {
-    color: rgb(255, 127, 127);
+    color: var(--color-failure-red, rgb(239, 68, 68));
 }
 
 .academic-currency-gain {
     display: none;
-    min-height: 30px;
-    font-size: 22px;
+    min-height: 24px;
+    font-size: 16px;
     -unity-font-style: bold;
-    color: rgb(255, 221, 93);
+    color: var(--color-btn-orange-top, rgb(255, 133, 51));
     -unity-text-align: middle-center;
 }
 

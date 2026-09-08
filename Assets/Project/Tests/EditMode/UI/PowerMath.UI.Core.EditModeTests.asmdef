@@ -2,7 +2,8 @@
   "name": "PowerMath.UI.Core.EditModeTests",
   "rootNamespace": "PowerMath.UI.Core.Tests",
   "references": [
-    "PowerMath.UI.Core"
+    "PowerMath.UI.Core",
+    "PowerMath.Diagnostics"
   ],
   "includePlatforms": [
     "Editor"

@@ -16,22 +16,36 @@ MonoBehaviour:
   fallbackTitle: Biome 5
   firstStage: 121
   lastStage: 150
-  backgroundSprite: {fileID: 0}
+  backgroundSprite: {fileID: 21300000, guid: 7a825a54dc885074a927384b1dacd191, type: 3}
   mapLandmarkSprite: {fileID: 0}
-  normalizedMapPosition: {x: 0.6666666666666666, y: 0.42}
+  normalizedMapPosition: {x: 0.6666667, y: 0.42}
   normalMonsters:
-  - {fileID: 11400000, guid: c0000000000000000000000000000005, type: 2}
+  - {fileID: 11400000, guid: 9d8fba1f5ba578741bc87d5e0c9f039a, type: 2}
+  - {fileID: 11400000, guid: f22640940fdfeea458010b6395da556f, type: 2}
+  - {fileID: 11400000, guid: 08c8394c6f9045140b03c1f763471d44, type: 2}
+  - {fileID: 11400000, guid: 7b3a87ab4ec5ac047a8aa930b71c20b5, type: 2}
+  - {fileID: 11400000, guid: 5778a53a19f56fd47ba5ab0dc8beeefa, type: 2}
+  - {fileID: 11400000, guid: 3418efa76f5981a4791d6d0b93785996, type: 2}
+  - {fileID: 11400000, guid: e292d9b0e8b7abd44be26f1378aa5692, type: 2}
+  - {fileID: 11400000, guid: 4e5d2b08d03e81e419341b57f8e77dad, type: 2}
+  - {fileID: 11400000, guid: d540334502e626b419c02a66243e03c3, type: 2}
+  - {fileID: 11400000, guid: 58a4b9f7be2e46149a23d27b085600d2, type: 2}
+  - {fileID: 11400000, guid: 1dae96c6e05e1c44dbb5c9fe044bb7f2, type: 2}
+  - {fileID: 11400000, guid: a7c19bfb800d9dc4da3357e7ce913d7b, type: 2}
   bossBindings:
   - stage: 125
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000005, type: 2}
+    monster: {fileID: 11400000, guid: 20d77aa831f4ac84fb11c415912666fc, type: 2}
   - stage: 130
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000005, type: 2}
+    monster: {fileID: 11400000, guid: 4d462a6897310a14eb7ee4ba66051ffb, type: 2}
   - stage: 135
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000005, type: 2}
+    monster: {fileID: 11400000, guid: af056a130e42c4c419c02d8db9080a20, type: 2}
   - stage: 140
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000005, type: 2}
+    monster: {fileID: 11400000, guid: c29b8241faa1dee468af3bc9d649de34, type: 2}
   - stage: 145
-    monster: {fileID: 11400000, guid: d0000000000000000000000000000005, type: 2}
+    monster: {fileID: 11400000, guid: 6bf835a844b663e47b2dfc7f8de41618, type: 2}
   - stage: 150
-    monster: {fileID: 11400000, guid: e0000000000000000000000000000005, type: 2}
-
+    monster: {fileID: 11400000, guid: 2443a894137205649afda51e96c3ee9f, type: 2}
+  - stage: 155
+    monster: {fileID: 11400000, guid: 0c9760c6dcf44364da6c507ecd54d331, type: 2}
+  - stage: 160
+    monster: {fileID: 11400000, guid: 11fcfc8e06142834b85f409a0815ea56, type: 2}

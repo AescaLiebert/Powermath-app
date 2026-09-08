@@ -1,3 +1,13 @@
+:root {
+    -unity-font: url("project://database/Assets/Project/Material/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#HYWenHei");
+    -unity-font-definition: url("project://database/Assets/Project/Material/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#HYWenHei");
+}
+
+Label, Button, TextField, Toggle, TextElement {
+    -unity-font: url("project://database/Assets/Project/Material/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#HYWenHei");
+    -unity-font-definition: url("project://database/Assets/Project/Material/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#HYWenHei");
+}
+
 .mw-brand {
     color: rgb(255, 249, 232);
     font-size: 34px;

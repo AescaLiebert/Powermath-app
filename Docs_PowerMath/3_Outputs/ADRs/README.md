@@ -75,6 +75,8 @@ Update this diagram as ADRs are added. Show which decisions depend on others.
 
 ## Phase Mapping
 
+Accepted direction: [ADR-016: Player lifecycle and live service boundaries](016-player-lifecycle-and-live-service-boundaries.md). Local foundation implemented; trusted backend integration and deployment remain pending. See [implementation handoff](../Specs/player-lifecycle-live-service-implementation.md).
+
 | GDD Phase | ADRs | Current Status |
 |---|---|---|
 | **Phase 1** - Stabilize Prototype | ADR-001, ADR-002, ADR-003 | ADR-003 is current |

@@ -2,7 +2,8 @@
   "name": "PowerMath.UI.Core",
   "rootNamespace": "PowerMath.UI.Core",
   "references": [
-    "LeanTween"
+    "LeanTween",
+    "PowerMath.Diagnostics"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

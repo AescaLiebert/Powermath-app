@@ -25,7 +25,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 session == null || !session.IsReady || session.Snapshot == null ||
                 presenter == null || presenter.ApiSettings == null || provider == null)
             {
-                Debug.LogError("Leaderboard and Profile Analytics require a loaded player session and API settings.");
+                PowerMath.Diagnostics.AppLog.Error("SocialProfile", "Leaderboard and Profile Analytics require a loaded player session and API settings.");
                 return;
             }
 
@@ -40,7 +40,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 session.Snapshot, provider.Host);
             if (!_leaderboard.IsValid || !_profile.IsValid || !_admin.IsValid)
             {
-                Debug.LogError("Main Menu social/profile/admin UI elements are missing.");
+                PowerMath.Diagnostics.AppLog.Error("SocialProfile", "Main Menu social/profile/admin UI elements are missing.");
                 return;
             }
             _leaderboard.Bind();
@@ -63,7 +63,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             StartCoroutine(publisher.Publish(
                 player,
                 () => { },
-                message => Debug.LogWarning(message)));
+                message => PowerMath.Diagnostics.AppLog.Warning("SocialProfile", message)));
         }
 
         private void OnDisable()

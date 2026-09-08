@@ -153,3 +153,111 @@
 
 .auth-input-email {
 }
+
+/* =========================================================================
+   Centralized Status Toast Notification Overlay
+   ========================================================================= */
+
+.status-toast-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: flex-start;
+    pointer-events: none;
+}
+
+.status-toast-banner {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    translate: -50% -26px;
+    opacity: 0;
+    scale: 0.94 0.94;
+    min-width: 360px;
+    max-width: 680px;
+    min-height: 50px;
+    padding-left: 20px;
+    padding-right: 24px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(20, 48, 91, 0.97);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(95, 211, 225);
+    border-right-color: rgb(95, 211, 225);
+    border-top-color: rgb(95, 211, 225);
+    border-bottom-color: rgb(95, 211, 225);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    transition-property: opacity, translate, scale, background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-back;
+}
+
+.status-toast-banner.is-visible {
+    opacity: 1;
+    translate: -50% 0;
+    scale: 1 1;
+}
+
+.status-toast-banner.status-toast--info {
+    background-color: rgba(20, 48, 91, 0.97);
+    border-left-color: rgb(95, 211, 225);
+    border-right-color: rgb(95, 211, 225);
+    border-top-color: rgb(95, 211, 225);
+    border-bottom-color: rgb(95, 211, 225);
+}
+
+.status-toast-banner.status-toast--success {
+    background-color: rgba(18, 99, 68, 0.98);
+    border-left-color: rgb(128, 242, 171);
+    border-right-color: rgb(128, 242, 171);
+    border-top-color: rgb(128, 242, 171);
+    border-bottom-color: rgb(128, 242, 171);
+}
+
+.status-toast-banner.status-toast--warning {
+    background-color: rgba(109, 70, 17, 0.98);
+    border-left-color: rgb(255, 202, 84);
+    border-right-color: rgb(255, 202, 84);
+    border-top-color: rgb(255, 202, 84);
+    border-bottom-color: rgb(255, 202, 84);
+}
+
+.status-toast-banner.status-toast--error {
+    background-color: rgba(128, 43, 51, 0.98);
+    border-left-color: rgb(255, 148, 130);
+    border-right-color: rgb(255, 148, 130);
+    border-top-color: rgb(255, 148, 130);
+    border-bottom-color: rgb(255, 148, 130);
+}
+
+.status-toast__badge {
+    min-width: 26px;
+    min-height: 26px;
+    margin-right: 12px;
+    -unity-text-align: middle-center;
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+}
+
+.status-toast__text {
+    color: rgb(255, 249, 232);
+    font-size: 16px;
+    -unity-font-style: bold;
+    white-space: normal;
+    -unity-text-align: middle-left;
+    flex-shrink: 1;
+}
+

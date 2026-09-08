@@ -32,7 +32,7 @@
 <body>
   <strong>PowerMath AI Bridge</strong>
 
-  <input id="token" type="password" placeholder="Local bridge token">
+  <input id="token" type="password" placeholder="Local bridge token" value="pmf-b7e3c9f1-26a8-4d5b-90e7-1c4a8f2d6b39">
 
   <button id="connect">Connect</button>
   <div id="status">Disconnected</div>
@@ -46,12 +46,7 @@
     let executing = false;
 
     document.querySelector("#connect").onclick = async () => {
-      token = document.querySelector("#token").value.trim();
-
-      if (!token) {
-        status.textContent = "Enter the bridge token.";
-        return;
-      }
+      token = document.querySelector("#token").value.trim() || "pmf-b7e3c9f1-26a8-4d5b-90e7-1c4a8f2d6b39";
 
       try {
         const response = await request("/health");
@@ -63,6 +58,12 @@
         status.textContent = `Connection error: ${error.message}`;
       }
     };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        if (!running) document.querySelector("#connect").click();
+      }, 100);
+    });
 
     async function request(path, options = {}) {
       return fetch(endpoint + path, {

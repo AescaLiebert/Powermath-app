@@ -147,7 +147,7 @@ namespace PowerMath.Session
                 // Leaderboard deletion failure does not abort the main game data reset; it is logged.
                 if (patch.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogWarning("Leaderboard entry deletion returned " + patch.responseCode + ": " + patch.error);
+                    PowerMath.Diagnostics.AppLog.Warning("Session", "Leaderboard entry deletion returned " + patch.responseCode + ": " + patch.error);
                 }
             }
         }

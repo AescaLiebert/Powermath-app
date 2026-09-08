@@ -15,7 +15,6 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    z-index: 500;
 }
 
 .main-menu-transition-layer.is-transition-blocking {
@@ -224,7 +223,8 @@
     flex-grow: 0;
     flex-shrink: 0;
     margin: 0;
-    overflow: visible;
+    overflow: hidden;
+    border-radius: 16px;
 }
 
 .hud-profile-frame {
@@ -236,7 +236,7 @@
     background-color: rgb(221, 238, 255);
     border-width: 4px;
     border-color: rgb(233, 185, 92);
-    border-radius: 53px;
+    border-radius: 16px;
 }
 
 .hud-profile-avatar {
@@ -246,19 +246,22 @@
     width: 98px;
     height: 98px;
     background-color: rgb(221, 238, 255);
-    border-width: 4px;
+    border-width: 2px;
     border-color: rgb(233, 185, 92);
-    border-radius: 49px;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .hud-profile-picture {
     position: absolute;
-    left: -4px;
-    top: 3px;
-    width: 114px;
-    height: 114px;
-    background-image: url("project://database/Assets/Project/Art/UI/MainMenu/PlayerPlaceholder.png?fileID=2800000&guid=cefb5a0a7e1e82d4f8d56ca4ac17cc2e&type=3#PlayerPlaceholder");
+    left: 4px;
+    top: 4px;
+    width: 98px;
+    height: 98px;
+    background-image: url("project://database/Assets/Project/Art/Character/PFP_Ricko_1.png?fileID=-308810356698134934&guid=dcb3aa4df8f06ce4596356c530659994&type=3#PFP_Ricko_1_0");
     -unity-background-scale-mode: scale-and-crop;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .hud-profile-copy {
@@ -373,9 +376,9 @@
 
 .hud-rank-icon--silver { left: 1px; top: 2px; width: 43px; height: 43px; }
 
-.hud-rank-icon--silver { background-image: url("project://database/Assets/UI/GeneratedMenuIcons/RankCurrency/rank-currency-silver-transparent.png?fileID=2800000&guid=bd63f50b162ecb04b90ffd3974dcc10c&type=3#rank-currency-silver-transparent"); }
-.hud-rank-icon--gold { background-image: url("project://database/Assets/UI/GeneratedMenuIcons/RankCurrency/rank-currency-gold.png?fileID=2800000&guid=b4a567141f96ddf44bde0c2e5b5f080a&type=3#rank-currency-gold"); }
-.hud-rank-icon--diamond { background-image: url("project://database/Assets/UI/GeneratedMenuIcons/RankCurrency/rank-currency-diamond.png?fileID=2800000&guid=f1a38d0043c37b749bf2de101e0a6b94&type=3#rank-currency-diamond"); }
+.hud-rank-icon--silver { background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_sliver.png?fileID=-8422487062728157231&guid=ac63900fe97682a4bac070effc08d269&type=3#coin_sliver_0"); }
+.hud-rank-icon--gold { background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_gold.png?fileID=4793385847135534003&guid=7ac6778b768ae6b4792baa5619425848&type=3#coin_gold_1"); }
+.hud-rank-icon--diamond { background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_diamond.png?fileID=6309500834797410919&guid=5452206884f11c442b7cedd0f4e9962d&type=3#coin_diamond_0"); }
 
 .figma-stage-status {
     position: absolute;
@@ -492,17 +495,16 @@
 
 .hud-icon-button--biome {
     margin-right: 28px;
-    background-image: url("project://database/Assets/Project/Art/Utility-icon.png?fileID=9151300655418518677&guid=6d6e73a3090bb384b82ff2a159d4f296&type=3#Utility-icon_1");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_stage.png?fileID=-7899887828367425398&guid=d13800569fa011f4aa1e471cd01717a6&type=3#Icon_stage_0");
 }
 
 .hud-icon-button--leaderboard {
     margin-right: 28px;
-    background-image: url("project://database/Assets/Project/Art/Utility-icon.png?fileID=6191329361524575394&guid=6d6e73a3090bb384b82ff2a159d4f296&type=3#Utility-icon_2");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/MW-Leaderboard-Crown.png?fileID=7559708126212142998&guid=82635050b33e8994fbbfd49247ab5d76&type=3#MW-Leaderboard-Crown_0");
 }
 
 .hud-icon-button--settings {
     background-color: var(--navigator-fill-solid);
-    background-image: url("project://database/Assets/Project/Art/Utility-icon.png?fileID=-4119141501927548086&guid=6d6e73a3090bb384b82ff2a159d4f296&type=3#Utility-icon_3");
 }
 
 .hud-icon-button:hover,
@@ -523,6 +525,21 @@
     opacity: 0.72;
     scale: 1 1;
     translate: 0 0;
+}
+
+.hud-icon-button.is-feature-locked {
+    opacity: 0.85;
+    scale: 1 1;
+    translate: 0 0;
+}
+
+.hud-icon-button.is-feature-locked:hover,
+.hud-icon-button.is-feature-locked:focus,
+.hud-icon-button.is-feature-locked:active {
+    scale: 1 1;
+    translate: 0 0;
+    background-color: var(--navigator-fill);
+    border-color: var(--navigator-stroke);
 }
 
 .hud-player-menu {
@@ -746,7 +763,7 @@
     top: -10.5px;
     width: 67px;
     height: 67px;
-    background-image: url("project://database/Assets/UI/GeneratedMenuIcons/Currency/power-coin-orange-white-green.png?fileID=2800000&guid=ae49890f284dfa24e8552184d87df4b2&type=3#power-coin-orange-white-green");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -835,9 +852,9 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.hud-player-menu-card-icon--hub { background-image: url("project://database/Assets/UI/GeneratedMenuIcons/hub-icon-only-highdpi.png?fileID=2800000&guid=1ad1e99d59ce0334a841f77f07b53ce0&type=3#hub-icon-only-highdpi"); }
-.hud-player-menu-card-icon--gacha { background-image: url("project://database/Assets/UI/GeneratedMenuIcons/gacha-icon-only-highdpi.png?fileID=2800000&guid=18b17f8c1fdc30e44a401aff568335f9&type=3#gacha-icon-only-highdpi"); }
-.hud-player-menu-card-icon--rebirth { background-image: url("project://database/Assets/UI/GeneratedMenuIcons/rebirth-icon-only-highdpi.png?fileID=2800000&guid=09ca9c9068d6dbd47ba115f31103d434&type=3#rebirth-icon-only-highdpi"); }
+.hud-player-menu-card-icon--hub { background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_hub.png?fileID=-8103456751641217067&guid=6cab5b8d77fadb849805f18da5af206a&type=3#Icon_hub_0"); }
+.hud-player-menu-card-icon--gacha { background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Pet.png?fileID=6700543945172676342&guid=8e828c1bf7b8b8548b698a7140aacaef&type=3#Icon_Pet_1"); }
+.hud-player-menu-card-icon--rebirth { background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=-2324710863503425689&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth_0"); }
 
 .hud-player-menu-card-label {
     position: absolute;
@@ -887,6 +904,38 @@
     scale: 0.93 0.93;
     translate: 0 2px;
     transition-duration: 0.08s;
+}
+
+.hud-chain-lock-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.hud-chain-lock-overlay.is-hidden {
+    display: none;
+}
+
+.hud-player-menu-button.is-feature-locked {
+    scale: 1 1;
+    translate: 0 0;
+}
+
+.hud-player-menu-button.is-feature-locked:hover,
+.hud-player-menu-button.is-feature-locked:focus,
+.hud-player-menu-button.is-feature-locked:active {
+    scale: 1 1;
+    translate: 0 0;
+}
+
+.hud-player-menu-button.is-feature-locked .hud-player-menu-card-icon {
+    opacity: 0.45;
+}
+
+.hud-player-menu-button.is-feature-locked .hud-player-menu-card-label {
+    opacity: 0.60;
 }
 
 .hud-player-menu-button:disabled {
@@ -1283,7 +1332,7 @@
     height: 43px;
     margin-right: 10px;
     flex-shrink: 0;
-    background-image: url("project://database/Assets/Project/Art/UI/MainMenu/heart.png");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_heart.png?fileID=5692561211397486873&guid=60fcaad347e70f34784b180fb9e07496&type=3#player_heart_0");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -1389,13 +1438,13 @@
 .hud-loadout-watermark--pet {
     left: 28.5px;
     top: 22.7px;
-    background-image: url("project://database/Assets/Project/Art/UI/MainMenu/pet-watermark.svg");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_title_pet.png?fileID=6674195197632703334&guid=1b2e391e263824a498bd75fc33eae64a&type=3#Icon_title_pet_0");
 }
 
 .hud-loadout-watermark--weapon {
     left: 28px;
     top: 16.7px;
-    background-image: url("project://database/Assets/Project/Art/UI/MainMenu/weapon-watermark.svg");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Player_title_sword.png?fileID=2585870654315560641&guid=3aefe66a41532574680663ae25a71d04&type=3#Player_title_sword_0");
 }
 
 .hud-loadout-star-frame {
@@ -1411,7 +1460,7 @@
 .hud-loadout-star {
     width: 19px;
     height: 19px;
-    background-image: url("project://database/Assets/UI/GeneratedMenuIcons/Rarity/rarity-star.png");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Generic_Star.png?fileID=-3701803639222355071&guid=3b4a2a288ce72154cafb0fc1c6f508d5&type=3#Generic_Star_0");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -1430,7 +1479,6 @@
     right: 24%;
     top: 7%;
     bottom: 7%;
-    z-index: 100;
     transition-property: left, right;
     transition-duration: 0.18s;
 }
@@ -1442,7 +1490,6 @@
 
 .navigator-modal {
     top: 0;
-    z-index: 120;
 }
 
 .navigator-card {
@@ -1464,8 +1511,6 @@
     top: 0;
     right: 0;
     bottom: 0;
-    pointer-events: none;
-    z-index: 200;
 }
 
 .reward-magnet-icon {
@@ -1476,17 +1521,17 @@
 }
 
 .reward-magnet-icon--silver {
-    background-image: url("project://database/Assets/UI/GeneratedMenuIcons/RankCurrency/rank-currency-silver-transparent.png?fileID=2800000&guid=bd63f50b162ecb04b90ffd3974dcc10c&type=3#rank-currency-silver-transparent");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_sliver.png?fileID=-8422487062728157231&guid=ac63900fe97682a4bac070effc08d269&type=3#coin_sliver_0");
 }
 
 .reward-magnet-icon--gold {
-    background-image: url("project://database/Assets/UI/GeneratedMenuIcons/RankCurrency/rank-currency-gold.png?fileID=2800000&guid=b4a567141f96ddf44bde0c2e5b5f080a&type=3#rank-currency-gold");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_gold.png?fileID=4793385847135534003&guid=7ac6778b768ae6b4792baa5619425848&type=3#coin_gold_1");
 }
 
 .reward-magnet-icon--diamond {
-    background-image: url("project://database/Assets/UI/GeneratedMenuIcons/RankCurrency/rank-currency-diamond.png?fileID=2800000&guid=f1a38d0043c37b749bf2de101e0a6b94&type=3#rank-currency-diamond");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_diamond.png?fileID=6309500834797410919&guid=5452206884f11c442b7cedd0f4e9962d&type=3#coin_diamond_0");
 }
 
 .reward-magnet-icon--coin {
-    background-image: url("project://database/Assets/UI/GeneratedMenuIcons/Currency/power-coin-orange-white-green.png?fileID=2800000&guid=ae49890f284dfa24e8552184d87df4b2&type=3#power-coin-orange-white-green");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
 }

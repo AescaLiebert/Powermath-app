@@ -19,7 +19,8 @@ public class SafeAreaController : MonoBehaviour
 
         if (safeAreaElement == null)
         {
-            Debug.LogError(
+            PowerMath.Diagnostics.AppLog.Error(
+                "SafeArea",
                 "SafeAreaController could not find an element " +
                 "named 'safe-area' in the UXML document."
             );

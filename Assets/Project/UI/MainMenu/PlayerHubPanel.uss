@@ -4,7 +4,69 @@
 .player-hub-landmark { position: absolute; bottom: 13%; width: 180px; height: 310px; background-color: rgba(19, 55, 79, 0.45); border-top-left-radius: 80px; border-top-right-radius: 80px; }
 .player-hub-landmark--left { left: -55px; rotate: -12deg; }
 .player-hub-landmark--right { right: -50px; rotate: 14deg; }
-.player-hub-local-close { display: none; }
+.player-hub-header-controls {
+    position: absolute;
+    top: 16px;
+    right: 22px;
+    height: 54px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.player-hub-balance-pill {
+    min-width: 130px;
+    height: 54px;
+    padding: 7px 18px 7px 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(255, 249, 232);
+    border-radius: 27px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+}
+
+.player-hub-coin-icon {
+    width: 34px;
+    height: 34px;
+    margin-right: 10px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-close {
+    min-width: 54px;
+    width: 54px;
+    min-height: 54px;
+    height: 54px;
+    margin-left: 14px;
+    padding: 0;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-radius: 15px;
+    border-width: 3px;
+    border-color: rgb(222, 199, 157);
+    font-size: 37px;
+    -unity-font-style: bold;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.player-hub-close:hover,
+.player-hub-close:focus {
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+    border-color: rgb(255, 194, 64);
+    background-color: white;
+}
+
+.player-hub-close:active {
+    scale: 0.94 0.94;
+    translate: 0 1px;
+    transition-duration: 0.08s;
+}
 .player-hub-screen { width: 100%; height: 100%; flex-direction: row; }
 
 .player-hub-player-stage { width: 30%; min-width: 290px; padding: 18px 18px 16px 14px; justify-content: space-between; }
@@ -31,14 +93,18 @@
 .player-hub-pet-workspace { display: none; }
 .player-hub-feature-header { min-height: 52px; flex-direction: row; justify-content: space-between; align-items: flex-start; }
 .player-hub-section-title { color: rgb(32, 92, 183); font-size: 13px; }
-.player-hub-section-copy { margin-top: 3px; color: rgb(77, 101, 134); font-size: 13px; white-space: normal; }
-.player-hub-balance { min-width: 190px; padding: 9px 13px; color: rgb(20, 48, 91); background-color: rgb(255, 220, 151); border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; font-size: 13px; -unity-font-style: bold; -unity-text-align: middle-center; }
+.player-hub-balance {
+    color: rgb(20, 48, 91);
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+}
 
 .player-hub-weapon-workspace { justify-content: space-between; }
 .player-hub-weapon-showcase { min-height: 205px; max-height: 300px; flex-grow: 1; margin-top: 8px; align-items: center; justify-content: center; background-color: rgb(20, 48, 91); border-top-left-radius: 22px; border-top-right-radius: 22px; border-bottom-left-radius: 22px; border-bottom-right-radius: 22px; overflow: hidden; }
 .player-hub-weapon-aura { position: absolute; width: 190px; height: 190px; background-color: rgba(95, 211, 225, 0.2); border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; scale: 0.88 0.88; }
 .player-hub-weapon-icon { width: 112px; height: 112px; align-items: center; justify-content: center; background-color: rgb(244, 111, 83); border-left-width: 5px; border-right-width: 5px; border-top-width: 5px; border-bottom-width: 5px; border-left-color: rgb(255, 249, 232); border-right-color: rgb(255, 249, 232); border-top-color: rgb(255, 249, 232); border-bottom-color: rgb(255, 249, 232); border-top-left-radius: 56px; border-top-right-radius: 56px; border-bottom-left-radius: 56px; border-bottom-right-radius: 56px; }
-.player-hub-weapon-sprite { position: absolute; width: 88px; height: 88px; -unity-background-scale-mode: scale-to-fit; }
+.player-hub-weapon-sprite { position: absolute; width: 88px; height: 88px; background-image: url("project://database/Assets/Project/Art/UI/Icon/Player_title_sword.png?fileID=2585870654315560641&guid=3aefe66a41532574680663ae25a71d04&type=3#Player_title_sword_0"); -unity-background-scale-mode: scale-to-fit; }
 .player-hub-weapon-placeholder { color: rgb(255, 249, 232); font-size: 64px; -unity-font-style: bold; }
 .player-hub-weapon-name { margin-top: 8px; color: rgb(255, 249, 232); font-size: 23px; -unity-font-style: bold; }
 .player-hub-particle-layer { position: absolute; left: 50%; top: 50%; width: 1px; height: 1px; }
@@ -72,7 +138,7 @@
 .player-hub-pet-tile-badge { position: absolute; right: 5px; top: 5px; padding: 3px 5px; color: rgb(255, 249, 232); background-color: rgb(20, 48, 91); border-top-left-radius: 7px; border-top-right-radius: 7px; border-bottom-left-radius: 7px; border-bottom-right-radius: 7px; font-size: 8px; -unity-font-style: bold; }
 .player-hub-pet-preview { flex-grow: 1; margin-left: 8px; padding: 24px; align-items: center; justify-content: center; background-color: rgb(20, 48, 91); border-top-left-radius: 24px; border-top-right-radius: 24px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; overflow: hidden; }
 .player-hub-pet-preview-aura { position: absolute; width: 270px; height: 270px; top: 34px; background-color: rgba(95, 211, 225, 0.18); border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; }
-.player-hub-pet-preview-icon { width: 210px; height: 210px; -unity-background-scale-mode: scale-to-fit; }
+.player-hub-pet-preview-icon { width: 210px; height: 210px; background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Pet.png?fileID=6700543945172676342&guid=8e828c1bf7b8b8548b698a7140aacaef&type=3#Icon_Pet_1"); -unity-background-scale-mode: scale-to-fit; }
 .player-hub-pet-preview-rarity { margin-top: 5px; font-size: 12px; -unity-font-style: bold; letter-spacing: 1.8px; }
 .player-hub-pet-preview-name { margin-top: 3px; color: rgb(255, 249, 232); font-size: 28px; -unity-font-style: bold; -unity-text-align: middle-center; }
 .player-hub-pet-preview-description { min-height: 62px; margin-top: 10px; color: rgba(255, 249, 232, 0.8); font-size: 14px; white-space: normal; -unity-text-align: upper-center; }

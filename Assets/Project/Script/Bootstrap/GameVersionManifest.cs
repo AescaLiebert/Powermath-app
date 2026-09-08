@@ -2,6 +2,13 @@ using System;
 
 namespace PowerMath.Bootstrap
 {
+    public enum GameFeature
+    {
+        BiomeMap,
+        PlayerHub,
+        PetGacha
+    }
+
     [Serializable]
     public sealed class GameVersionManifest
     {
@@ -9,6 +16,7 @@ namespace PowerMath.Bootstrap
         public string minSupportedVersion;
         public int schemaVersion = 1;
         public ContentVersions contentVersions;
+        public FeatureFlags features;
         public MaintenanceInfo maintenance;
         public string forceReloadUrl;
 
@@ -18,6 +26,14 @@ namespace PowerMath.Bootstrap
             public string questionCatalog;
             public string stageMap;
             public string petGacha;
+        }
+
+        [Serializable]
+        public sealed class FeatureFlags
+        {
+            public bool biomeMap;
+            public bool playerHub;
+            public bool petGacha;
         }
 
         [Serializable]
