@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B7-E01
   displayName: Rapier Seraph
-  thaiDisplayName: ""
+  thaiDisplayName: 
   biomeId: biome-7
   encounterKind: 1
   baseHp: 1250
   maximumCooldown: 3
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 1b49da0be0b2b46478962ba89415ffb9, type: 3}

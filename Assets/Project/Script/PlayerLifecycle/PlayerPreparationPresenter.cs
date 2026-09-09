@@ -10,6 +10,7 @@ using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Video;
+using PowerMath.UI.Shared;
 
 namespace PowerMath.PlayerLifecycle
 {
@@ -21,7 +22,10 @@ namespace PowerMath.PlayerLifecycle
         private const float DetailEnterSeconds = 0.66f;
         private const float DetailExitSeconds = 0.38f;
         private const float DetailHoldPulseSeconds = 1.65f;
+        private const float DetailDotDriftSeconds = 5.4f;
         private const float CompletionFlashSeconds = 0.68f;
+        private const float CompletionCurtainInSeconds = 0.46f;
+        private const float CompletionCurtainOutSeconds = 0.55f;
         private const float VideoPrepareTimeoutSeconds = 12f;
 
         private enum VideoPurpose
@@ -41,6 +45,7 @@ namespace PowerMath.PlayerLifecycle
         private OpeningSequenceDefinition _opening;
         private Coroutine _visualSequence;
         private UiMotionHandle _characterHold;
+        private UiMotionHandle _dotHold;
         private VideoPlayer _video;
         private RenderTexture _videoTexture;
         private VideoPurpose _videoPurpose;
@@ -49,6 +54,8 @@ namespace PowerMath.PlayerLifecycle
         private bool _videoFailed;
         private bool _busy;
         private bool _completionTransition;
+        private bool _destinationLoaded;
+        private bool _destinationLoadFailed;
         private bool _keepTransitionCovered;
         private bool _revealAfterSave;
         private bool _reducedMotion;
@@ -57,6 +64,8 @@ namespace PowerMath.PlayerLifecycle
 
         public PlayerPreparationSequenceState State =>
             _view?.State ?? PlayerPreparationSequenceState.Hidden;
+
+        public event Action DestinationTransitionCompleted;
 
         public void Initialize(
             VisualElement root,
@@ -277,6 +286,7 @@ namespace PowerMath.PlayerLifecycle
                 "stellar");
             _view.ShowSelection(null, rickoArt, stellarArt);
             _view.SetInteractive(!_busy && _pending == null);
+            PowerMath.Audio.MusicController.Instance.PlayLoginMusic();
 
             if (_catalog?.selectionVideo != null &&
                 PrepareVideo(VideoPurpose.Selection, true))
@@ -304,7 +314,7 @@ namespace PowerMath.PlayerLifecycle
             string selected = _store.Snapshot.onboarding.selectedCharacterId;
             CharacterPresentationCatalog.Character definition = _catalog?.Find(selected);
             Sprite art = CharacterPlaceholderSprites.Resolve(
-                definition?.selectionArt,
+                definition?.overviewArt ?? definition?.selectionArt,
                 selected);
             string initial = _name ?? (_store.Snapshot.onboarding.legacyPlayer
                 ? _store.Snapshot.profile.displayName
@@ -396,7 +406,16 @@ namespace PowerMath.PlayerLifecycle
             _name = value;
             if (_view.State == PlayerPreparationSequenceState.NameEntry)
             {
-                _view.ClearError();
+                if (!string.IsNullOrWhiteSpace(value) &&
+                    !PlayerLifecyclePolicy.TryNormalizeName(value, out _, out var result) &&
+                    result.Reason == DisplayNameDenialReason.InappropriateContent)
+                {
+                    _view.ShowError(LocalizationService.Get(result.LocalizationKey));
+                }
+                else
+                {
+                    _view.ClearError();
+                }
             }
         }
 
@@ -404,9 +423,11 @@ namespace PowerMath.PlayerLifecycle
         {
             if (_busy || _pending != null ||
                 _view.State != PlayerPreparationSequenceState.NameEntry) return;
-            if (!PlayerLifecyclePolicy.TryNormalizeName(_name, out string normalized))
+            if (!PlayerLifecyclePolicy.TryNormalizeName(_name, out string normalized, out DisplayNameValidationResult result))
             {
-                _view.ShowError(LocalizationService.Get("onboarding.invalidName"));
+                string message = LocalizationService.Get(result.LocalizationKey);
+                PowerMath.UI.Core.StatusMessageService.ShowWarning(message);
+                _view.ShowError(message);
                 return;
             }
 
@@ -508,12 +529,21 @@ namespace PowerMath.PlayerLifecycle
                 UiMotionEasing.InOutSine,
                 _view.ApplyHoldProgress,
                 loopPingPong: true);
+            _dotHold = _motion.Tween(
+                _view.DetailAccent,
+                UiMotionChannel.Ambient,
+                DetailDotDriftSeconds,
+                UiMotionEasing.InOutSine,
+                _view.ApplyDotHoldProgress,
+                loopPingPong: true);
         }
 
         private void CancelHoldAnimation()
         {
             _characterHold?.Cancel();
             _characterHold = null;
+            _dotHold?.Cancel();
+            _dotHold = null;
         }
 
         private void Submit(PlayerLifecycleCommandKind kind, string value = null)
@@ -566,7 +596,7 @@ namespace PowerMath.PlayerLifecycle
                 if (completing)
                 {
                     _completionTransition = true;
-                    _visualSequence = StartCoroutine(CompleteWithFlash());
+                    _visualSequence = StartCoroutine(CompleteSceneTransition());
                     yield break;
                 }
 
@@ -611,14 +641,80 @@ namespace PowerMath.PlayerLifecycle
             _view.SetInteractive(true);
         }
 
-        private IEnumerator CompleteWithFlash()
+        public void NotifyDestinationSceneLoaded()
+        {
+            if (!_completionTransition) return;
+            _destinationLoaded = true;
+            _destinationLoadFailed = false;
+        }
+
+        public void NotifyDestinationSceneLoadFailed()
+        {
+            if (!_completionTransition) return;
+            _destinationLoadFailed = true;
+            _destinationLoaded = false;
+        }
+
+        private IEnumerator CompleteSceneTransition()
         {
             CleanupVideo();
             CancelHoldAnimation();
             _view.SetState(PlayerPreparationSequenceState.Completing);
             _view.SetInteractive(false);
-            yield return PlayWhiteFlash();
-            Finish();
+            _view.SetCurtainOpacity(0f);
+            _destinationLoaded = false;
+            _destinationLoadFailed = false;
+
+            UiMotionHandle cover = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Feedback,
+                MotionSeconds(CompletionCurtainInSeconds),
+                UiMotionEasing.InOutSine,
+                _view.SetCurtainOpacity);
+            yield return WaitFor(cover);
+            _view.SetCurtainOpacity(1f);
+
+            Action requestScene = _completed;
+            _completed = null;
+            if (requestScene == null)
+            {
+                _destinationLoadFailed = true;
+            }
+            else
+            {
+                try
+                {
+                    requestScene.Invoke();
+                }
+                catch (Exception exception)
+                {
+                    PowerMath.Diagnostics.AppLog.Error(
+                        "Lifecycle",
+                        "Main-menu scene transition could not start: " + exception.Message,
+                        this);
+                    _destinationLoadFailed = true;
+                }
+            }
+
+            while (!_destinationLoaded && !_destinationLoadFailed)
+                yield return null;
+
+            UiMotionHandle reveal = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Feedback,
+                MotionSeconds(CompletionCurtainOutSeconds),
+                UiMotionEasing.InOutSine,
+                progress => _view.SetCurtainOpacity(1f - progress));
+            yield return WaitFor(reveal);
+            _view.SetCurtainOpacity(0f);
+            _completionTransition = false;
+            _view.SetState(PlayerPreparationSequenceState.Hidden);
+
+            if (_destinationLoaded)
+            {
+                DestinationTransitionCompleted?.Invoke();
+            }
+            Destroy(this);
         }
 
         private IEnumerator PlayWhiteFlash()
@@ -679,7 +775,10 @@ namespace PowerMath.PlayerLifecycle
                     return false;
                 }
                 _video.source = VideoSource.Url;
-                _video.url = _catalog.selectionVideoUrl;
+                StreamingVideoPath.TryResolve(
+                    _catalog.selectionVideoUrl,
+                    out string selectionVideoUrl);
+                _video.url = selectionVideoUrl;
 #else
                 if (_catalog?.selectionVideo != null)
                 {
@@ -707,7 +806,10 @@ namespace PowerMath.PlayerLifecycle
                 return false;
             }
             _video.source = VideoSource.Url;
-            _video.url = _opening.videoUrl;
+            StreamingVideoPath.TryResolve(
+                _opening.videoUrl,
+                out string openingVideoUrl);
+            _video.url = openingVideoUrl;
 #else
             if (_opening?.videoClip != null)
             {

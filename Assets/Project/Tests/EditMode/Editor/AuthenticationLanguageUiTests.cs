@@ -51,7 +51,7 @@ namespace PowerMath.Tests.EditMode
             var root = _document.rootVisualElement;
             var worldwideBtn = root.Q<Button>("worldwide-button");
             Assert.IsNotNull(worldwideBtn, "worldwide-button should exist in AuthenticationScreen.");
-            Assert.AreEqual("🌐", worldwideBtn.text);
+            Assert.AreEqual("LANG", worldwideBtn.text);
 
             var flyout = root.Q<VisualElement>("auth-language-flyout");
             Assert.IsNotNull(flyout, "auth-language-flyout should exist.");

@@ -13,7 +13,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public UiToolkitLifecycleController(
             VisualElement element,
-            long enterMilliseconds = 180,
+            long enterMilliseconds = 220,
             long exitMilliseconds = 140)
         {
             _element = element ?? throw new ArgumentNullException(nameof(element));
@@ -34,14 +34,27 @@ namespace PowerMath.Gameplay.Combat.Unity
             _element.RemoveFromClassList("ui-lifecycle--exiting");
             _element.AddToClassList("ui-lifecycle--entering");
             State = UiLifecycleState.Entering;
-            _scheduled = _element.schedule.Execute(() =>
+
+            if (_enterMilliseconds <= 0)
             {
-                _scheduled = null;
                 _element.RemoveFromClassList("ui-lifecycle--entering");
                 _element.pickingMode = PickingMode.Position;
                 State = UiLifecycleState.Idle;
                 completed?.Invoke();
-            }).StartingIn(_enterMilliseconds);
+                return;
+            }
+
+            _scheduled = _element.schedule.Execute(() =>
+            {
+                _element.RemoveFromClassList("ui-lifecycle--entering");
+                _scheduled = _element.schedule.Execute(() =>
+                {
+                    _scheduled = null;
+                    _element.pickingMode = PickingMode.Position;
+                    State = UiLifecycleState.Idle;
+                    completed?.Invoke();
+                }).StartingIn(_enterMilliseconds);
+            }).StartingIn(16);
         }
 
         public void Exit(Action completed = null)

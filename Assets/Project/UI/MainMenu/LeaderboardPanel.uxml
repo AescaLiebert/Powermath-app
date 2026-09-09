@@ -16,7 +16,7 @@
             <ui:VisualElement name=".leaderboard-header" class="leaderboard-header">
                 <ui:VisualElement name=".header-title-block" class="leaderboard-title-block" style="width: 559px; height: 82px; justify-content: flex-start;">
                     <ui:Label name=".title-label" text="LEADERBOARD" class="loc-menu.leaderboard leaderboard-title"/>
-                    <ui:Label name=".title-sparkle" text="✦" class="leaderboard-title-sparkle"/>
+                    <ui:Label name=".title-sparkle" text="★" class="leaderboard-title-sparkle"/>
                 </ui:VisualElement>
                 <ui:VisualElement name=".header-center-block" class="leaderboard-header-center">
                     <ui:VisualElement name=".header-cohort-badge" class="leaderboard-cohort-badge">
@@ -25,9 +25,9 @@
                     </ui:VisualElement>
                     <ui:VisualElement name=".header-scoring-legend" class="leaderboard-scoring-legend">
                         <ui:VisualElement name=".legend-rule-left" class="leaderboard-legend-rule"/>
-                        <ui:Label name=".star-left" text="✦" class="leaderboard-legend-star" style="height: 21px;"/>
+                        <ui:Label name=".star-left" text="★" class="leaderboard-legend-star" style="height: 21px;"/>
                         <ui:Label name=".legend-text" text="Best Stage first, then weighted Rank Currency" class="loc-menu.leaderboardSort leaderboard-legend-text"/>
-                        <ui:Label name=".star-right" text="✦" class="leaderboard-legend-star" style="height: 21px;"/>
+                        <ui:Label name=".star-right" text="★" class="leaderboard-legend-star" style="height: 21px;"/>
                         <ui:VisualElement name=".legend-rule-right" class="leaderboard-legend-rule"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
@@ -37,7 +37,7 @@
                         <ui:Label name="leaderboard-power-coins" text="0" class="leaderboard-power-coin-value"/>
                     </ui:VisualElement>
                     <ui:Label name="leaderboard-status" text="Updated --:--" class="leaderboard-freshness-label"/>
-                    <ui:Button name="leaderboard-refresh" text="↻" tooltip="Refresh standings" class="leaderboard-icon-button leaderboard-refresh"/>
+                    <ui:Button name="leaderboard-refresh" text="R" tooltip="Refresh standings" class="leaderboard-icon-button leaderboard-refresh"/>
                     <ui:Button name="leaderboard-close" tooltip="Close Leaderboard" class="leaderboard-icon-button leaderboard-close">
                         <pm:LeaderboardCloseVector name="Vector / Close" class="leaderboard-close-vector"/>
                     </ui:Button>
@@ -120,7 +120,7 @@
                             <ui:VisualElement name=".row-action-block" class="leaderboard-self-action">
                                 <ui:Label name=".dmg-label" text="TOTAL DMG" class="leaderboard-damage-label"/>
                                 <ui:Label name="leaderboard-self-damage" text="0" class="leaderboard-damage-value"/>
-                                <ui:Button name="leaderboard-jump-to-self" text="JUMP TO MY ROW ⌵" class="leaderboard-jump-button"/>
+                                <ui:Button name="leaderboard-jump-to-self" text="JUMP TO MY ROW" class="leaderboard-jump-button"/>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>

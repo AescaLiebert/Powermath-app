@@ -330,7 +330,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                     : "Next change: " + next.ToString("g", CultureInfo.CurrentCulture);
             }
             _summary.text = (_player.profile?.displayName ?? "Student") + "\n" +
-                (_player.profile?.gradeBand ?? "Grade") + " • " + (progress.activeRank ?? "Silver") + " Rank";
+                (_player.profile?.gradeBand ?? "Grade") + " - " + (progress.activeRank ?? "Silver") + " Rank";
             _adventure.text = "ADVENTURE\nCurrent Stage  " + progress.currentStage +
                 "\nBest Stage  " + progress.highestStage + "\nPrestige / Honor  " + progress.prestige +
                 "\nFirst Stage 200  " + FormatTimestamp(progress.firstStage200ReachedAtUnixSeconds) +
@@ -381,7 +381,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private static string RankLine(string name, PlayerSnapshot.RankAnalyticsData data)
         {
             data = data ?? new PlayerSnapshot.RankAnalyticsData();
-            return name + "  " + data.resolved + " solved • " + Percent(data.correct, data.resolved) + " accuracy";
+            return name + "  " + data.resolved + " solved - " + Percent(data.correct, data.resolved) + " accuracy";
         }
         private static string QuestionLines(PlayerSnapshot.QuestionAnalyticsData[] values)
         {
@@ -392,7 +392,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             {
                 PlayerSnapshot.QuestionAnalyticsData value = values[index];
                 builder.Append("\nQ").Append(value.questionId).Append("  ")
-                    .Append(value.resolved).Append(" solved • ")
+                    .Append(value.resolved).Append(" solved - ")
                     .Append(Percent(value.correct, value.resolved)).Append(" accuracy");
             }
             if (values.Length > count) builder.Append("\n+").Append(values.Length - count).Append(" more questions");

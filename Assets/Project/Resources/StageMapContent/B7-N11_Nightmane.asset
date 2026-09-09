@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B7-N11
   displayName: Nightmane
-  thaiDisplayName: ""
+  thaiDisplayName: 
   biomeId: biome-7
   encounterKind: 0
   baseHp: 500
   maximumCooldown: 4
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 5c70791ad7a8b0a43947183bc8d6c5f4, type: 3}

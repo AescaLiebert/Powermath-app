@@ -47,6 +47,12 @@ namespace PowerMath.UI.Shared
         [Tooltip("Optional pre-rendered reverse video clip. When assigned, provides 100% hardware-accelerated, stutter-free reverse playback across all platforms (WebGL, Mobile, PC).")]
         [SerializeField] private VideoClip reverseClip;
 
+        [Tooltip("StreamingAssets-relative or hosted forward URL used by WebGL.")]
+        [SerializeField] private string forwardUrl;
+
+        [Tooltip("StreamingAssets-relative or hosted reverse URL used by WebGL.")]
+        [SerializeField] private string reverseUrl;
+
         [Header("Playback Settings")]
         [Tooltip("Playback speed multiplier.")]
         [Range(0.1f, 3f)]
@@ -111,11 +117,19 @@ namespace PowerMath.UI.Shared
             _player = GetComponent<VideoPlayer>();
             if (_player == null) return;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (!ApplyWebSource(PlaybackDirection.Forward))
+            {
+                enabled = false;
+                return;
+            }
+#else
             // Inherit the forward clip from the VideoPlayer if not authored explicitly
             if (forwardClip == null && _player.clip != null)
             {
                 forwardClip = _player.clip;
             }
+#endif
 
             // We handle the loop transitions in this component
             _player.isLooping = false;
@@ -155,7 +169,8 @@ namespace PowerMath.UI.Shared
             }
 
             // If in PingPong mode without a dedicated reverse clip, perform runtime scrubbing
-            if (loopMode == LoopMode.PingPong && reverseClip == null && _direction == PlaybackDirection.Reverse)
+            if (loopMode == LoopMode.PingPong && !HasReversePlaybackSource() &&
+                _direction == PlaybackDirection.Reverse)
             {
                 UpdateRuntimeReverseScrub();
             }
@@ -169,10 +184,14 @@ namespace PowerMath.UI.Shared
             EnsureInitialized();
             if (_player == null) return;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (!ApplyWebSource(_direction)) return;
+#else
             if (forwardClip != null && _player.clip == null)
             {
                 _player.clip = forwardClip;
             }
+#endif
 
             _player.playbackSpeed = playbackSpeed;
             _player.Play();
@@ -199,10 +218,14 @@ namespace PowerMath.UI.Shared
             _player.Stop();
             _direction = PlaybackDirection.Forward;
             _isPausedForTurnaround = false;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            ApplyWebSource(PlaybackDirection.Forward);
+#else
             if (forwardClip != null)
             {
                 _player.clip = forwardClip;
             }
+#endif
         }
 
         /// <summary>
@@ -262,10 +285,14 @@ namespace PowerMath.UI.Shared
                 _direction = PlaybackDirection.Reverse;
                 DirectionChanged?.Invoke(_direction);
 
-                if (reverseClip != null)
+                if (HasReversePlaybackSource())
                 {
                     // Seamless dual-clip swap: play the pre-rendered reversed video forward
+#if UNITY_WEBGL && !UNITY_EDITOR
+                    if (!ApplyWebSource(PlaybackDirection.Reverse)) return;
+#else
                     _player.clip = reverseClip;
+#endif
                     _player.time = 0;
                     _player.Play();
                 }
@@ -283,10 +310,14 @@ namespace PowerMath.UI.Shared
                 DirectionChanged?.Invoke(_direction);
                 LoopCycleCompleted?.Invoke();
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+                if (!ApplyWebSource(PlaybackDirection.Forward)) return;
+#else
                 if (forwardClip != null)
                 {
                     _player.clip = forwardClip;
                 }
+#endif
 
                 _player.time = 0;
                 _player.Play();
@@ -321,5 +352,33 @@ namespace PowerMath.UI.Shared
         {
             _isSeeking = false;
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private bool HasReversePlaybackSource()
+        {
+            return StreamingVideoPath.TryResolve(reverseUrl, out _);
+        }
+
+        private bool ApplyWebSource(PlaybackDirection direction)
+        {
+            string configured = direction == PlaybackDirection.Reverse
+                ? reverseUrl
+                : forwardUrl;
+            if (!StreamingVideoPath.TryResolve(configured, out string url))
+            {
+                Debug.LogWarning($"[PingPongVideoPlayer] Missing WebGL {direction} video URL.", this);
+                return false;
+            }
+
+            _player.source = VideoSource.Url;
+            _player.url = url;
+            return true;
+        }
+#else
+        private bool HasReversePlaybackSource()
+        {
+            return reverseClip != null;
+        }
+#endif
     }
 }

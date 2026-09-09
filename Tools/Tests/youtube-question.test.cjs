@@ -18,7 +18,7 @@ function setup({ ready = true } = {}) {
     body: createElement('body'), head: { appendChild: tag => scripts.push(tag) }
   };
   const YT = {
-    PlayerState: { ENDED: 0 },
+    PlayerState: { ENDED: 0, PLAYING: 1 },
     Player: function (id, options) {
       this.options = options;
       this.destroy = () => { this.destroyed = true; };
@@ -27,6 +27,8 @@ function setup({ ready = true } = {}) {
   };
   const window = {
     location: { origin: 'https://example.test' },
+    setTimeout: callback => { window.pendingTimeout = callback; return 1; },
+    clearTimeout: () => { window.pendingTimeout = null; },
     addEventListener: (type, handler) => listeners.set(type, handler),
     removeEventListener: (type, handler) => {
       if (listeners.get(type) === handler) listeners.delete(type);
@@ -54,6 +56,29 @@ test('requests documented hidden controls, disabled shortcuts/fullscreen and inl
     assert.equal(vars[key], value);
   assert.equal(vars.origin, 'https://example.test');
   assert.equal(c.nodes.get('powermath-youtube-overlay').style.pointerEvents, 'none');
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.left, '0px');
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.top, '0px');
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.width, '1280px');
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.height, '720px');
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.userSelect, 'none');
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.webkitTapHighlightColor, 'transparent');
+});
+
+test('ready iframe cannot receive browser focus, selection, or pointer highlight', () => {
+  const c = setup(); c.show(3); const player = c.players[0];
+  const iframe = { style: {} };
+  player.options.events.onReady({
+    target: {
+      getIframe: () => iframe,
+      playVideo: () => {}
+    }
+  });
+  assert.equal(iframe.tabIndex, -1);
+  assert.equal(iframe.draggable, false);
+  assert.equal(iframe.style.pointerEvents, 'none');
+  assert.equal(iframe.style.userSelect, 'none');
+  assert.equal(iframe.style.webkitTapHighlightColor, 'transparent');
+  assert.equal(iframe.style.outline, 'none');
 });
 
 test('a replaced iframe cannot complete or fail the new question', () => {
@@ -72,6 +97,22 @@ test('completion is delivered once and late error cannot dismiss retained questi
   assert.equal(c.messages.length, 1);
   c.library.PowerMathYouTubeSetAnswerMode();
   assert.equal(c.window.PowerMathYouTubeState.answerMode, true);
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.display, 'none');
+});
+
+test('blocked autoplay fails closed instead of leaving an opaque overlay', () => {
+  const c = setup(); c.show(4); const player = c.players[0];
+  player.options.events.onAutoplayBlocked();
+  assert.deepEqual(c.messages, [['receiver', 'OnYouTubeError', '4|autoplay-blocked']]);
+});
+
+test('ready playback has a bounded startup watchdog', () => {
+  const c = setup(); c.show(5); const player = c.players[0];
+  let played = false;
+  player.options.events.onReady({ target: { playVideo: () => { played = true; } } });
+  assert.equal(played, true);
+  c.window.pendingTimeout();
+  assert.deepEqual(c.messages, [['receiver', 'OnYouTubeError', '5|start-timeout']]);
 });
 
 test('hiding invalidates events and releases player and resize handler', () => {

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B7-N04
   displayName: Veil priest
-  thaiDisplayName: ""
+  thaiDisplayName: 
   biomeId: biome-7
   encounterKind: 0
   baseHp: 500
   maximumCooldown: 4
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 03053670f288eaf4daf977be302eb5f3, type: 3}

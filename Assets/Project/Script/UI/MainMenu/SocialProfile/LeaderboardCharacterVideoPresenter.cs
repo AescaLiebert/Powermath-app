@@ -3,6 +3,7 @@ using PowerMath.Session;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Video;
+using PowerMath.UI.Shared;
 
 namespace PowerMath.UI.MainMenu.SocialProfile
 {
@@ -48,7 +49,13 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 SetPlaceholder(true);
                 return;
             }
-            if (definition?.hubVideo == null || _catalog.chromaKeyMaterial == null)
+            bool hasVideo = definition != null &&
+#if UNITY_WEBGL && !UNITY_EDITOR
+                StreamingVideoPath.TryResolve(definition.hubVideoUrl, out _);
+#else
+                definition.hubVideo != null;
+#endif
+            if (!hasVideo || _catalog.chromaKeyMaterial == null)
             {
                 StopVideo();
                 _target.image = null;
@@ -67,8 +74,13 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
             StopVideo();
             _characterId = characterId;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            int width = 1024;
+            int height = 1536;
+#else
             int width = definition.hubVideo.width > 0 ? (int)definition.hubVideo.width : 1024;
             int height = definition.hubVideo.height > 0 ? (int)definition.hubVideo.height : 1524;
+#endif
             _source = CreateTexture(width, height, "Leaderboard Character Video Source");
             _output = CreateTexture(width, height, "Leaderboard Character Video Chroma");
             _chromaMaterial = new Material(_catalog.chromaKeyMaterial)
@@ -84,7 +96,15 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _player.audioOutputMode = VideoAudioOutputMode.None;
             _player.renderMode = VideoRenderMode.RenderTexture;
             _player.targetTexture = _source;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            _player.source = VideoSource.Url;
+            StreamingVideoPath.TryResolve(definition.hubVideoUrl, out string hubVideoUrl);
+            _player.url = hubVideoUrl;
+#else
+            _player.source = VideoSource.VideoClip;
             _player.clip = definition.hubVideo;
+#endif
+            _player.errorReceived += OnVideoError;
             _player.skipOnDrop = true;
             _target.sprite = null;
             _target.image = _output;
@@ -119,6 +139,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 _target.image = null;
             if (_player != null)
             {
+                _player.errorReceived -= OnVideoError;
                 _player.Stop();
                 Destroy(_player.gameObject);
                 _player = null;
@@ -127,6 +148,23 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             if (_output != null) { _output.Release(); Destroy(_output); _output = null; }
             if (_chromaMaterial != null) { Destroy(_chromaMaterial); _chromaMaterial = null; }
             _characterId = null;
+        }
+
+        private void OnVideoError(VideoPlayer source, string message)
+        {
+            string characterId = _characterId;
+            CharacterPresentationCatalog.Character definition = _catalog?.Find(characterId);
+            StopVideo();
+            if (_target == null) return;
+            _target.image = null;
+            _target.sprite = CharacterPlaceholderSprites.Resolve(
+                definition?.hubSprite,
+                characterId);
+            SetPlaceholder(false);
+            PowerMath.Diagnostics.AppLog.Warning(
+                "Leaderboard",
+                "Character video could not be played: " + message,
+                this);
         }
 
         private static RenderTexture CreateTexture(int width, int height, string name)

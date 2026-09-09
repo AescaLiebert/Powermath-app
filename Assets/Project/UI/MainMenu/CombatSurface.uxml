@@ -1,7 +1,7 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="NavigatorPanel" src="project://database/Assets/Project/UI/MainMenu/NavigatorPanel.uxml?fileID=9197481963319205126&amp;guid=06cb78a1b6c61b949ac197f1543ab3d8&amp;type=3#NavigatorPanel"/>
     <Style src="project://database/Assets/Project/UI/CombatLobbyUI.uss?fileID=7433441132597879392&amp;guid=3ea5ee48f6afce54b8ee62c9ae496672&amp;type=3#CombatLobbyUI"/>
-    <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden">
+    <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden" style="top: 0;">
         <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel main-menu-transition-top">
             <ui:Label name="combat-stage-label-compat" text="STAGE 1" class="hud-stage-label"/>
             <ui:VisualElement name="combat-enemy-hp-shell" picking-mode="Ignore" class="hud-enemy-hp-shell">
@@ -29,7 +29,7 @@
                     <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart"/>
                     <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart hud-loadout-heart--last"/>
                 </ui:VisualElement>
-                <ui:Label name="combat-hearts-label" text="♥ ♥ ♥ ♥ ♥" picking-mode="Ignore" class="hud-compat-hidden"/>
+                <ui:Label name="combat-hearts-label" text="H H H H H" picking-mode="Ignore" class="hud-compat-hidden"/>
             </ui:VisualElement>
             <ui:VisualElement name="Player Loadout / Inventory Row" class="hud-loadout-inventory-row">
                 <ui:VisualElement name="Quick Slot / Pet" tooltip="Equipped Pet" class="hud-loadout-slot hud-loadout-slot--large">
@@ -83,23 +83,23 @@
         <ui:Label name="combat-battle-banner" text="" picking-mode="Ignore" class="combat-battle-banner is-hidden"/>
         <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel math-challenge-card is-hidden">
             <ui:VisualElement name="combat-attempt-header" class="combat-attempt-header card-header">
-                <ui:Label text="✦" class="combat-attempt-star card-star"/>
+                <ui:Label text="★" class="combat-attempt-star card-star"/>
                 <ui:Label text="MATH CHALLENGE" class="loc-menu.challenge combat-attempt-title card-title"/>
-                <ui:Label text="✦" class="combat-attempt-star card-star"/>
+                <ui:Label text="★" name="Label" class="combat-attempt-star card-star"/>
             </ui:VisualElement>
             <ui:VisualElement name="combat-answer-content" class="combat-answer-content">
-                <ui:Label name="academic-question-meta" text="SILVER-001 • SILVER" class="academic-question-meta academic-meta"/>
-                <ui:VisualElement name="equation-row" class="equation-row">
-                    <ui:Label name="academic-question-prompt" text="48 ÷ 6 = ?" class="academic-question-prompt equation-text"/>
+                <ui:Label name="academic-question-meta" text="SILVER-001 - SILVER" class="academic-question-meta academic-meta"/>
+                <ui:VisualElement name="equation-row" class="equation-row" style="display: none;">
+                    <ui:Label name="academic-question-prompt" text="48 ÷ 6 = ?" class="academic-question-prompt equation-text" style="display: none;"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="combat-timer-widget" class="combat-timer-widget timer-widget">
                     <ui:Label name="combat-timer-label" text="10" class="combat-timer seconds-left"/>
-                    <ui:Label name="combat-timer-caption" text="GET READY" class="loc-menu.ready combat-timer-caption seconds-lbl"/>
+                    <ui:Label name="combat-timer-caption" text="GET READY" class="loc-menu.ready combat-timer-caption seconds-lbl" style="font-size: 18px;"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="answer-display-box" class="answer-display-box">
-                    <ui:Label text="✦" class="bracket-star"/>
+                    <ui:Label text="★" class="bracket-star"/>
                     <ui:Label name="combat-answer-display" text="Enter your answer" class="loc-menu.answer combat-answer-display input-value combat-answer--placeholder"/>
-                    <ui:Label text="✦" class="bracket-star"/>
+                    <ui:Label text="★" class="bracket-star"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="combat-numpad" class="combat-numpad keypad-grid">
                     <ui:VisualElement class="keypad-row">
@@ -120,19 +120,20 @@
                     <ui:VisualElement class="keypad-row">
                         <ui:Button name="combat-clear-button" text="CLEAR" class="loc-combat.clear combat-key combat-key--utility key-btn key-btn--clear"/>
                         <ui:Button name="combat-digit-0" text="0" class="combat-key key-btn key-btn--0"/>
-                        <ui:Button name="combat-backspace-button" text="⌫" class="loc-combat.backspace combat-key combat-key--utility key-btn key-btn--backspace"/>
+                        <ui:Button name="combat-backspace-button" text="BACK" class="loc-combat.backspace combat-key combat-key--utility key-btn key-btn--backspace"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Button name="combat-submit-button" text="SUBMIT" class="loc-combat.submit btn-submit combat-key--submit combat-submit-button"/>
             </ui:VisualElement>
             <ui:VisualElement name="combat-feedback-card" class="combat-feedback-card state-overlay is-hidden">
                 <ui:VisualElement class="combat-feedback-banner banner-feedback banner-correct">
-                    <ui:Label name="combat-feedback-icon" text="✓" class="combat-feedback-icon"/>
+                    <ui:Label name="combat-feedback-icon" text="OK" class="combat-feedback-icon"/>
                     <ui:Label name="combat-feedback-title" text="CORRECT" class="loc-combat.correct combat-feedback-title banner-text"/>
                 </ui:VisualElement>
                 <ui:Label name="combat-feedback-subtitle" text="Building your attack" class="loc-combat.attackBuild combat-feedback-subtitle"/>
                 <ui:VisualElement name="combat-score-stack" class="combat-score-stack"/>
-                <ui:Image name="combat-result-sticker" picking-mode="Ignore" class="combat-result-sticker is-hidden"/>
+                <ui:Image name="combat-result-sticker-correct" sprite="project://database/Assets/Project/Art/Character/Sticker_Power_Correct.PNG?fileID=-8920802317016414413&amp;guid=6d6d43d0806b90349868396e601ceb48&amp;type=3#Sticker_Power_Correct_0" scale-mode="ScaleToFit" picking-mode="Ignore" class="combat-result-sticker combat-result-sticker--correct"/>
+                <ui:Image name="combat-result-sticker-fail" sprite="project://database/Assets/Project/Art/Character/Sticker_Power_Fail.PNG?fileID=-2156568754499997360&amp;guid=561a918517cb31249bf72044128e51cb&amp;type=3#Sticker_Power_Fail_0" scale-mode="ScaleToFit" picking-mode="Ignore" class="combat-result-sticker combat-result-sticker--fail"/>
             </ui:VisualElement>
             <ui:Label name="combat-result-label" text="" class="combat-result"/>
             <ui:Label name="academic-currency-gain" text="" class="academic-currency-gain"/>
@@ -160,7 +161,7 @@
                             <ui:Label name="academic-rank-icon-prev" text="S" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--silver academic-rank-badge-icon"/>
                             <ui:Label name="academic-rank-name-prev" text="SILVER" picking-mode="Ignore" class="loc-menu.silver academic-rank-badge-name"/>
                         </ui:VisualElement>
-                        <ui:Label name="academic-rank-arrow" text="➔" picking-mode="Ignore" class="academic-rank-arrow"/>
+                        <ui:Label name="academic-rank-arrow" text="-&gt;" picking-mode="Ignore" class="academic-rank-arrow"/>
                         <ui:VisualElement name="academic-rank-badge-curr" picking-mode="Ignore" class="academic-rank-badge academic-rank-badge--gold">
                             <ui:Label name="academic-rank-icon-curr" text="G" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--gold academic-rank-badge-icon"/>
                             <ui:Label name="academic-rank-name-curr" text="GOLD" picking-mode="Ignore" class="loc-menu.gold academic-rank-badge-name"/>

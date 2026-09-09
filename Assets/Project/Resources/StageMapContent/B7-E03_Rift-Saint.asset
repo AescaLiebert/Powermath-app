@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B7-E03
   displayName: Rift Saint
-  thaiDisplayName: ""
+  thaiDisplayName: 
   biomeId: biome-7
   encounterKind: 1
   baseHp: 1250
   maximumCooldown: 3
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: ad0093e6aac26b04499d8b8cf8a987a3, type: 3}

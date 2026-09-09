@@ -20,7 +20,7 @@
                 <ui:VisualElement class="player-hub-avatar-scene">
                     <ui:VisualElement picking-mode="Ignore" class="player-hub-avatar-shadow"/>
                     <ui:VisualElement name="player-hub-avatar" class="player-hub-avatar">
-                        <ui:Label text="✦" class="player-hub-avatar-placeholder"/>
+                        <ui:Label text="★" class="player-hub-avatar-placeholder"/>
                     </ui:VisualElement>
                     <ui:Image name="player-hub-equipped-weapon" tooltip="Equipped weapon" class="player-hub-equipped-visual player-hub-equipped-weapon"/>
                     <ui:Image name="player-hub-equipped-pet" tooltip="Equipped pet" class="player-hub-equipped-visual player-hub-equipped-pet"/>

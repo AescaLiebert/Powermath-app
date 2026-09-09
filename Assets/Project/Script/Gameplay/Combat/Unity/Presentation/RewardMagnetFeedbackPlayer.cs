@@ -399,7 +399,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 }
                 else if (label.name == "main-menu-utility-power-coins")
                 {
-                    label.text = $"⚡ {amount:N0}";
+                    label.text = $"PWR {amount:N0}";
                 }
                 else
                 {

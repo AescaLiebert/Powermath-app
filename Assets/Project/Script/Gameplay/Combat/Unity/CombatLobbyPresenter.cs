@@ -30,6 +30,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly IMainMenuInteractionGate _interactionGate;
         private IInteractionLock _attemptLock;
         private IInteractionLock _resolutionLock;
+        private bool _isDucked;
 
         public event Action<CombatPhase> TerminalPresentationCompleted;
 
@@ -109,6 +110,16 @@ namespace PowerMath.Gameplay.Combat.Unity
             _attemptLock = null;
             _bound = false;
             _presentationInFlight = false;
+            UpdateMusicDucking(false);
+        }
+
+        private void UpdateMusicDucking(bool active)
+        {
+            if (_isDucked != active)
+            {
+                _isDucked = active;
+                PowerMath.Audio.MusicController.Instance.SetDucking(active);
+            }
         }
 
         public bool RecoverPendingPresentation()
@@ -141,12 +152,13 @@ namespace PowerMath.Gameplay.Combat.Unity
                 InteractionScope.ModalDismiss);
             _view.ArmEnemyAction(commit.PresentationId);
             _activeQuestion = commit.Question;
+            _view.SetAttackEnabled(false);
             _view.SetResult("SAVING ATTEMPT...", true);
             _view.SetRetainedQuestionLayout(false);
             _view.SetAnswer(string.Empty, false);
             _view.SetAnswerInputEnabled(false);
-            _view.ShowAttempt(true);
             _academic.ShowQuestion(commit.Question);
+            UpdateMusicDucking(true);
             Save(
                 _saveRequests.CreateSaveRequest(
                     GameplaySavePoint.AttemptCommitted,
@@ -184,6 +196,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                                 : result.PlayerMessage,
                             false);
                         _view.ShowAttempt(false);
+                        UpdateMusicDucking(false);
                         _attemptLock?.Dispose();
                         _attemptLock = null;
                     });
@@ -198,6 +211,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             _view.SetResult("SAVING ANSWER WINDOW...", true);
             _view.SetRetainedQuestionLayout(
                 result.RetainsPresentationSurface);
+            _view.ShowAttempt(true);
+            _audio.PlayPopUp();
             Save(
                 _saveRequests.CreateSaveRequest(
                     GameplaySavePoint.AnswerWindowOpened,
@@ -300,6 +315,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _questionPresentation.Dismiss();
             _view.SetRetainedQuestionLayout(false);
             _view.ShowAttempt(false);
+            UpdateMusicDucking(false);
             yield return _feedback.PlayBattleFeedback(resolution);
             while (!_feedback.AreActorsStable ||
                    !_view.IsEnemyActionQueueStable ||

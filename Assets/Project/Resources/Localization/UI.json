@@ -647,33 +647,33 @@
     },
     {
       "key": "menu.resetAudit",
-      "en": "• Current audit and question queue runtime",
-      "th": "• การประเมินและคิวคำถามของรอบนี้"
+      "en": "- Current audit and question queue runtime",
+      "th": "- การประเมินและคิวคำถามของรอบนี้"
     },
     {
       "key": "menu.resetHearts",
-      "en": "• Hearts, temporary buffs, and run state",
-      "th": "• หัวใจ บัฟชั่วคราว และสถานะรอบ"
+      "en": "- Hearts, temporary buffs, and run state",
+      "th": "- หัวใจ บัฟชั่วคราว และสถานะรอบ"
     },
     {
       "key": "menu.resetStage",
-      "en": "• Return to Stage 1",
-      "th": "• กลับไปยังด่าน 1"
+      "en": "- Return to Stage 1",
+      "th": "- กลับไปยังด่าน 1"
     },
     {
       "key": "menu.keepRank",
-      "en": "✓ Active Rank and lifetime records",
-      "th": "✓ ระดับปัจจุบันและสถิติสะสม"
+      "en": "OK Active Rank and lifetime records",
+      "th": "OK ระดับปัจจุบันและสถิติสะสม"
     },
     {
       "key": "menu.keepEquipment",
-      "en": "✓ Power Coins, pets, weapons, and upgrades",
-      "th": "✓ เหรียญพลัง สัตว์เลี้ยง อาวุธ และการอัปเกรด"
+      "en": "OK Power Coins, pets, weapons, and upgrades",
+      "th": "OK เหรียญพลัง สัตว์เลี้ยง อาวุธ และการอัปเกรด"
     },
     {
       "key": "menu.keepProfile",
-      "en": "✓ Profile analytics and highest Stage",
-      "th": "✓ สถิติผู้เล่นและด่านสูงสุด"
+      "en": "OK Profile analytics and highest Stage",
+      "th": "OK สถิติผู้เล่นและด่านสูงสุด"
     },
     {
       "key": "bootstrap.checkingVersion",
@@ -844,6 +844,21 @@
       "key": "onboarding.stellarDescription",
       "en": "Choose Stellar as the character who represents you throughout Math:World.",
       "th": "เลือกสเตลลาร์เป็นตัวละครตัวแทนของคุณตลอดการผจญภัยใน Math:World"
+    },
+    {
+      "key": "onboarding.nameTooLong",
+      "en": "Display name must not exceed 20 characters.",
+      "th": "ชื่อตัวละครต้องมีความยาวไม่เกิน 20 ตัวอักษร"
+    },
+    {
+      "key": "onboarding.nameInappropriate",
+      "en": "This name contains inappropriate or prohibited words.",
+      "th": "ชื่อนี้มีคำไม่สุภาพหรือไม่เหมาะสมตามนโยบายความปลอดภัย"
+    },
+    {
+      "key": "onboarding.nameContactInfo",
+      "en": "Display names cannot contain phone numbers, URLs, or contact information.",
+      "th": "ชื่อตัวละครต้องไม่มีเบอร์โทรศัพท์ ลิงก์ หรือข้อมูลติดต่อส่วนตัว"
     }
   ]
 }

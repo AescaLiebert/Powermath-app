@@ -1812,17 +1812,22 @@
 }
 
 .combat-attempt-panel {
-    left: 24%;
-    right: 24%;
+    left: 50%;
+    right: auto;
+    margin-left: -230px;
+    margin-right: 0;
     top: 7%;
     bottom: 7%;
-    transition-property: left, right;
-    transition-duration: 0.18s;
+    transition-property: opacity, scale, translate, left, right, margin-left;
+    transition-duration: 220ms;
+    transition-timing-function: ease-out-back;
 }
 
 .combat-attempt-panel.combat-attempt-panel--retained-video {
     left: 49%;
     right: 5%;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .combat-attempt-panel.combat-attempt-panel--retained-video-narrow {

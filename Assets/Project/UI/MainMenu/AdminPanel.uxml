@@ -14,7 +14,7 @@
             <ui:ScrollView class="admin-scroll">
                 <ui:VisualElement class="admin-account-card">
                     <ui:VisualElement class="admin-account-icon-wrap">
-                        <ui:Label text="⚙" class="admin-account-icon" picking-mode="Ignore"/>
+                        <ui:Label text="A" class="admin-account-icon" picking-mode="Ignore"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="admin-account-info">
                         <ui:Label text="ACTIVE ACCOUNT" class="admin-account-label"/>

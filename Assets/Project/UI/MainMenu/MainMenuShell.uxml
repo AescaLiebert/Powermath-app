@@ -91,7 +91,7 @@
         <ui:VisualElement name="Player Menu" picking-mode="Ignore" class="hud-player-menu main-menu-transition-player-menu">
             <pm:FigmaShadowElement name="Player Menu Shadow" class="hud-player-menu-shadow"/>
             <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle" style="top: 195px; left: 207px;">
-                <ui:Label name="Chevron" text="‹" picking-mode="Ignore" class="hud-player-menu-chevron" style="align-items: center;"/>
+                <ui:Label name="Chevron" text="&lt;" picking-mode="Ignore" class="hud-player-menu-chevron" style="align-items: center;"/>
             </ui:Button>
             <ui:VisualElement name="Primary Navigation" picking-mode="Ignore" class="hud-player-menu-content">
                 <ui:Button name="player-hub-button" text="" tooltip="Player Hub" class="hud-player-menu-button hud-player-menu-button--hub">
@@ -138,8 +138,6 @@
                 <ui:Label name="player-menu-atk" text="—" picking-mode="Ignore" class="hud-compat-hidden"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label text="" name="session-status" class="mw-status hud-session-status is-hidden"/>
-        <ui:Label text="Stage 1" name="current-stage-label" class="hud-compat-hidden"/>
         <ui:ProgressBar name="stage-progress" value="0" high-value="100" class="hud-compat-hidden"/>
         <ui:Label text="" name="wallet-summary" class="hud-compat-hidden"/>
         <ui:Label text="" name="loadout-summary" class="hud-compat-hidden"/>

@@ -81,7 +81,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             completed?.Invoke(new QuestionPresentationResult(
                 QuestionPresentationStatus.Ready,
                 "Enter your answer.",
-                true
+                false
             ));
         }
 

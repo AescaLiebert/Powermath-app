@@ -101,14 +101,14 @@ namespace PowerMath.Tests.EditMode
             overlay.Show("Password is required", StatusSeverity.Error);
 
             Assert.AreEqual("Password is required", overlay.Text.text);
-            Assert.AreEqual("✕", overlay.Badge.text);
+            Assert.AreEqual("X", overlay.Badge.text);
             Assert.IsTrue(overlay.Banner.ClassListContains("status-toast--error"));
             Assert.AreEqual(DisplayStyle.Flex, overlay.Banner.style.display.value);
 
             overlay.Show("Saved successfully", StatusSeverity.Success);
 
             Assert.AreEqual("Saved successfully", overlay.Text.text);
-            Assert.AreEqual("✓", overlay.Badge.text);
+            Assert.AreEqual("OK", overlay.Badge.text);
             Assert.IsTrue(overlay.Banner.ClassListContains("status-toast--success"));
             Assert.IsFalse(overlay.Banner.ClassListContains("status-toast--error"));
 

@@ -67,12 +67,56 @@ namespace PowerMath.Gameplay.Combat.Unity
             );
         }
 
-        public void PlayCommit() => Play(_commit);
-        public void PlayKey() => Play(_key);
-        public void PlaySuccess() => Play(_success);
-        public void PlayTimeout() => Play(_timeout);
+        public void PlayPopUp()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.PopUp);
+            else
+                Play(_commit);
+        }
+
+        public void PlayCommit()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.KeypadSubmit);
+            else
+                Play(_commit);
+        }
+
+        public void PlayKey()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.KeypadTap);
+            else
+                Play(_key);
+        }
+
+        public void PlaySuccess()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.ResultSuccess);
+            else
+                Play(_success);
+        }
+
+        public void PlayTimeout()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.ResultFail);
+            else
+                Play(_timeout);
+        }
+
         public void PlayHit(bool critical)
         {
+            if (PowerMath.Audio.SfxController.Instance != null)
+            {
+                PowerMath.Audio.SfxController.Instance.PlayPlayer(critical
+                    ? PowerMath.Audio.PlayerSfxState.CriticalHit
+                    : PowerMath.Audio.PlayerSfxState.Hit);
+                return;
+            }
+
             if (critical)
             {
                 Play(_critical);
@@ -81,16 +125,59 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             PlayVariant(_library?.Hits, _fallbackHits, ref _hitIndex, _hit, true);
         }
-        public void PlayEnemyAttack() => Play(_enemyAttack);
-        public void PlayDefeat() => Play(_defeat);
-        public void PlayBiomeTransition() => Play(_biomeTransition);
-        public void PlaySwing() => PlayVariant(_library?.SwordSwings,
-            _fallbackSwings, ref _swingIndex, _commit, true);
-        public void PlayActorClick() => PlayVariant(_library?.ActorClicks,
-            _fallbackClicks, ref _clickIndex, _key, false);
-        public void PlayDeath(bool major) => Play(major
-            ? _library?.MajorDeath ?? _critical
-            : _library?.NormalDeath ?? _defeat);
+
+        public void PlayEnemyAttack()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayEnemy(PowerMath.Audio.EnemySfxState.Attack);
+            else
+                Play(_enemyAttack);
+        }
+
+        public void PlayDefeat()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayBattle(PowerMath.Audio.BattleSfxState.RunDefeat);
+            else
+                Play(_defeat);
+        }
+
+        public void PlayBiomeTransition()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayBattle(PowerMath.Audio.BattleSfxState.BiomeTransition);
+            else
+                Play(_biomeTransition);
+        }
+
+        public void PlaySwing()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayPlayer(PowerMath.Audio.PlayerSfxState.AttackSwing);
+            else
+                PlayVariant(_library?.SwordSwings, _fallbackSwings, ref _swingIndex, _commit, true);
+        }
+
+        public void PlayActorClick()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+                PowerMath.Audio.SfxController.Instance.PlayBattle(PowerMath.Audio.BattleSfxState.ActorClick);
+            else
+                PlayVariant(_library?.ActorClicks, _fallbackClicks, ref _clickIndex, _key, false);
+        }
+
+        public void PlayDeath(bool major)
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+            {
+                PowerMath.Audio.SfxController.Instance.PlayEnemy(PowerMath.Audio.EnemySfxState.Die, isMajorDeath: major);
+                return;
+            }
+
+            Play(major
+                ? _library?.MajorDeath ?? _critical
+                : _library?.NormalDeath ?? _defeat);
+        }
 
         private void Play(AudioClip clip)
         {

@@ -44,9 +44,6 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _feedbackTitle;
         private readonly Label _feedbackSubtitle;
         private readonly VisualElement _scoreStack;
-        private readonly Image _resultSticker;
-        private Sprite _stickerCorrect;
-        private Sprite _stickerFail;
         private readonly Label _damageLabel;
         private readonly Label _criticalLabel;
         private readonly Label _battleBanner;
@@ -118,7 +115,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             _feedbackTitle = Require<Label>("combat-feedback-title");
             _feedbackSubtitle = Require<Label>("combat-feedback-subtitle");
             _scoreStack = Require<VisualElement>("combat-score-stack");
-            _resultSticker = _feedbackCard.Q<Image>("combat-result-sticker");
+            Require<Image>("combat-result-sticker-correct");
+            Require<Image>("combat-result-sticker-fail");
             _damageLabel = Require<Label>("combat-damage-label");
             _criticalLabel = Require<Label>("combat-critical-label");
             _battleBanner = Require<Label>("combat-battle-banner");
@@ -168,6 +166,12 @@ namespace PowerMath.Gameplay.Combat.Unity
             OnAttack();
         }
 
+        public void SetAttackEnabled(bool enabled)
+        {
+            CanAttack = enabled;
+            _attackButton?.SetEnabled(enabled);
+        }
+
         public void Bind()
         {
             if (_bound)
@@ -215,7 +219,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (_cooldownLabel != null)
             {
                 _cooldownLabel.text = snapshot.EnemyRemainingCooldown <= 1
-                    ? $"⚠ ATTACK IN {snapshot.EnemyRemainingCooldown}"
+                    ? $"! ATTACK IN {snapshot.EnemyRemainingCooldown}"
                     : $"Enemy attack: {snapshot.EnemyRemainingCooldown} / {snapshot.EnemyMaximumCooldown}";
                 if (snapshot.IsEvent)
                     _cooldownLabel.text = "CHALLENGE: WRONG ANSWER COSTS 1 HEART";
@@ -239,7 +243,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 snapshot.Phase == CombatPhase.EventReady;
             if (_attackButton != null)
             {
-                _attackButton.text = "⚔";
+                _attackButton.text = "ATK";
                 _attackButton.tooltip = snapshot.IsEvent
                     ? "Start Challenge"
                     : "Attack";
@@ -404,12 +408,6 @@ namespace PowerMath.Gameplay.Combat.Unity
                 : DisplayStyle.None;
         }
 
-        public void SetResultStickers(Sprite correct, Sprite fail)
-        {
-            _stickerCorrect = correct;
-            _stickerFail = fail;
-        }
-
         public void ShowAnswerFeedback(
             string icon,
             string title,
@@ -424,19 +422,6 @@ namespace PowerMath.Gameplay.Combat.Unity
             _feedbackCard.EnableInClassList(
                 "combat-feedback-card--negative",
                 !isPositive);
-            if (_resultSticker != null)
-            {
-                Sprite sticker = isPositive ? _stickerCorrect : _stickerFail;
-                if (sticker != null)
-                {
-                    _resultSticker.sprite = sticker;
-                    _resultSticker.RemoveFromClassList("is-hidden");
-                }
-                else
-                {
-                    _resultSticker.AddToClassList("is-hidden");
-                }
-            }
             _scoreStack.Clear();
             _feedbackLifecycle.Enter();
         }
@@ -472,7 +457,6 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void HideAnswerFeedback()
         {
             _feedbackLifecycle.Exit();
-            _resultSticker?.AddToClassList("is-hidden");
             _feedbackCard.RemoveFromClassList("combat-feedback-card--negative");
             _scoreStack.Clear();
         }
@@ -806,7 +790,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             int cursor = 0;
             for (int index = 0; index < maximum; index++)
             {
-                chars[cursor++] = index < current ? '♥' : '♡';
+                chars[cursor++] = index < current ? 'H' : '-';
                 if (index < maximum - 1)
                 {
                     chars[cursor++] = ' ';

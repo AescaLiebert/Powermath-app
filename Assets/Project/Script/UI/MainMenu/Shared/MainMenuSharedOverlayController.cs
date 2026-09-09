@@ -162,7 +162,7 @@ namespace PowerMath.UI.MainMenu
         private void OnPlayerChanged(PlayerSnapshot player)
         {
             long powerCoins = player?.wallet?.powerCoins ?? 0;
-            _powerCoins.text = $"⚡ {powerCoins:N0}";
+            _powerCoins.text = $"PWR {powerCoins:N0}";
         }
 
         private static bool IsSharedPanel(MainMenuPanelId panelId)

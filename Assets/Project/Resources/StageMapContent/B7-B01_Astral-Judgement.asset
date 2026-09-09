@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B7-B01
   displayName: Astral Judgement
-  thaiDisplayName: ""
+  thaiDisplayName: 
   biomeId: biome-7
   encounterKind: 3
   baseHp: 5000
   maximumCooldown: 2
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: ad94b566ea55af84a82eee314dd3f2cb, type: 3}

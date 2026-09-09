@@ -20,4 +20,4 @@ MonoBehaviour:
   baseHp: 100
   maximumCooldown: 3
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: eb48204541893b4428c8ca12e786e7e2, type: 3}

@@ -14,7 +14,7 @@
                 <ui:Button text="TRY AGAIN" name="retry-button" class="loc-common.retry mw-button mw-button--primary retry-button is-hidden"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="player-preparation" class="prep-root is-hidden" style="display: flex; background-color: rgb(24, 24, 24);">
+        <ui:VisualElement name="player-preparation" class="prep-root is-hidden">
             <ui:VisualElement name="prep-narrative" class="prep-stage prep-narrative is-hidden" style="background-color: rgb(7, 7, 7);">
                 <ui:Label name="prep-narrative-line" text="" class="prep-narrative__line" style="opacity: 1;"/>
                 <ui:Button name="common.continue" text="SKIP" class="prep-skip-button"/>
@@ -25,7 +25,7 @@
                 <ui:Label name="prep-video-status" text="" class="prep-video-status"/>
                 <ui:Button name="onboarding.skip" text="SKIP OPENING" class="prep-skip-button"/>
             </ui:VisualElement>
-            <ui:VisualElement name="prep-character-selection" class="prep-stage prep-selection">
+            <ui:VisualElement name="prep-character-selection" class="prep-stage prep-selection is-hidden">
                 <ui:Image name="prep-selection-video-image" class="prep-fullscreen-video"/>
                 <ui:VisualElement name="prep-selection-fallback" picking-mode="Ignore" class="prep-selection-fallback" style="background-image: url(&quot;project://database/Assets/Project/Art/Character/SL_SelectCharacterScence.png?fileID=2800000&amp;guid=c6a124e6cdcd57e4e93f322716282e7f&amp;type=3#SL_SelectCharacterScence&quot;);">
                     <ui:Image name="portrait-ricko" class="prep-overview-art prep-overview-art--ricko"/>
@@ -33,9 +33,9 @@
                 </ui:VisualElement>
                 <ui:VisualElement picking-mode="Ignore" name="Header" class="prep-selection-heading">
                     <ui:VisualElement name="VisualElement" class="prep-selection-line"/>
-                    <ui:Label name="star-vector" text="✦" style="width: 69px; font-size: 50px; margin-right: 20px; margin-left: 4px; -unity-text-align: middle-center;"/>
+                    <ui:Label name="star-vector" text="★" style="width: 69px; font-size: 50px; margin-right: 20px; margin-left: 4px; -unity-text-align: middle-center;"/>
                     <ui:Label name="prep-selection-title" text="Select" class="prep-selection-title"/>
-                    <ui:Label name="star-vector" text="✦" style="width: 83px; font-size: 50px; margin-left: 10px; -unity-text-align: middle-center;"/>
+                    <ui:Label name="star-vector" text="★" style="width: 83px; font-size: 50px; margin-left: 10px; -unity-text-align: middle-center;"/>
                     <ui:VisualElement class="prep-selection-line"/>
                 </ui:VisualElement>
                 <ui:Button name="ricko" text="RICKO" class="prep-character-hit prep-character-hit--left" style="-unity-background-image-tint-color: rgb(255, 255, 255);"/>
@@ -45,18 +45,37 @@
             <ui:VisualElement name="prep-character-detail" class="prep-stage prep-detail is-hidden">
                 <ui:VisualElement picking-mode="Ignore" class="prep-detail__background"/>
                 <ui:VisualElement picking-mode="Ignore" class="prep-detail__darken"/>
+                <ui:VisualElement name="prep-detail-gradient" picking-mode="Ignore" class="prep-detail__gradient"/>
                 <ui:VisualElement name="prep-dot-grid" picking-mode="Ignore" class="prep-dot-grid"/>
-                <ui:VisualElement name="prep-detail-accent" picking-mode="Ignore" class="prep-detail-accent"/>
+                <ui:VisualElement name="prep-detail-accent" picking-mode="Ignore" class="prep-detail-accent">
+                    <ui:VisualElement class="prep-detail-edge prep-detail-edge--top"/>
+                    <ui:VisualElement class="prep-detail-edge prep-detail-edge--bottom"/>
+                </ui:VisualElement>
                 <ui:Image name="prep-character-shadow" picking-mode="Ignore" class="prep-character-shadow"/>
                 <ui:Image name="prep-character-art" picking-mode="Ignore" class="prep-character-art"/>
                 <ui:VisualElement name="prep-character-info" class="prep-character-info">
-                    <ui:Label name="prep-character-kicker" text="YOUR CHARACTER" class="prep-character-kicker"/>
                     <ui:Label name="prep-character-name" text="RICKO" class="prep-character-name"/>
-                    <ui:VisualElement class="prep-info-rule"/>
-                    <ui:Label name="prep-character-description" text="" class="prep-character-description"/>
-                    <ui:Button name="onboarding.choose" text="SELECT" class="prep-select-button"/>
+                    <ui:VisualElement class="prep-info-card-stack">
+                        <ui:VisualElement picking-mode="Ignore" class="prep-info-card-shadow"/>
+                        <ui:VisualElement class="prep-info-card">
+                            <ui:VisualElement class="prep-info-title-row">
+                                <ui:Label text="*" picking-mode="Ignore" class="prep-info-diamond"/>
+                                <ui:Label name="prep-character-kicker" text="YOUR CHARACTER" class="prep-character-kicker"/>
+                                <ui:Label text="*" picking-mode="Ignore" class="prep-info-diamond"/>
+                            </ui:VisualElement>
+                            <ui:Label name="prep-character-description" text="" class="prep-character-description"/>
+                            <ui:VisualElement picking-mode="Ignore" class="prep-info-bottom-rule"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="prep-select-shell">
+                        <ui:VisualElement picking-mode="Ignore" class="prep-select-base"/>
+                        <ui:VisualElement picking-mode="Ignore" class="prep-select-highlight"/>
+                        <ui:VisualElement picking-mode="Ignore" class="prep-select-face"/>
+                        <ui:VisualElement picking-mode="Ignore" class="prep-select-top-line"/>
+                        <ui:Button name="onboarding.choose" text="SELECT" class="prep-select-button"/>
+                    </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:Button name="detail-back-button" text="X" class="prep-exit-button"/>
+                <ui:Button name="detail-back-button" text="&lt;" class="prep-exit-button"/>
             </ui:VisualElement>
             <ui:VisualElement name="prep-name-entry" class="prep-stage prep-name-stage is-hidden">
                 <ui:VisualElement picking-mode="Ignore" class="prep-detail__background"/>

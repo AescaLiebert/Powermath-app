@@ -44,7 +44,10 @@ namespace PowerMath.UI.MainMenu
             _displayNameLabel.text = model.DisplayName;
             _loadoutCharacterNameLabel.text = model.CharacterName;
             _loadoutCharacterNameLabel.tooltip = model.CharacterName;
-            _stageLabel.text = model.StageText;
+            if (_stageLabel != null)
+            {
+                _stageLabel.text = model.StageText;
+            }
             _stageProgress.value = model.StageProgress;
             _walletLabel.text = model.WalletText;
             _loadoutLabel.text = model.LoadoutText;
@@ -55,8 +58,11 @@ namespace PowerMath.UI.MainMenu
             _weaponLabel.text = model.WeaponText.ToUpperInvariant();
             _petLabel.text = model.PetText.ToUpperInvariant();
             _screen.SetSemanticState(UiSemanticState.Ready);
-            _sessionStatusLabel.text = string.Empty;
-            _sessionStatusLabel.AddToClassList("is-hidden");
+            if (_sessionStatusLabel != null)
+            {
+                _sessionStatusLabel.text = string.Empty;
+                _sessionStatusLabel.AddToClassList("is-hidden");
+            }
             _logoutButton.SetEnabled(true);
             _content.SetEnabled(true);
             _playerMenuToggle.SetEnabled(true);
@@ -71,8 +77,11 @@ namespace PowerMath.UI.MainMenu
 
             _logoutButton.SetEnabled(false);
             _screen.SetSemanticState(UiSemanticState.Busy);
-            _sessionStatusLabel.text = "Signing out...";
-            _sessionStatusLabel.RemoveFromClassList("is-hidden");
+            if (_sessionStatusLabel != null)
+            {
+                _sessionStatusLabel.text = "Signing out...";
+                _sessionStatusLabel.RemoveFromClassList("is-hidden");
+            }
         }
 
         public void RenderLogoutFailure(string playerMessage)
@@ -84,8 +93,11 @@ namespace PowerMath.UI.MainMenu
 
             _logoutButton.SetEnabled(true);
             _screen.SetSemanticState(UiSemanticState.Error);
-            _sessionStatusLabel.text = playerMessage;
-            _sessionStatusLabel.RemoveFromClassList("is-hidden");
+            if (_sessionStatusLabel != null)
+            {
+                _sessionStatusLabel.text = playerMessage;
+                _sessionStatusLabel.RemoveFromClassList("is-hidden");
+            }
         }
 
         public void RenderUnavailable()
@@ -99,7 +111,10 @@ namespace PowerMath.UI.MainMenu
             _loadoutCharacterNameLabel.text = "—";
             _loadoutCharacterNameLabel.tooltip = string.Empty;
             _screen.SetSemanticState(UiSemanticState.Blocked);
-            _stageLabel.text = "Return to sign in";
+            if (_stageLabel != null)
+            {
+                _stageLabel.text = "Return to sign in";
+            }
             _stageProgress.value = 0f;
             _walletLabel.text = string.Empty;
             _loadoutLabel.text = string.Empty;
@@ -119,11 +134,9 @@ namespace PowerMath.UI.MainMenu
         private bool TryBindElements()
         {
             if (_displayNameLabel != null && _loadoutCharacterNameLabel != null &&
-                _stageLabel != null &&
                 _stageProgress != null && _walletLabel != null &&
                 _loadoutLabel != null && _content != null &&
                 _screen != null && _logoutButton != null &&
-                _sessionStatusLabel != null &&
                 _silverLabel != null && _goldLabel != null &&
                 _diamondLabel != null && _powerCoinLabel != null &&
                 _weaponLabel != null && _petLabel != null &&
@@ -170,11 +183,11 @@ namespace PowerMath.UI.MainMenu
             }
 
             bool isBound = _displayNameLabel != null &&
-                _loadoutCharacterNameLabel != null && _stageLabel != null &&
+                _loadoutCharacterNameLabel != null &&
                 _stageProgress != null && _walletLabel != null &&
                 _loadoutLabel != null && _content != null &&
                 _screen != null && _logoutButton != null &&
-                _sessionStatusLabel != null && _silverLabel != null &&
+                _silverLabel != null &&
                 _goldLabel != null && _diamondLabel != null &&
                 _powerCoinLabel != null && _weaponLabel != null &&
                 _petLabel != null && _playerMenuToggle != null &&
@@ -227,7 +240,7 @@ namespace PowerMath.UI.MainMenu
                 SetPlayerMenuClass("is-follow-through", true);
 
             SetPlayerMenuClass("is-collapsed", collapsed);
-            _playerMenuChevron.text = collapsed ? "›" : "‹";
+            _playerMenuChevron.text = collapsed ? ">" : "<";
             _playerMenuToggle.tooltip = collapsed
                 ? "Open Player Menu"
                 : "Close Player Menu";

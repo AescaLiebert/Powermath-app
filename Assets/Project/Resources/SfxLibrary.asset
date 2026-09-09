@@ -1,0 +1,157 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 888f62f2ae84d9e4c8f4fc4ce587562f, type: 3}
+  m_Name: SfxLibrary
+  m_EditorClassIdentifier: PowerMath.Audio::PowerMath.Audio.SfxLibraryDefinition
+  playerAttackSwing:
+    clips:
+    - {fileID: 8300000, guid: e8081171811d1ae46a9e6a4c61d068c5, type: 3}
+    - {fileID: 8300000, guid: 474bb4ab65268984bb61d086d22d9011, type: 3}
+    volumeScale: 0.025
+    pitchRange: {x: 0.95, y: 1.05}
+  playerAttackFail:
+    clips: []
+    volumeScale: 0.7
+    pitchRange: {x: 0.97, y: 1.03}
+  playerHit:
+    clips:
+    - {fileID: 8300000, guid: 2943eee3bf4e7a948873e0a206936b43, type: 3}
+    volumeScale: 0.08
+    pitchRange: {x: 0.96, y: 1.04}
+  playerCriticalHit:
+    clips:
+    - {fileID: 8300000, guid: bc3e0755bb38407468da3491dfcf9be3, type: 3}
+    volumeScale: 0.1
+    pitchRange: {x: 0.98, y: 1.02}
+  playerHurt:
+    clips: []
+    volumeScale: 0.8
+    pitchRange: {x: 0.95, y: 1.05}
+  playerDie:
+    clips:
+    - {fileID: 8300000, guid: 7322f43226a593f458f24abaa46be6b7, type: 3}
+    volumeScale: 0.1
+    pitchRange: {x: 0.98, y: 1.02}
+  enemyAppear:
+    clips: []
+    volumeScale: 0.65
+    pitchRange: {x: 0.96, y: 1.04}
+  enemyHurt:
+    clips:
+    - {fileID: 8300000, guid: 33719d04b3f87fa4998ca35db98c2ff2, type: 3}
+    - {fileID: 8300000, guid: 440481f8c20a2de4598a9b692bf60c90, type: 3}
+    volumeScale: 0.1
+    pitchRange: {x: 0.95, y: 1.05}
+  enemyAttack:
+    clips:
+    - {fileID: 8300000, guid: 10714844a31bdc24c8b45452fa51c0cc, type: 3}
+    - {fileID: 8300000, guid: 0cfe9c9d2a64a4b478adf842ff49afbb, type: 3}
+    - {fileID: 8300000, guid: e438e79035dcb0f439298be159e9e870, type: 3}
+    - {fileID: 8300000, guid: e69a5b7ac65548142a25216e2a10d56d, type: 3}
+    volumeScale: 0.85
+    pitchRange: {x: 0.96, y: 1.04}
+  enemyDieNormal:
+    clips: []
+    volumeScale: 0.8
+    pitchRange: {x: 0.97, y: 1.03}
+  enemyDieMajor:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.98, y: 1.02}
+  encounterKindBindings: []
+  questionPopUp:
+    clips: []
+    volumeScale: 0.75
+    pitchRange: {x: 0.98, y: 1.02}
+  questionKeypadTap:
+    clips: []
+    volumeScale: 0.5
+    pitchRange: {x: 0.96, y: 1.04}
+  questionKeypadClear:
+    clips: []
+    volumeScale: 0.45
+    pitchRange: {x: 0.97, y: 1.03}
+  questionKeypadSubmit:
+    clips: []
+    volumeScale: 0.7
+    pitchRange: {x: 0.98, y: 1.02}
+  questionCountdownTick:
+    clips: []
+    volumeScale: 0.4
+    pitchRange: {x: 0.99, y: 1.01}
+  questionCountdownWarning:
+    clips: []
+    volumeScale: 0.6
+    pitchRange: {x: 0.99, y: 1.01}
+  questionResultSuccess:
+    clips:
+    - {fileID: 8300000, guid: 2aa3d3b7cc48dcb4c9ca8025fb7d8b84, type: 3}
+    volumeScale: 0.15
+    pitchRange: {x: 0.98, y: 1.02}
+  questionResultFail:
+    clips:
+    - {fileID: 8300000, guid: 477d1e0e39794784b844209d1c00e750, type: 3}
+    volumeScale: 0.2
+    pitchRange: {x: 0.98, y: 1.02}
+  questionDamageMultiplying:
+    clips: []
+    volumeScale: 0.8
+    pitchRange: {x: 0.97, y: 1.03}
+  questionRewardSticker:
+    clips: []
+    volumeScale: 0.8
+    pitchRange: {x: 0.97, y: 1.03}
+  battleBiomeTransition:
+    clips: []
+    volumeScale: 0.85
+    pitchRange: {x: 0.98, y: 1.02}
+  battleStageAdvance:
+    clips: []
+    volumeScale: 0.75
+    pitchRange: {x: 0.97, y: 1.03}
+  battleRunDefeat:
+    clips: []
+    volumeScale: 0.9
+    pitchRange: {x: 0.98, y: 1.02}
+  battleRunComplete:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.99, y: 1.01}
+  actorInteractiveClick:
+    clips: []
+    volumeScale: 0.55
+    pitchRange: {x: 0.95, y: 1.05}
+  characterCardHover:
+    clips: []
+    volumeScale: 0.4
+    pitchRange: {x: 0.97, y: 1.03}
+  characterCardClick:
+    clips: []
+    volumeScale: 0.65
+    pitchRange: {x: 0.96, y: 1.04}
+  characterAccepted:
+    clips: []
+    volumeScale: 0.8
+    pitchRange: {x: 0.98, y: 1.02}
+  nameConfirmed:
+    clips: []
+    volumeScale: 0.85
+    pitchRange: {x: 0.98, y: 1.02}
+  uiButtonClick:
+    clips: []
+    volumeScale: 0.6
+    pitchRange: {x: 0.97, y: 1.03}
+  uiNavigationBack:
+    clips: []
+    volumeScale: 0.55
+    pitchRange: {x: 0.98, y: 1.02}
+  uiStyles: []

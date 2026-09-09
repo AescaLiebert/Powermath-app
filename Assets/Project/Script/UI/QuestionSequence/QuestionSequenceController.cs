@@ -123,14 +123,16 @@ namespace PowerMath.UI.QuestionSequence
             }
             else
             {
-                SetStandaloneQuestion(_defaultEquation, _defaultAnswer, "CUSTOM • STANDALONE");
+                SetStandaloneQuestion(_defaultEquation, _defaultAnswer, "CUSTOM - STANDALONE");
             }
 
             SetState(QuestionSequenceState.NumkeypadPopUp);
+            PowerMath.Audio.MusicController.Instance.SetDucking(true);
         }
 
         private void OnDisable()
         {
+            PowerMath.Audio.MusicController.Instance.SetDucking(false);
             UnregisterEvents();
             StopAllRunningCoroutines();
         }
@@ -209,11 +211,11 @@ namespace PowerMath.UI.QuestionSequence
             _currentSolvedEquation = _currentEquation.Replace("?", _correctAnswer);
 
             string rankName = _currentDefinition.Rank.ToString().ToUpperInvariant();
-            string metaText = $"{rankName} • QUESTION #{_currentDefinition.Id.Value} (TARGET: {ans})";
+            string metaText = $"{rankName} - QUESTION #{_currentDefinition.Id.Value} (TARGET: {ans})";
 
             if (_cardTitleLabel != null)
             {
-                _cardTitleLabel.text = $"✦ {rankName} CHALLENGE ✦";
+                _cardTitleLabel.text = $"★ {rankName} CHALLENGE ★";
             }
 
             if (_academicMetaLabel != null)
@@ -416,6 +418,7 @@ namespace PowerMath.UI.QuestionSequence
                 else _currentInput += digit;
                 UpdateInputDisplay();
                 PunchCard(1.015f);
+                PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.KeypadTap);
             }
         }
 
@@ -426,6 +429,7 @@ namespace PowerMath.UI.QuestionSequence
                 _currentInput = _currentInput.Substring(0, _currentInput.Length - 1);
                 if (_currentInput.Length == 0) _currentInput = "";
                 UpdateInputDisplay();
+                PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.KeypadClear);
             }
         }
 
@@ -433,12 +437,14 @@ namespace PowerMath.UI.QuestionSequence
         {
             _currentInput = "";
             UpdateInputDisplay();
+            PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.KeypadClear);
         }
 
         public void OnSubmitClicked()
         {
             if (string.IsNullOrEmpty(_currentInput)) return;
 
+            PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.KeypadSubmit);
             PunchCard(0.97f);
             if (_sequenceCoroutine != null) StopCoroutine(_sequenceCoroutine);
             _sequenceCoroutine = StartCoroutine(SubmitSequenceCoroutine());
@@ -500,6 +506,7 @@ namespace PowerMath.UI.QuestionSequence
                     _btnState1?.AddToClassList("state-btn--active");
                     UpdateHpDisplay(_currentHp);
                     PunchCard(1.03f);
+                    PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.PopUp);
                     break;
 
                 case QuestionSequenceState.CountingDown:
@@ -513,6 +520,8 @@ namespace PowerMath.UI.QuestionSequence
                     _btnState3?.AddToClassList("state-btn--active");
                     _overlayReward?.RemoveFromClassList("is-hidden");
                     if (_rewardEqLabel != null) _rewardEqLabel.text = _currentSolvedEquation;
+                    PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.ResultSuccess);
+                    PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.DamageMultiplying);
 
                     // Calculate Academic Multiplier & Damage
                     var rank = new AcademicRank(_currentRankTier);
@@ -539,6 +548,7 @@ namespace PowerMath.UI.QuestionSequence
                     {
                         _failureWrongValLabel.text = string.IsNullOrEmpty(_currentInput) ? "—" : _currentInput;
                     }
+                    PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.ResultFail);
                     StartCoroutine(ShakeCardRoutine());
                     break;
             }
@@ -547,11 +557,18 @@ namespace PowerMath.UI.QuestionSequence
         private IEnumerator CountdownRoutine()
         {
             float remaining = _countdownSeconds;
+            int lastSecond = -1;
             while (remaining > 0f)
             {
-                if (_timerSecondsLabel != null)
+                int currentSecond = Mathf.CeilToInt(remaining);
+                if (currentSecond != lastSecond)
                 {
-                    _timerSecondsLabel.text = Mathf.CeilToInt(remaining).ToString();
+                    lastSecond = currentSecond;
+                    if (_timerSecondsLabel != null)
+                    {
+                        _timerSecondsLabel.text = currentSecond.ToString();
+                    }
+                    PowerMath.Audio.SfxController.Instance?.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.CountdownTick);
                 }
                 yield return null;
                 remaining -= Time.deltaTime;

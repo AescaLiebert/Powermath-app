@@ -11,8 +11,8 @@ namespace PowerMath.PlayerLifecycle
         public const int MaximumDisplayNameLength =
             PowerMath.Session.PlayerLifecyclePolicy.MaximumDisplayNameLength;
 
-        private const int DotColumns = 16;
-        private const int DotRows = 9;
+        private const int DotColumns = 64;
+        private const int DotRows = 36;
         private const int TransitionSquareCount = 15;
 
         private readonly VisualElement _overlay;
@@ -33,6 +33,7 @@ namespace PowerMath.PlayerLifecycle
         private readonly Button _rickoButton;
         private readonly Button _stellarButton;
         private readonly VisualElement _detailStage;
+        private readonly VisualElement _detailGradient;
         private readonly VisualElement _dotGrid;
         private readonly VisualElement _detailAccent;
         private readonly Image _detailShadow;
@@ -62,6 +63,7 @@ namespace PowerMath.PlayerLifecycle
 
         private bool _isRicko;
         private bool _disposed;
+        private Texture2D _detailGradientTexture;
 
         public PlayerPreparationView(VisualElement root, bool reducedMotion)
         {
@@ -85,6 +87,7 @@ namespace PowerMath.PlayerLifecycle
             _rickoButton = Require<Button>(root, "ricko");
             _stellarButton = Require<Button>(root, "stellar");
             _detailStage = Require<VisualElement>(root, "prep-character-detail");
+            _detailGradient = Require<VisualElement>(root, "prep-detail-gradient");
             _dotGrid = Require<VisualElement>(root, "prep-dot-grid");
             _detailAccent = Require<VisualElement>(root, "prep-detail-accent");
             _detailShadow = Require<Image>(root, "prep-character-shadow");
@@ -119,6 +122,7 @@ namespace PowerMath.PlayerLifecycle
             };
 
             _transitionSquares = BuildTransitionSquares();
+            BuildDetailGradient();
             BuildDotPattern();
             BindInputs();
             _nameField.maxLength = MaximumDisplayNameLength;
@@ -126,8 +130,8 @@ namespace PowerMath.PlayerLifecycle
             _selectionVideoImage.scaleMode = ScaleMode.ScaleAndCrop;
             _rickoOverview.scaleMode = ScaleMode.ScaleAndCrop;
             _stellarOverview.scaleMode = ScaleMode.ScaleAndCrop;
-            _detailArt.scaleMode = ScaleMode.ScaleToFit;
-            _detailShadow.scaleMode = ScaleMode.ScaleToFit;
+            _detailArt.scaleMode = ScaleMode.ScaleAndCrop;
+            _detailShadow.scaleMode = ScaleMode.ScaleAndCrop;
             _nameArt.scaleMode = ScaleMode.ScaleToFit;
             _overlay.EnableInClassList("is-reduced-motion", reducedMotion);
             SetState(PlayerPreparationSequenceState.Hidden);
@@ -224,9 +228,7 @@ namespace PowerMath.PlayerLifecycle
             SetState(state);
             _detailArt.sprite = art;
             _detailShadow.sprite = art;
-            _detailShadow.tintColor = _isRicko
-                ? new Color(0.95f, 0.24f, 0.08f, 0.78f)
-                : new Color(0.10f, 0.52f, 1f, 0.78f);
+            _detailShadow.tintColor = new Color(1f, 1f, 1f, 0.5f);
             _detailName.text = (displayName ?? characterId).ToUpperInvariant();
             _detailDescription.text = description ?? string.Empty;
             ClearError();
@@ -320,13 +322,13 @@ namespace PowerMath.PlayerLifecycle
             _detailArt.style.scale = new Scale(new Vector3(scale, scale, 1f));
             _detailArt.style.opacity = Mathf.Clamp01(t);
             _detailShadow.style.translate = TranslatePixels(
-                artX + (_isRicko ? 34f : -34f),
-                18f);
-            _detailShadow.style.scale = new Scale(new Vector3(scale * 1.03f, scale * 1.03f, 1f));
-            _detailShadow.style.opacity = Mathf.Clamp01(t) * 0.42f;
+                artX + 27f,
+                _isRicko ? 0f : 9f);
+            _detailShadow.style.scale = new Scale(new Vector3(scale, scale, 1f));
+            _detailShadow.style.opacity = Mathf.Clamp01(t) * 0.5f;
             _detailInfo.style.translate = TranslatePixels(infoX, 0f);
             _detailInfo.style.opacity = Mathf.Clamp01(t);
-            _dotGrid.style.opacity = Mathf.Clamp01(t) * 0.64f;
+            _dotGrid.style.opacity = Mathf.Clamp01(t) * 0.84f;
         }
 
         public void ApplyDetailExitProgress(float progress)
@@ -340,13 +342,13 @@ namespace PowerMath.PlayerLifecycle
             _detailArt.style.scale = new Scale(new Vector3(scale, scale, 1f));
             _detailArt.style.opacity = 1f - t;
             _detailShadow.style.translate = TranslatePixels(
-                artX + (_isRicko ? 34f : -34f),
-                18f - 18f * t);
-            _detailShadow.style.scale = new Scale(new Vector3(scale * 1.03f, scale * 1.03f, 1f));
-            _detailShadow.style.opacity = (1f - t) * 0.42f;
+                artX + 27f,
+                (_isRicko ? 0f : 9f) - 18f * t);
+            _detailShadow.style.scale = new Scale(new Vector3(scale, scale, 1f));
+            _detailShadow.style.opacity = (1f - t) * 0.5f;
             _detailInfo.style.translate = TranslatePixels(infoX, 0f);
             _detailInfo.style.opacity = 1f - t;
-            _dotGrid.style.opacity = (1f - t) * 0.64f;
+            _dotGrid.style.opacity = (1f - t) * 0.84f;
         }
 
         public void ApplyHoldProgress(float progress)
@@ -357,13 +359,17 @@ namespace PowerMath.PlayerLifecycle
             _detailArt.style.translate = TranslatePixels(0f, y);
             _detailArt.style.scale = new Scale(new Vector3(scale, scale, 1f));
             _detailShadow.style.translate = TranslatePixels(
-                _isRicko ? 34f : -34f,
-                18f - y);
-            _detailAccent.style.opacity = Mathf.Lerp(0.74f, 0.84f, t);
-            _detailAccent.style.scale = new Scale(new Vector3(
-                Mathf.Lerp(0.99f, 1.015f, t),
-                Mathf.Lerp(0.99f, 1.015f, t),
-                1f));
+                27f,
+                (_isRicko ? 0f : 9f) - y);
+        }
+
+        public void ApplyDotHoldProgress(float progress)
+        {
+            float t = Mathf.Clamp01(progress);
+            _dotGrid.style.translate = TranslatePixels(
+                Mathf.Lerp(-18f, 18f, t),
+                Mathf.Lerp(10f, -10f, t));
+            _dotGrid.style.opacity = Mathf.Lerp(0.72f, 0.88f, t);
         }
 
         public void ApplyTransitionProgress(float progress, bool covering)
@@ -401,6 +407,11 @@ namespace PowerMath.PlayerLifecycle
             _flash.style.opacity = Mathf.Sin(Mathf.Clamp01(progress) * Mathf.PI);
         }
 
+        public void SetCurtainOpacity(float opacity)
+        {
+            _flash.style.opacity = Mathf.Clamp01(opacity);
+        }
+
         public void Dispose()
         {
             if (_disposed) return;
@@ -414,6 +425,12 @@ namespace PowerMath.PlayerLifecycle
             _nameBackButton.clicked -= OnNameBack;
             _confirmButton.clicked -= OnNameConfirmed;
             _nameField.UnregisterValueChangedCallback(OnNameChanged);
+            _nameField.UnregisterCallback<KeyDownEvent>(OnNameKeyDown);
+            if (_detailGradientTexture != null)
+            {
+                UnityEngine.Object.Destroy(_detailGradientTexture);
+                _detailGradientTexture = null;
+            }
         }
 
         private void BindInputs()
@@ -427,15 +444,68 @@ namespace PowerMath.PlayerLifecycle
             _nameBackButton.clicked += OnNameBack;
             _confirmButton.clicked += OnNameConfirmed;
             _nameField.RegisterValueChangedCallback(OnNameChanged);
+            _nameField.RegisterCallback<KeyDownEvent>(OnNameKeyDown);
+
+            // Register hover sounds
+            _rickoButton.RegisterCallback<MouseEnterEvent>(evt =>
+                PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.CardHover));
+            _stellarButton.RegisterCallback<MouseEnterEvent>(evt =>
+                PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.CardHover));
+            _selectButton.RegisterCallback<MouseEnterEvent>(evt =>
+                PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.CardHover));
+            _confirmButton.RegisterCallback<MouseEnterEvent>(evt =>
+                PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.CardHover));
         }
 
-        private void OnOpeningSkip() => OpeningSkipRequested?.Invoke();
-        private void OnRicko() => CharacterRequested?.Invoke("ricko");
-        private void OnStellar() => CharacterRequested?.Invoke("stellar");
-        private void OnCharacterAccepted() => CharacterAccepted?.Invoke();
-        private void OnDetailBack() => DetailBackRequested?.Invoke();
-        private void OnNameBack() => NameBackRequested?.Invoke();
-        private void OnNameConfirmed() => NameConfirmed?.Invoke();
+        private void OnOpeningSkip()
+        {
+            PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.ButtonClick);
+            OpeningSkipRequested?.Invoke();
+        }
+
+        private void OnRicko()
+        {
+            PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.CardClick);
+            CharacterRequested?.Invoke("ricko");
+        }
+
+        private void OnStellar()
+        {
+            PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.CardClick);
+            CharacterRequested?.Invoke("stellar");
+        }
+
+        private void OnCharacterAccepted()
+        {
+            PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.CharacterAccepted);
+            CharacterAccepted?.Invoke();
+        }
+
+        private void OnDetailBack()
+        {
+            PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.NavigationBack);
+            DetailBackRequested?.Invoke();
+        }
+
+        private void OnNameBack()
+        {
+            PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.NavigationBack);
+            NameBackRequested?.Invoke();
+        }
+
+        private void OnNameConfirmed()
+        {
+            PowerMath.Audio.SfxController.Instance?.PlayCharacterSelection(PowerMath.Audio.CharacterSelectionSfxState.NameConfirmed);
+            NameConfirmed?.Invoke();
+        }
+
+        private void OnNameKeyDown(KeyDownEvent evt)
+        {
+            if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
+            {
+                OnNameConfirmed();
+            }
+        }
 
         private void OnNameChanged(ChangeEvent<string> evt)
         {
@@ -480,13 +550,43 @@ namespace PowerMath.PlayerLifecycle
                 {
                     var dot = new VisualElement { pickingMode = PickingMode.Ignore };
                     dot.AddToClassList("prep-dot");
-                    dot.style.left = Length.Percent(3.5f + column * 6.2f);
-                    dot.style.top = Length.Percent(4f + row * 11.5f);
-                    float variedOpacity = 0.35f + ((row + column) % 4) * 0.12f;
+                    if ((row + column * 3) % 11 == 0)
+                        dot.AddToClassList("prep-dot--soft");
+                    else if ((row * 5 + column) % 13 == 0)
+                        dot.AddToClassList("prep-dot--bright");
+                    dot.style.left = Length.Percent(column * 100f / (DotColumns - 1));
+                    dot.style.top = Length.Percent(row * 100f / (DotRows - 1));
+                    float variedOpacity = 0.62f + ((row + column) % 4) * 0.11f;
                     dot.style.opacity = variedOpacity;
                     _dotGrid.Add(dot);
                 }
             }
+        }
+
+        private void BuildDetailGradient()
+        {
+            const int height = 128;
+            _detailGradientTexture = new Texture2D(
+                2,
+                height,
+                TextureFormat.RGBA32,
+                false,
+                true)
+            {
+                name = "PlayerPreparationDetailGradient",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+            for (int y = 0; y < height; y++)
+            {
+                float t = 1f - y / (height - 1f);
+                Color color = new Color(0f, 0f, 0f, t * 0.75f);
+                _detailGradientTexture.SetPixel(0, y, color);
+                _detailGradientTexture.SetPixel(1, y, color);
+            }
+            _detailGradientTexture.Apply(false, true);
+            _detailGradient.style.backgroundImage = new StyleBackground(
+                Background.FromTexture2D(_detailGradientTexture));
         }
 
         private VisualElement[] BuildTransitionSquares()

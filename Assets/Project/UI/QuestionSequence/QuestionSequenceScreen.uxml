@@ -7,9 +7,9 @@
         <ui:VisualElement name=".battle-hud" class="battle-hud">
             <!-- Stage Tag Row -->
             <ui:VisualElement name=".stage-tag-row" class="stage-tag-row">
-                <ui:Label name="star-l" text="✦" class="stage-star" />
+                <ui:Label name="star-l" text="★" class="stage-star" />
                 <ui:Label name=".stage-label" text="STAGE 12" class="stage-label" />
-                <ui:Label name="star-r" text="✦" class="stage-star" />
+                <ui:Label name="star-r" text="★" class="stage-star" />
             </ui:VisualElement>
 
             <!-- Boss Row -->
@@ -24,16 +24,16 @@
             <!-- Status Buffs Row -->
             <ui:VisualElement name=".status-buffs-row" class="status-buffs-row">
                 <ui:VisualElement name=".buff-slot--speed-1" class="buff-slot buff-slot--speed-1">
-                    <ui:Label text="🏃" class="buff-icon buff-icon--speed" />
+                    <ui:Label text="SPD" class="buff-icon buff-icon--speed" />
                 </ui:VisualElement>
                 <ui:VisualElement name=".buff-slot--speed-2" class="buff-slot buff-slot--speed-2">
-                    <ui:Label text="🏃" class="buff-icon buff-icon--speed" />
+                    <ui:Label text="SPD" class="buff-icon buff-icon--speed" />
                 </ui:VisualElement>
                 <ui:VisualElement name=".buff-slot--shield" class="buff-slot buff-slot--shield">
-                    <ui:Label text="🛡" class="buff-icon buff-icon--shield" />
+                    <ui:Label text="DEF" class="buff-icon buff-icon--shield" />
                 </ui:VisualElement>
                 <ui:VisualElement name=".buff-slot--swords" class="buff-slot buff-slot--swords">
-                    <ui:Label text="⚔" class="buff-icon buff-icon--swords" />
+                    <ui:Label text="ATK" class="buff-icon buff-icon--swords" />
                     <ui:VisualElement name=".badge-count" class="badge-count">
                         <ui:Label name="num" text="2" class="badge-count-text" />
                     </ui:VisualElement>
@@ -45,13 +45,13 @@
         <ui:VisualElement name=".math-challenge-card" class="math-challenge-card">
             <!-- Header Row -->
             <ui:VisualElement name=".card-header" class="card-header">
-                <ui:Label name="c-star-l" text="✦" class="card-star" />
-                <ui:Label name=".card-title" text="✦ MATH CHALLENGE ✦" class="card-title" />
-                <ui:Label name="c-star-r" text="✦" class="card-star" />
+                <ui:Label name="c-star-l" text="★" class="card-star" />
+                <ui:Label name=".card-title" text="★ MATH CHALLENGE ★" class="card-title" />
+                <ui:Label name="c-star-r" text="★" class="card-star" />
             </ui:VisualElement>
 
             <!-- Academic Catalog Meta -->
-            <ui:Label name="academic-meta" text="SILVER • Q1 (FALLBACK CATALOG)" class="academic-meta" />
+            <ui:Label name="academic-meta" text="SILVER - Q1 (FALLBACK CATALOG)" class="academic-meta" />
 
             <!-- Equation -->
             <ui:VisualElement name=".equation-row" class="equation-row">
@@ -60,9 +60,9 @@
 
             <!-- Answer Display Box -->
             <ui:VisualElement name=".answer-display-box" class="answer-display-box">
-                <ui:Label name="dec-l" text="✦" class="bracket-star" />
+                <ui:Label name="dec-l" text="★" class="bracket-star" />
                 <ui:Label name=".input-value" text="8" class="input-value" />
-                <ui:Label name="dec-r" text="✦" class="bracket-star" />
+                <ui:Label name="dec-r" text="★" class="bracket-star" />
             </ui:VisualElement>
 
             <!-- Keypad Grid (3x4) -->
@@ -85,7 +85,7 @@
                 <ui:VisualElement name=".keypad-row-4" class="keypad-row">
                     <ui:Button name="btn-clear" class="key-btn key-btn--clear"><ui:Label text="CLEAR" class="key-text key-text--clear" /></ui:Button>
                     <ui:Button name="btn-0" class="key-btn key-btn--0"><ui:Label text="0" class="key-text" /></ui:Button>
-                    <ui:Button name="btn-backspace" class="key-btn key-btn--backspace"><ui:Label text="⌫" class="key-text key-text--backspace" /></ui:Button>
+                    <ui:Button name="btn-backspace" class="key-btn key-btn--backspace"><ui:Label text="BACK" class="key-text key-text--backspace" /></ui:Button>
                 </ui:VisualElement>
             </ui:VisualElement>
 
@@ -96,7 +96,7 @@
 
             <!-- OVERLAY: STATE 02 (Countdown) -->
             <ui:VisualElement name="overlay-countdown" class="state-overlay state-overlay--countdown is-hidden">
-                <ui:Label text="✦ COUNTDOWN ✦" class="card-title" />
+                <ui:Label text="★ COUNTDOWN ★" class="card-title" />
                 <ui:Label name="countdown-eq" text="48 ÷ 6 = ?" class="eq-solved" />
                 <ui:VisualElement class="timer-widget">
                     <ui:Label name="timer-seconds" text="6" class="seconds-left" />
@@ -108,7 +108,7 @@
             <!-- OVERLAY: STATE 03 (Score Multiplying Reward) -->
             <ui:VisualElement name="overlay-reward" class="state-overlay state-overlay--reward is-hidden">
                 <ui:VisualElement class="banner-correct">
-                    <ui:Label text="✦ CORRECT ✦" class="banner-text" />
+                    <ui:Label text="★ CORRECT ★" class="banner-text" />
                 </ui:VisualElement>
                 <ui:Label name="reward-eq" text="48 ÷ 6 = 8" class="eq-solved" />
                 <ui:VisualElement class="score-laurel-badge">
@@ -128,20 +128,20 @@
             <!-- OVERLAY: STATE 04 (Failure Penalty) -->
             <ui:VisualElement name="overlay-failure" class="state-overlay state-overlay--failure is-hidden">
                 <ui:VisualElement class="banner-incorrect">
-                    <ui:Label text="✦ INCORRECT ✦" class="banner-text" />
+                    <ui:Label text="★ INCORRECT ★" class="banner-text" />
                 </ui:VisualElement>
                 <ui:Label name="failure-eq" text="48 ÷ 6 = 8" class="eq-solved" />
                 <ui:VisualElement class="wrong-input-box">
-                    <ui:Label text="✦" class="card-star" />
+                    <ui:Label text="★" class="card-star" />
                     <ui:Label name="failure-wrong-val" text="7" class="wrong-val" />
-                    <ui:Label text="✦" class="card-star" />
+                    <ui:Label text="★" class="card-star" />
                 </ui:VisualElement>
                 <ui:VisualElement class="broken-sword-badge">
-                    <ui:Label text="⚔" class="broken-sword-icon" />
+                    <ui:Label text="ATK" class="broken-sword-icon" />
                 </ui:VisualElement>
                 <ui:Label text="→ NO DAMAGE ←" class="no-dmg-lbl" />
                 <ui:VisualElement class="warning-pill">
-                    <ui:Label text="⚠" class="warning-icon" />
+                    <ui:Label text="!" class="warning-icon" />
                     <ui:Label text="ENEMY ATTACK" class="alert-lbl" />
                 </ui:VisualElement>
                 <ui:Image name="failure-sticker" picking-mode="Ignore" class="qs-result-sticker qs-result-sticker--failure" />
@@ -150,12 +150,12 @@
 
         <!-- DEBUG STATE SWITCHER TRAY (Allows testing all 4 states directly in play mode) -->
         <ui:VisualElement name="state-debug-tray" class="state-debug-tray">
-            <ui:Button name="btn-state-1" text="1 • PopUp" class="state-btn state-btn--active" />
-            <ui:Button name="btn-state-2" text="2 • Countdown" class="state-btn" />
-            <ui:Button name="btn-state-3" text="3 • Correct" class="state-btn" />
-            <ui:Button name="btn-state-4" text="4 • Failure" class="state-btn" />
-            <ui:Button name="btn-prev-q" text="◀ Prev Q" class="state-btn" />
-            <ui:Button name="btn-next-q" text="Next Q ▶" class="state-btn" />
+            <ui:Button name="btn-state-1" text="1 - PopUp" class="state-btn state-btn--active" />
+            <ui:Button name="btn-state-2" text="2 - Countdown" class="state-btn" />
+            <ui:Button name="btn-state-3" text="3 - Correct" class="state-btn" />
+            <ui:Button name="btn-state-4" text="4 - Failure" class="state-btn" />
+            <ui:Button name="btn-prev-q" text="&lt; Prev Q" class="state-btn" />
+            <ui:Button name="btn-next-q" text="Next Q &gt;" class="state-btn" />
             <ui:Button name="btn-rank" text="Rank: Silver" class="state-btn" />
         </ui:VisualElement>
     </ui:VisualElement>

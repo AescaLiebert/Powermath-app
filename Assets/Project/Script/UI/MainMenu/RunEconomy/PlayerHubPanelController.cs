@@ -208,10 +208,10 @@ namespace PowerMath.UI.MainMenu
             RenderSummary(stats);
             _view.EffectiveAttack.text = $"{stats.EffectiveAttack:N0} ATK";
             _view.AttackBreakdown.text = stats.HasConfiguredPetStats
-                ? $"BASE {stats.BaseAttack:N0}  •  WEAPON {stats.Weapon.Attack:N0}  •  PET {stats.PetAttack:N0}"
-                : $"BASE {stats.BaseAttack:N0}  •  WEAPON {stats.Weapon.Attack:N0}";
+                ? $"BASE {stats.BaseAttack:N0}  -  WEAPON {stats.Weapon.Attack:N0}  -  PET {stats.PetAttack:N0}"
+                : $"BASE {stats.BaseAttack:N0}  -  WEAPON {stats.Weapon.Attack:N0}";
             _view.LegacyBonus.text =
-                $"REBIRTH +{stats.LegacyBasisPoints / 100d:0.0}%  •  +{stats.LegacyBonusAttack:N0} ATK";
+                $"REBIRTH +{stats.LegacyBasisPoints / 100d:0.0}%  -  +{stats.LegacyBonusAttack:N0} ATK";
             _view.PetStatus.text = string.Empty;
         }
 
@@ -252,7 +252,7 @@ namespace PowerMath.UI.MainMenu
             _view.WeaponNext.text =
                 $"{nextName.ToUpperInvariant()}  LV.{next.Level}\nATK {next.Attack:N0}   CR +{next.CriticalRatePercent}%   CD +{next.CriticalDamagePercent}%";
             _view.WeaponCost.text = $"{cost:N0} POWER COINS";
-            _view.UpgradeButton.text = $"ASCEND  ⚡{cost:N0}";
+            _view.UpgradeButton.text = $"ASCEND  PWR {cost:N0}";
             _view.UpgradeButton.SetEnabled(CanMutate(out _));
         }
 

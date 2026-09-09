@@ -65,8 +65,18 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<ProgressBar>(root, "bootstrap-progress");
             Require<Label>(root, "bootstrap-detail");
             Button retry = Require<Button>(root, "retry-button");
+            VisualElement playerPreparation = Require<VisualElement>(
+                root,
+                "player-preparation"
+            );
 
             Assert.That(retry.ClassListContains("is-hidden"), Is.True);
+            Assert.That(playerPreparation.ClassListContains("is-hidden"), Is.True);
+            Assert.That(
+                playerPreparation.style.display.keyword,
+                Is.EqualTo(StyleKeyword.Null),
+                "The hidden preparation overlay must not override display inline."
+            );
         }
 
         [Test]
@@ -105,7 +115,6 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<VisualElement>(root, "content");
             Require<VisualElement>(root, "profile-panel");
             Require<Label>(root, "player-display-name");
-            Require<Label>(root, "current-stage-label");
             Require<ProgressBar>(root, "stage-progress");
             Require<Label>(root, "wallet-summary");
             Require<Label>(root, "loadout-summary");
@@ -161,7 +170,12 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<VisualElement>(root, "combat-answer-content");
             Require<VisualElement>(root, "combat-feedback-card");
             Require<VisualElement>(root, "combat-score-stack");
-            Require<Image>(root, "combat-result-sticker");
+            Image correctResultSticker = Require<Image>(
+                root,
+                "combat-result-sticker-correct");
+            Image failResultSticker = Require<Image>(
+                root,
+                "combat-result-sticker-fail");
             Require<Label>(root, "combat-feedback-title");
             Require<Label>(root, "combat-battle-banner");
             Require<VisualElement>(root, "main-menu-transition-layer");
@@ -186,6 +200,25 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             );
 
             Assert.That(navigator.ClassListContains("is-hidden"), Is.True);
+            Assert.That(
+                correctResultSticker.style.display.keyword,
+                Is.EqualTo(StyleKeyword.Null),
+                "The correct sticker must be passive result-panel content."
+            );
+            Assert.That(
+                failResultSticker.style.display.keyword,
+                Is.EqualTo(StyleKeyword.Null),
+                "The fail sticker must be passive result-panel content."
+            );
+            Assert.That(correctResultSticker.sprite, Is.Not.Null);
+            Assert.That(failResultSticker.sprite, Is.Not.Null);
+            string[] mainMenuDependencies = AssetDatabase.GetDependencies(
+                MainMenuUxml,
+                true);
+            Assert.That(mainMenuDependencies, Does.Contain(
+                "Assets/Project/Art/Character/Sticker_Power_Correct.PNG"));
+            Assert.That(mainMenuDependencies, Does.Contain(
+                "Assets/Project/Art/Character/Sticker_Power_Fail.PNG"));
             Assert.That(
                 root.Q<VisualElement>("combat-enemy-image"),
                 Is.Null,
@@ -471,7 +504,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(currency.parent, Is.SameAs(powerCoinField));
             Assert.That(powerCoinIcon.parent, Is.SameAs(powerCoinField));
             Assert.That(powerCoinValue.parent, Is.SameAs(currency));
-            Assert.That(chevron.text, Is.EqualTo("‹"));
+            Assert.That(chevron.text, Is.EqualTo("<"));
 
             string style = File.ReadAllText(MainMenuExperienceStyle);
             string collapsedToggle = RuleBody(

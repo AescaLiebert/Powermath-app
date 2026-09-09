@@ -3,6 +3,8 @@ mergeInto(LibraryManager.library, {
     var receiver = UTF8ToString(receiverPtr);
     var videoId = UTF8ToString(videoIdPtr);
     var state = window.PowerMathYouTubeState || (window.PowerMathYouTubeState = {});
+    if (state.startupTimer) window.clearTimeout(state.startupTimer);
+    state.startupTimer = null;
     // A player belongs to one question. Late iframe events must never inherit
     // another question's receiver or generation.
     var request = { receiver: receiver, generation: generation, completed: false };
@@ -13,18 +15,31 @@ mergeInto(LibraryManager.library, {
     state.generation = generation;
     state.answerMode = false;
 
+    var completeWithError = function (reason) {
+      if (state.request !== request || request.completed) return;
+      request.completed = true;
+      if (state.startupTimer) window.clearTimeout(state.startupTimer);
+      state.startupTimer = null;
+      SendMessage(request.receiver, 'OnYouTubeError', String(request.generation) + '|' + reason);
+    };
+
     var overlay = document.getElementById('powermath-youtube-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
       overlay.id = 'powermath-youtube-overlay';
       overlay.style.position = 'fixed';
       overlay.style.zIndex = '2147483646';
-      overlay.style.background = '#050816';
+      overlay.style.background = '#000';
       overlay.style.display = 'none';
       overlay.style.alignItems = 'center';
       overlay.style.justifyContent = 'center';
       overlay.style.pointerEvents = 'auto';
-      overlay.style.transition = 'left 180ms ease, top 180ms ease, width 180ms ease, height 180ms ease, opacity 180ms ease';
+      overlay.style.userSelect = 'none';
+      overlay.style.webkitUserSelect = 'none';
+      overlay.style.webkitTapHighlightColor = 'transparent';
+      overlay.style.outline = 'none';
+      overlay.onselectstart = function () { return false; };
+      overlay.ondragstart = function () { return false; };
       document.body.appendChild(overlay);
     }
     overlay.textContent = '';
@@ -32,30 +47,19 @@ mergeInto(LibraryManager.library, {
     mount.id = 'powermath-youtube-player';
     mount.style.width = '100%';
     mount.style.height = '100%';
+    mount.style.userSelect = 'none';
+    mount.style.webkitUserSelect = 'none';
+    mount.style.webkitTapHighlightColor = 'transparent';
+    mount.style.outline = 'none';
     overlay.appendChild(mount);
 
     var align = function () {
       if (!Module.canvas || overlay.style.display === 'none') return;
       var rect = Module.canvas.getBoundingClientRect();
-      if (state.answerMode) {
-        var narrow = rect.width < 820 || rect.height > rect.width;
-        var dockWidth = narrow
-          ? Math.max(200, rect.width - 24)
-          : Math.max(280, Math.min(760, rect.width * 0.40));
-        var dockHeight = Math.min(dockWidth * 9 / 16,
-          rect.height * (narrow ? 0.38 : 0.58));
-        overlay.style.left = (rect.left + (narrow ? 12 : Math.max(12, rect.width * 0.04))) + 'px';
-        overlay.style.top = (rect.top + (narrow ? 12 : Math.max(12, rect.height * 0.12))) + 'px';
-        overlay.style.width = dockWidth + 'px';
-        overlay.style.height = dockHeight + 'px';
-        return;
-      }
-      var insetX = Math.max(12, rect.width * 0.08);
-      var insetY = Math.max(70, rect.height * 0.16);
-      overlay.style.left = (rect.left + insetX) + 'px';
-      overlay.style.top = (rect.top + insetY) + 'px';
-      overlay.style.width = Math.max(0, rect.width - insetX * 2) + 'px';
-      overlay.style.height = Math.max(0, rect.height - insetY * 2) + 'px';
+      overlay.style.left = rect.left + 'px';
+      overlay.style.top = rect.top + 'px';
+      overlay.style.width = Math.max(0, rect.width) + 'px';
+      overlay.style.height = Math.max(0, rect.height) + 'px';
     };
     state.align = align;
     window.removeEventListener('resize', state.previousAlign || function () {});
@@ -79,17 +83,43 @@ mergeInto(LibraryManager.library, {
           rel: 0, playsinline: 1, origin: window.location.origin
         },
         events: {
+          onReady: function (event) {
+            if (state.request !== request || request.completed) return;
+            var iframe = event.target.getIframe ? event.target.getIframe() : null;
+            if (iframe) {
+              iframe.tabIndex = -1;
+              iframe.draggable = false;
+              iframe.style.border = '0';
+              iframe.style.outline = 'none';
+              iframe.style.pointerEvents = 'none';
+              iframe.style.userSelect = 'none';
+              iframe.style.webkitUserSelect = 'none';
+              iframe.style.webkitTapHighlightColor = 'transparent';
+            }
+            if (state.startupTimer) window.clearTimeout(state.startupTimer);
+            state.startupTimer = window.setTimeout(function () {
+              completeWithError('start-timeout');
+            }, 12000);
+            event.target.playVideo();
+          },
           onStateChange: function (event) {
             if (state.request !== request || request.completed) return;
+            if (event.data === YT.PlayerState.PLAYING && state.startupTimer) {
+              window.clearTimeout(state.startupTimer);
+              state.startupTimer = null;
+            }
             if (event.data === YT.PlayerState.ENDED) {
               request.completed = true;
+              if (state.startupTimer) window.clearTimeout(state.startupTimer);
+              state.startupTimer = null;
               SendMessage(request.receiver, 'OnYouTubeEnded', String(request.generation));
             }
           },
           onError: function (event) {
-            if (state.request !== request || request.completed) return;
-            request.completed = true;
-            SendMessage(request.receiver, 'OnYouTubeError', String(request.generation) + '|' + event.data);
+            completeWithError(event.data);
+          },
+          onAutoplayBlocked: function () {
+            completeWithError('autoplay-blocked');
           }
         }
       });
@@ -130,8 +160,10 @@ mergeInto(LibraryManager.library, {
     if (!state || !state.request || !overlay) return;
     state.answerMode = true;
     overlay.style.pointerEvents = 'none';
-    overlay.style.opacity = '0.92';
-    if (state.align) state.align();
+    // Unity owns the centered answer and result states. Keeping the cross-origin
+    // iframe visible would place it above that UI and would violate YouTube's
+    // no-overlay requirement.
+    overlay.style.display = 'none';
   },
 
   PowerMathYouTubeHide: function () {
@@ -143,6 +175,8 @@ mergeInto(LibraryManager.library, {
       if (state.player && state.player.destroy) state.player.destroy();
       state.player = null;
       state.answerMode = false;
+      if (state.startupTimer) window.clearTimeout(state.startupTimer);
+      state.startupTimer = null;
       if (state.previousAlign) window.removeEventListener('resize', state.previousAlign);
       state.previousAlign = null;
     }

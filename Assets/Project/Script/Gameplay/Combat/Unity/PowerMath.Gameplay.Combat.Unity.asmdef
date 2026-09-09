@@ -8,7 +8,8 @@
     "PowerMath.Gameplay.Academic.Unity",
     "PowerMath.UI.Core",
     "Unity.TextMeshPro",
-    "PowerMath.Diagnostics"
+    "PowerMath.Diagnostics",
+    "PowerMath.Audio"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -12,7 +12,7 @@
                 <ui:VisualElement name="Authentication Card" class="mw-card auth-card" style="padding-bottom: 17px; height: 421px;">
                     <ui:VisualElement name="Ornament / Celestial Divider" class="auth-celestial-divider">
                         <ui:VisualElement name="Divider / Left" class="auth-divider-line"/>
-                        <ui:Label name="Ornament / Star" text="✦" class="auth-divider-star"/>
+                        <ui:Label name="Ornament / Star" text="★" class="auth-divider-star"/>
                         <ui:VisualElement name="Divider / Right" class="auth-divider-line"/>
                     </ui:VisualElement>
                     <ui:Label name="Title / Sign In" text="SIGN IN" class="loc-auth.title mw-title auth-title"/>
@@ -35,12 +35,12 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Button name="worldwide-button" text="🌐" class="auth-utility auth-language auth-worldwide"/>
+            <ui:Button name="worldwide-button" text="LANG" class="auth-utility auth-language auth-worldwide"/>
             <ui:VisualElement name="auth-language-flyout" class="auth-language-flyout">
                 <ui:Button name="language-button-th" text="ไทย" class="auth-language-btn auth-language-btn--th"/>
                 <ui:Button name="language-button-en" text="EN" class="auth-language-btn auth-language-btn--en"/>
             </ui:VisualElement>
-            <ui:Button name="Utility / Settings" text="⚙" class="auth-utility auth-settings"/>
+            <ui:Button name="Utility / Settings" text="SET" class="auth-utility auth-settings"/>
             <ui:Label name="Version" text="1.0" class="auth-version"/>
         </ui:VisualElement>
     </ui:VisualElement>

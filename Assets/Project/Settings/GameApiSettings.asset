@@ -33,6 +33,8 @@ MonoBehaviour:
   - Grade 5
   - Grade 6
   requestTimeoutSeconds: 30
+  versionManifestUrl: version.json
+  enableVersionCheck: 1
   bootstrapSceneName: BootstrapScene
   authenticationSceneName: AuthenticationScene
   mainMenuSceneName: MainMenuScene

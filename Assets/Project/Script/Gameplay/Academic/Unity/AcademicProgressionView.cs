@@ -127,7 +127,7 @@ namespace PowerMath.Gameplay.Academic.Unity
 
         public void ShowQuestion(QuestionPresentationDescriptor question)
         {
-            _questionMeta.text = $"{question.Id} • {question.Rank}";
+            _questionMeta.text = $"{question.Id} - {question.Rank}";
             _questionPrompt.text = question.DevelopmentPrompt;
             _questionMeta.style.display = DisplayStyle.Flex;
             _questionPrompt.style.display = string.IsNullOrEmpty(question.DevelopmentPrompt)

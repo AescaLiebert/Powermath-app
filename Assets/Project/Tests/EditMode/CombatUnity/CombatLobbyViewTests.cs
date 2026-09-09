@@ -189,7 +189,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(root.Q<Label>("combat-stage-label").text, Is.EqualTo("STAGE 6"));
             Assert.That(root.Q<Label>("combat-enemy-name").text, Is.EqualTo("Rock Titan"));
             Assert.That(root.Q<Label>("combat-enemy-hp-label").text, Is.EqualTo("23 / 40"));
-            Assert.That(root.Q<Label>("combat-hearts-label").text, Is.EqualTo("♥ ♥ ♡"));
+            Assert.That(root.Q<Label>("combat-hearts-label").text, Is.EqualTo("H H -"));
             var heartIcons = root.Query<VisualElement>(
                 className: "hud-loadout-heart").ToList();
             Assert.That(heartIcons.Count, Is.EqualTo(5));
@@ -265,7 +265,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             view.ShowAttempt(true);
             view.SetRetainedQuestionLayout(true);
             view.ShowAnswerFeedback(
-                "✓",
+                "OK",
                 "CORRECT",
                 "Building your attack power",
                 true);
@@ -288,16 +288,30 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Is.EqualTo(5),
                 "Three score rows should be connected by two visual arrows.");
 
-            var stickerSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
-            view.SetResultStickers(stickerSprite, stickerSprite);
-            view.ShowAnswerFeedback("✓", "CORRECT", "OK", true);
-            var stickerImage = root.Q<Image>("combat-result-sticker");
-            Assert.That(stickerImage, Is.Not.Null);
-            Assert.That(stickerImage.ClassListContains("is-hidden"), Is.False);
-            Assert.That(stickerImage.sprite, Is.SameAs(stickerSprite));
+            view.ShowAnswerFeedback("OK", "CORRECT", "OK", true);
+            Image correctSticker = root.Q<Image>(
+                "combat-result-sticker-correct");
+            Image failSticker = root.Q<Image>(
+                "combat-result-sticker-fail");
+            Assert.That(correctSticker, Is.Not.Null);
+            Assert.That(failSticker, Is.Not.Null);
+            Assert.That(correctSticker.sprite, Is.Not.Null);
+            Assert.That(failSticker.sprite, Is.Not.Null);
+            Assert.That(
+                root.Q<VisualElement>("combat-feedback-card")
+                    .ClassListContains("combat-feedback-card--negative"),
+                Is.False);
+
+            view.ShowAnswerFeedback("NO", "TRY AGAIN", "OK", false);
+            Assert.That(
+                root.Q<VisualElement>("combat-feedback-card")
+                    .ClassListContains("combat-feedback-card--negative"),
+                Is.True);
 
             view.HideAnswerFeedback();
-            Assert.That(stickerImage.ClassListContains("is-hidden"), Is.True);
+            Assert.That(
+                root.Q<VisualElement>("combat-feedback-card").style.display.value,
+                Is.EqualTo(DisplayStyle.None));
         }
 
         [Test]

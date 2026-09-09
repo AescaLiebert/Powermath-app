@@ -14,24 +14,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PowerMath.PlayerLifecycle.CharacterPresentationCatalog
   chromaKeyMaterial: {fileID: 2100000, guid: 845b127df65f4c3093164837bda14ee2, type: 2}
   selectionVideo: {fileID: 32900000, guid: e648b58df33ce1f42a33e011c6db355d, type: 3}
-  selectionVideoUrl: 
+  selectionVideoUrl: Videos/V_SelectCharacterScene.mp4
   selectionBackground: {fileID: 21300000, guid: 9012f99e3745114499a93a6de3803cf4, type: 3}
   characters:
   - id: ricko
     overviewArt: {fileID: 21300000, guid: 85f0fc2d3c6854447ae9010d45b690df, type: 3}
-    selectionArt: {fileID: 21300000, guid: 85f0fc2d3c6854447ae9010d45b690df, type: 3}
+    selectionArt: {fileID: 21300000, guid: 44ed86c23773e0d46bbbee86f9f214f8, type: 3}
     profileIcon: {fileID: 21300000, guid: dcb3aa4df8f06ce4596356c530659994, type: 3}
     hubSprite: {fileID: 3064498052761967988, guid: 6a8a137f48c8fe54eaa563d95a20b7c3, type: 3}
     battleSprite: {fileID: 21300000, guid: e856579001e6f2946951107dffee575d, type: 3}
     battleAttackSprite: {fileID: 21300000, guid: ab5c9822fddf59c4b8c4ccd3df41875e, type: 3}
     battleHurtSprite: {fileID: 21300000, guid: e947686e0d922ee488aba45ac3de1a1f, type: 3}
     hubVideo: {fileID: 32900000, guid: 7d91a41b3757d3447b08347210186684, type: 3}
+    hubVideoUrl: Videos/V_Hub_Stand_Ricko.mp4
   - id: stellar
     overviewArt: {fileID: 21300000, guid: ffad266a8ee944e49a9d7ba14dace9fe, type: 3}
-    selectionArt: {fileID: 21300000, guid: ffad266a8ee944e49a9d7ba14dace9fe, type: 3}
+    selectionArt: {fileID: 21300000, guid: 8385085309b050c45b839684d20742ff, type: 3}
     profileIcon: {fileID: 21300000, guid: 34f074add1130244a95535b432c07e1e, type: 3}
     hubSprite: {fileID: 21300000, guid: e4b43ff941ee280429750f0e17338876, type: 3}
     battleSprite: {fileID: 21300000, guid: 9751ccb8126656641ad24109fbca5b6c, type: 3}
     battleAttackSprite: {fileID: 21300000, guid: 7cdc08fcfe9b89e408dadd30e49c08bf, type: 3}
     battleHurtSprite: {fileID: 21300000, guid: 08ce6492ee65e4a4abf4315f7328bbe5, type: 3}
     hubVideo: {fileID: 32900000, guid: a67cf298eb9928b489b5e7d868576b8d, type: 3}
+    hubVideoUrl: Videos/V_Hub_Stand_Stellar.mp4

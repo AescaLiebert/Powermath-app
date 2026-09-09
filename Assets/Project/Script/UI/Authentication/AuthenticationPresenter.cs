@@ -51,6 +51,7 @@ namespace PowerMath.UI.Authentication
             _authenticationService = new DirectFirestoreAuthenticationService(apiSettings);
 #endif
             _view.RenderReady();
+            PowerMath.Audio.MusicController.Instance.PlayLoginMusic();
         }
 
         private void OnDisable()

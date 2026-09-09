@@ -280,6 +280,8 @@ MonoBehaviour:
   _defaultAnswer: 8
   _countdownSeconds: 6
   _autoAdvanceDelay: 2.5
+  _stickerCorrect: {fileID: -8920802317016414413, guid: 6d6d43d0806b90349868396e601ceb48, type: 3}
+  _stickerFail: {fileID: -2156568754499997360, guid: 561a918517cb31249bf72044128e51cb, type: 3}
 --- !u!1 &300000001
 GameObject:
   m_ObjectHideFlags: 0

@@ -78,6 +78,8 @@ namespace PowerMath.Tests.EditMode
         [TestCase("   ", false)]
         [TestCase("<b>Name</b>", false)]
         [TestCase("Name\nOther", false)]
+        [TestCase("bad_fuck", false)]
+        [TestCase("สัส", false)]
         public void DisplayNamesSupportThaiWithoutMarkup(string value, bool valid) =>
             Assert.AreEqual(valid, PlayerLifecyclePolicy.TryNormalizeName(value, out _));
 

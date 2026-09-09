@@ -17,6 +17,7 @@ namespace PowerMath.Bootstrap
         private SceneFlowController _sceneFlow;
         private PlayerSessionStore _sessionStore;
         private IPlayerBootstrapService _bootstrapService;
+        private PowerMath.PlayerLifecycle.PlayerPreparationPresenter _preparationPresenter;
         private bool _isBootstrapping;
         private bool _sceneLoadRequested;
 
@@ -237,13 +238,49 @@ namespace PowerMath.Bootstrap
             _view.Render(BootstrapState.Ready);
             if (!PowerMath.Session.PlayerLifecyclePolicy.IsComplete(_sessionStore.Snapshot))
             {
-                gameObject.AddComponent<PowerMath.PlayerLifecycle.PlayerPreparationPresenter>().Initialize(
+                _preparationPresenter = gameObject.AddComponent<PowerMath.PlayerLifecycle.PlayerPreparationPresenter>();
+                _preparationPresenter.DestinationTransitionCompleted += OnPreparedTransitionCompleted;
+                _preparationPresenter.Initialize(
                     GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement,
                     _sessionStore, PowerMath.PlayerLifecycle.PlayerLifecycleRuntime.Commands,
-                    () => LoadScene(apiSettings.MainMenuSceneName));
+                    BeginPreparedPlayerTransition);
                 yield break;
             }
             LoadScene(apiSettings.MainMenuSceneName);
+        }
+
+        private void BeginPreparedPlayerTransition()
+        {
+            if (_sceneLoadRequested)
+            {
+                _preparationPresenter?.NotifyDestinationSceneLoadFailed();
+                return;
+            }
+
+            _sceneLoadRequested = true;
+            _view.Render(BootstrapState.LoadingScene);
+            bool started = _sceneFlow.TryLoadScene(
+                apiSettings.MainMenuSceneName,
+                OnSceneLoadFailed,
+                () => _preparationPresenter?.NotifyDestinationSceneLoaded());
+            if (!started)
+            {
+                _sceneLoadRequested = false;
+                _preparationPresenter?.NotifyDestinationSceneLoadFailed();
+                return;
+            }
+
+            DontDestroyOnLoad(gameObject);
+            var document = GetComponent<UnityEngine.UIElements.UIDocument>();
+            if (document != null)
+                document.sortingOrder = 10000;
+        }
+
+        private void OnPreparedTransitionCompleted()
+        {
+            if (_preparationPresenter != null)
+                _preparationPresenter.DestinationTransitionCompleted -= OnPreparedTransitionCompleted;
+            Destroy(gameObject);
         }
 
         private void OnBootstrapFailed(FirestoreRestClient.Failure failure)
@@ -287,6 +324,7 @@ namespace PowerMath.Bootstrap
             _sceneLoadRequested = false;
             _isBootstrapping = false;
             _view.Render(BootstrapState.Recovering, playerMessage);
+            _preparationPresenter?.NotifyDestinationSceneLoadFailed();
         }
 
         private void OnRetryRequested()

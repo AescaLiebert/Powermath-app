@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.StageMapDefinition
   catalogVersion: stage-map-v1
   normalHpBaseline: 30
-  worldLevelGrowthBasisPoints: 1650
+  worldLevelGrowthBasisPoints: 1400
   hpVariationBasisPoints: 700
   biomes:
   - {fileID: 11400000, guid: 0f03b5c6c46564a42bbb2548ebceab64, type: 2}
@@ -24,6 +24,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b0000000000000000000000000000005, type: 2}
   - {fileID: 11400000, guid: b0000000000000000000000000000006, type: 2}
   - {fileID: 11400000, guid: b0000000000000000000000000000007, type: 2}
-  fixedEvents:
-  - stage: 7
-    eventDefinition: {fileID: 11400000, guid: 3c863e18786e25e4dbe8372ce29848a1, type: 2}
+  fixedEvents: []

@@ -1,3 +1,4 @@
+using PowerMath.Audio;
 using UnityEngine;
 
 namespace PowerMath.Gameplay.Combat.Unity
@@ -5,7 +6,7 @@ namespace PowerMath.Gameplay.Combat.Unity
     [CreateAssetMenu(
         fileName = "EnemyDefinition",
         menuName = "PowerMath/Combat/Enemy Definition")]
-    public sealed class EnemyDefinition : ScriptableObject
+    public sealed class EnemyDefinition : ScriptableObject, IEnemySfxProfile
     {
         [Header("Identity")]
         [SerializeField] private string enemyId = "rock-titan";
@@ -25,6 +26,16 @@ namespace PowerMath.Gameplay.Combat.Unity
         [Header("Presentation")]
         [SerializeField] private Sprite enemySprite;
 
+        [Header("Audio Ownership (Optional Custom Overrides)")]
+        [Tooltip("Custom SFX played when this specific enemy appears. If unassigned, defaults to encounter kind / global SFX.")]
+        [SerializeField] private SfxCueConfig customAppearSfx;
+        [Tooltip("Custom SFX played when this specific enemy takes damage.")]
+        [SerializeField] private SfxCueConfig customHurtSfx;
+        [Tooltip("Custom SFX played when this specific enemy attacks.")]
+        [SerializeField] private SfxCueConfig customAttackSfx;
+        [Tooltip("Custom SFX played when this specific enemy dies.")]
+        [SerializeField] private SfxCueConfig customDieSfx;
+
         public Sprite EnemySprite => enemySprite;
         public string EnemyId => enemyId;
         public string DisplayName => displayName;
@@ -35,6 +46,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         public int BaseHp => baseHp;
         public int MaximumCooldown => maximumCooldown;
         public int HpMultiplierBasisPoints => hpMultiplierBasisPoints;
+
+        public SfxCueConfig AppearSfx => customAppearSfx;
+        public SfxCueConfig HurtSfx => customHurtSfx;
+        public SfxCueConfig AttackSfx => customAttackSfx;
+        public SfxCueConfig DieSfx => customDieSfx;
 
         public string GetDisplayName(string locale = "en")
         {

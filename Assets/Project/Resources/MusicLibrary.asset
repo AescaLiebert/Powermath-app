@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db137d599f480f24eade0eae7e98ef32, type: 3}
+  m_Name: MusicLibrary
+  m_EditorClassIdentifier: PowerMath.Audio::PowerMath.Audio.MusicLibraryDefinition
+  loginMusic:
+    clip: {fileID: 8300000, guid: 1e45ce02cc44fca45819f334214d4c83, type: 3}
+    volumeScale: 0.75
+    loop: 1
+  defaultBattleMusic:
+    clip: {fileID: 8300000, guid: 2b72be86b66f2934bad098c72afaa83b, type: 3}
+    volumeScale: 0.75
+    loop: 1
+  bossBattleMusic:
+    clip: {fileID: 8300000, guid: aabe634fed9b1df45a0a8a00f5912e96, type: 3}
+    volumeScale: 0.95
+    loop: 1
+  biomeBattleTracks: []
+  defaultCrossfadeDuration: 1.2
+  bossInterruptDuration: 0.8
+  duckVolumeFactor: 0.15
+  duckFadeDuration: 0.75

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using UnityEngine.Video;
+using PowerMath.UI.Shared;
 
 namespace PowerMath.PlayerLifecycle
 {
@@ -26,8 +27,7 @@ namespace PowerMath.PlayerLifecycle
 
         public bool HasVideo => videoClip != null || HasHostedVideo;
         public bool HasHostedVideo =>
-            Uri.TryCreate(videoUrl, UriKind.Absolute, out var uri) &&
-            (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+            StreamingVideoPath.TryResolve(videoUrl, out _);
 
         public string[] GetNarrativeLines(string locale)
         {

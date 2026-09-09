@@ -701,17 +701,12 @@
     width: 90px;
     height: 90px;
     -unity-background-scale-mode: scale-to-fit;
-    transition-property: scale, opacity;
-    transition-duration: 0.22s;
-    transition-timing-function: ease-out-back;
     scale: 1 1;
     opacity: 1;
 }
 
 .qs-result-sticker.is-hidden {
     display: none;
-    opacity: 0;
-    scale: 0.5 0.5;
 }
 
 /* =========================================================================

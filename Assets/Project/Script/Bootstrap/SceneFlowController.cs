@@ -9,7 +9,10 @@ namespace PowerMath.Bootstrap
     {
         private bool _isLoading;
 
-        public bool TryLoadScene(string sceneName, Action<string> onFailure)
+        public bool TryLoadScene(
+            string sceneName,
+            Action<string> onFailure,
+            Action onLoaded = null)
         {
             if (_isLoading)
             {
@@ -23,11 +26,14 @@ namespace PowerMath.Bootstrap
             }
 
             _isLoading = true;
-            StartCoroutine(LoadScene(sceneName, onFailure));
+            StartCoroutine(LoadScene(sceneName, onFailure, onLoaded));
             return true;
         }
 
-        private IEnumerator LoadScene(string sceneName, Action<string> onFailure)
+        private IEnumerator LoadScene(
+            string sceneName,
+            Action<string> onFailure,
+            Action onLoaded)
         {
             AsyncOperation operation;
 
@@ -50,6 +56,8 @@ namespace PowerMath.Bootstrap
             }
 
             yield return operation;
+            _isLoading = false;
+            onLoaded?.Invoke();
         }
     }
 }

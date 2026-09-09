@@ -51,7 +51,7 @@
             <ui:Label name="player-menu-atk" text="—" picking-mode="Ignore" class="hud-compat-hidden"/>
         </ui:VisualElement>
         <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle">
-            <ui:Label name="Chevron" text="‹" picking-mode="Ignore" class="hud-player-menu-chevron"/>
+            <ui:Label name="Chevron" text="&lt;" picking-mode="Ignore" class="hud-player-menu-chevron"/>
         </ui:Button>
     </ui:VisualElement>
 </ui:UXML>

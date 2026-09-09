@@ -24,7 +24,7 @@
                 <ui:VisualElement class="pet-gacha-call-column">
                     <ui:VisualElement class="pet-gacha-orbit" picking-mode="Ignore">
                         <ui:VisualElement class="pet-gacha-orbit-ring"/>
-                        <ui:Label text="✦" class="pet-gacha-call-mark"/>
+                        <ui:Label text="★" class="pet-gacha-call-mark"/>
                         <ui:Label text="◆" class="pet-gacha-capsule pet-gacha-capsule--one"/>
                         <ui:Label text="◆" class="pet-gacha-capsule pet-gacha-capsule--two"/>
                         <ui:Label text="◆" class="pet-gacha-capsule pet-gacha-capsule--three"/>
@@ -40,7 +40,7 @@
             <ui:Label name="pet-gacha-status" text="" class="social-status mw-status pet-gacha-status"/>
         </ui:VisualElement>
         <ui:VisualElement name="pet-gacha-confirmation" focusable="true" class="pet-gacha-overlay pet-gacha-confirmation is-hidden">
-            <ui:VisualElement class="pet-gacha-confirmation-orbit" picking-mode="Ignore"><ui:Label text="✦" class="pet-gacha-confirmation-mark"/></ui:VisualElement>
+            <ui:VisualElement class="pet-gacha-confirmation-orbit" picking-mode="Ignore"><ui:Label text="★" class="pet-gacha-confirmation-mark"/></ui:VisualElement>
             <ui:VisualElement class="pet-gacha-confirmation-card">
                 <ui:Label text="CONFIRM ONE PULL" class="loc-menu.confirmOnePull pet-gacha-overlay-title"/>
                 <ui:Label name="pet-gacha-confirmation-summary" text="Spend 25 Power Coins?" class="loc-menu.spend pet-gacha-confirmation-summary"/>

@@ -37,6 +37,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         private bool _whiteFlashTriggered;
         private bool _majorDeath;
         private Func<bool> _interactionAllowed;
+        private PowerMath.Audio.IEnemySfxProfile _customSfxProfile;
+        private string _encounterKind;
 
         private bool _isPointerHovered;
         private bool _isPointerPressed;
@@ -126,6 +128,12 @@ namespace PowerMath.Gameplay.Combat.Unity
             _majorDeath = IsPlayer || major;
         }
 
+        public void ConfigureSfxProfile(PowerMath.Audio.IEnemySfxProfile profile, string encounterKind = null)
+        {
+            _customSfxProfile = profile;
+            _encounterKind = encounterKind;
+        }
+
         public void ConfigureInteractionEligibility(Func<bool> isAllowed)
         {
             _interactionAllowed = isAllowed;
@@ -177,11 +185,13 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             if (eventData != null && eventData.button != PointerEventData.InputButton.Left) return;
             if (!CanPlayInteractionJuice()) return;
+            PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.ActorClick);
             Clicked?.Invoke();
         }
 
         public void TriggerClick()
         {
+            PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.ActorClick);
             Clicked?.Invoke();
         }
 
@@ -223,6 +233,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 RestoreAuthoredPose(resetAlpha: false);
                 State = target;
                 UpdateSprite();
+                PlaySfxForAction(action, target);
                 _whiteFlashTriggered = false;
                 float duration = ResolveDuration(target);
                 float elapsed = 0f;
@@ -263,6 +274,49 @@ namespace PowerMath.Gameplay.Combat.Unity
                 if (sessionId == _playSessionId)
                 {
                     _isPlaying = false;
+                }
+            }
+        }
+
+        private void PlaySfxForAction(PresentationActionKind action, ActorVisualState target)
+        {
+            var sfx = PowerMath.Audio.SfxController.Instance;
+            if (sfx == null) return;
+
+            if (IsPlayer)
+            {
+                switch (target)
+                {
+                    case ActorVisualState.Attacking:
+                        sfx.PlayPlayer(PowerMath.Audio.PlayerSfxState.AttackSwing);
+                        break;
+                    case ActorVisualState.FailedAttack:
+                        sfx.PlayPlayer(PowerMath.Audio.PlayerSfxState.AttackFail);
+                        break;
+                    case ActorVisualState.TakingDamage:
+                        sfx.PlayPlayer(PowerMath.Audio.PlayerSfxState.Hurt);
+                        break;
+                    case ActorVisualState.Dying:
+                        sfx.PlayPlayer(PowerMath.Audio.PlayerSfxState.Die);
+                        break;
+                }
+            }
+            else
+            {
+                switch (target)
+                {
+                    case ActorVisualState.Appearing:
+                        sfx.PlayEnemy(PowerMath.Audio.EnemySfxState.Appear, _encounterKind, _customSfxProfile);
+                        break;
+                    case ActorVisualState.Attacking:
+                        sfx.PlayEnemy(PowerMath.Audio.EnemySfxState.Attack, _encounterKind, _customSfxProfile);
+                        break;
+                    case ActorVisualState.TakingDamage:
+                        sfx.PlayEnemy(PowerMath.Audio.EnemySfxState.Hurt, _encounterKind, _customSfxProfile);
+                        break;
+                    case ActorVisualState.Dying:
+                        sfx.PlayEnemy(PowerMath.Audio.EnemySfxState.Die, _encounterKind, _customSfxProfile, _majorDeath);
+                        break;
                 }
             }
         }

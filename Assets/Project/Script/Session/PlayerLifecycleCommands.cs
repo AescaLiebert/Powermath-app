@@ -33,16 +33,12 @@ namespace PowerMath.Session
         public static bool IsComplete(PlayerSnapshot player) =>
             player?.onboarding?.phase == "complete" && IsCharacter(player.profile?.characterId);
 
-        public static bool TryNormalizeName(string input, out string name)
+        public static bool TryNormalizeName(string input, out string name) =>
+            TryNormalizeName(input, out name, out _);
+
+        public static bool TryNormalizeName(string input, out string name, out DisplayNameValidationResult result)
         {
-            name = (input ?? string.Empty).Normalize(NormalizationForm.FormC).Trim();
-            if (string.IsNullOrWhiteSpace(name)) return false;
-            // Shared with the 20-character profile layouts; text elements keep Thai input intact.
-            if (new StringInfo(name).LengthInTextElements >
-                MaximumDisplayNameLength) return false;
-            foreach (char c in name)
-                if (char.IsControl(c) || c == '<' || c == '>') return false;
-            return true;
+            return DisplayNamePolicy.TryValidate(input, out name, out result);
         }
 
         public static FirestorePatchPlan Plan(PlayerSnapshot player, string username, PlayerLifecycleCommand command)

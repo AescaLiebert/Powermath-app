@@ -80,7 +80,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             else
             {
                 _view.ShowAnswerFeedback(
-                    "✓",
+                    "OK",
                     "CORRECT",
                     "Building your attack power",
                     true);
@@ -240,12 +240,6 @@ namespace PowerMath.Gameplay.Combat.Unity
                         enemyPos);
                 }
 
-                _view.ShowBattleBanner(
-                    resolution.ResolvedStage.IsFinal
-                        ? "FINAL ENEMY DEFEATED - RUN COMPLETE"
-                        : $"STAGE {resolution.ResolvedStage.Value} CLEARED",
-                    true
-                );
                 _audio?.PlayDeath(_enemyActor?.IsMajorDeath ?? false);
                 yield return RunConcurrent(
                     receipt == null
@@ -264,9 +258,6 @@ namespace PowerMath.Gameplay.Combat.Unity
                         receipt.PresentationId,
                         ResolveToken(receipt),
                         false);
-                _view.ShowBattleBanner(resolution.Snapshot.IsEvent
-                    ? "CHALLENGE FAILED - LOST 1 HEART"
-                    : "ENEMY COUNTERATTACK - LOST 1 HEART", false);
                 yield return new WaitForSecondsRealtime(0.55f);
                 if (_enemyActor != null)
                     yield return _enemyActor.Play(PresentationActionKind.EnemyAttack);
@@ -333,7 +324,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _view.RebuildRecoveredEnemyActions(receipt);
             bool correct = receipt.Outcome == AttemptOutcomeKind.Correct;
             _view.ShowAnswerFeedback(
-                correct ? "✓" : receipt.Outcome == AttemptOutcomeKind.Timeout ? "!" : "×",
+                correct ? "OK" : receipt.Outcome == AttemptOutcomeKind.Timeout ? "!" : "×",
                 correct ? "CORRECT" : receipt.Outcome == AttemptOutcomeKind.Timeout
                     ? "TIME EXPIRED" : "INCORRECT",
                 "Recovering the accepted combat result.",

@@ -98,19 +98,19 @@ namespace PowerMath.UI.Core
             switch (severity)
             {
                 case StatusSeverity.Success:
-                    _badge.text = "✓";
+                    _badge.text = "OK";
                     _banner.AddToClassList("status-toast--success");
                     break;
                 case StatusSeverity.Warning:
-                    _badge.text = "⚠";
+                    _badge.text = "!";
                     _banner.AddToClassList("status-toast--warning");
                     break;
                 case StatusSeverity.Error:
-                    _badge.text = "✕";
+                    _badge.text = "X";
                     _banner.AddToClassList("status-toast--error");
                     break;
                 default:
-                    _badge.text = "ℹ";
+                    _badge.text = "i";
                     _banner.AddToClassList("status-toast--info");
                     break;
             }

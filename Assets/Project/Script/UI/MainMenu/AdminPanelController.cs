@@ -246,7 +246,7 @@ namespace PowerMath.UI.MainMenu.Admin
             string grade = _player?.profile?.gradeBand ?? "Grade";
             string playerId = _player?.playerId ?? "N/A";
 
-            _accountSummary.text = name + " (" + grade + ") • " + playerId;
+            _accountSummary.text = name + " (" + grade + ") - " + playerId;
         }
 
         private void SetSemanticState(string state = null)

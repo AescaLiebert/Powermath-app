@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Video;
+using PowerMath.UI.Shared;
 
 namespace PowerMath.PlayerLifecycle
 {
@@ -21,6 +22,8 @@ namespace PowerMath.PlayerLifecycle
             public Sprite battleHurtSprite;
             public Sprite battleIdleSprite => battleSprite;
             public VideoClip hubVideo;
+            [Tooltip("Hosted or StreamingAssets-relative hub-loop URL used by WebGL.")]
+            public string hubVideoUrl;
         }
         public Material chromaKeyMaterial;
         [Header("First Login Selection")]
@@ -29,8 +32,7 @@ namespace PowerMath.PlayerLifecycle
         public string selectionVideoUrl;
         public Sprite selectionBackground;
         public bool HasHostedSelectionVideo =>
-            Uri.TryCreate(selectionVideoUrl, UriKind.Absolute, out var uri) &&
-            (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+            StreamingVideoPath.TryResolve(selectionVideoUrl, out _);
         public Character[] characters = { new Character { id = "ricko" }, new Character { id = "stellar" } };
         public Character Find(string id) => Array.Find(characters ?? Array.Empty<Character>(), value => value != null && value.id == id);
         private void OnValidate()

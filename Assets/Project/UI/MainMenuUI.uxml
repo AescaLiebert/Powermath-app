@@ -24,7 +24,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="main-menu-utility-bar" class="main-menu-utility-bar" style="left: auto;">
             <ui:Button name="main-menu-utility-back" text="X" tooltip="Back" class="main-menu-utility-back" style="border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; margin-right: 4px;"/>
-            <ui:Label name="main-menu-utility-power-coins" text="⚡ 0" class="main-menu-utility-currency main-menu-utility-currency--power"/>
+            <ui:Label name="main-menu-utility-power-coins" text="PWR 0" class="main-menu-utility-currency main-menu-utility-currency--power"/>
         </ui:VisualElement>
         <ui:VisualElement name="main-menu-notification" picking-mode="Ignore" class="main-menu-notification" style="flex-direction: column; bottom: auto; top: 50px;">
             <ui:Label name="main-menu-notification-text" text="" picking-mode="Ignore" class="main-menu-notification__text"/>

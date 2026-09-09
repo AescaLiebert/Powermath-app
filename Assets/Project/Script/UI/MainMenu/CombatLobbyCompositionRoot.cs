@@ -54,10 +54,6 @@ namespace PowerMath.UI.MainMenu
         [Tooltip("Optional authored battle clips; safe generated cues fill missing slots.")]
         [SerializeField] private BattleSfxLibraryDefinition battleSfxLibrary;
 
-        [Header("Result Stickers")]
-        [SerializeField] private Sprite stickerCorrect;
-        [SerializeField] private Sprite stickerFail;
-
         [Header("Combat Text Anchoring")]
         [Tooltip("Normalized anchor within enemy RectTransform for FCT spawn (0.5, 0.5 = center).")]
         [SerializeField] private Vector2 enemyFctNormalizedAnchor = new Vector2(0.5f, 0.5f);
@@ -146,8 +142,6 @@ namespace PowerMath.UI.MainMenu
                     runtimeSettings != null && runtimeSettings.ReducedMotion,
                     GameVersionChecker.IsFeatureAvailable(GameFeature.BiomeMap)
                 );
-                ResolveResultStickers();
-                _view.SetResultStickers(stickerCorrect, stickerFail);
             }
             catch (System.InvalidOperationException exception)
             {
@@ -218,6 +212,7 @@ namespace PowerMath.UI.MainMenu
                 Destroy(_runtimeEnemySprite);
                 _runtimeEnemySprite = null;
             }
+            PowerMath.Audio.MusicController.Instance.SetBossBattleActive(false);
         }
 
         public void RunCombatRoutine(IEnumerator routine)
@@ -1133,6 +1128,7 @@ namespace PowerMath.UI.MainMenu
                 _sceneBackgroundTransition.color = new Color(1f, 1f, 1f, 0f);
                 _sceneBackgroundTransition.gameObject.SetActive(false);
             }
+            PowerMath.Audio.MusicController.Instance.PlayBattleMusic(snapshot?.BiomeId);
         }
 
         private bool RequiresBackgroundTransition(CombatSnapshot snapshot)
@@ -1160,9 +1156,12 @@ namespace PowerMath.UI.MainMenu
             {
                 StageEncounterKind kind = monster?.EncounterKind ??
                     StageEncounterKind.ChallengeEvent;
-                _enemyActor?.ConfigureDeathProfile(
-                    kind == StageEncounterKind.BigBoss ||
-                    kind == StageEncounterKind.FinalBoss);
+                bool isBigBoss = kind == StageEncounterKind.BigBoss ||
+                    kind == StageEncounterKind.FinalBoss;
+                PowerMath.Audio.MusicController.Instance.SetBossBattleActive(isBigBoss);
+                _enemyActor?.ConfigureDeathProfile(isBigBoss);
+                PowerMath.Audio.IEnemySfxProfile customProfile = (PowerMath.Audio.IEnemySfxProfile)monster ?? (PowerMath.Audio.IEnemySfxProfile)eventDefinition;
+                _enemyActor?.ConfigureSfxProfile(customProfile, kind.ToString());
                 // Actor animation chooses its own state sprite and clears Image's
                 // override. Rebind the actor too so Appear/Idle retain this encounter.
                 _enemyActor?.ConfigureSprites(sprite);
@@ -1398,33 +1397,5 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
-        private void ResolveResultStickers()
-        {
-            if (stickerCorrect == null)
-            {
-#if UNITY_EDITOR
-                stickerCorrect = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
-                    "Assets/Project/Art/Character/Sticker_Power_Correct.PNG");
-#endif
-                if (stickerCorrect == null)
-                {
-                    stickerCorrect = Resources.Load<Sprite>("Character/Sticker_Power_Correct")
-                        ?? Resources.Load<Sprite>("Sticker_Power_Correct");
-                }
-            }
-
-            if (stickerFail == null)
-            {
-#if UNITY_EDITOR
-                stickerFail = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
-                    "Assets/Project/Art/Character/Sticker_Power_Fail.PNG");
-#endif
-                if (stickerFail == null)
-                {
-                    stickerFail = Resources.Load<Sprite>("Character/Sticker_Power_Fail")
-                        ?? Resources.Load<Sprite>("Sticker_Power_Fail");
-                }
-            }
-        }
     }
 }
