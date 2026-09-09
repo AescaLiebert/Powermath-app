@@ -31,6 +31,7 @@ Replace the single-enemy Stage prototype with a data-defined 200-Stage journey: 
 - `LocalCombatEngine` respawns that same enemy and generates HP from its Base HP after every Stage advance.
 - The GDD previously described four quarter-journey biome changes and generic fixed encounters, which conflicts with the new 30-Stage biome cadence and Event rules.
 - The existing Stage 200 `RunComplete` rule remains valid and is preserved as the Final Boss override.
+- **Flexible Biome Cadence (2026-09 Update)**: Biomes support flexible lengths (e.g., Biome 5: 121–160, Biome 6: 161–190, Biome 7: 191–215, totaling 215 stages). Boss classification is decoupled from `% 30` to biome-aware rules (`stage == biome.LastStage` $\rightarrow$ `BigBoss` / `FinalBoss`, intermediate `% 5 == 0` $\rightarrow$ `MiniBoss`). `StageId.Final` is updated to 215.
 
 ## Requested Scope
 

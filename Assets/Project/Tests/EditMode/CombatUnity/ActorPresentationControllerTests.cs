@@ -100,6 +100,11 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Assert.That(profile.DieHoldThreshold, Is.EqualTo(0.40f).Within(0.01f));
                 Assert.That(profile.DieWhiteFlashThreshold, Is.EqualTo(0.55f).Within(0.01f));
                 Assert.That(profile.DieDisappearThreshold, Is.EqualTo(0.75f).Within(0.01f));
+                Assert.That(profile.NormalDeathSeconds, Is.EqualTo(0.70f).Within(0.01f));
+                Assert.That(profile.MajorDeathSeconds, Is.EqualTo(1.60f).Within(0.01f));
+                Assert.That(profile.ReducedNormalDeathSeconds, Is.EqualTo(0.50f).Within(0.01f));
+                Assert.That(profile.ReducedMajorDeathSeconds, Is.EqualTo(1.00f).Within(0.01f));
+                Assert.That(profile.MajorDeathSeconds, Is.GreaterThan(profile.NormalDeathSeconds));
                 Assert.That(profile.RewardPopSeconds, Is.GreaterThan(0f));
                 Assert.That(profile.RewardMagnetFlightSeconds, Is.GreaterThan(0f));
             }
@@ -241,6 +246,134 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Object.DestroyImmediate(go);
                 Object.DestroyImmediate(idle);
                 Object.DestroyImmediate(tex);
+            }
+        }
+
+        [Test]
+        public void PointerInteraction_EnterAndExit_TogglesHoverState()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Enemy, true);
+
+                Assert.That(controller.IsPointerHovered, Is.False);
+                Assert.That(controller.IsPointerPressed, Is.False);
+
+                controller.SimulatePointerEnter();
+                Assert.That(controller.IsPointerHovered, Is.True);
+
+                controller.SimulatePointerExit();
+                Assert.That(controller.IsPointerHovered, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void PointerInteraction_DownAndUp_TracksPressedAndFiresClick()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Enemy, true);
+
+                bool clicked = false;
+                controller.Clicked += () => clicked = true;
+
+                controller.SimulatePointerDown();
+                Assert.That(controller.IsPointerPressed, Is.True);
+
+                controller.TriggerClick();
+                Assert.That(clicked, Is.True);
+
+                controller.SimulatePointerUp();
+                Assert.That(controller.IsPointerPressed, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void PointerInteraction_GlobalGateBlocksClick()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Enemy, true);
+                bool allowed = false;
+                bool clicked = false;
+                controller.ConfigureInteractionEligibility(() => allowed);
+                controller.Clicked += () => clicked = true;
+
+                controller.TriggerClick();
+                Assert.That(clicked, Is.False);
+
+                allowed = true;
+                controller.TriggerClick();
+                Assert.That(clicked, Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void DeathProfile_PlayerIsAlwaysMajor_EnemyCanBeConfigured()
+        {
+            var playerGo = new GameObject("Player", typeof(RectTransform), typeof(Image));
+            var enemyGo = new GameObject("Enemy", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var player = playerGo.AddComponent<ActorPresentationController>();
+                player.Initialize(PresentationActor.Player, true);
+                player.ConfigureDeathProfile(false);
+                Assert.That(player.IsMajorDeath, Is.True);
+
+                var enemy = enemyGo.AddComponent<ActorPresentationController>();
+                enemy.Initialize(PresentationActor.Enemy, true);
+                enemy.ConfigureDeathProfile(false);
+                Assert.That(enemy.IsMajorDeath, Is.False);
+                enemy.ConfigureDeathProfile(true);
+                Assert.That(enemy.IsMajorDeath, Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(playerGo);
+                Object.DestroyImmediate(enemyGo);
+            }
+        }
+
+        [Test]
+        public void PointerInteraction_PlayCombatAction_InterruptsInteraction()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, true);
+
+                controller.SimulatePointerDown();
+                Assert.That(controller.IsPointerPressed, Is.True);
+
+                var attackRoutine = controller.Play(PresentationActionKind.PlayerPrimaryAttack);
+                attackRoutine.MoveNext();
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Attacking));
+
+                while (attackRoutine.MoveNext()) { }
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Idle));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
             }
         }
     }

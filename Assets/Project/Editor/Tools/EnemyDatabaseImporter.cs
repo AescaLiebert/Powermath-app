@@ -433,7 +433,8 @@ namespace PowerMath.Editor.Tools
                     {
                         var stageId = new StageId(stage);
                         if (!StageClassificationPolicy.IsProtected(stageId)) continue;
-                        StageEncounterKind requiredKind = StageClassificationPolicy.Classify(stageId);
+                        bool isFinalBiome = biome.BiomeId == "biome-7" || biome.LastStage == StageId.Final;
+                        StageEncounterKind requiredKind = StageClassificationPolicy.Classify(stageId, biome.LastStage, isFinalBiome);
 
                         EnemyDefinition selectedBoss = null;
                         if (requiredKind == StageEncounterKind.FinalBoss)

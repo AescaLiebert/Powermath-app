@@ -1,9 +1,6 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="NavigatorPanel" src="project://database/Assets/Project/UI/MainMenu/NavigatorPanel.uxml?fileID=9197481963319205126&amp;guid=06cb78a1b6c61b949ac197f1543ab3d8&amp;type=3#NavigatorPanel"/>
-    <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
-    <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
-    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
-    <Style src="project://database/Assets/Project/UI/QuestionSequence/QuestionSequencePalette.uss?fileID=7433441132597879392&amp;guid=73c93a98f8534bd8b43afedd91eaddd9&amp;type=3#QuestionSequencePalette"/>
+    <Style src="project://database/Assets/Project/UI/CombatLobbyUI.uss?fileID=7433441132597879392&amp;guid=3ea5ee48f6afce54b8ee62c9ae496672&amp;type=3#CombatLobbyUI"/>
     <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden">
         <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel main-menu-transition-top">
             <ui:Label name="combat-stage-label-compat" text="STAGE 1" class="hud-stage-label"/>
@@ -135,6 +132,7 @@
                 </ui:VisualElement>
                 <ui:Label name="combat-feedback-subtitle" text="Building your attack" class="loc-combat.attackBuild combat-feedback-subtitle"/>
                 <ui:VisualElement name="combat-score-stack" class="combat-score-stack"/>
+                <ui:Image name="combat-result-sticker" picking-mode="Ignore" class="combat-result-sticker is-hidden"/>
             </ui:VisualElement>
             <ui:Label name="combat-result-label" text="" class="combat-result"/>
             <ui:Label name="academic-currency-gain" text="" class="academic-currency-gain"/>

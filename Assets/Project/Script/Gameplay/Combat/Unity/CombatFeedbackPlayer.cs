@@ -61,7 +61,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     "The answer window closed.",
                     false);
                 _view.AddFeedbackStep("DAMAGE", "0", true);
-                _audio.PlayTimeout();
+                _audio?.PlayTimeout();
                 yield return new WaitForSecondsRealtime(
                     _reducedMotion ? 0.30f : 0.75f);
             }
@@ -73,7 +73,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     "Review the question and try again.",
                     false);
                 _view.AddFeedbackStep("DAMAGE", "0", true);
-                _audio.PlayTimeout();
+                _audio?.PlayTimeout();
                 yield return new WaitForSecondsRealtime(
                     _reducedMotion ? 0.30f : 0.75f);
             }
@@ -84,7 +84,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     "CORRECT",
                     "Building your attack power",
                     true);
-                _audio.PlaySuccess();
+                _audio?.PlaySuccess();
                 yield return new WaitForSecondsRealtime(
                     _reducedMotion ? 0.10f : 0.25f);
 
@@ -138,6 +138,10 @@ namespace PowerMath.Gameplay.Combat.Unity
                 yield return new WaitForSecondsRealtime(
                     _reducedMotion ? 0.18f : 0.38f);
             }
+
+            // Preserve the complete result after its existing buildup. This is
+            // informational timing only and never delays authoritative resolution.
+            yield return new WaitForSecondsRealtime(1f);
         }
 
         public IEnumerator PlayBattleResolution(AttemptResolution attempt)
@@ -150,6 +154,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (resolution.IsCorrect)
             {
+                _audio?.PlaySwing();
                 if (_playerActor != null)
                     yield return _playerActor.Play(
                         PresentationActionKind.PlayerPrimaryAttack);
@@ -172,7 +177,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 }
                 _view.SetEnemyHit(true, resolution.IsCritical);
                 if (resolution.IsCritical) _impactImpulse?.PlayCritical();
-                _audio.PlayHit(resolution.IsCritical);
+                _audio?.PlayHit(resolution.IsCritical);
                 if (_enemyActor != null)
                     yield return _enemyActor.Play(
                         PresentationActionKind.EnemyTakeDamage);
@@ -241,7 +246,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                         : $"STAGE {resolution.ResolvedStage.Value} CLEARED",
                     true
                 );
-                _audio.PlayDefeat();
+                _audio?.PlayDeath(_enemyActor?.IsMajorDeath ?? false);
                 yield return RunConcurrent(
                     receipt == null
                         ? null
@@ -265,7 +270,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 yield return new WaitForSecondsRealtime(0.55f);
                 if (_enemyActor != null)
                     yield return _enemyActor.Play(PresentationActionKind.EnemyAttack);
-                _audio.PlayEnemyAttack();
+                _audio?.PlayEnemyAttack();
                 yield return new WaitForSecondsRealtime(0.35f);
                 if (_playerActor != null)
                     yield return _playerActor.Play(
@@ -283,6 +288,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (resolution.PlayerDefeated)
             {
+                _audio?.PlayDeath(true);
                 if (_playerActor != null)
                     yield return _playerActor.Play(PresentationActionKind.PlayerDie);
                 _view.ShowBattleBanner(
@@ -293,14 +299,31 @@ namespace PowerMath.Gameplay.Combat.Unity
             {
                 if (resolution.StageAdvanced)
                 {
-                    _view.PrepareEncounterPresentation(resolution.Snapshot);
-                    _view.InitiateEnemyActions(resolution.Snapshot);
-                    if (_enemyActor != null)
-                        yield return _enemyActor.Play(
-                            PresentationActionKind.EnemyAppear);
+                    yield return PlayEncounterEntrance(
+                        resolution.Snapshot,
+                        resolution.BiomeChanged ||
+                        _view.RequiresBackgroundTransition(resolution.Snapshot));
                 }
                 _view.HideBattleBanner();
             }
+        }
+
+        public IEnumerator PlayEncounterEntrance(
+            CombatSnapshot destination,
+            bool biomeChanged = false)
+        {
+            // Preparing the destination first replaces the old background and
+            // makes its transition a no-op. Recovery deliberately omits this
+            // cosmetic transition and renders the saved destination directly.
+            if (biomeChanged)
+            {
+                _audio?.PlayBiomeTransition();
+                yield return _view.PlayBiomeTransition(destination);
+            }
+            _view.PrepareEncounterPresentation(destination);
+            _view.InitiateEnemyActions(destination);
+            if (_enemyActor != null)
+                yield return _enemyActor.Play(PresentationActionKind.EnemyAppear);
         }
 
         public IEnumerator PlayRecoveredResolution(AttemptPresentationReceipt receipt)
@@ -330,7 +353,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     receipt.IsCritical,
                     0));
                 if (receipt.IsCritical) _impactImpulse?.PlayCritical();
-                _audio.PlayHit(receipt.IsCritical);
+                _audio?.PlayHit(receipt.IsCritical);
                 if (_enemyActor != null)
                     yield return _enemyActor.Play(PresentationActionKind.EnemyTakeDamage);
                 _view.SetEnemyHp(receipt.ResolvedEnemyHpAfter);
@@ -343,7 +366,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             EnemyActionTokenKind token = ResolveToken(receipt);
             if (receipt.EnemyDefeated)
             {
-                _audio.PlayDefeat();
+                _audio?.PlayDeath(_enemyActor?.IsMajorDeath ?? false);
                 yield return RunConcurrent(
                     _view.ConsumeEnemyAction(
                         receipt.PresentationId, token, true),
@@ -351,10 +374,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 if (receipt.StageAdvanced)
                 {
                     CombatSnapshot destination = ToCombatSnapshot(receipt.Destination);
-                    _view.PrepareEncounterPresentation(destination);
-                    _view.InitiateEnemyActions(destination);
-                    if (_enemyActor != null)
-                        yield return _enemyActor.Play(PresentationActionKind.EnemyAppear);
+                    yield return PlayEncounterEntrance(destination);
                 }
             }
             else if (receipt.EnemyAttacked)
@@ -363,11 +383,12 @@ namespace PowerMath.Gameplay.Combat.Unity
                     receipt.PresentationId, token, false);
                 if (_enemyActor != null)
                     yield return _enemyActor.Play(PresentationActionKind.EnemyAttack);
-                _audio.PlayEnemyAttack();
+                _audio?.PlayEnemyAttack();
                 if (_playerActor != null)
                     yield return _playerActor.Play(PresentationActionKind.PlayerTakeDamage);
                 if (receipt.PlayerDefeated)
                 {
+                    _audio?.PlayDeath(true);
                     if (_playerActor != null)
                         yield return _playerActor.Play(PresentationActionKind.PlayerDie);
                 }

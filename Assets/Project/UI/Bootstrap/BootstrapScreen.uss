@@ -304,3 +304,617 @@
     letter-spacing: 2px;
     -unity-text-align: middle-center;
 }
+
+/* Figma 118:479 — first-run narrative and character preparation. */
+.bootstrap-loading-background {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-image: url("project://database/Assets/Project/Art/UI/illustration/LoadingScreen.JPG");
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.prep-root,
+.prep-stage {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.prep-root {
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+}
+
+.prep-stage {
+    align-items: center;
+    justify-content: center;
+}
+
+.prep-narrative {
+    background-color: rgb(0, 0, 0);
+}
+
+.prep-narrative__line {
+    width: 78%;
+    max-width: 1120px;
+    color: rgb(255, 255, 255);
+    font-size: 42px;
+    letter-spacing: 1px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    opacity: 0;
+}
+
+.prep-skip-button {
+    position: absolute;
+    right: 40px;
+    bottom: 32px;
+    min-width: 180px;
+    min-height: 48px;
+    padding-left: 22px;
+    padding-right: 22px;
+    color: rgba(255, 255, 255, 0.78);
+    background-color: rgba(0, 0, 0, 0.28);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(255, 255, 255, 0.45);
+    border-right-color: rgba(255, 255, 255, 0.45);
+    border-top-color: rgba(255, 255, 255, 0.45);
+    border-bottom-color: rgba(255, 255, 255, 0.45);
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    font-size: 15px;
+    letter-spacing: 2px;
+}
+
+.prep-skip-button:hover,
+.prep-skip-button:focus {
+    color: rgb(255, 255, 255);
+    background-color: rgba(32, 92, 183, 0.72);
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+}
+
+.prep-fullscreen-video,
+.prep-selection-fallback,
+.prep-detail__background,
+.prep-detail__darken,
+.prep-name-stage__darken,
+.prep-video-vignette,
+.prep-dot-grid,
+.prep-transition-layer,
+.prep-flash,
+.prep-message-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.prep-fullscreen-video {
+    flex-grow: 1;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.prep-video-stage {
+    background-color: rgb(0, 0, 0);
+}
+
+.prep-video-vignette {
+    background-color: rgba(0, 0, 0, 0.12);
+}
+
+.prep-video-status {
+    position: absolute;
+    left: 50%;
+    bottom: 36px;
+    translate: -50% 0;
+    max-width: 760px;
+    padding: 10px 18px;
+    color: rgb(255, 255, 255);
+    background-color: rgba(0, 0, 0, 0.62);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    font-size: 18px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.prep-selection {
+    background-color: rgb(8, 19, 40);
+}
+
+.prep-selection-fallback {
+    flex-direction: row;
+}
+
+.prep-overview-art {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 63%;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.prep-overview-art--ricko {
+    left: 0;
+}
+
+.prep-overview-art--stellar {
+    right: 0;
+}
+
+.prep-selection-heading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 38px;
+    height: 92px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.prep-selection-line {
+    width: 34%;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.96);
+}
+
+.prep-selection-title {
+    min-width: 380px;
+    color: rgb(255, 255, 255);
+    font-size: 74px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.prep-selection-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 36px;
+    translate: -50% 0;
+    min-width: 430px;
+    padding: 12px 28px;
+    color: rgb(255, 255, 255);
+    background-color: rgba(8, 23, 48, 0.72);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    font-size: 18px;
+    letter-spacing: 3px;
+    -unity-text-align: middle-center;
+}
+
+.prep-character-hit {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+}
+
+.prep-character-hit--left {
+    left: 0;
+}
+
+.prep-character-hit--right {
+    right: 0;
+}
+
+.prep-character-hit:hover,
+.prep-character-hit:focus {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.prep-detail,
+.prep-name-stage {
+    background-color: rgb(7, 9, 14);
+}
+
+.prep-detail__background {
+    background-image: url("project://database/Assets/Project/Art/Character/SL_Seperate_Background.png");
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.prep-detail__darken {
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+.prep-name-stage__darken {
+    background-color: rgba(0, 0, 0, 0.36);
+}
+
+.prep-dot-grid {
+    opacity: 0.64;
+}
+
+.prep-dot {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background-color: rgba(255, 255, 255, 0.40);
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.prep-detail.is-ricko .prep-dot {
+    background-color: rgba(255, 116, 52, 0.56);
+}
+
+.prep-detail.is-stellar .prep-dot {
+    background-color: rgba(93, 177, 255, 0.60);
+}
+
+.prep-detail-accent {
+    position: absolute;
+    width: 48%;
+    height: 84%;
+    background-color: rgba(0, 0, 0, 0.78);
+    rotate: -8deg;
+}
+
+.prep-detail.is-ricko .prep-detail-accent {
+    left: -10%;
+}
+
+.prep-detail.is-stellar .prep-detail-accent {
+    right: -10%;
+    rotate: 8deg;
+}
+
+.prep-character-art,
+.prep-character-shadow {
+    position: absolute;
+    top: 2%;
+    bottom: -2%;
+    width: 62%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.prep-detail.is-ricko .prep-character-art,
+.prep-detail.is-ricko .prep-character-shadow {
+    left: -2%;
+}
+
+.prep-detail.is-stellar .prep-character-art,
+.prep-detail.is-stellar .prep-character-shadow {
+    right: -2%;
+}
+
+.prep-character-shadow {
+    opacity: 0.42;
+}
+
+.prep-character-info {
+    position: absolute;
+    top: 22%;
+    width: 38%;
+    min-height: 420px;
+    justify-content: center;
+}
+
+.prep-detail.is-ricko .prep-character-info {
+    right: 8%;
+    align-items: flex-start;
+}
+
+.prep-detail.is-stellar .prep-character-info {
+    left: 8%;
+    align-items: flex-end;
+}
+
+.prep-character-kicker {
+    color: rgb(104, 184, 255);
+    font-size: 20px;
+    -unity-font-style: bold;
+    letter-spacing: 6px;
+}
+
+.prep-detail.is-ricko .prep-character-kicker {
+    color: rgb(255, 151, 66);
+}
+
+.prep-character-name {
+    margin-top: -4px;
+    color: rgb(255, 255, 255);
+    font-size: 104px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+}
+
+.prep-info-rule {
+    width: 100%;
+    height: 8px;
+    margin-top: 4px;
+    margin-bottom: 20px;
+    background-color: rgb(46, 129, 228);
+}
+
+.prep-detail.is-ricko .prep-info-rule {
+    background-color: rgb(241, 95, 42);
+}
+
+.prep-character-description {
+    width: 100%;
+    min-height: 90px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 24px;
+    white-space: normal;
+}
+
+.prep-detail.is-stellar .prep-character-description {
+    -unity-text-align: upper-right;
+}
+
+.prep-select-button,
+.prep-confirm-button {
+    min-width: 300px;
+    min-height: 72px;
+    margin-top: 28px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(25, 101, 214);
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    font-size: 30px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+}
+
+.prep-select-button:hover,
+.prep-select-button:focus,
+.prep-confirm-button:hover,
+.prep-confirm-button:focus {
+    scale: 1.05 1.05;
+    background-color: rgb(48, 136, 242);
+}
+
+.prep-select-button:active,
+.prep-confirm-button:active {
+    scale: 0.94 0.94;
+}
+
+.prep-exit-button,
+.prep-name-back-button {
+    position: absolute;
+    top: 34px;
+    right: 40px;
+    min-width: 64px;
+    min-height: 64px;
+    color: rgb(255, 255, 255);
+    background-color: rgba(0, 0, 0, 0.78);
+    border-left-width: 3px;
+    border-right-width: 3px;
+    border-top-width: 3px;
+    border-bottom-width: 3px;
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
+    font-size: 24px;
+    -unity-font-style: bold;
+}
+
+.prep-name-back-button {
+    min-width: 138px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    font-size: 17px;
+}
+
+.prep-name-character-art {
+    position: absolute;
+    top: 2%;
+    bottom: -2%;
+    width: 62%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.prep-name-stage.is-ricko .prep-name-character-art {
+    left: -2%;
+}
+
+.prep-name-stage.is-stellar .prep-name-character-art {
+    right: -2%;
+}
+
+.prep-name-card {
+    position: absolute;
+    width: 42%;
+    max-width: 690px;
+    min-height: 360px;
+    padding: 26px 34px 30px 34px;
+    align-items: center;
+    justify-content: center;
+    color: rgb(50, 50, 50);
+    background-color: rgb(255, 254, 239);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.prep-name-stage.is-ricko .prep-name-card {
+    right: 8%;
+}
+
+.prep-name-stage.is-stellar .prep-name-card {
+    left: 8%;
+}
+
+.prep-name-heading {
+    color: rgb(80, 80, 80);
+    font-size: 24px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.prep-name-prompt {
+    margin-top: 28px;
+    color: rgb(44, 44, 44);
+    font-size: 26px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.prep-name-input {
+    width: 88%;
+    min-height: 58px;
+    margin-top: 8px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 255, 255);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(20, 48, 91);
+    border-right-color: rgb(20, 48, 91);
+    border-top-color: rgb(20, 48, 91);
+    border-bottom-color: rgb(20, 48, 91);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    font-size: 24px;
+}
+
+.prep-name-input > .unity-text-field__input {
+    padding-left: 14px;
+    padding-right: 14px;
+    -unity-text-align: middle-center;
+}
+
+.prep-name-meta-row {
+    width: 88%;
+    margin-top: 4px;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.prep-name-note,
+.prep-name-count {
+    color: rgb(91, 91, 91);
+    font-size: 13px;
+    white-space: normal;
+}
+
+.prep-name-note {
+    width: 76%;
+}
+
+.prep-transition-layer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: stretch;
+    opacity: 0;
+}
+
+.prep-transition-square {
+    width: 20%;
+    height: 33.34%;
+    background-color: rgb(0, 0, 0);
+    opacity: 0;
+    scale: 0.2 0.2;
+}
+
+.prep-transition-square--accent {
+    background-color: rgb(21, 80, 174);
+}
+
+.prep-root.is-ricko .prep-transition-square--accent {
+    background-color: rgb(216, 69, 30);
+}
+
+.prep-flash {
+    background-color: rgb(255, 255, 255);
+    opacity: 0;
+}
+
+.prep-message-layer {
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 34px;
+}
+
+.prep-error {
+    max-width: 760px;
+    padding: 12px 20px;
+    color: rgb(255, 255, 255);
+    background-color: rgba(132, 28, 38, 0.94);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    font-size: 17px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.prep-recovery > Button {
+    min-width: 220px;
+    min-height: 54px;
+    margin-top: 8px;
+    color: rgb(20, 48, 91);
+    background-color: rgb(255, 249, 232);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.prep-root.is-reduced-motion .prep-character-art,
+.prep-root.is-reduced-motion .prep-character-shadow,
+.prep-root.is-reduced-motion .prep-character-info,
+.prep-root.is-reduced-motion .prep-transition-square {
+    translate: 0 0;
+    scale: 1 1;
+}

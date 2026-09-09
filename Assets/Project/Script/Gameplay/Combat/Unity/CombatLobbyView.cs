@@ -44,6 +44,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _feedbackTitle;
         private readonly Label _feedbackSubtitle;
         private readonly VisualElement _scoreStack;
+        private readonly Image _resultSticker;
+        private Sprite _stickerCorrect;
+        private Sprite _stickerFail;
         private readonly Label _damageLabel;
         private readonly Label _criticalLabel;
         private readonly Label _battleBanner;
@@ -59,9 +62,10 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _biomeTransitionTitle;
         private readonly Label _biomeTransitionKicker;
         private readonly Dictionary<string, Label> _mapNodes = new Dictionary<string, Label>();
-        private Action<string> _backgroundRenderer;
+        private Action<CombatSnapshot> _backgroundRenderer;
         private Action<string> _encounterRenderer;
-        private Func<string, float, IEnumerator> _backgroundCrossfader;
+        private Func<CombatSnapshot, float, IEnumerator> _backgroundCrossfader;
+        private Func<CombatSnapshot, bool> _backgroundTransitionRequired;
         private Func<string, string> _enemyNameResolver;
         private string _lastEncounterId;
         private bool _bound;
@@ -114,6 +118,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _feedbackTitle = Require<Label>("combat-feedback-title");
             _feedbackSubtitle = Require<Label>("combat-feedback-subtitle");
             _scoreStack = Require<VisualElement>("combat-score-stack");
+            _resultSticker = _feedbackCard.Q<Image>("combat-result-sticker");
             _damageLabel = Require<Label>("combat-damage-label");
             _criticalLabel = Require<Label>("combat-critical-label");
             _battleBanner = Require<Label>("combat-battle-banner");
@@ -185,6 +190,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
 
             _root.RegisterCallback<KeyDownEvent>(OnKeyDown);
+            _root.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             _bound = true;
         }
 
@@ -260,15 +266,17 @@ namespace PowerMath.Gameplay.Combat.Unity
         }
 
         public void ConfigureStageMap(StageMapData map,
-            Action<string> backgroundRenderer,
+            Action<CombatSnapshot> backgroundRenderer,
             Action<string> encounterRenderer,
-            Func<string, float, IEnumerator> backgroundCrossfader = null,
-            Func<string, string> enemyNameResolver = null)
+            Func<CombatSnapshot, float, IEnumerator> backgroundCrossfader = null,
+            Func<string, string> enemyNameResolver = null,
+            Func<CombatSnapshot, bool> backgroundTransitionRequired = null)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
             _backgroundRenderer = backgroundRenderer;
             _encounterRenderer = encounterRenderer;
             _backgroundCrossfader = backgroundCrossfader;
+            _backgroundTransitionRequired = backgroundTransitionRequired;
             _enemyNameResolver = enemyNameResolver;
             _mapRoute.Clear();
             _mapNodes.Clear();
@@ -307,17 +315,17 @@ namespace PowerMath.Gameplay.Combat.Unity
             _biomeTransitionTitle.text = destination.BiomeTitle.ToUpperInvariant();
             if (_biomeTransitionKicker != null)
             {
-                _biomeTransitionKicker.text = "ENTERING NEW BIOME";
+                _biomeTransitionKicker.text = string.Empty;
             }
 
-            float crossfadeDuration = _reducedMotion ? 0.30f : 1.40f;
+            float crossfadeDuration = _reducedMotion ? 0.40f : 1.40f;
             float popUpHoldDuration = _reducedMotion ? 0.35f : 0.85f;
 
             _biomeLifecycle.Enter();
 
             if (_backgroundCrossfader != null)
             {
-                IEnumerator crossfade = _backgroundCrossfader(destination.BiomeId, crossfadeDuration);
+                IEnumerator crossfade = _backgroundCrossfader(destination, crossfadeDuration);
                 if (crossfade != null)
                 {
                     while (crossfade.MoveNext())
@@ -328,15 +336,20 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
             else
             {
-                _backgroundRenderer?.Invoke(destination.BiomeId);
+                _backgroundRenderer?.Invoke(destination);
                 yield return new WaitForSecondsRealtime(crossfadeDuration);
             }
 
-            _encounterRenderer?.Invoke(destination.EnemyId);
             yield return new WaitForSecondsRealtime(popUpHoldDuration);
 
             _biomeLifecycle.Exit();
             while (!_biomeLifecycle.IsStable) yield return null;
+        }
+
+        public bool RequiresBackgroundTransition(CombatSnapshot destination)
+        {
+            return destination != null &&
+                (_backgroundTransitionRequired?.Invoke(destination) ?? false);
         }
 
         public void SetEnemyHp(int currentHp)
@@ -372,6 +385,16 @@ namespace PowerMath.Gameplay.Combat.Unity
             _attemptPanel.EnableInClassList(
                 "combat-attempt-panel--retained-video",
                 retained);
+            UpdateRetainedQuestionBreakpoint(retained);
+        }
+
+        private void UpdateRetainedQuestionBreakpoint(bool retained)
+        {
+            float width = _root.resolvedStyle.width;
+            if (float.IsNaN(width) || width <= 1f) width = Screen.width;
+            _attemptPanel.EnableInClassList(
+                "combat-attempt-panel--retained-video-narrow",
+                retained && width < 820f);
         }
 
         public void ShowAnswerContent(bool visible)
@@ -379,6 +402,12 @@ namespace PowerMath.Gameplay.Combat.Unity
             _answerContent.style.display = visible
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
+        }
+
+        public void SetResultStickers(Sprite correct, Sprite fail)
+        {
+            _stickerCorrect = correct;
+            _stickerFail = fail;
         }
 
         public void ShowAnswerFeedback(
@@ -395,6 +424,19 @@ namespace PowerMath.Gameplay.Combat.Unity
             _feedbackCard.EnableInClassList(
                 "combat-feedback-card--negative",
                 !isPositive);
+            if (_resultSticker != null)
+            {
+                Sprite sticker = isPositive ? _stickerCorrect : _stickerFail;
+                if (sticker != null)
+                {
+                    _resultSticker.sprite = sticker;
+                    _resultSticker.RemoveFromClassList("is-hidden");
+                }
+                else
+                {
+                    _resultSticker.AddToClassList("is-hidden");
+                }
+            }
             _scoreStack.Clear();
             _feedbackLifecycle.Enter();
         }
@@ -430,6 +472,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void HideAnswerFeedback()
         {
             _feedbackLifecycle.Exit();
+            _resultSticker?.AddToClassList("is-hidden");
             _feedbackCard.RemoveFromClassList("combat-feedback-card--negative");
             _scoreStack.Clear();
         }
@@ -615,6 +658,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
 
             _root.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+            _root.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             _panelHost.ForceCloseAll();
             _bound = false;
         }
@@ -696,7 +740,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void ApplyEncounterVisuals(CombatSnapshot snapshot)
         {
-            _backgroundRenderer?.Invoke(snapshot.BiomeId);
+            _backgroundRenderer?.Invoke(snapshot);
             _encounterRenderer?.Invoke(snapshot.EnemyId);
         }
 
@@ -747,6 +791,13 @@ namespace PowerMath.Gameplay.Combat.Unity
                 SubmitRequested?.Invoke();
                 evt.StopPropagation();
             }
+        }
+
+        private void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            UpdateRetainedQuestionBreakpoint(
+                _attemptPanel.ClassListContains(
+                    "combat-attempt-panel--retained-video"));
         }
 
         private static string BuildHearts(int current, int maximum)

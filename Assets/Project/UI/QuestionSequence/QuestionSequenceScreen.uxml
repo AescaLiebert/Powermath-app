@@ -122,6 +122,7 @@
                     <ui:Label text="DAMAGE" class="dmg-lbl" />
                     <ui:Label name="reward-damage" text="× 1.8" class="dmg-mult" />
                 </ui:VisualElement>
+                <ui:Image name="reward-sticker" picking-mode="Ignore" class="qs-result-sticker qs-result-sticker--correct" />
             </ui:VisualElement>
 
             <!-- OVERLAY: STATE 04 (Failure Penalty) -->
@@ -143,6 +144,7 @@
                     <ui:Label text="⚠" class="warning-icon" />
                     <ui:Label text="ENEMY ATTACK" class="alert-lbl" />
                 </ui:VisualElement>
+                <ui:Image name="failure-sticker" picking-mode="Ignore" class="qs-result-sticker qs-result-sticker--failure" />
             </ui:VisualElement>
         </ui:VisualElement>
 

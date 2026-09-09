@@ -11,6 +11,8 @@ namespace PowerMath.PlayerLifecycle
         public sealed class Character
         {
             public string id;
+            [Tooltip("Full-screen art used when the selection video is unavailable.")]
+            public Sprite overviewArt;
             public Sprite selectionArt;
             public Sprite profileIcon;
             public Sprite hubSprite;
@@ -21,6 +23,14 @@ namespace PowerMath.PlayerLifecycle
             public VideoClip hubVideo;
         }
         public Material chromaKeyMaterial;
+        [Header("First Login Selection")]
+        public VideoClip selectionVideo;
+        [Tooltip("Hosted selection-loop URL for WebGL, which cannot use embedded VideoClip assets.")]
+        public string selectionVideoUrl;
+        public Sprite selectionBackground;
+        public bool HasHostedSelectionVideo =>
+            Uri.TryCreate(selectionVideoUrl, UriKind.Absolute, out var uri) &&
+            (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
         public Character[] characters = { new Character { id = "ricko" }, new Character { id = "stellar" } };
         public Character Find(string id) => Array.Find(characters ?? Array.Empty<Character>(), value => value != null && value.id == id);
         private void OnValidate()

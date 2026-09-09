@@ -11,6 +11,7 @@ namespace PowerMath.UI.MainMenu
     {
         bool IsPlaying { get; }
         void NotifySessionReady();
+        void NotifyRecoveryReady();
         void CancelAndApplyFinalState();
     }
 
@@ -47,7 +48,9 @@ namespace PowerMath.UI.MainMenu
         private Vector2 _playerFinalPosition;
         private Vector2 _enemyFinalPosition;
         private bool _bootstrapPlayed;
+        private bool _sessionReady;
         private int _generation;
+        private IInteractionLock _bootstrapLock;
 
         public bool IsPlaying => _activeRoutine != null;
 
@@ -83,6 +86,12 @@ namespace PowerMath.UI.MainMenu
 
             CacheAuthoredCanvasState();
             _view.PrepareBootstrap(IsReducedMotion());
+            MainMenuInteractionGateProvider gateProvider =
+                GetComponent<MainMenuInteractionGateProvider>();
+            if (gateProvider == null)
+                gateProvider = gameObject.AddComponent<MainMenuInteractionGateProvider>();
+            _bootstrapLock = gateProvider.Gate.Acquire(
+                "main-menu-bootstrap", InteractionScope.All);
         }
 
         public Vector2 PlayerRestPosition => _playerFinalPosition;
@@ -114,6 +123,8 @@ namespace PowerMath.UI.MainMenu
         private void OnDisable()
         {
             CancelAndApplyFinalState();
+            _bootstrapLock?.Dispose();
+            _bootstrapLock = null;
         }
 
         public void NotifySessionReady()
@@ -121,8 +132,17 @@ namespace PowerMath.UI.MainMenu
             if (_bootstrapPlayed || !isActiveAndEnabled || _view == null)
                 return;
 
+            _sessionReady = true;
             _bootstrapPlayed = true;
             StartTransition(PlayBootstrap(++_generation));
+        }
+
+        public void NotifyRecoveryReady()
+        {
+            if (!isActiveAndEnabled || _view == null) return;
+            _sessionReady = true;
+            _bootstrapPlayed = true;
+            CancelAndApplyFinalState();
         }
 
         public void CancelAndApplyFinalState()
@@ -137,6 +157,7 @@ namespace PowerMath.UI.MainMenu
 
             ApplyCanvasFinalState();
             _view?.ApplyFinalState();
+            ReleaseBootstrapLockIfReady();
         }
 
         private void StartTransition(IEnumerator routine)
@@ -161,8 +182,13 @@ namespace PowerMath.UI.MainMenu
                 yield return WaitUnscaled(settings.InitialSettleSeconds, generation);
 
                 if (!IsCurrent(generation)) yield break;
+                _view.RevealScene();
                 _view.ShowBattleTitle();
                 PlayClip(settings.BattleStartImpact);
+                bool actorsComplete = false;
+                StartCoroutine(RunAndSignal(
+                    AnimateCanvasEntrance(generation),
+                    () => actorsComplete = true));
                 yield return WaitUnscaled(settings.TitleEntrySeconds, generation);
                 yield return WaitUnscaled(settings.TitleHoldSeconds, generation);
 
@@ -171,18 +197,10 @@ namespace PowerMath.UI.MainMenu
                 yield return WaitUnscaled(settings.TitleExitSeconds, generation);
 
                 if (!IsCurrent(generation)) yield break;
-                _view.RevealScene();
-                PlayClip(settings.CharacterWhoosh);
-                if (reduced)
+                while (!actorsComplete)
                 {
-                    yield return WaitUnscaled(
-                        settings.ReducedCrossfadeSeconds,
-                        generation);
-                    ApplyCanvasFinalState();
-                }
-                else
-                {
-                    yield return AnimateCanvasEntrance(generation);
+                    if (!IsCurrent(generation)) yield break;
+                    yield return null;
                 }
 
                 if (!IsCurrent(generation)) yield break;
@@ -213,6 +231,14 @@ namespace PowerMath.UI.MainMenu
 
         private IEnumerator AnimateCanvasEntrance(int generation)
         {
+            PlayClip(settings.CharacterWhoosh);
+            if (IsReducedMotion())
+            {
+                yield return WaitUnscaled(
+                    settings.ReducedCrossfadeSeconds, generation);
+                ApplyCanvasFinalState();
+                yield break;
+            }
             float duration = Mathf.Max(0.01f, settings.CharacterEntrySeconds);
             float enemyDelay = Mathf.Max(0f, settings.CharacterStaggerSeconds);
             bool playerComplete = playerArt == null;
@@ -307,6 +333,28 @@ namespace PowerMath.UI.MainMenu
             PlayClip(settings.SessionComplete);
             _activeTweens.Clear();
             _activeRoutine = null;
+            ReleaseBootstrapLockIfReady();
+        }
+
+        private static IEnumerator RunAndSignal(
+            IEnumerator routine,
+            System.Action completed)
+        {
+            try
+            {
+                if (routine != null) yield return routine;
+            }
+            finally
+            {
+                completed?.Invoke();
+            }
+        }
+
+        private void ReleaseBootstrapLockIfReady()
+        {
+            if (!_sessionReady) return;
+            _bootstrapLock?.Dispose();
+            _bootstrapLock = null;
         }
 
         private void Track(UiMotionHandle tween)

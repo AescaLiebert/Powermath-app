@@ -17,6 +17,7 @@ MonoBehaviour:
   firstStage: 1
   lastStage: 30
   backgroundSprite: {fileID: 21300000, guid: 4c655f59c22e1f745bca3384985d9f48, type: 3}
+  secondaryBackgroundSprite: {fileID: 21300000, guid: fc65e5be73ea6e148b74f1df1d29ab2f, type: 3}
   mapLandmarkSprite: {fileID: 0}
   normalizedMapPosition: {x: 0, y: 0.42}
   normalMonsters:

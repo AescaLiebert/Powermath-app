@@ -1,247 +1,910 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using PowerMath.Localization;
 using PowerMath.PlayerData;
 using PowerMath.Session;
+using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Video;
 
 namespace PowerMath.PlayerLifecycle
 {
     public sealed class PlayerPreparationPresenter : MonoBehaviour
     {
-        private VisualElement _overlay;
-        private VisualElement _content;
-        private Label _error;
-        private VisualElement _recovery;
+        // Starting values. Tune against the onboarding playtest plan after final audio is authored.
+        private const float TransitionCoverSeconds = 0.34f;
+        private const float TransitionRevealSeconds = 0.48f;
+        private const float DetailEnterSeconds = 0.66f;
+        private const float DetailExitSeconds = 0.38f;
+        private const float DetailHoldPulseSeconds = 1.65f;
+        private const float CompletionFlashSeconds = 0.68f;
+        private const float VideoPrepareTimeoutSeconds = 12f;
+
+        private enum VideoPurpose
+        {
+            None,
+            Opening,
+            Selection
+        }
+
+        private PlayerPreparationView _view;
         private PlayerSessionStore _store;
         private IPlayerLifecycleCommands _commands;
+        private IUiMotionDriver _motion;
         private Action _completed;
         private PlayerLifecycleCommand _pending;
-        private bool _busy;
-        private string _preview;
-        private string _name;
         private CharacterPresentationCatalog _catalog;
         private OpeningSequenceDefinition _opening;
-        private UnityEngine.Video.VideoPlayer _video;
+        private Coroutine _visualSequence;
+        private UiMotionHandle _characterHold;
+        private VideoPlayer _video;
         private RenderTexture _videoTexture;
-        private Image _videoImage;
+        private VideoPurpose _videoPurpose;
+        private bool _videoPrepared;
+        private bool _videoEnded;
+        private bool _videoFailed;
+        private bool _busy;
+        private bool _completionTransition;
+        private bool _keepTransitionCovered;
+        private bool _revealAfterSave;
+        private bool _reducedMotion;
+        private string _preview;
+        private string _name;
 
-        public void Initialize(VisualElement root, PlayerSessionStore store, IPlayerLifecycleCommands commands, Action completed)
+        public PlayerPreparationSequenceState State =>
+            _view?.State ?? PlayerPreparationSequenceState.Hidden;
+
+        public void Initialize(
+            VisualElement root,
+            PlayerSessionStore store,
+            IPlayerLifecycleCommands commands,
+            Action completed)
         {
-            _store = store; _commands = commands; _completed = completed;
-            _catalog = Resources.Load<CharacterPresentationCatalog>("CharacterPresentationCatalog");
+            if (root == null) throw new ArgumentNullException(nameof(root));
+            _store = store ?? throw new ArgumentNullException(nameof(store));
+            _commands = commands ?? throw new ArgumentNullException(nameof(commands));
+            _completed = completed ?? throw new ArgumentNullException(nameof(completed));
+            _catalog = Resources.Load<CharacterPresentationCatalog>(
+                "CharacterPresentationCatalog");
             _opening = Resources.Load<OpeningSequenceDefinition>("OpeningSequence");
-            _overlay = new VisualElement { name = "player-preparation" };
-            _overlay.style.position = Position.Absolute;
-            _overlay.style.left = _overlay.style.right = _overlay.style.top = _overlay.style.bottom = 0;
-            _overlay.style.backgroundColor = new Color(0.035f, 0.08f, 0.16f);
-            _overlay.style.color = Color.white;
-            _overlay.style.alignItems = Align.Center;
-            _overlay.style.justifyContent = Justify.Center;
-            _content = new VisualElement();
-            _content.style.width = Length.Percent(85);
-            _content.style.maxWidth = 850;
-            _overlay.Add(_content);
-            _recovery = new VisualElement();
-            _overlay.Add(_recovery);
-            root.Add(_overlay);
-            LocalizationService.Changed += Render;
+            var runtimeSettings = Resources.Load<
+                PowerMath.Gameplay.Combat.Unity.CombatRuntimeSettingsDefinition>(
+                "CombatRuntimeSettings");
+            _reducedMotion = runtimeSettings != null && runtimeSettings.ReducedMotion;
+            _motion = new LeanTweenUiDriver(this, _reducedMotion);
+            _view = new PlayerPreparationView(root, _reducedMotion);
+            BindView();
+            _view.RefreshLocale();
+            LocalizationService.Changed += OnLocaleChanged;
             Render();
         }
 
-        private Button Button(string key, Action action)
+        private void BindView()
         {
-            var button = new Button(action) { name = key, text = LocalizationService.Get(key) };
-            button.style.minHeight = 44;
-            button.style.marginTop = 10;
-            _content.Add(button);
-            return button;
+            _view.OpeningSkipRequested += OnOpeningSkipRequested;
+            _view.CharacterRequested += OnCharacterRequested;
+            _view.CharacterAccepted += OnCharacterAccepted;
+            _view.DetailBackRequested += OnDetailBackRequested;
+            _view.NameBackRequested += OnNameBackRequested;
+            _view.NameChanged += OnNameChanged;
+            _view.NameConfirmed += OnNameConfirmed;
         }
-        private void Title(string text)
+
+        private void UnbindView()
         {
-            var label = new Label(text);
-            label.style.fontSize = 28;
-            label.style.whiteSpace = WhiteSpace.Normal;
-            label.style.marginBottom = 15;
-            _content.Add(label);
+            if (_view == null) return;
+            _view.OpeningSkipRequested -= OnOpeningSkipRequested;
+            _view.CharacterRequested -= OnCharacterRequested;
+            _view.CharacterAccepted -= OnCharacterAccepted;
+            _view.DetailBackRequested -= OnDetailBackRequested;
+            _view.NameBackRequested -= OnNameBackRequested;
+            _view.NameChanged -= OnNameChanged;
+            _view.NameConfirmed -= OnNameConfirmed;
         }
+
         private void Render()
         {
-            if (_content == null || _store?.Snapshot == null) return;
-            CleanupVideo();
-            _content.Clear();
-            _recovery.Clear();
-            var player = _store.Snapshot;
+            if (_view == null || _store?.Snapshot == null) return;
+
+            PlayerSnapshot player = _store.Snapshot;
             if (PlayerLifecyclePolicy.IsComplete(player))
             {
-                _overlay.RemoveFromHierarchy();
-                _completed?.Invoke();
-                Destroy(this);
+                if (!_completionTransition) Finish();
                 return;
             }
-            if (player.onboarding?.phase == "opening")
+
+            StopVisualSequence();
+            _view.RefreshLocale();
+            _view.SetInteractive(!_busy && _pending == null);
+            if (!_keepTransitionCovered) _view.HideTransition();
+
+            if (string.Equals(player.onboarding?.phase, "opening", StringComparison.Ordinal))
             {
-                Title(LocalizationService.Get("onboarding.openingTitle"));
-                string copy = LocalizationService.Locale == "th" ? _opening?.thaiText : _opening?.englishText;
-                var text = new Label(string.IsNullOrWhiteSpace(copy) ? LocalizationService.Get("onboarding.openingPlaceholder") : copy);
-                text.style.whiteSpace = WhiteSpace.Normal;
-                _content.Add(text);
-                if (_opening != null && _opening.HasVideo)
-                {
-                    _videoImage = new Image();
-                    _videoImage.style.height = 220;
-                    _content.Add(_videoImage);
-                    Button("common.play", PlayOpening);
-                }
-                Button("common.continue", () => Submit(PlayerLifecycleCommandKind.CompleteOpening));
-                Button("onboarding.skip", () => Submit(PlayerLifecycleCommandKind.CompleteOpening));
+                _visualSequence = StartCoroutine(PlayOpeningExperience());
+                return;
             }
-            else if (player.onboarding?.phase == "character" || _preview != null)
+
+            if (!string.IsNullOrWhiteSpace(_preview))
             {
-                Title(LocalizationService.Get("onboarding.select"));
-                if (_preview == null)
-                {
-                    var choices = new VisualElement();
-                    choices.style.flexDirection = FlexDirection.Row;
-                    _content.Add(choices);
-                    foreach (string id in new[] { "ricko", "stellar" })
-                    {
-                        var card = new Button(() => { _preview = id; Render(); }) { name = id };
-                        card.style.width = Length.Percent(48);
-                        card.style.height = 220;
-                        card.style.marginRight = 10;
-                        card.style.backgroundColor = id == "ricko" ? new Color(.38f, .17f, .12f) : new Color(.16f, .24f, .48f);
-                        card.style.color = Color.white;
-                        card.style.fontSize = 28;
-                        card.Add(new Label(LocalizationService.Get("onboarding." + id)));
-                        card.style.flexDirection = FlexDirection.Column;
-                        var portrait = new Image { name = "portrait-" + id, sprite = CharacterPlaceholderSprites.Resolve(_catalog?.Find(id)?.selectionArt, id) };
-                        portrait.style.width = 130;
-                        portrait.style.height = 150;
-                        portrait.style.flexShrink = 0;
-                        portrait.style.alignSelf = Align.Center;
-                        card.Add(portrait);
-                        choices.Add(card);
-                    }
-                }
-                else
-                {
-                    Title(LocalizationService.Get("onboarding." + _preview));
-                    Sprite art = CharacterPlaceholderSprites.Resolve(_catalog?.Find(_preview)?.selectionArt, _preview);
-                    var image = new Image { sprite = art };
-                    image.style.height = 180;
-                    if (art != null) _content.Add(image);
-                    else _content.Add(new Label(LocalizationService.Get("onboarding.missingArt")));
-                    Button("onboarding.choose", () => Submit(PlayerLifecycleCommandKind.SelectCharacter, _preview));
-                    Button("common.back", () => { _preview = null; Render(); });
-                }
+                ShowCharacterDetail(PlayerPreparationSequenceState.CharacterSelectedHolding);
+                StartHoldAnimation();
+                ShowPendingRecovery();
+                return;
             }
-            else if (player.onboarding?.phase == "name")
+
+            if (string.Equals(player.onboarding?.phase, "character", StringComparison.Ordinal))
             {
-                Title(LocalizationService.Get("onboarding." + player.onboarding.selectedCharacterId));
-                Title(LocalizationService.Get("onboarding.name"));
-                var input = new TextField { name = "preparation-display-name", value = _name ?? (player.onboarding.legacyPlayer ? player.profile.displayName : string.Empty) };
-                input.style.minHeight = 40;
-                input.RegisterValueChangedCallback(evt => _name = evt.newValue);
-                _name = input.value;
-                _content.Add(input);
-                _content.Add(new Label(LocalizationService.Get("onboarding.permanent")));
-                Button("common.confirm", () =>
-                {
-                    if (!PlayerLifecyclePolicy.TryNormalizeName(_name, out var normalized))
-                    { _error.text = LocalizationService.Get("onboarding.invalidName"); return; }
-                    _name = normalized;
-                    Submit(PlayerLifecycleCommandKind.CompletePreparation, player.onboarding.selectedCharacterId);
-                });
-                Button("common.back", () => { _preview = player.onboarding.selectedCharacterId; Render(); });
+                ShowCharacterSelection();
+                ShowPendingRecovery();
+                return;
             }
-            else
+
+            if (string.Equals(player.onboarding?.phase, "name", StringComparison.Ordinal))
             {
-                Title(LocalizationService.Get("errors.updateRequired"));
+                ShowNameEntry();
+                ShowPendingRecovery();
+                return;
             }
-            _error = new Label();
-            _error.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_error);
-            if (_pending != null && !_busy)
-            {
-                _content.SetEnabled(false);
-                var recovery = new Button(() => StartCoroutine(SendPending())) { text = LocalizationService.Get("common.retry") };
-                _recovery.Add(recovery);
-                recovery.clicked += () => recovery.RemoveFromHierarchy();
-            }
-            else _content.SetEnabled(!_busy);
+
+            _view.ShowError(LocalizationService.Get("errors.updateRequired"));
         }
+
+        private IEnumerator PlayOpeningExperience()
+        {
+            CleanupVideo();
+            _view.SetInteractive(!_busy && _pending == null);
+            string[] lines = _opening?.GetNarrativeLines(LocalizationService.Locale);
+            if (lines == null || lines.Length == 0)
+            {
+                lines = new[] { LocalizationService.Get("onboarding.openingTitle") };
+            }
+
+            for (int index = 0; index < lines.Length; index++)
+            {
+                string line = lines[index]?.Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                _view.ShowNarrative(string.Empty);
+                yield return RevealNarrativeLine(line);
+                yield return new WaitForSecondsRealtime(
+                    _reducedMotion ? 0.2f : ResolveOpeningValue(
+                        definition => definition.lineHoldSeconds,
+                        1.15f));
+                yield return FadeNarrativeLine();
+            }
+
+            if (_opening != null && _opening.HasVideo)
+            {
+                yield return PlayOpeningVideo();
+                yield break;
+            }
+
+            _view.ShowOpeningVideo(
+                null,
+                LocalizationService.Get("onboarding.videoUnavailable"));
+        }
+
+        private IEnumerator RevealNarrativeLine(string line)
+        {
+            List<string> textElements = GetTextElements(line);
+            if (_reducedMotion)
+            {
+                _view.SetNarrativeText(line);
+                _view.SetNarrativeOpacity(1f);
+                yield break;
+            }
+
+            var builder = new StringBuilder(line.Length);
+            float delay = ResolveOpeningValue(
+                definition => definition.characterRevealSeconds,
+                0.025f);
+            _view.SetNarrativeOpacity(1f);
+            for (int index = 0; index < textElements.Count; index++)
+            {
+                builder.Append(textElements[index]);
+                _view.SetNarrativeText(builder.ToString());
+                if (delay > 0f) yield return new WaitForSecondsRealtime(delay);
+            }
+        }
+
+        private IEnumerator FadeNarrativeLine()
+        {
+            float duration = _reducedMotion
+                ? 0.06f
+                : ResolveOpeningValue(definition => definition.lineFadeSeconds, 0.42f);
+            UiMotionHandle fade = _motion.Tween(
+                _view.NarrativeLine,
+                UiMotionChannel.Lifecycle,
+                duration,
+                UiMotionEasing.OutCubic,
+                progress => _view.SetNarrativeOpacity(1f - progress));
+            yield return WaitFor(fade);
+        }
+
+        private IEnumerator PlayOpeningVideo()
+        {
+            if (!PrepareVideo(VideoPurpose.Opening, false))
+            {
+                _view.ShowOpeningVideo(
+                    null,
+                    LocalizationService.Get("onboarding.videoUnavailable"));
+                yield break;
+            }
+
+            _view.ShowOpeningVideo(
+                _videoTexture,
+                LocalizationService.Get("onboarding.videoPreparing"));
+            _video.Prepare();
+            float elapsed = 0f;
+            while (!_videoPrepared && !_videoFailed && elapsed < VideoPrepareTimeoutSeconds)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (!_videoPrepared || _videoFailed)
+            {
+                _view.SetVideoStatus(LocalizationService.Get("onboarding.videoUnavailable"));
+                yield break;
+            }
+
+            _view.SetVideoStatus(string.Empty);
+            _video.Play();
+            while (!_videoEnded && !_videoFailed) yield return null;
+            if (_videoFailed)
+            {
+                _view.SetVideoStatus(LocalizationService.Get("onboarding.videoUnavailable"));
+                yield break;
+            }
+
+            yield return PlayWhiteFlash();
+            Submit(PlayerLifecycleCommandKind.CompleteOpening);
+        }
+
+        private void ShowCharacterSelection()
+        {
+            CleanupVideo();
+            CharacterPresentationCatalog.Character ricko = _catalog?.Find("ricko");
+            CharacterPresentationCatalog.Character stellar = _catalog?.Find("stellar");
+            Sprite rickoArt = CharacterPlaceholderSprites.Resolve(
+                ricko?.overviewArt ?? ricko?.selectionArt,
+                "ricko");
+            Sprite stellarArt = CharacterPlaceholderSprites.Resolve(
+                stellar?.overviewArt ?? stellar?.selectionArt,
+                "stellar");
+            _view.ShowSelection(null, rickoArt, stellarArt);
+            _view.SetInteractive(!_busy && _pending == null);
+
+            if (_catalog?.selectionVideo != null &&
+                PrepareVideo(VideoPurpose.Selection, true))
+            {
+                _video.Prepare();
+            }
+        }
+
+        private void ShowCharacterDetail(PlayerPreparationSequenceState state)
+        {
+            CharacterPresentationCatalog.Character definition = _catalog?.Find(_preview);
+            Sprite art = CharacterPlaceholderSprites.Resolve(
+                definition?.selectionArt,
+                _preview);
+            _view.ShowCharacterDetail(
+                _preview,
+                art,
+                LocalizationService.Get("onboarding." + _preview),
+                LocalizationService.Get("onboarding." + _preview + "Description"),
+                state);
+        }
+
+        private void ShowNameEntry()
+        {
+            string selected = _store.Snapshot.onboarding.selectedCharacterId;
+            CharacterPresentationCatalog.Character definition = _catalog?.Find(selected);
+            Sprite art = CharacterPlaceholderSprites.Resolve(
+                definition?.selectionArt,
+                selected);
+            string initial = _name ?? (_store.Snapshot.onboarding.legacyPlayer
+                ? _store.Snapshot.profile.displayName
+                : string.Empty);
+            _name = initial;
+            _view.ShowNameEntry(selected, art, initial);
+            _view.SetInteractive(!_busy && _pending == null);
+        }
+
+        private void OnOpeningSkipRequested()
+        {
+            if (_busy || _pending != null ||
+                (_view.State != PlayerPreparationSequenceState.Narrative &&
+                 _view.State != PlayerPreparationSequenceState.OpeningVideo)) return;
+            StopVisualSequence();
+            CleanupVideo();
+            Submit(PlayerLifecycleCommandKind.CompleteOpening);
+        }
+
+        private void OnCharacterRequested(string characterId)
+        {
+            if (_busy || _pending != null ||
+                _view.State != PlayerPreparationSequenceState.CharacterSelection ||
+                !PlayerLifecyclePolicy.IsCharacter(characterId)) return;
+            _preview = characterId;
+            CleanupVideo();
+            StartVisualSequence(PlayCharacterEnter());
+        }
+
+        private IEnumerator PlayCharacterEnter()
+        {
+            _view.SetInteractive(false);
+            _view.SetState(PlayerPreparationSequenceState.CharacterSelectedEntering);
+            _view.ApplyTransitionProgress(0f, true);
+            UiMotionHandle cover = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(TransitionCoverSeconds),
+                UiMotionEasing.OutCubic,
+                progress => _view.ApplyTransitionProgress(progress, true));
+            yield return WaitFor(cover);
+
+            ShowCharacterDetail(PlayerPreparationSequenceState.CharacterSelectedEntering);
+            _view.ApplyDetailProgress(0f);
+            UiMotionHandle reveal = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(TransitionRevealSeconds),
+                UiMotionEasing.OutCubic,
+                progress => _view.ApplyTransitionProgress(progress, false));
+            UiMotionHandle enter = _motion.Tween(
+                _view.DetailArt,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(DetailEnterSeconds),
+                UiMotionEasing.OutBack,
+                _view.ApplyDetailProgress);
+            yield return WaitFor(reveal, enter);
+            _view.HideTransition();
+            _view.SetState(PlayerPreparationSequenceState.CharacterSelectedHolding);
+            _view.SetInteractive(true);
+            StartHoldAnimation();
+        }
+
+        private void OnCharacterAccepted()
+        {
+            if (_busy || _pending != null ||
+                _view.State != PlayerPreparationSequenceState.CharacterSelectedHolding ||
+                !PlayerLifecyclePolicy.IsCharacter(_preview)) return;
+            StartVisualSequence(PlayCharacterExit(true));
+        }
+
+        private void OnDetailBackRequested()
+        {
+            if (_busy || _pending != null ||
+                _view.State != PlayerPreparationSequenceState.CharacterSelectedHolding) return;
+            StartVisualSequence(PlayCharacterExit(false));
+        }
+
+        private void OnNameBackRequested()
+        {
+            if (_busy || _pending != null ||
+                _view.State != PlayerPreparationSequenceState.NameEntry) return;
+            _preview = _store.Snapshot.onboarding.selectedCharacterId;
+            StartVisualSequence(PlayNameExitToDetail());
+        }
+
+        private void OnNameChanged(string value)
+        {
+            _name = value;
+            if (_view.State == PlayerPreparationSequenceState.NameEntry)
+            {
+                _view.ClearError();
+            }
+        }
+
+        private void OnNameConfirmed()
+        {
+            if (_busy || _pending != null ||
+                _view.State != PlayerPreparationSequenceState.NameEntry) return;
+            if (!PlayerLifecyclePolicy.TryNormalizeName(_name, out string normalized))
+            {
+                _view.ShowError(LocalizationService.Get("onboarding.invalidName"));
+                return;
+            }
+
+            _name = normalized;
+            _view.SetNameValue(normalized);
+            _view.SetState(PlayerPreparationSequenceState.Confirming);
+            Submit(
+                PlayerLifecycleCommandKind.CompletePreparation,
+                _store.Snapshot.onboarding.selectedCharacterId);
+        }
+
+        private IEnumerator PlayCharacterExit(bool commit)
+        {
+            CancelHoldAnimation();
+            _view.SetInteractive(false);
+            _view.SetState(PlayerPreparationSequenceState.CharacterSelectedExiting);
+            UiMotionHandle exit = _motion.Tween(
+                _view.DetailArt,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(DetailExitSeconds),
+                UiMotionEasing.OutCubic,
+                _view.ApplyDetailExitProgress);
+            UiMotionHandle cover = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(TransitionCoverSeconds),
+                UiMotionEasing.OutCubic,
+                progress => _view.ApplyTransitionProgress(progress, true));
+            yield return WaitFor(exit, cover);
+
+            if (commit)
+            {
+                _keepTransitionCovered = true;
+                _revealAfterSave = true;
+                Submit(PlayerLifecycleCommandKind.SelectCharacter, _preview);
+                yield break;
+            }
+
+            _preview = null;
+            ShowCharacterSelection();
+            yield return RevealTransition();
+            _view.SetInteractive(true);
+        }
+
+        private IEnumerator PlayNameExitToDetail()
+        {
+            _view.SetInteractive(false);
+            _view.ApplyTransitionProgress(0f, true);
+            UiMotionHandle cover = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(TransitionCoverSeconds),
+                UiMotionEasing.OutCubic,
+                progress => _view.ApplyTransitionProgress(progress, true));
+            yield return WaitFor(cover);
+            ShowCharacterDetail(PlayerPreparationSequenceState.CharacterSelectedEntering);
+            _view.ApplyDetailProgress(0f);
+            UiMotionHandle reveal = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(TransitionRevealSeconds),
+                UiMotionEasing.OutCubic,
+                progress => _view.ApplyTransitionProgress(progress, false));
+            UiMotionHandle enter = _motion.Tween(
+                _view.DetailArt,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(DetailEnterSeconds),
+                UiMotionEasing.OutBack,
+                _view.ApplyDetailProgress);
+            yield return WaitFor(reveal, enter);
+            _view.SetState(PlayerPreparationSequenceState.CharacterSelectedHolding);
+            _view.SetInteractive(true);
+            StartHoldAnimation();
+        }
+
+        private IEnumerator RevealTransition()
+        {
+            UiMotionHandle reveal = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Lifecycle,
+                MotionSeconds(TransitionRevealSeconds),
+                UiMotionEasing.OutCubic,
+                progress => _view.ApplyTransitionProgress(progress, false));
+            yield return WaitFor(reveal);
+            _keepTransitionCovered = false;
+            _view.HideTransition();
+        }
+
+        private void StartHoldAnimation()
+        {
+            CancelHoldAnimation();
+            _view.SetState(PlayerPreparationSequenceState.CharacterSelectedHolding);
+            _view.SetInteractive(!_busy && _pending == null);
+            if (_reducedMotion) return;
+            _characterHold = _motion.Tween(
+                _view.DetailArt,
+                UiMotionChannel.Ambient,
+                DetailHoldPulseSeconds,
+                UiMotionEasing.InOutSine,
+                _view.ApplyHoldProgress,
+                loopPingPong: true);
+        }
+
+        private void CancelHoldAnimation()
+        {
+            _characterHold?.Cancel();
+            _characterHold = null;
+        }
+
         private void Submit(PlayerLifecycleCommandKind kind, string value = null)
         {
-            if (_busy || _pending != null) return;
+            if (_busy || _pending != null || _store?.Snapshot == null) return;
             _pending = new PlayerLifecycleCommand
             {
-                kind = kind, value = value, displayName = _name,
-                playerId = _store.Snapshot.playerId, expectedRevision = _store.Snapshot.revision,
+                kind = kind,
+                value = value,
+                displayName = _name,
+                playerId = _store.Snapshot.playerId,
+                expectedRevision = _store.Snapshot.revision,
                 operationId = Guid.NewGuid().ToString("N")
             };
             StartCoroutine(SendPending());
         }
+
         private IEnumerator SendPending()
         {
-            _busy = true; _content.SetEnabled(false); _recovery.Clear();
-            _error.text = LocalizationService.Get("common.saving");
-            var command = _pending;
+            _busy = true;
+            _view.SetInteractive(false);
+            _view.ClearError();
+            PlayerLifecycleCommand command = _pending;
             FirestoreRestClient.Failure? failure = null;
             PlayerSnapshot saved = null;
-            yield return _commands.Execute(command, result => saved = result, error => failure = error);
+            yield return _commands.Execute(
+                command,
+                result => saved = result,
+                error => failure = error);
             _busy = false;
+
             if (_store?.Snapshot?.playerId != command.playerId) yield break;
             if (saved != null)
             {
-                _pending = null; _preview = null;
-                _store.TryHydrate(new BootstrapResponse { player = saved, schemaVersion = saved.schemaVersion, remembered = _store.IsRemembered });
+                _pending = null;
+                bool completing = command.kind ==
+                    PlayerLifecycleCommandKind.CompletePreparation;
+                if (!completing && command.kind !=
+                    PlayerLifecycleCommandKind.SelectCharacter)
+                {
+                    _preview = null;
+                }
+                _store.TryHydrate(new BootstrapResponse
+                {
+                    player = saved,
+                    schemaVersion = saved.schemaVersion,
+                    remembered = _store.IsRemembered
+                });
+
+                if (completing)
+                {
+                    _completionTransition = true;
+                    _visualSequence = StartCoroutine(CompleteWithFlash());
+                    yield break;
+                }
+
+                if (command.kind == PlayerLifecycleCommandKind.SelectCharacter)
+                {
+                    _preview = null;
+                }
                 Render();
+                if (_revealAfterSave)
+                {
+                    _revealAfterSave = false;
+                    _visualSequence = StartCoroutine(RevealAfterSave());
+                }
+                yield break;
+            }
+
+            string errorKey = failure?.Kind == FirestoreRestClient.FailureKind.Conflict
+                ? "errors.conflict"
+                : "errors.save";
+            _keepTransitionCovered = false;
+            _revealAfterSave = false;
+            Render();
+            _view.ShowError(LocalizationService.Get(errorKey));
+            if (failure?.Kind == FirestoreRestClient.FailureKind.Conflict)
+            {
+                _view.ShowRecovery(
+                    LocalizationService.Get("common.reload"),
+                    ReloadCurrentScene);
             }
             else
             {
-                Render();
-                _error.text = LocalizationService.Get(failure?.Kind == FirestoreRestClient.FailureKind.Conflict ? "errors.conflict" : "errors.save");
-                if (failure?.Kind == FirestoreRestClient.FailureKind.Conflict)
-                {
-                    _recovery.Clear();
-                    _recovery.Add(new Button(() => UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name))
-                    { text = LocalizationService.Get("common.reload") });
-                }
+                _view.ShowRecovery(
+                    LocalizationService.Get("common.retry"),
+                    () => StartCoroutine(SendPending()));
             }
         }
-        private void PlayOpening()
+
+        private IEnumerator RevealAfterSave()
         {
-            if (_video != null || _opening == null || !_opening.HasVideo) return;
-            _videoTexture = new RenderTexture(1280, 720, 0);
-            _video = gameObject.AddComponent<UnityEngine.Video.VideoPlayer>();
-            _video.playOnAwake = false;
-            _video.isLooping = false;
-            _video.source = UnityEngine.Video.VideoSource.Url;
-            _video.url = _opening.videoUrl;
-            _video.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
-            _video.targetTexture = _videoTexture;
-            _videoImage.image = _videoTexture;
-            _video.errorReceived += (player, message) =>
-            {
-                _error.text = LocalizationService.Get("onboarding.videoUnavailable");
-                CleanupVideo();
-            };
-            _video.prepareCompleted += player => player.Play();
-            _video.Prepare();
+            _view.SetInteractive(false);
+            yield return RevealTransition();
+            _view.SetInteractive(true);
         }
-        private void CleanupVideo()
-        {
-            if (_video != null) { _video.Stop(); Destroy(_video); _video = null; }
-            if (_videoTexture != null) { _videoTexture.Release(); Destroy(_videoTexture); _videoTexture = null; }
-        }
-        private void OnDestroy()
+
+        private IEnumerator CompleteWithFlash()
         {
             CleanupVideo();
-            LocalizationService.Changed -= Render;
-            _overlay?.RemoveFromHierarchy();
+            CancelHoldAnimation();
+            _view.SetState(PlayerPreparationSequenceState.Completing);
+            _view.SetInteractive(false);
+            yield return PlayWhiteFlash();
+            Finish();
+        }
+
+        private IEnumerator PlayWhiteFlash()
+        {
+            UiMotionHandle flash = _motion.Tween(
+                _view.TransitionLayer,
+                UiMotionChannel.Feedback,
+                MotionSeconds(CompletionFlashSeconds),
+                UiMotionEasing.InOutSine,
+                _view.ApplyFlash);
+            yield return WaitFor(flash);
+            _view.ApplyFlash(0f);
+        }
+
+        private void ShowPendingRecovery()
+        {
+            if (_pending == null || _busy) return;
+            _view.SetInteractive(false);
+            _view.ShowRecovery(
+                LocalizationService.Get("common.retry"),
+                () => StartCoroutine(SendPending()));
+        }
+
+        private bool PrepareVideo(VideoPurpose purpose, bool looping)
+        {
+            CleanupVideo();
+            _videoTexture = new RenderTexture(
+                1280,
+                720,
+                0,
+                RenderTextureFormat.ARGB32)
+            {
+                name = "PlayerPreparationVideo"
+            };
+            _videoTexture.Create();
+            _video = gameObject.AddComponent<VideoPlayer>();
+            _video.playOnAwake = false;
+            _video.waitForFirstFrame = true;
+            _video.skipOnDrop = true;
+            _video.isLooping = looping;
+            _video.renderMode = VideoRenderMode.RenderTexture;
+            _video.targetTexture = _videoTexture;
+            _video.audioOutputMode = VideoAudioOutputMode.Direct;
+            _videoPurpose = purpose;
+            _videoPrepared = false;
+            _videoEnded = false;
+            _videoFailed = false;
+            _video.prepareCompleted += OnVideoPrepared;
+            _video.loopPointReached += OnVideoEnded;
+            _video.errorReceived += OnVideoError;
+
+            if (purpose == VideoPurpose.Selection)
+            {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                if (_catalog == null || !_catalog.HasHostedSelectionVideo)
+                {
+                    CleanupVideo();
+                    return false;
+                }
+                _video.source = VideoSource.Url;
+                _video.url = _catalog.selectionVideoUrl;
+#else
+                if (_catalog?.selectionVideo != null)
+                {
+                    _video.source = VideoSource.VideoClip;
+                    _video.clip = _catalog.selectionVideo;
+                }
+                else if (_catalog != null && _catalog.HasHostedSelectionVideo)
+                {
+                    _video.source = VideoSource.Url;
+                    _video.url = _catalog.selectionVideoUrl;
+                }
+                else
+                {
+                    CleanupVideo();
+                    return false;
+                }
+#endif
+                return true;
+            }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (_opening == null || !_opening.HasHostedVideo)
+            {
+                CleanupVideo();
+                return false;
+            }
+            _video.source = VideoSource.Url;
+            _video.url = _opening.videoUrl;
+#else
+            if (_opening?.videoClip != null)
+            {
+                _video.source = VideoSource.VideoClip;
+                _video.clip = _opening.videoClip;
+            }
+            else if (_opening != null && _opening.HasHostedVideo)
+            {
+                _video.source = VideoSource.Url;
+                _video.url = _opening.videoUrl;
+            }
+            else
+            {
+                CleanupVideo();
+                return false;
+            }
+#endif
+            return true;
+        }
+
+        private void OnVideoPrepared(VideoPlayer player)
+        {
+            if (player != _video) return;
+            _videoPrepared = true;
+            if (_videoPurpose == VideoPurpose.Selection)
+            {
+                CharacterPresentationCatalog.Character ricko = _catalog?.Find("ricko");
+                CharacterPresentationCatalog.Character stellar = _catalog?.Find("stellar");
+                _view.ShowSelection(
+                    _videoTexture,
+                    CharacterPlaceholderSprites.Resolve(
+                        ricko?.overviewArt ?? ricko?.selectionArt,
+                        "ricko"),
+                    CharacterPlaceholderSprites.Resolve(
+                        stellar?.overviewArt ?? stellar?.selectionArt,
+                        "stellar"));
+                _view.SetInteractive(!_busy && _pending == null);
+                player.Play();
+            }
+        }
+
+        private void OnVideoEnded(VideoPlayer player)
+        {
+            if (player == _video && _videoPurpose == VideoPurpose.Opening)
+            {
+                _videoEnded = true;
+            }
+        }
+
+        private void OnVideoError(VideoPlayer player, string message)
+        {
+            if (player != _video) return;
+            _videoFailed = true;
+            PowerMath.Diagnostics.AppLog.Warning(
+                "Lifecycle",
+                "Player preparation video could not be played: " + message,
+                this);
+            if (_videoPurpose == VideoPurpose.Selection)
+            {
+                CharacterPresentationCatalog.Character ricko = _catalog?.Find("ricko");
+                CharacterPresentationCatalog.Character stellar = _catalog?.Find("stellar");
+                _view.ShowSelection(
+                    null,
+                    CharacterPlaceholderSprites.Resolve(
+                        ricko?.overviewArt ?? ricko?.selectionArt,
+                        "ricko"),
+                    CharacterPlaceholderSprites.Resolve(
+                        stellar?.overviewArt ?? stellar?.selectionArt,
+                        "stellar"));
+                _view.SetInteractive(true);
+            }
+        }
+
+        private void CleanupVideo()
+        {
+            if (_video != null)
+            {
+                _video.prepareCompleted -= OnVideoPrepared;
+                _video.loopPointReached -= OnVideoEnded;
+                _video.errorReceived -= OnVideoError;
+                _video.Stop();
+                Destroy(_video);
+                _video = null;
+            }
+            if (_videoTexture != null)
+            {
+                _videoTexture.Release();
+                Destroy(_videoTexture);
+                _videoTexture = null;
+            }
+            _videoPurpose = VideoPurpose.None;
+            _videoPrepared = false;
+            _videoEnded = false;
+            _videoFailed = false;
+        }
+
+        private void OnLocaleChanged()
+        {
+            if (_view == null) return;
+            _view.RefreshLocale();
+            if (_view.State == PlayerPreparationSequenceState.Narrative && !_busy)
+            {
+                StartVisualSequence(PlayOpeningExperience());
+                return;
+            }
+            if ((_view.State == PlayerPreparationSequenceState.CharacterSelectedHolding ||
+                 _view.State == PlayerPreparationSequenceState.CharacterSelectedEntering) &&
+                PlayerLifecyclePolicy.IsCharacter(_preview))
+            {
+                _view.SetCharacterCopy(
+                    LocalizationService.Get("onboarding." + _preview),
+                    LocalizationService.Get("onboarding." + _preview + "Description"));
+            }
+        }
+
+        private void StartVisualSequence(IEnumerator sequence)
+        {
+            StopVisualSequence();
+            _visualSequence = StartCoroutine(sequence);
+        }
+
+        private void StopVisualSequence()
+        {
+            if (_visualSequence != null)
+            {
+                StopCoroutine(_visualSequence);
+                _visualSequence = null;
+            }
+            CancelHoldAnimation();
+        }
+
+        private IEnumerator WaitFor(params UiMotionHandle[] handles)
+        {
+            bool active;
+            do
+            {
+                active = false;
+                for (int index = 0; index < handles.Length; index++)
+                {
+                    active |= handles[index] != null && handles[index].IsActive;
+                }
+                if (active) yield return null;
+            } while (active);
+        }
+
+        private float MotionSeconds(float normal)
+        {
+            return _reducedMotion ? 0.06f : normal;
+        }
+
+        private float ResolveOpeningValue(
+            Func<OpeningSequenceDefinition, float> selector,
+            float fallback)
+        {
+            return _opening == null ? fallback : Mathf.Max(0f, selector(_opening));
+        }
+
+        private static List<string> GetTextElements(string value)
+        {
+            var elements = new List<string>();
+            TextElementEnumerator enumerator = StringInfo.GetTextElementEnumerator(
+                value ?? string.Empty);
+            while (enumerator.MoveNext())
+            {
+                elements.Add(enumerator.GetTextElement());
+            }
+            return elements;
+        }
+
+        private static void ReloadCurrentScene()
+        {
+            UnityEngine.SceneManagement.Scene current =
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(current.name);
+        }
+
+        private void Finish()
+        {
+            if (_view == null) return;
+            _completionTransition = false;
+            _view.SetState(PlayerPreparationSequenceState.Hidden);
+            Action completed = _completed;
+            _completed = null;
+            completed?.Invoke();
+            Destroy(this);
+        }
+
+        private void OnDestroy()
+        {
+            LocalizationService.Changed -= OnLocaleChanged;
+            StopVisualSequence();
+            CleanupVideo();
+            UnbindView();
+            _view?.Dispose();
+            _view = null;
+            _motion?.Dispose();
+            _motion = null;
         }
     }
 }
-

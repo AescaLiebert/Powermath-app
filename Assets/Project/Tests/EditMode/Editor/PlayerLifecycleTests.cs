@@ -73,6 +73,8 @@ namespace PowerMath.Tests.EditMode
             Assert.Throws<ArgumentException>(() => PlayerLifecyclePolicy.Plan(player, "student", command));
         }
         [TestCase("ผู้กล้า", true)]
+        [TestCase("12345678901234567890", true)]
+        [TestCase("123456789012345678901", false)]
         [TestCase("   ", false)]
         [TestCase("<b>Name</b>", false)]
         [TestCase("Name\nOther", false)]

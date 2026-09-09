@@ -21,6 +21,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         [Min(1), SerializeField] private int firstStage = 1;
         [Min(1), SerializeField] private int lastStage = 30;
         [SerializeField] private Sprite backgroundSprite;
+        [Tooltip("Optional visual used from the deterministic midpoint onward.")]
+        [SerializeField] private Sprite secondaryBackgroundSprite;
         [SerializeField] private Sprite mapLandmarkSprite;
         [SerializeField] private Vector2 normalizedMapPosition = new Vector2(0.1f, 0.5f);
         [SerializeField] private EnemyDefinition[] normalMonsters = Array.Empty<EnemyDefinition>();
@@ -31,11 +33,22 @@ namespace PowerMath.Gameplay.Combat.Unity
         public int FirstStage => firstStage;
         public int LastStage => lastStage;
         public Sprite BackgroundSprite => backgroundSprite;
+        public Sprite SecondaryBackgroundSprite => secondaryBackgroundSprite;
+        public int MidpointStage => firstStage +
+            Mathf.CeilToInt((lastStage - firstStage + 1) / 2f);
         public Sprite MapLandmarkSprite => mapLandmarkSprite;
         public Vector2 NormalizedMapPosition => normalizedMapPosition;
         public IReadOnlyList<EnemyDefinition> NormalMonsters =>
             normalMonsters ?? Array.Empty<EnemyDefinition>();
         public IReadOnlyList<BossBinding> BossBindings =>
             bossBindings ?? Array.Empty<BossBinding>();
+
+        public Sprite ResolveBackground(int stage)
+        {
+            return secondaryBackgroundSprite != null && lastStage > firstStage &&
+                stage >= MidpointStage
+                ? secondaryBackgroundSprite
+                : backgroundSprite;
+        }
     }
 }

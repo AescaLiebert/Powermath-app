@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B3-N06
   displayName: Glowhorn Mole
-  thaiDisplayName: "\u0E15\u0E38\u0E48\u0E19\u0E40\u0E02\u0E32\u0E44\u0E1F\u0E09\u0E32\u0E22 LED"
+  thaiDisplayName: "\u0E15\u0E38\u0E48\u0E19\u0E40\u0E02\u0E32\u0E44\u0E1F\u0E09\u0E32\u0E22
+    LED"
   biomeId: biome-3
   encounterKind: 0
   baseHp: 42
   maximumCooldown: 4
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: ed1b1a1a65ae78c4f9f77c6602884783, type: 3}

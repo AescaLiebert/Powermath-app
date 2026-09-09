@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B4-E05
   displayName: Riptide Mako
-  thaiDisplayName: "\u0E09\u0E25\u0E32\u0E21\u0E17\u0E30\u0E40\u0E25\u0E27\u0E19 \u0E21\u0E32\u0E42\u0E01\u0E49"
+  thaiDisplayName: "\u0E09\u0E25\u0E32\u0E21\u0E17\u0E30\u0E40\u0E25\u0E27\u0E19
+    \u0E21\u0E32\u0E42\u0E01\u0E49"
   biomeId: biome-4
   encounterKind: 1
   baseHp: 65
   maximumCooldown: 3
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: fc6f39504943acc44952b17ce8626819, type: 3}

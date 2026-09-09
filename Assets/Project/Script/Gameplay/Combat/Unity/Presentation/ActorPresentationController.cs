@@ -9,7 +9,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 {
     [DisallowMultipleComponent]
     public sealed class ActorPresentationController : MonoBehaviour,
-        IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
+        IPointerClickHandler, IPointerDownHandler, IPointerUpHandler,
+        IPointerEnterHandler, IPointerExitHandler
     {
         [Header("Combat Anchors")]
         [Tooltip("Normalized anchor within the RectTransform for FCT spawn (0.5, 0.5 = center).")]
@@ -34,6 +35,17 @@ namespace PowerMath.Gameplay.Combat.Unity
         private bool _isPlaying;
         private int _playSessionId;
         private bool _whiteFlashTriggered;
+        private bool _majorDeath;
+        private Func<bool> _interactionAllowed;
+
+        private bool _isPointerHovered;
+        private bool _isPointerPressed;
+        private float _pressStartTime;
+        private Coroutine _juiceCoroutine;
+        private const float HoverScale = 1.05f;
+        private const float MaxHoldTime = 0.65f;
+        private const float MinBounceScale = 1.12f;
+        private const float MaxBounceScale = 1.38f;
 
         public event Action Clicked;
         public event Action DyingWhiteFlashReached;
@@ -42,6 +54,10 @@ namespace PowerMath.Gameplay.Combat.Unity
         public ActorVisualState State { get; private set; } = ActorVisualState.Hidden;
         public bool IsPlayer => _actor == PresentationActor.Player;
         public bool IsIdle => State == ActorVisualState.Idle;
+        public bool IsMajorDeath => _majorDeath;
+        public bool IsPointerHovered => _isPointerHovered;
+        public bool IsPointerPressed => _isPointerPressed;
+        public float CurrentHoldCharge => _isPointerPressed ? Mathf.Clamp01((Time.unscaledTime - _pressStartTime) / MaxHoldTime) : 0f;
         public ICombatAnchor DamageTextAnchor { get; private set; }
         public Vector2 FctNormalizedAnchor => fctNormalizedAnchor;
         public Vector2 FctOffset => fctOffset;
@@ -68,6 +84,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (actor != PresentationActor.Player && actor != PresentationActor.Enemy)
                 throw new ArgumentOutOfRangeException(nameof(actor));
             _actor = actor;
+            _majorDeath = actor == PresentationActor.Player;
             _reducedMotion = reducedMotion;
             _profile = profile;
             _rectTransform = transform as RectTransform;
@@ -104,17 +121,62 @@ namespace PowerMath.Gameplay.Combat.Unity
             _authoredPosition = restPosition;
         }
 
+        public void ConfigureDeathProfile(bool major)
+        {
+            _majorDeath = IsPlayer || major;
+        }
+
+        public void ConfigureInteractionEligibility(Func<bool> isAllowed)
+        {
+            _interactionAllowed = isAllowed;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            _isPointerHovered = true;
+            if (!CanPlayInteractionJuice()) return;
+            StartJuiceAnimation(HoverEnterRoutine());
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            _isPointerHovered = false;
+            _isPointerPressed = false;
+            if (!CanPlayInteractionJuice())
+            {
+                RestoreAuthoredPose(resetAlpha: false);
+                return;
+            }
+            StartJuiceAnimation(HoverExitRoutine());
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (eventData != null && eventData.button != PointerEventData.InputButton.Left) return;
+            _isPointerPressed = true;
+            _pressStartTime = Time.unscaledTime;
+            if (!CanPlayInteractionJuice()) return;
+            StartJuiceAnimation(HoldChargeRoutine());
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (!_isPointerPressed) return;
+            _isPointerPressed = false;
+            float holdDuration = Time.unscaledTime - _pressStartTime;
+            float charge = Mathf.Clamp01(holdDuration / MaxHoldTime);
+            if (!CanPlayInteractionJuice())
+            {
+                RestoreAuthoredPose(resetAlpha: false);
+                return;
+            }
+            StartJuiceAnimation(ReleaseBounceRoutine(charge));
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData != null && eventData.button != PointerEventData.InputButton.Left) return;
+            if (!CanPlayInteractionJuice()) return;
             Clicked?.Invoke();
         }
 
@@ -122,6 +184,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             Clicked?.Invoke();
         }
+
+        public void SimulatePointerEnter() => OnPointerEnter(null);
+        public void SimulatePointerExit() => OnPointerExit(null);
+        public void SimulatePointerDown() => OnPointerDown(null);
+        public void SimulatePointerUp() => OnPointerUp(null);
 
         public void ConfigureDamageTextAnchor(Vector2 normalizedAnchor, Vector2 offset)
         {
@@ -136,6 +203,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public IEnumerator Play(PresentationActionKind action)
         {
+            StopJuiceAnimation();
             ActorVisualState target = ResolveState(action);
             if (!ActorPresentationStatePolicy.CanTransition(_actor, State, target))
                 throw new InvalidOperationException(
@@ -201,6 +269,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public void CancelAndApply(ActorVisualState finalState)
         {
+            StopJuiceAnimation();
             _playSessionId++;
             _isPlaying = false;
             RestoreAuthoredPose(resetAlpha: false);
@@ -263,34 +332,37 @@ namespace PowerMath.Gameplay.Combat.Unity
                     break;
                 case ActorVisualState.Dying:
                 {
-                    float holdThresh = Value(p => p.DieHoldThreshold, 0.40f);
                     float flashThresh = Value(p => p.DieWhiteFlashThreshold, 0.55f);
-                    float fadeThresh = Value(p => p.DieDisappearThreshold, 0.75f);
-
-                    float motionT = holdThresh <= 0f ? 1f : Mathf.Clamp01(t / holdThresh);
+                    float fadeThresh = _majorDeath ? 0.65f : 0.52f;
+                    float height = Mathf.Max(1f, _rectTransform.rect.height);
+                    float width = Mathf.Max(1f, _rectTransform.rect.width);
+                    float dropRatio = _majorDeath
+                        ? Value(p => p.MajorDeathDropRatio, 0.08f)
+                        : Value(p => p.NormalDeathDropRatio, 0.04f);
+                    float motionT = Mathf.SmoothStep(0f, 1f, t);
+                    float shake = 0f;
+                    if (_majorDeath && !_reducedMotion)
+                    {
+                        float amplitude = width *
+                            Value(p => p.MajorDeathShakeRatio, 0.015f) * (1f - t);
+                        shake = Mathf.Sin(t * Mathf.PI * 18f) * amplitude;
+                    }
                     _rectTransform.anchoredPosition = _authoredPosition +
-                        Vector2.down * (Value(p => p.DeathDrop, 72f) * motionT * travelScale);
-                    _rectTransform.localRotation = Quaternion.Euler(0f, 0f,
-                        (_actor == PresentationActor.Player ? -1f : 1f) *
-                        Value(p => p.DeathRotation, 18f) * motionT * travelScale);
+                        Vector2.down * (height * dropRatio * motionT * travelScale) +
+                        Vector2.right * shake;
+                    _rectTransform.localRotation = _authoredRotation;
 
                     if (_graphic != null)
                     {
-                        if (t < flashThresh)
-                        {
-                            _graphic.color = _authoredColor;
-                        }
-                        else if (t < fadeThresh)
-                        {
-                            float flashProgress = fadeThresh <= flashThresh
-                                ? 1f
-                                : Mathf.Clamp01((t - flashThresh) / (fadeThresh - flashThresh));
-                            _graphic.color = Color.Lerp(_authoredColor, Color.white, flashProgress);
-                        }
-                        else
-                        {
-                            _graphic.color = Color.white;
-                        }
+                        Color deathTint = _majorDeath
+                            ? new Color(0.78f, 0.08f, 0.10f, _authoredColor.a)
+                            : Color.white;
+                        float tint = t < flashThresh ? t / Mathf.Max(0.01f, flashThresh) : 1f;
+                        if (_majorDeath && !_reducedMotion)
+                            tint *= 0.72f + 0.28f * Mathf.Abs(
+                                Mathf.Sin(t * Mathf.PI * 4f));
+                        _graphic.color = Color.Lerp(_authoredColor, deathTint,
+                            Mathf.Clamp01(tint));
                     }
 
                     if (!_whiteFlashTriggered && t >= flashThresh)
@@ -327,6 +399,16 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private float ResolveDuration(ActorVisualState state)
         {
+            if (state == ActorVisualState.Dying)
+            {
+                if (_reducedMotion)
+                    return _majorDeath
+                        ? Value(p => p.ReducedMajorDeathSeconds, 1.00f)
+                        : Value(p => p.ReducedNormalDeathSeconds, 0.50f);
+                return _majorDeath
+                    ? Value(p => p.MajorDeathSeconds, 1.60f)
+                    : Value(p => p.NormalDeathSeconds, 0.70f);
+            }
             if (_reducedMotion) return Value(p => p.ReducedMotionSeconds, 0.12f);
             switch (state)
             {
@@ -337,7 +419,6 @@ namespace PowerMath.Gameplay.Combat.Unity
                 case ActorVisualState.Walking: return Value(p => p.WalkSeconds, 0.32f);
                 case ActorVisualState.TakingDamage: return Value(p => p.TakeDamageSeconds, 0.30f);
                 case ActorVisualState.Appearing: return Value(p => p.AppearSeconds, 0.45f);
-                case ActorVisualState.Dying: return Value(p => p.DieSeconds, 0.90f);
                 case ActorVisualState.Rebirthing: return Value(p => p.RebirthSeconds, 0.85f);
                 default: return Value(p => p.FailedAttackSeconds, 0.30f);
             }
@@ -388,6 +469,9 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnDisable()
         {
+            StopJuiceAnimation();
+            _isPointerHovered = false;
+            _isPointerPressed = false;
             _playSessionId++;
             _isPlaying = false;
             if (_rectTransform != null) RestoreAuthoredPose(resetAlpha: false);
@@ -413,6 +497,134 @@ namespace PowerMath.Gameplay.Combat.Unity
                     image.overrideSprite = null;
                 }
             }
+        }
+
+        private bool CanPlayInteractionJuice()
+        {
+            return (_interactionAllowed == null || _interactionAllowed()) &&
+                !_isPlaying && State == ActorVisualState.Idle &&
+                gameObject.activeInHierarchy && _rectTransform != null;
+        }
+
+        private void StartJuiceAnimation(IEnumerator routine)
+        {
+            StopJuiceAnimation();
+            if (gameObject.activeInHierarchy)
+                _juiceCoroutine = StartCoroutine(routine);
+        }
+
+        private void StopJuiceAnimation()
+        {
+            if (_juiceCoroutine != null)
+            {
+                StopCoroutine(_juiceCoroutine);
+                _juiceCoroutine = null;
+            }
+        }
+
+        private IEnumerator HoverEnterRoutine()
+        {
+            float startScale = _rectTransform != null ? _rectTransform.localScale.x : 1f;
+            float duration = 0.12f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                if (!CanPlayInteractionJuice()) yield break;
+                float delta = Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime : 0.02f;
+                elapsed += delta;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float s = Mathf.Lerp(startScale, HoverScale, t);
+                if (_rectTransform != null)
+                    _rectTransform.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+            if (_rectTransform != null)
+                _rectTransform.localScale = new Vector3(HoverScale, HoverScale, 1f);
+            _juiceCoroutine = null;
+        }
+
+        private IEnumerator HoldChargeRoutine()
+        {
+            while (_isPointerPressed)
+            {
+                if (!CanPlayInteractionJuice()) yield break;
+                float elapsed = Time.unscaledTime - _pressStartTime;
+                float charge = Mathf.Clamp01(elapsed / MaxHoldTime);
+
+                float targetScaleY = Mathf.Lerp(HoverScale, 0.86f, charge);
+                float targetScaleX = Mathf.Lerp(HoverScale, 1.12f, charge);
+                float jitter = charge > 0.08f ? Mathf.Sin(Time.unscaledTime * 60f) * (charge * 2.5f) : 0f;
+
+                if (_rectTransform != null)
+                {
+                    _rectTransform.localScale = new Vector3(targetScaleX, targetScaleY, 1f);
+                    _rectTransform.anchoredPosition = _authoredPosition + new Vector2(jitter, -charge * 3.5f);
+                }
+                yield return null;
+            }
+        }
+
+        private IEnumerator ReleaseBounceRoutine(float charge)
+        {
+            float peakBounce = Mathf.Lerp(MinBounceScale, MaxBounceScale, charge);
+            float duration = Mathf.Lerp(0.24f, 0.42f, charge);
+            float elapsed = 0f;
+            float targetScale = _isPointerHovered ? HoverScale : 1.0f;
+
+            while (elapsed < duration)
+            {
+                if (!CanPlayInteractionJuice()) yield break;
+                float delta = Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime : 0.02f;
+                elapsed += delta;
+                float t = Mathf.Clamp01(elapsed / duration);
+
+                float decay = Mathf.Exp(-7.5f * t);
+                float oscillation = Mathf.Cos(16f * t);
+                float currentScale = targetScale + (peakBounce - targetScale) * decay * oscillation;
+
+                if (_rectTransform != null)
+                {
+                    _rectTransform.localScale = new Vector3(currentScale, currentScale, 1f);
+                    _rectTransform.anchoredPosition = Vector2.Lerp(_rectTransform.anchoredPosition, _authoredPosition, t);
+                }
+                yield return null;
+            }
+
+            if (_rectTransform != null)
+            {
+                _rectTransform.localScale = new Vector3(targetScale, targetScale, 1f);
+                _rectTransform.anchoredPosition = _authoredPosition;
+            }
+            _juiceCoroutine = null;
+        }
+
+        private IEnumerator HoverExitRoutine()
+        {
+            float startScale = _rectTransform != null ? _rectTransform.localScale.x : 1f;
+            Vector2 startPos = _rectTransform != null ? _rectTransform.anchoredPosition : _authoredPosition;
+            float duration = 0.15f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                if (!CanPlayInteractionJuice()) yield break;
+                float delta = Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime : 0.02f;
+                elapsed += delta;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float smooth = Mathf.SmoothStep(0f, 1f, t);
+                if (_rectTransform != null)
+                {
+                    float s = Mathf.Lerp(startScale, 1.0f, smooth);
+                    _rectTransform.localScale = new Vector3(s, s, 1f);
+                    _rectTransform.anchoredPosition = Vector2.Lerp(startPos, _authoredPosition, smooth);
+                }
+                yield return null;
+            }
+            if (_rectTransform != null)
+            {
+                _rectTransform.localScale = Vector3.one;
+                _rectTransform.anchoredPosition = _authoredPosition;
+            }
+            _juiceCoroutine = null;
         }
     }
 }

@@ -1,28 +1,28 @@
 fileFormatVersion: 2
-guid: 2df4eb23f3ba311429150f7eeae77a6f
+guid: 3666d5ea236198c47b89eddc4604edf8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8969520970415185786
-    second: math-world-logo-simple-v6_0
+      213: 6557480141073975500
+    second: worldwide-icon_0
   - first:
-      213: 2120398083149338875
-    second: math-world-logo-simple-v6_1
+      213: 1195745797215697414
+    second: worldwide-icon_1
   - first:
-      213: 5782156528576574376
-    second: math-world-logo-simple-v6_2
+      213: 8486009380892702677
+    second: worldwide-icon_2
   - first:
-      213: -5270314130359293356
-    second: math-world-logo-simple-v6_3
+      213: -2892390872025788895
+    second: worldwide-icon_3
   - first:
-      213: 5077142345859500245
-    second: math-world-logo-simple-v6_4
+      213: -7097395399011605310
+    second: worldwide-icon_4
   - first:
-      213: -3814203409285621527
-    second: math-world-logo-simple-v6_5
+      213: -3033690434471254151
+    second: worldwide-icon_5
   - first:
-      213: -1803168980294038600
-    second: math-world-logo-simple-v6_6
+      213: 2854328586671323904
+    second: worldwide-icon_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -131,13 +131,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: math-world-logo-simple-v6_0
+      name: worldwide-icon_0
       rect:
         serializedVersion: 2
-        x: 298
-        y: 690
-        width: 49
-        height: 33
+        x: 58
+        y: 71
+        width: 1135
+        height: 1167
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -146,129 +146,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a7f930fccc32a7c70800000000000000
-      internalID: 8969520970415185786
+      spriteID: cc8846ef179d00b50800000000000000
+      internalID: 6557480141073975500
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: math-world-logo-simple-v6_1
+      name: worldwide-icon_1
       rect:
         serializedVersion: 2
-        x: 426
-        y: 692
-        width: 28
-        height: 15
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bf8198082da2d6d10800000000000000
-      internalID: 2120398083149338875
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: math-world-logo-simple-v6_2
-      rect:
-        serializedVersion: 2
-        x: 31
-        y: 15
-        width: 2007
-        height: 673
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8a333814ab85e3050800000000000000
-      internalID: 5782156528576574376
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: math-world-logo-simple-v6_3
-      rect:
-        serializedVersion: 2
-        x: 392
-        y: 39
-        width: 9
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 45a6635c8351cd6b0800000000000000
-      internalID: -5270314130359293356
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: math-world-logo-simple-v6_4
-      rect:
-        serializedVersion: 2
-        x: 1126
-        y: 86
-        width: 20
-        height: 13
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5d88c0f4012a57640800000000000000
-      internalID: 5077142345859500245
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: math-world-logo-simple-v6_5
-      rect:
-        serializedVersion: 2
-        x: 1464
-        y: 55
-        width: 6
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9e85270353a311bc0800000000000000
-      internalID: -3814203409285621527
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: math-world-logo-simple-v6_6
-      rect:
-        serializedVersion: 2
-        x: 1521
-        y: 63
-        width: 7
+        x: 110
+        y: 915
+        width: 12
         height: 10
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -278,8 +168,118 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8bb0293bd5bd9f6e0800000000000000
-      internalID: -1803168980294038600
+      spriteID: 60a35bc9774289010800000000000000
+      internalID: 1195745797215697414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: worldwide-icon_2
+      rect:
+        serializedVersion: 2
+        x: 948
+        y: 136
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d7fdb4329c54c570800000000000000
+      internalID: 8486009380892702677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: worldwide-icon_3
+      rect:
+        serializedVersion: 2
+        x: 954
+        y: 134
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12e025193d92cd7d0800000000000000
+      internalID: -2892390872025788895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: worldwide-icon_4
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 103
+        width: 53
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c4eb6bfc7cf08d90800000000000000
+      internalID: -7097395399011605310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: worldwide-icon_5
+      rect:
+        serializedVersion: 2
+        x: 944
+        y: 87
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97727de7f9a26e5d0800000000000000
+      internalID: -3033690434471254151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: worldwide-icon_6
+      rect:
+        serializedVersion: 2
+        x: 900
+        y: 53
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00b79c80abc9c9720800000000000000
+      internalID: 2854328586671323904
       vertices: []
       indices: 
       edges: []
@@ -298,13 +298,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      math-world-logo-simple-v6_0: 8969520970415185786
-      math-world-logo-simple-v6_1: 2120398083149338875
-      math-world-logo-simple-v6_2: 5782156528576574376
-      math-world-logo-simple-v6_3: -5270314130359293356
-      math-world-logo-simple-v6_4: 5077142345859500245
-      math-world-logo-simple-v6_5: -3814203409285621527
-      math-world-logo-simple-v6_6: -1803168980294038600
+      worldwide-icon_0: 6557480141073975500
+      worldwide-icon_1: 1195745797215697414
+      worldwide-icon_2: 8486009380892702677
+      worldwide-icon_3: -2892390872025788895
+      worldwide-icon_4: -7097395399011605310
+      worldwide-icon_5: -3033690434471254151
+      worldwide-icon_6: 2854328586671323904
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

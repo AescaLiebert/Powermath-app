@@ -15,6 +15,10 @@ namespace PowerMath.Gameplay.Combat.Unity
         [SerializeField, Min(0f)] private float walkSeconds = 0.32f;
         [SerializeField, Min(0f)] private float appearSeconds = 0.45f;
         [SerializeField, Min(0f)] private float dieSeconds = 0.90f;
+        [SerializeField, Min(0f)] private float normalDeathSeconds = 0.70f;
+        [SerializeField, Min(0f)] private float majorDeathSeconds = 1.60f;
+        [SerializeField, Min(0f)] private float reducedNormalDeathSeconds = 0.50f;
+        [SerializeField, Min(0f)] private float reducedMajorDeathSeconds = 1.00f;
         [SerializeField, Min(0f)] private float rebirthSeconds = 0.85f;
         [SerializeField, Min(0f)] private float reducedMotionSeconds = 0.12f;
 
@@ -26,6 +30,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         [SerializeField, Min(0f)] private float walkBounce = 5f;
         [SerializeField, Min(0f)] private float deathDrop = 72f;
         [SerializeField, Min(0f)] private float deathRotation = 18f;
+        [SerializeField, Range(0f, 0.25f)] private float normalDeathDropRatio = 0.04f;
+        [SerializeField, Range(0f, 0.25f)] private float majorDeathDropRatio = 0.08f;
+        [SerializeField, Range(0f, 0.1f)] private float majorDeathShakeRatio = 0.015f;
         [SerializeField, Min(0f)] private float rebirthRise = 58f;
 
         [Header("Critical Impact")]
@@ -56,6 +63,10 @@ namespace PowerMath.Gameplay.Combat.Unity
         public float WalkSeconds => walkSeconds;
         public float AppearSeconds => appearSeconds;
         public float DieSeconds => dieSeconds;
+        public float NormalDeathSeconds => normalDeathSeconds;
+        public float MajorDeathSeconds => majorDeathSeconds;
+        public float ReducedNormalDeathSeconds => reducedNormalDeathSeconds;
+        public float ReducedMajorDeathSeconds => reducedMajorDeathSeconds;
         public float RebirthSeconds => rebirthSeconds;
         public float ReducedMotionSeconds => reducedMotionSeconds;
         public float AttackTravel => attackTravel;
@@ -65,6 +76,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         public float WalkBounce => walkBounce;
         public float DeathDrop => deathDrop;
         public float DeathRotation => deathRotation;
+        public float NormalDeathDropRatio => normalDeathDropRatio;
+        public float MajorDeathDropRatio => majorDeathDropRatio;
+        public float MajorDeathShakeRatio => majorDeathShakeRatio;
         public float RebirthRise => rebirthRise;
         public float CriticalImpulseSeconds => criticalImpulseSeconds;
         public float CriticalImpulseAmplitude => criticalImpulseAmplitude;

@@ -52,6 +52,12 @@ namespace PowerMath.Gameplay.Academic
             Action<string> failed)
         {
             if (request.Academic == null) throw new ArgumentException("Academic state is required.", nameof(request));
+            long expectedRevision = _player.revision;
+            if (expectedRevision < 0 || nextRevision <= 0 || expectedRevision != nextRevision - 1)
+            {
+                failed?.Invoke("Player progression changed before saving; reload before continuing.");
+                yield break;
+            }
             if (!_settings.TryGetLevelDocumentById(_levelDocumentId, out string url))
             {
                 failed?.Invoke("Player progression document is not configured.");
@@ -67,9 +73,14 @@ namespace PowerMath.Gameplay.Academic
                 if (get.result != UnityWebRequest.Result.Success ||
                     !FirestoreJsonNavigator.TryParse(get.downloadHandler.text, out JsonValue root, out _) ||
                     !root.TryGet("updateTime", out JsonValue updateValue) ||
-                    updateValue.Kind != JsonValueKind.String)
+                    updateValue.Kind != JsonValueKind.String || string.IsNullOrWhiteSpace(updateValue.Text))
                 {
                     failed?.Invoke("Could not refresh player progression before saving.");
+                    yield break;
+                }
+                if (!TryValidateSaveDocument(root, _username, expectedRevision, out string validationError))
+                {
+                    failed?.Invoke(validationError);
                     yield break;
                 }
                 updateTime = updateValue.Text;
@@ -81,6 +92,11 @@ namespace PowerMath.Gameplay.Academic
                     serverSeconds = serverTime.ToUnixTimeSeconds();
             }
 
+            if (_player.revision != expectedRevision)
+            {
+                failed?.Invoke("Player progression changed while saving; reload before continuing.");
+                yield break;
+            }
             if (request.Snapshot.Combat.Stage.Value >= 200 &&
                 LastFirstStage200ReachedAtUnixSeconds <= 0 && serverSeconds <= 0)
             {
@@ -127,6 +143,62 @@ namespace PowerMath.Gameplay.Academic
         }
 
         public long LastTotalPlaySeconds { get; private set; }
+
+        // A fresh document updateTime only protects writes after this GET. Check the
+        // snapshot revision too, so a stale tab cannot overwrite an earlier commit.
+        private static bool TryValidateSaveDocument(
+            JsonValue document,
+            string username,
+            long expectedRevision,
+            out string error)
+        {
+            error = "Player data could not be read safely. Reload before continuing.";
+            if (expectedRevision < 0 ||
+                !FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) ||
+                !fields.TryGet(username, out JsonValue student)) return false;
+            try
+            {
+                int schema = PlayerSaveContract.Inspect(student, out bool isNewPlayer);
+                if (isNewPlayer ||
+                    !FirestoreJsonNavigator.TryGetMapFields(student, out JsonValue studentFields) ||
+                    !studentFields.TryGet("gamedata", out JsonValue gameValue) ||
+                    !FirestoreJsonNavigator.TryGetMapFields(gameValue, out JsonValue game) ||
+                    !TryReadStoredInteger(game, "schemaVersion", out long storedSchema)) return false;
+                if (schema != PlayerSchemaMigrator.CurrentSchemaVersion || storedSchema != schema)
+                {
+                    error = "Player data requires migration. Reload before continuing.";
+                    return false;
+                }
+                if (!TryReadStoredInteger(game, "revision", out long revision) || revision < 0) return false;
+                if (revision != expectedRevision)
+                {
+                    // This also handles a lost PATCH response: recover by loading the
+                    // committed receipt, never by replaying an older reward snapshot.
+                    error = "Player progression changed on another client; reload before continuing.";
+                    return false;
+                }
+                error = string.Empty;
+                return true;
+            }
+            catch (NotSupportedException)
+            {
+                error = "This save requires a newer game version. Refresh before continuing.";
+                return false;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        private static bool TryReadStoredInteger(JsonValue fields, string name, out long value)
+        {
+            value = 0;
+            return fields.TryGet(name, out JsonValue field) &&
+                field.TryGet("integerValue", out JsonValue integer) &&
+                (integer.Kind == JsonValueKind.String || integer.Kind == JsonValueKind.Number) &&
+                long.TryParse(integer.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+        }
 
         private FirestorePatchPlan BuildPlan(
             GameplaySaveRequest request,

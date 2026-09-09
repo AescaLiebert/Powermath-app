@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4455c33fad9612648a3b0591450c6972
+guid: e947686e0d922ee488aba45ac3de1a1f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8936846030022051875
-    second: F_Hurt_Ricko_0
+      213: -8622748311883558011
+    second: F_Standing_Ricko (3)_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -72,7 +72,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: F_Hurt_Ricko_0
+      name: F_Standing_Ricko (3)_0
       rect:
         serializedVersion: 2
-        x: 20
-        y: 103
-        width: 1066
-        height: 1298
+        x: 90
+        y: 4
+        width: 781
+        height: 951
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 32803d76d1e060c70800000000000000
-      internalID: 8936846030022051875
+      spriteID: 583d49a7818d55880800000000000000
+      internalID: -8622748311883558011
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      F_Hurt_Ricko_0: 8936846030022051875
+      F_Standing_Ricko (3)_0: -8622748311883558011
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: MainMenuTransitionSettings
   m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.MainMenu.MainMenuTransitionSettingsDefinition
   initialSettleSeconds: 0.05
-  titleEntrySeconds: 0.22
-  titleHoldSeconds: 0.28
-  titleExitSeconds: 0.16
-  sceneRevealSeconds: 0.42
-  characterEntrySeconds: 0.52
+  titleEntrySeconds: 0.25
+  titleHoldSeconds: 0.8
+  titleExitSeconds: 0.3
+  sceneRevealSeconds: 0.35
+  characterEntrySeconds: 0.45
   characterStaggerSeconds: 0.06
   sessionEntrySeconds: 0.28
   playerTravelPixels: 260
@@ -46,7 +46,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  reducedCrossfadeSeconds: 0.12
+  reducedCrossfadeSeconds: 0.2
   battleStartImpact: {fileID: 0}
   characterWhoosh: {fileID: 0}
   sessionComplete: {fileID: 0}

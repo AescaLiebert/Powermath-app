@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using PowerMath.Gameplay.Combat;
+using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
+using PowerMath.PlayerLifecycle;
 using PowerMath.Session;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -163,7 +166,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 catch (OverflowException) { return false; }
                 catch (ArgumentOutOfRangeException) { return false; }
                 if (storedScore != score || currentStage < 1 || highestStage < 1 ||
-                    currentStage > highestStage || highestStage > 200 || damage < 0)
+                    currentStage > highestStage || highestStage > StageId.Final || damage < 0)
                     return false;
                 entries.Add(new LeaderboardEntry
                 {
@@ -241,6 +244,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private readonly Button _jumpToSelf;
         private readonly ScrollView _list;
         private readonly VisualElement _attemptPanel;
+        private readonly VisualElement _selfAvatarSlot;
+        private readonly VisualElement _thronePetSlot;
         private readonly FirestoreLeaderboardRepository _repository;
         private readonly PlayerSnapshot _player;
         private readonly string _levelId;
@@ -277,6 +282,9 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _selfDamage = root.Q<Label>("leaderboard-self-damage");
             _selfCurrencies = root.Q<VisualElement>("leaderboard-self-currencies");
             _selfLoadout = root.Q<VisualElement>("leaderboard-self-loadout");
+            _selfAvatarSlot = root.Q<VisualElement>(className: "leaderboard-avatar-slot--self") ??
+                root.Q<VisualElement>(".leaderboard-pinned-self")?.Q<VisualElement>(".row-avatar-slot");
+            _thronePetSlot = root.Q<VisualElement>(".pet-sprite-placeholder");
             _jumpToSelf = root.Q<Button>("leaderboard-jump-to-self");
             _list = root.Q<ScrollView>("leaderboard-list");
             _attemptPanel = root.Q<VisualElement>("combat-attempt-panel");
@@ -447,8 +455,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             long silver = Math.Max(0, wallet.silver);
             long gold = Math.Max(0, wallet.gold);
             long diamond = Math.Max(0, wallet.diamond);
-            int currentStage = Math.Max(1, Math.Min(200, progression.currentStage));
-            int highestStage = Math.Max(currentStage, Math.Min(200, progression.highestStage));
+            int currentStage = Math.Max(1, Math.Min(StageId.Final, progression.currentStage));
+            int highestStage = Math.Max(currentStage, Math.Min(StageId.Final, progression.highestStage));
             int weaponLevel = 0;
             foreach (PlayerSnapshot.InventoryItemData item in
                      player.inventory ?? Array.Empty<PlayerSnapshot.InventoryItemData>())
@@ -479,6 +487,10 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             };
         }
 
+        private static CharacterPresentationCatalog s_characterCatalog;
+        private static WeaponAscensionCatalogDefinition s_weaponCatalog;
+        private static PetGachaCatalogDefinition s_petCatalog;
+
         private void Render(List<RankedLeaderboardEntry> entries, string status)
         {
             _status.text = status;
@@ -490,11 +502,35 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _throneGold.text = FormatNumber(first?.Entry.Gold ?? 0);
             _throneDiamond.text = FormatNumber(first?.Entry.Diamond ?? 0);
             _characterVideo.Show(first?.Entry.CharacterId);
+            RenderThronePet(first?.Entry?.PetId);
 
             RankedLeaderboardEntry self = entries.FirstOrDefault(value => value.IsSelf);
             RenderSelf(self);
             foreach (RankedLeaderboardEntry ranked in entries)
                 _list.Add(CreateRow(ranked));
+        }
+
+        private void RenderThronePet(string petId)
+        {
+            if (_thronePetSlot == null) return;
+            _thronePetSlot.Clear();
+            Sprite petIcon = ResolvePetIcon(petId);
+            if (petIcon != null)
+            {
+                var image = new Image
+                {
+                    name = "Throne Pet Icon",
+                    sprite = petIcon,
+                    pickingMode = PickingMode.Ignore
+                };
+                image.AddToClassList("leaderboard-pet-throne-image");
+                _thronePetSlot.Add(image);
+                _thronePetSlot.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _thronePetSlot.style.display = DisplayStyle.None;
+            }
         }
 
         private void RenderSelf(RankedLeaderboardEntry self)
@@ -509,6 +545,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             if (self == null) return;
             AddCurrencyRows(_selfCurrencies, self.Entry);
             AddLoadoutSlots(_selfLoadout, self.Entry);
+            RenderAvatar(_selfAvatarSlot, self.Entry);
         }
 
         private static VisualElement CreateRow(RankedLeaderboardEntry ranked)
@@ -528,7 +565,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
             var avatar = CreateElement(".row-avatar-slot", "leaderboard-avatar-slot");
             avatar.tooltip = DisplayItem(ranked.Entry.AvatarId);
-            avatar.Add(CreateLabel("Slot Label", "ProfilePic Slot", "leaderboard-slot-label"));
+            RenderAvatar(avatar, ranked.Entry);
             row.Add(avatar);
 
             var identity = CreateElement(".row-identity", "leaderboard-row-identity");
@@ -549,6 +586,73 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             damage.Add(CreateLabel(".dmg-value", FormatCompact(ranked.Entry.TotalDamage), "leaderboard-damage-value"));
             row.Add(damage);
             return row;
+        }
+
+        private static void RenderAvatar(VisualElement slot, LeaderboardEntry entry)
+        {
+            if (slot == null) return;
+            slot.Clear();
+            Sprite profileSprite = ResolveProfileIcon(entry);
+            if (profileSprite != null)
+            {
+                var image = new Image
+                {
+                    name = "Avatar Icon",
+                    sprite = profileSprite,
+                    pickingMode = PickingMode.Ignore
+                };
+                image.AddToClassList("leaderboard-avatar-image");
+                slot.Add(image);
+            }
+            else
+            {
+                slot.Add(CreateLabel("Slot Label", "ProfilePic Slot", "leaderboard-slot-label"));
+            }
+        }
+
+        internal static Sprite ResolveProfileIcon(LeaderboardEntry entry)
+        {
+            if (entry == null) return null;
+            string charId = !string.IsNullOrWhiteSpace(entry.CharacterId)
+                ? entry.CharacterId
+                : (!string.IsNullOrWhiteSpace(entry.AvatarId) ? entry.AvatarId : "ricko");
+            if (s_characterCatalog == null)
+                s_characterCatalog = Resources.Load<CharacterPresentationCatalog>("CharacterPresentationCatalog");
+            CharacterPresentationCatalog.Character def = s_characterCatalog?.Find(charId);
+            Sprite authored = def?.profileIcon != null ? def.profileIcon : def?.selectionArt;
+            return CharacterPlaceholderSprites.Resolve(authored, charId);
+        }
+
+        internal static Sprite ResolveWeaponIcon(LeaderboardEntry entry)
+        {
+            if (entry == null) return null;
+            if (s_weaponCatalog == null)
+                s_weaponCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
+            if (s_weaponCatalog == null) return null;
+            WeaponAscensionCatalogDefinition.Tier tier = s_weaponCatalog.Resolve(entry.WeaponLevel);
+            return tier?.icon;
+        }
+
+        internal static Sprite ResolvePetIcon(string petId)
+        {
+            if (string.IsNullOrWhiteSpace(petId) || string.Equals(petId, "none", StringComparison.OrdinalIgnoreCase))
+                return null;
+            if (s_petCatalog == null)
+            {
+                s_petCatalog = Resources.Load<PetGachaCatalogDefinition>("Pets/PetGachaCatalog") ??
+                               Resources.Load<PetGachaCatalogDefinition>("PetGachaCatalog");
+            }
+            if (s_petCatalog == null) return null;
+            foreach (PetGachaCatalogDefinition.RarityContent rarity in s_petCatalog.Rarities)
+            {
+                if (rarity?.pets == null) continue;
+                foreach (PetDefinition pet in rarity.pets)
+                {
+                    if (pet != null && string.Equals(pet.PetId, petId, StringComparison.OrdinalIgnoreCase))
+                        return pet.Icon;
+                }
+            }
+            return null;
         }
 
         private static VisualElement CreateStagesRow(LeaderboardEntry entry)
@@ -584,8 +688,50 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private static void AddLoadoutSlots(VisualElement parent, LeaderboardEntry entry)
         {
-            parent.Add(CreateLoadoutSlot(".slot-pet", "Pet\nSlot", DisplayItem(entry.PetId)));
-            parent.Add(CreateLoadoutSlot(".slot-weapon", "Weapon\nSlot", DisplayWeapon(entry)));
+            var petSlot = CreateElement(".slot-pet", "leaderboard-loadout-slot");
+            petSlot.tooltip = DisplayItem(entry.PetId);
+            Sprite petIcon = ResolvePetIcon(entry.PetId);
+            if (petIcon != null)
+            {
+                var petImage = new Image
+                {
+                    name = "Pet Icon",
+                    sprite = petIcon,
+                    pickingMode = PickingMode.Ignore
+                };
+                petImage.AddToClassList("leaderboard-loadout-image");
+                petSlot.Add(petImage);
+            }
+            else
+            {
+                petSlot.Add(CreateLabel("Slot Label", "Pet\nSlot", "leaderboard-slot-label"));
+            }
+            parent.Add(petSlot);
+
+            var weaponSlot = CreateElement(".slot-weapon", "leaderboard-loadout-slot");
+            weaponSlot.tooltip = DisplayWeapon(entry);
+            Sprite weaponIcon = ResolveWeaponIcon(entry);
+            if (weaponIcon != null)
+            {
+                var weaponImage = new Image
+                {
+                    name = "Weapon Icon",
+                    sprite = weaponIcon,
+                    pickingMode = PickingMode.Ignore
+                };
+                weaponImage.AddToClassList("leaderboard-loadout-image");
+                weaponSlot.Add(weaponImage);
+                if (entry.WeaponLevel > 0)
+                {
+                    var levelBadge = CreateLabel("Weapon Level", "Lv." + entry.WeaponLevel, "leaderboard-weapon-level-badge");
+                    weaponSlot.Add(levelBadge);
+                }
+            }
+            else
+            {
+                weaponSlot.Add(CreateLabel("Slot Label", "Weapon\nSlot", "leaderboard-slot-label"));
+            }
+            parent.Add(weaponSlot);
         }
 
         private static VisualElement CreateLoadoutSlot(string name, string label, string tooltip)

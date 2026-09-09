@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B3-B01
   displayName: Eclipse Moffleir Sovereign
-  thaiDisplayName: "\u0E40\u0E08\u0E34\u0E2A\u0E08\u0E23\u0E31\u0E0D\u0E04\u0E23\u0E32\u0E2A\u0E08\u0E31\u0E19\u0E17\u0E23\u0E32 \u0E21\u0E2D\u0E1F\u0E1F\u0E34\u0E2D\u0E2D\u0E23\u0E4C"
+  thaiDisplayName: "\u0E40\u0E08\u0E34\u0E2A\u0E08\u0E23\u0E31\u0E0D\u0E04\u0E23\u0E32\u0E2A\u0E08\u0E31\u0E19\u0E17\u0E23\u0E32
+    \u0E21\u0E2D\u0E1F\u0E1F\u0E34\u0E2D\u0E2D\u0E23\u0E4C"
   biomeId: biome-3
   encounterKind: 2
   baseHp: 200
   maximumCooldown: 2
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 5b6cff065dcf0de42a0e8a378f57a137, type: 3}

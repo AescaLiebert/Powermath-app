@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Text;
+using PowerMath.Gameplay.Combat;
 using PowerMath.Session;
 using PowerMath.Gameplay.Progression;
 using UnityEngine.Networking;
@@ -33,8 +34,8 @@ namespace PowerMath.PlayerData
             foreach (PlayerSnapshot.InventoryItemData item in player.inventory ?? Array.Empty<PlayerSnapshot.InventoryItemData>())
                 if (item != null && item.itemId == WeaponAscensionPolicy.CanonicalItemId)
                     weaponLevel = Math.Max(weaponLevel, item.upgradeLevel);
-            int currentStage = Math.Max(1, Math.Min(200, progression.currentStage));
-            int highestStage = Math.Max(currentStage, Math.Min(200, progression.highestStage));
+            int currentStage = Math.Max(1, Math.Min(StageId.Final, progression.currentStage));
+            int highestStage = Math.Max(currentStage, Math.Min(StageId.Final, progression.highestStage));
             long weighted;
             try { checked { weighted = wallet.silver * 5L + wallet.gold * 7L + wallet.diamond * 10L; } }
             catch (OverflowException)

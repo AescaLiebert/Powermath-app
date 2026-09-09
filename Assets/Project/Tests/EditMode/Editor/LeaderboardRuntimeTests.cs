@@ -87,6 +87,50 @@ namespace PowerMath.Tests.EditMode
             Assert.That(name.text, Does.Not.Contain("YOU"));
         }
 
+        [Test]
+        public void CreateRow_RendersAvatarAndLoadoutImages()
+        {
+            Assembly assembly = typeof(SocialProfileCompositionRoot).Assembly;
+            System.Type entryType = assembly.GetType(
+                "PowerMath.UI.MainMenu.SocialProfile.LeaderboardEntry");
+            System.Type rankedType = assembly.GetType(
+                "PowerMath.UI.MainMenu.SocialProfile.RankedLeaderboardEntry");
+            System.Type controller = assembly.GetType(
+                "PowerMath.UI.MainMenu.SocialProfile.LeaderboardPanelController");
+
+            object entry = System.Activator.CreateInstance(entryType);
+            SetField(entry, "DisplayName", "TEST_HERO");
+            SetField(entry, "CharacterId", "ricko");
+            SetField(entry, "PetId", "pet-ember-fox");
+            SetField(entry, "WeaponId", "base-sword");
+            SetField(entry, "WeaponLevel", 5);
+
+            object ranked = System.Activator.CreateInstance(rankedType);
+            SetField(ranked, "Entry", entry);
+            SetField(ranked, "Rank", 1);
+            SetField(ranked, "IsSelf", false);
+
+            MethodInfo method = controller.GetMethod(
+                "CreateRow",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.That(method, Is.Not.Null);
+
+            var row = (VisualElement)method.Invoke(null, new[] { ranked });
+            var avatarSlot = row.Q<VisualElement>(".row-avatar-slot");
+            Assert.That(avatarSlot, Is.Not.Null);
+            var avatarImg = avatarSlot.Q<Image>();
+            Assert.That(avatarImg, Is.Not.Null, "Avatar slot should contain an Image element.");
+            Assert.That(avatarImg.ClassListContains("leaderboard-avatar-image"), Is.True);
+
+            var loadout = row.Q<VisualElement>(".row-loadout");
+            Assert.That(loadout, Is.Not.Null);
+            var weaponSlot = loadout.Q<VisualElement>(".slot-weapon");
+            Assert.That(weaponSlot, Is.Not.Null);
+            var weaponBadge = weaponSlot.Q<Label>("Weapon Level");
+            Assert.That(weaponBadge, Is.Not.Null);
+            Assert.That(weaponBadge.text, Is.EqualTo("Lv.5"));
+        }
+
         private static T ReadField<T>(object instance, string name)
         {
             FieldInfo field = instance.GetType().GetField(

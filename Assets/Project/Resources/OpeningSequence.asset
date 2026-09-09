@@ -12,6 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7d9d231ba00c104db3ad798d55ef1f9, type: 3}
   m_Name: OpeningSequence
   m_EditorClassIdentifier: Assembly-CSharp::PowerMath.PlayerLifecycle.OpeningSequenceDefinition
+  englishNarrativeLines:
+  - Welcome to Math:World.
+  - Your adventure is about to begin.
+  - Choose the character who will represent you.
+  thaiNarrativeLines:
+  - ยินดีต้อนรับสู่ Math:World
+  - การผจญภัยของคุณกำลังจะเริ่มต้นขึ้น
+  - เลือกตัวละครที่จะเป็นตัวแทนของคุณ
   englishText:
   thaiText:
+  videoClip: {fileID: 32900000, guid: 81912a836e5113b4cbd3da7f59114d67, type: 3}
   videoUrl:
+  characterRevealSeconds: 0.025
+  lineHoldSeconds: 1.15
+  lineFadeSeconds: 0.42

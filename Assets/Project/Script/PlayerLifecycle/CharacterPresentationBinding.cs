@@ -26,8 +26,11 @@ namespace PowerMath.PlayerLifecycle
             if (!Session.PlayerLifecyclePolicy.IsCharacter(id)) return;
             var definition = _catalog?.Find(id);
             string title = LocalizationService.Get("onboarding." + id);
+            string characterName = !string.IsNullOrEmpty(title) && !title.StartsWith("[")
+                ? title
+                : (id == "stellar" ? "Stellar" : "Ricko");
             var name = _root.Q<Label>("CharacterName");
-            if (name != null) { name.text = player.profile.displayName; name.tooltip = title; }
+            if (name != null) { name.text = characterName; name.tooltip = characterName; }
             Apply(_root.Q("player-hub-avatar"), CharacterPlaceholderSprites.Resolve(definition?.hubSprite, id), title);
             _root.Query(className: "hud-profile-picture").ForEach(element => Apply(element, CharacterPlaceholderSprites.Resolve(definition?.profileIcon, id), title));
             foreach (var actor in FindObjectsByType<PowerMath.Gameplay.Combat.Unity.ActorPresentationController>())

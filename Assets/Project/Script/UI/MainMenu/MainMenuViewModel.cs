@@ -1,3 +1,4 @@
+using PowerMath.Gameplay.Combat;
 using PowerMath.PlayerData;
 using UnityEngine;
 
@@ -5,7 +6,7 @@ namespace PowerMath.UI.MainMenu
 {
     public readonly struct MainMenuViewModel
     {
-        private const int FinalStage = 200;
+        private const int FinalStage = StageId.Final;
 
         public MainMenuViewModel(
             string displayName,
@@ -39,9 +40,11 @@ namespace PowerMath.UI.MainMenu
             string diamondText,
             string powerCoinText,
             string weaponText,
-            string petText)
+            string petText,
+            string characterName = null)
         {
             DisplayName = displayName;
+            CharacterName = string.IsNullOrEmpty(characterName) ? displayName : characterName;
             StageText = stageText;
             StageProgress = stageProgress;
             WalletText = walletText;
@@ -55,6 +58,8 @@ namespace PowerMath.UI.MainMenu
         }
 
         public string DisplayName { get; }
+
+        public string CharacterName { get; }
 
         public string StageText { get; }
 
@@ -107,6 +112,12 @@ namespace PowerMath.UI.MainMenu
             );
             string loadoutText = $"Weapon: {weapon}  |  Pet: {pet}";
 
+            string charId = snapshot.profile?.characterId;
+            string localizedChar = PowerMath.Localization.LocalizationService.Get("onboarding." + charId);
+            string characterName = !string.IsNullOrEmpty(localizedChar) && !localizedChar.StartsWith("[")
+                ? localizedChar
+                : (charId == "stellar" ? "Stellar" : (charId == "ricko" ? "Ricko" : displayName));
+
             return new MainMenuViewModel(
                 displayName,
                 stageText,
@@ -118,7 +129,8 @@ namespace PowerMath.UI.MainMenu
                 diamondText,
                 powerCoinText,
                 weapon,
-                pet
+                pet,
+                characterName
             );
         }
 

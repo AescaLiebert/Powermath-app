@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B3-E03
   displayName: Moonveil Moffle
-  thaiDisplayName: "\u0E40\u0E40\u0E22\u0E49\u0E21\u0E08\u0E31\u0E19\u0E17\u0E23\u0E32 \u0E21\u0E2D\u0E1F\u0E40\u0E1F\u0E34\u0E25"
+  thaiDisplayName: "\u0E40\u0E40\u0E22\u0E49\u0E21\u0E08\u0E31\u0E19\u0E17\u0E23\u0E32
+    \u0E21\u0E2D\u0E1F\u0E40\u0E1F\u0E34\u0E25"
   biomeId: biome-3
   encounterKind: 1
   baseHp: 60
   maximumCooldown: 3
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 487068c06f87794458f313c37c3710e2, type: 3}

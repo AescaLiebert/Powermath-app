@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B3-N09
   displayName: Wispling
-  thaiDisplayName: "\u0E20\u0E39\u0E15\u0E27\u0E34\u0E0D\u0E0D\u0E32\u0E13 \u0E14\u0E38\u0E4A\u0E01\u0E14\u0E34\u0E4A\u0E01 \u0E40\u0E0B\u0E40\u0E25\u0E48"
+  thaiDisplayName: "\u0E20\u0E39\u0E15\u0E27\u0E34\u0E0D\u0E0D\u0E32\u0E13 \u0E14\u0E38\u0E4A\u0E01\u0E14\u0E34\u0E4A\u0E01
+    \u0E40\u0E0B\u0E40\u0E25\u0E48"
   biomeId: biome-3
   encounterKind: 0
   baseHp: 42
   maximumCooldown: 4
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 7f66f74358b6efe49ba4c9b21ff09879, type: 3}

@@ -25,6 +25,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly IGameplaySaveRequestFactory _saveRequests;
         private bool _bound;
         private bool _saveInFlight;
+        private bool _presentationInFlight;
         private QuestionPresentationDescriptor _activeQuestion;
         private readonly IMainMenuInteractionGate _interactionGate;
         private IInteractionLock _attemptLock;
@@ -107,12 +108,14 @@ namespace PowerMath.Gameplay.Combat.Unity
             _attemptLock?.Dispose();
             _attemptLock = null;
             _bound = false;
+            _presentationInFlight = false;
         }
 
         public bool RecoverPendingPresentation()
         {
             AttemptPresentationReceipt receipt = _coordinator.PendingPresentation;
             if (!_bound || receipt == null || _saveInFlight) return false;
+            _presentationInFlight = true;
             _resolutionLock = _interactionGate?.Acquire(
                 "combat-recovery:" + receipt.PresentationId,
                 InteractionScope.All);
@@ -247,6 +250,9 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnSnapshotChanged(GameplaySnapshot snapshot)
         {
+            // The presentation owns encounter visuals until its acknowledgement
+            // succeeds, including the ready snapshot emitted by CompletePresentation.
+            if (_presentationInFlight) return;
             _view.Render(snapshot.Combat);
             _academic.Render(snapshot.Academic);
         }
@@ -258,6 +264,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnAttemptResolved(AttemptResolution resolution)
         {
+            _presentationInFlight = true;
             _resolutionLock = _interactionGate?.Acquire(
                 "combat-presentation:" + resolution.Presentation?.PresentationId,
                 InteractionScope.All);
@@ -294,11 +301,6 @@ namespace PowerMath.Gameplay.Combat.Unity
             _view.SetRetainedQuestionLayout(false);
             _view.ShowAttempt(false);
             yield return _feedback.PlayBattleFeedback(resolution);
-            if (resolution.Combat.BiomeChanged)
-            {
-                _audio?.PlayBiomeTransition();
-                yield return _view.PlayBiomeTransition(resolution.Snapshot.Combat);
-            }
             while (!_feedback.AreActorsStable ||
                    !_view.IsEnemyActionQueueStable ||
                    !_view.IsBlockingUiStable)
@@ -313,6 +315,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             while (_saveInFlight) yield return null;
             if (!saved) yield break;
 
+            _presentationInFlight = false;
             _activeQuestion = null;
             _view.Render(snapshot.Combat);
             _academic.Render(snapshot.Academic);
@@ -359,6 +362,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             while (_saveInFlight) yield return null;
             if (!saved) yield break;
 
+            _presentationInFlight = false;
             _view.Render(snapshot.Combat);
             _academic.Render(snapshot.Academic);
             bool terminal = snapshot.Combat.Phase == CombatPhase.RunDefeat ||

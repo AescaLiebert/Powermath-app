@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: 1c4c6c2b4da084343b61b9f64d02d03e
+guid: 6d6d43d0806b90349868396e601ceb48
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4984103772371906495
-    second: player-hub-background-clean-v1_0
+      213: -8920802317016414413
+    second: Sticker_Power_Correct_0
+  - first:
+      213: -9030583945068919384
+    second: Sticker_Power_Correct_1
+  - first:
+      213: 3634504353417455236
+    second: Sticker_Power_Correct_2
+  - first:
+      213: 451293475243670099
+    second: Sticker_Power_Correct_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +55,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -72,12 +81,12 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 0
+    crunchedCompression: 1
     allowsAlphaSplitting: 0
     overridden: 0
     ignorePlatformSupport: 0
@@ -113,13 +122,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player-hub-background-clean-v1_0
+      name: Sticker_Power_Correct_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 1672
-        height: 941
+        y: 22
+        width: 1254
+        height: 1232
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +137,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fbf69eb59f71b2540800000000000000
-      internalID: 4984103772371906495
+      spriteID: 33741ce9e81f23480800000000000000
+      internalID: -8920802317016414413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sticker_Power_Correct_1
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 812
+        width: 104
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a542df7fbbeca280800000000000000
+      internalID: -9030583945068919384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sticker_Power_Correct_2
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 742
+        width: 116
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 486ee08f37a507230800000000000000
+      internalID: 3634504353417455236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sticker_Power_Correct_3
+      rect:
+        serializedVersion: 2
+        x: 854
+        y: 650
+        width: 110
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35ab9515601534600800000000000000
+      internalID: 451293475243670099
       vertices: []
       indices: 
       edges: []
@@ -138,7 +213,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +223,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player-hub-background-clean-v1_0: 4984103772371906495
+      Sticker_Power_Correct_0: -8920802317016414413
+      Sticker_Power_Correct_1: -9030583945068919384
+      Sticker_Power_Correct_2: 3634504353417455236
+      Sticker_Power_Correct_3: 451293475243670099
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

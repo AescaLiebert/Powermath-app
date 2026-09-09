@@ -31,9 +31,18 @@
         </ui:VisualElement>
         <ui:VisualElement name="main-menu-transition-layer" picking-mode="Ignore" class="main-menu-transition-layer">
             <ui:VisualElement name="main-menu-transition-cover" picking-mode="Ignore" class="main-menu-transition-cover"/>
+            <ui:VisualElement name="transition-square-0" picking-mode="Ignore" class="battle-transition-square battle-transition-square--0"/>
+            <ui:VisualElement name="transition-square-1" picking-mode="Ignore" class="battle-transition-square battle-transition-square--1"/>
+            <ui:VisualElement name="transition-square-2" picking-mode="Ignore" class="battle-transition-square battle-transition-square--2"/>
+            <ui:VisualElement name="transition-square-3" picking-mode="Ignore" class="battle-transition-square battle-transition-square--3"/>
+            <ui:VisualElement name="transition-square-4" picking-mode="Ignore" class="battle-transition-square battle-transition-square--4"/>
+            <ui:VisualElement name="transition-square-5" picking-mode="Ignore" class="battle-transition-square battle-transition-square--5"/>
+            <ui:VisualElement name="transition-square-6" picking-mode="Ignore" class="battle-transition-square battle-transition-square--6"/>
+            <ui:VisualElement name="transition-square-7" picking-mode="Ignore" class="battle-transition-square battle-transition-square--7"/>
+            <ui:VisualElement name="transition-square-8" picking-mode="Ignore" class="battle-transition-square battle-transition-square--8"/>
             <ui:VisualElement name="battle-start-accent-left" picking-mode="Ignore" class="battle-start-accent battle-start-accent--left"/>
             <ui:VisualElement name="battle-start-accent-right" picking-mode="Ignore" class="battle-start-accent battle-start-accent--right"/>
-            <ui:Label name="battle-start-title" text="BATTLE START" picking-mode="Ignore" class="battle-start-title"/>
+            <ui:Label name="battle-start-title" text="————  ×  BATTLE!  ×  ————" picking-mode="Ignore" class="battle-start-title"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

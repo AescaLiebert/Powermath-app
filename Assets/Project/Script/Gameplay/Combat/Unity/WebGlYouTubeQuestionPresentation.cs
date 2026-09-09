@@ -64,6 +64,11 @@ namespace PowerMath.Gameplay.Combat.Unity
 #endif
         }
 
+        private void OnDisable()
+        {
+            Cancel();
+        }
+
         // Invoked by Assets/Plugins/WebGL/PowerMathYouTube.jslib.
         public void OnYouTubeEnded(string generationText)
         {
@@ -89,7 +94,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private bool TryMatchGeneration(string text, out int generation)
         {
-            return int.TryParse(text, out generation) && generation == _generation;
+            return int.TryParse(text, out generation) && generation == _generation &&
+                _completed != null;
         }
 
         private void CompleteUnavailable(int generation, string message)

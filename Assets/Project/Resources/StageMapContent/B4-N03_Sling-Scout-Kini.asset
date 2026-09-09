@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B4-N03
   displayName: Sling Scout, Kini
-  thaiDisplayName: "\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E2B\u0E19\u0E31\u0E07\u0E2A\u0E15\u0E34\u0E4A\u0E01\u0E14\u0E35\u0E14\u0E40\u0E1B\u0E23\u0E35\u0E49\u0E22\u0E07 \u0E04\u0E34\u0E19\u0E34"
+  thaiDisplayName: "\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E2B\u0E19\u0E31\u0E07\u0E2A\u0E15\u0E34\u0E4A\u0E01\u0E14\u0E35\u0E14\u0E40\u0E1B\u0E23\u0E35\u0E49\u0E22\u0E07
+    \u0E04\u0E34\u0E19\u0E34"
   biomeId: biome-4
   encounterKind: 0
   baseHp: 47
   maximumCooldown: 4
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: 6001ad048403c43419c0a7f1e6e0df7d, type: 3}

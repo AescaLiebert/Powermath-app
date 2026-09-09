@@ -464,6 +464,82 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(stage200Hp, Is.InRange(26412, 30388));
         }
 
+        [Test]
+        public void StageClassificationPolicy_CorrectlyClassifiesFlexibleBiomeBossCadence()
+        {
+            // Biome 5: 121 - 160 (Non-final biome with 40 stages)
+            // Stage 150: multiple of 30, but intermediate -> MiniBoss
+            Assert.That(
+                StageClassificationPolicy.Classify(new StageId(150), biomeLastStage: 160, isFinalBiome: false),
+                Is.EqualTo(StageEncounterKind.MiniBoss)
+            );
+            // Stage 155: intermediate multiple of 5 -> MiniBoss
+            Assert.That(
+                StageClassificationPolicy.Classify(new StageId(155), biomeLastStage: 160, isFinalBiome: false),
+                Is.EqualTo(StageEncounterKind.MiniBoss)
+            );
+            // Stage 160: last stage of Biome 5 -> BigBoss
+            Assert.That(
+                StageClassificationPolicy.Classify(new StageId(160), biomeLastStage: 160, isFinalBiome: false),
+                Is.EqualTo(StageEncounterKind.BigBoss)
+            );
+
+            // Biome 6: 161 - 190
+            // Stage 180: multiple of 30, but intermediate -> MiniBoss
+            Assert.That(
+                StageClassificationPolicy.Classify(new StageId(180), biomeLastStage: 190, isFinalBiome: false),
+                Is.EqualTo(StageEncounterKind.MiniBoss)
+            );
+            // Stage 190: last stage of Biome 6 -> BigBoss
+            Assert.That(
+                StageClassificationPolicy.Classify(new StageId(190), biomeLastStage: 190, isFinalBiome: false),
+                Is.EqualTo(StageEncounterKind.BigBoss)
+            );
+
+            // Biome 7: 191 - 215 (Final biome)
+            // Stage 200: intermediate multiple of 5 -> MiniBoss
+            Assert.That(
+                StageClassificationPolicy.Classify(new StageId(200), biomeLastStage: 215, isFinalBiome: true),
+                Is.EqualTo(StageEncounterKind.MiniBoss)
+            );
+            // Stage 215: last stage of Final Biome -> FinalBoss
+            Assert.That(
+                StageClassificationPolicy.Classify(new StageId(215), biomeLastStage: 215, isFinalBiome: true),
+                Is.EqualTo(StageEncounterKind.FinalBoss)
+            );
+
+            // Protected stages check
+            Assert.That(StageClassificationPolicy.IsProtected(new StageId(150)), Is.True);
+            Assert.That(StageClassificationPolicy.IsProtected(new StageId(160)), Is.True);
+            Assert.That(StageClassificationPolicy.IsProtected(new StageId(161)), Is.False);
+            Assert.That(StageClassificationPolicy.IsProtected(new StageId(215)), Is.True);
+        }
+
+        [Test]
+        public void DevelopmentStageMapFactory_BuildsValid215StageJourney()
+        {
+            var map = DevelopmentStageMapFactory.Create();
+            Assert.That(map.Biomes.Count, Is.EqualTo(7));
+            Assert.That(map.Biomes[0].FirstStage, Is.EqualTo(1));
+            Assert.That(map.Biomes[0].LastStage, Is.EqualTo(30));
+            Assert.That(map.Biomes[4].FirstStage, Is.EqualTo(121));
+            Assert.That(map.Biomes[4].LastStage, Is.EqualTo(160));
+            Assert.That(map.Biomes[5].FirstStage, Is.EqualTo(161));
+            Assert.That(map.Biomes[5].LastStage, Is.EqualTo(190));
+            Assert.That(map.Biomes[6].FirstStage, Is.EqualTo(191));
+            Assert.That(map.Biomes[6].LastStage, Is.EqualTo(215));
+
+            var resolver = new StageEncounterResolver(map);
+            var encounter150 = resolver.Resolve("test-run", new StageId(150));
+            Assert.That(encounter150.Kind, Is.EqualTo(StageEncounterKind.MiniBoss));
+
+            var encounter160 = resolver.Resolve("test-run", new StageId(160));
+            Assert.That(encounter160.Kind, Is.EqualTo(StageEncounterKind.BigBoss));
+
+            var encounter215 = resolver.Resolve("test-run", new StageId(215));
+            Assert.That(encounter215.Kind, Is.EqualTo(StageEncounterKind.FinalBoss));
+        }
+
         private sealed class MinimumRandomSource : IRandomSource
         {
             public int NextInclusive(int minimum, int maximum) => minimum;

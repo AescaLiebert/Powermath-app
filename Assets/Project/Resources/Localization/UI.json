@@ -252,8 +252,8 @@
     },
     {
       "key": "onboarding.invalidName",
-      "en": "Enter a name using 1–24 characters, without markup or control characters.",
-      "th": "กรุณาตั้งชื่อ 1–24 ตัวอักษร โดยไม่ใช้แท็กหรืออักขระควบคุม"
+      "en": "Enter a name using 1–20 characters, without markup or control characters.",
+      "th": "กรุณาตั้งชื่อ 1–20 ตัวอักษร โดยไม่ใช้แท็กหรืออักขระควบคุม"
     },
     {
       "key": "onboarding.missingArt",
@@ -819,6 +819,31 @@
       "key": "onboarding.videoUnavailable",
       "en": "Video unavailable. Read the opening text or continue.",
       "th": "เล่นวิดีโอไม่ได้ อ่านข้อความบทนำหรือดำเนินการต่อ"
+    },
+    {
+      "key": "onboarding.videoPreparing",
+      "en": "Preparing your story...",
+      "th": "กำลังเตรียมเรื่องราวของคุณ..."
+    },
+    {
+      "key": "onboarding.yourCharacter",
+      "en": "Your character",
+      "th": "ตัวละครของคุณ"
+    },
+    {
+      "key": "onboarding.almostReady",
+      "en": "Your adventure is almost ready...",
+      "th": "การผจญภัยของคุณเกือบพร้อมแล้ว..."
+    },
+    {
+      "key": "onboarding.rickoDescription",
+      "en": "Choose Ricko as the character who represents you throughout Math:World.",
+      "th": "เลือกริกโก้เป็นตัวละครตัวแทนของคุณตลอดการผจญภัยใน Math:World"
+    },
+    {
+      "key": "onboarding.stellarDescription",
+      "en": "Choose Stellar as the character who represents you throughout Math:World.",
+      "th": "เลือกสเตลลาร์เป็นตัวละครตัวแทนของคุณตลอดการผจญภัยใน Math:World"
     }
   ]
 }

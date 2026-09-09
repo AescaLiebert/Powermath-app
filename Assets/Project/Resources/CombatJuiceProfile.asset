@@ -19,6 +19,10 @@ MonoBehaviour:
   walkSeconds: 0.32
   appearSeconds: 0.45
   dieSeconds: 0.9
+  normalDeathSeconds: 0.7
+  majorDeathSeconds: 1.6
+  reducedNormalDeathSeconds: 0.5
+  reducedMajorDeathSeconds: 1
   rebirthSeconds: 0.85
   reducedMotionSeconds: 0.12
   attackTravel: 56
@@ -28,6 +32,9 @@ MonoBehaviour:
   walkBounce: 5
   deathDrop: 72
   deathRotation: 45
+  normalDeathDropRatio: 0.04
+  majorDeathDropRatio: 0.08
+  majorDeathShakeRatio: 0.015
   rebirthRise: 58
   criticalImpulseSeconds: 0.18
   criticalImpulseAmplitude: 14

@@ -1,13 +1,13 @@
 fileFormatVersion: 2
-guid: 18eae1a3cc3e16646b3153498f3d3498
+guid: ab5c9822fddf59c4b8c4ccd3df41875e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3535410197894425207
-    second: F_Slash_Ricko_0
+      213: 4618742816447212054
+    second: F_Standing_Ricko (2)_0
   - first:
-      213: -7848173503375956569
-    second: F_Slash_Ricko_1
+      213: -3417734417651875584
+    second: F_Standing_Ricko (2)_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -75,7 +75,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -116,13 +116,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: F_Slash_Ricko_0
+      name: F_Standing_Ricko (2)_0
       rect:
         serializedVersion: 2
-        x: 39
-        y: 102
-        width: 1129
-        height: 1324
+        x: 104
+        y: 3
+        width: 827
+        height: 969
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,20 +131,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 77a6ac4f7dc401130800000000000000
-      internalID: 3535410197894425207
+      spriteID: 61a2933de12191040800000000000000
+      internalID: 4618742816447212054
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: F_Slash_Ricko_1
+      name: F_Standing_Ricko (2)_1
       rect:
         serializedVersion: 2
-        x: 708
-        y: 1141
-        width: 384
-        height: 291
+        x: 594
+        y: 764
+        width: 281
+        height: 213
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +153,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7a5a4a3b7cfa51390800000000000000
-      internalID: -7848173503375956569
+      spriteID: 001cb33b7a4c190d0800000000000000
+      internalID: -3417734417651875584
       vertices: []
       indices: 
       edges: []
@@ -173,8 +173,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      F_Slash_Ricko_0: 3535410197894425207
-      F_Slash_Ricko_1: -7848173503375956569
+      F_Standing_Ricko (2)_0: 4618742816447212054
+      F_Standing_Ricko (2)_1: -3417734417651875584
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

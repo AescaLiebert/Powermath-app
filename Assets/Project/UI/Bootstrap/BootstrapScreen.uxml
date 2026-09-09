@@ -3,14 +3,82 @@
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <Style src="project://database/Assets/Project/UI/Bootstrap/BootstrapScreen.uss?fileID=7433441132597879392&amp;guid=e3d242095ca44b14cabf81616ee56ef9&amp;type=3#BootstrapScreen"/>
     <ui:VisualElement name="bootstrap-screen" class="mw-screen bootstrap-root is-busy">
-        <ui:VisualElement name="bg" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Project/Art/UI/illustration/LoadingScreen.JPG?fileID=2800000&amp;guid=eb871e93e85a7334187b6ed362cf12d4&amp;type=3#LoadingScreen&quot;);"/>
+        <ui:VisualElement name="bg" class="bootstrap-loading-background"/>
         <ui:VisualElement name="safe-area" class="mw-safe-area bootstrap-safe-area">
-            <ui:VisualElement name="bootstrap-card" class="mw-card bootstrap-card" style="-unity-background-image-tint-color: rgb(255, 255, 255); flex-direction: column; translate: 0 0; align-content: flex-start; align-self: center; justify-content: center; width: 80%; background-color: rgba(255, 249, 232, 0); border-left-color: rgba(222, 199, 157, 0); border-right-color: rgba(222, 199, 157, 0); border-top-color: rgba(222, 199, 157, 0); border-bottom-color: rgba(222, 199, 157, 0); bottom: -80%;">
-                <ui:Label text="Connecting to your account..." name="bootstrap-status" class="mw-title bootstrap-status" style="align-self: center; font-size: 24px;"/>
-                <ui:ProgressBar value="10" title="LOADING" name="bootstrap-progress" class="bootstrap-progress" style="background-image: none;"/>
+            <ui:VisualElement name="bootstrap-card" class="mw-card bootstrap-card" style="top: auto; bottom: -75%; height: 220px; opacity: 1; background-color: rgba(255, 249, 232, 0.784);">
+                <ui:Label text="Connecting to your account..." name="bootstrap-status" class="mw-title bootstrap-status"/>
+                <ui:ProgressBar value="10" title="LOADING" name="bootstrap-progress" class="bootstrap-progress"/>
                 <ui:Label text="" name="bootstrap-detail" class="mw-subtitle bootstrap-detail"/>
                 <ui:Button text="TRY AGAIN" name="retry-button" class="loc-common.retry mw-button mw-button--primary retry-button is-hidden"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="player-preparation" class="prep-root is-hidden" style="display: flex; background-color: rgb(24, 24, 24);">
+            <ui:VisualElement name="prep-narrative" class="prep-stage prep-narrative is-hidden" style="background-color: rgb(7, 7, 7);">
+                <ui:Label name="prep-narrative-line" text="" class="prep-narrative__line" style="opacity: 1;"/>
+                <ui:Button name="common.continue" text="SKIP" class="prep-skip-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="prep-opening-video" class="prep-stage prep-video-stage is-hidden">
+                <ui:Image name="prep-opening-video-image" class="prep-fullscreen-video"/>
+                <ui:VisualElement picking-mode="Ignore" class="prep-video-vignette"/>
+                <ui:Label name="prep-video-status" text="" class="prep-video-status"/>
+                <ui:Button name="onboarding.skip" text="SKIP OPENING" class="prep-skip-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="prep-character-selection" class="prep-stage prep-selection">
+                <ui:Image name="prep-selection-video-image" class="prep-fullscreen-video"/>
+                <ui:VisualElement name="prep-selection-fallback" picking-mode="Ignore" class="prep-selection-fallback" style="background-image: url(&quot;project://database/Assets/Project/Art/Character/SL_SelectCharacterScence.png?fileID=2800000&amp;guid=c6a124e6cdcd57e4e93f322716282e7f&amp;type=3#SL_SelectCharacterScence&quot;);">
+                    <ui:Image name="portrait-ricko" class="prep-overview-art prep-overview-art--ricko"/>
+                    <ui:Image name="portrait-stellar" class="prep-overview-art prep-overview-art--stellar"/>
+                </ui:VisualElement>
+                <ui:VisualElement picking-mode="Ignore" name="Header" class="prep-selection-heading">
+                    <ui:VisualElement name="VisualElement" class="prep-selection-line"/>
+                    <ui:Label name="star-vector" text="✦" style="width: 69px; font-size: 50px; margin-right: 20px; margin-left: 4px; -unity-text-align: middle-center;"/>
+                    <ui:Label name="prep-selection-title" text="Select" class="prep-selection-title"/>
+                    <ui:Label name="star-vector" text="✦" style="width: 83px; font-size: 50px; margin-left: 10px; -unity-text-align: middle-center;"/>
+                    <ui:VisualElement class="prep-selection-line"/>
+                </ui:VisualElement>
+                <ui:Button name="ricko" text="RICKO" class="prep-character-hit prep-character-hit--left" style="-unity-background-image-tint-color: rgb(255, 255, 255);"/>
+                <ui:Button name="stellar" text="STELLAR" class="prep-character-hit prep-character-hit--right"/>
+                <ui:Label name="prep-selection-hint" text="CHOOSE YOUR CHARACTER" picking-mode="Ignore" class="prep-selection-hint"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="prep-character-detail" class="prep-stage prep-detail is-hidden">
+                <ui:VisualElement picking-mode="Ignore" class="prep-detail__background"/>
+                <ui:VisualElement picking-mode="Ignore" class="prep-detail__darken"/>
+                <ui:VisualElement name="prep-dot-grid" picking-mode="Ignore" class="prep-dot-grid"/>
+                <ui:VisualElement name="prep-detail-accent" picking-mode="Ignore" class="prep-detail-accent"/>
+                <ui:Image name="prep-character-shadow" picking-mode="Ignore" class="prep-character-shadow"/>
+                <ui:Image name="prep-character-art" picking-mode="Ignore" class="prep-character-art"/>
+                <ui:VisualElement name="prep-character-info" class="prep-character-info">
+                    <ui:Label name="prep-character-kicker" text="YOUR CHARACTER" class="prep-character-kicker"/>
+                    <ui:Label name="prep-character-name" text="RICKO" class="prep-character-name"/>
+                    <ui:VisualElement class="prep-info-rule"/>
+                    <ui:Label name="prep-character-description" text="" class="prep-character-description"/>
+                    <ui:Button name="onboarding.choose" text="SELECT" class="prep-select-button"/>
+                </ui:VisualElement>
+                <ui:Button name="detail-back-button" text="X" class="prep-exit-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="prep-name-entry" class="prep-stage prep-name-stage is-hidden">
+                <ui:VisualElement picking-mode="Ignore" class="prep-detail__background"/>
+                <ui:VisualElement picking-mode="Ignore" class="prep-name-stage__darken"/>
+                <ui:Image name="prep-name-character-art" picking-mode="Ignore" class="prep-name-character-art"/>
+                <ui:VisualElement name="prep-name-card" class="prep-name-card">
+                    <ui:Label name="prep-name-heading" text="YOUR ADVENTURE IS ALMOST READY" class="prep-name-heading"/>
+                    <ui:Label name="prep-name-prompt" text="ENTER YOUR NAME" class="prep-name-prompt"/>
+                    <ui:TextField name="preparation-display-name" max-length="20" class="prep-name-input"/>
+                    <ui:VisualElement class="prep-name-meta-row">
+                        <ui:Label name="prep-name-note" text="" class="prep-name-note"/>
+                        <ui:Label name="prep-name-count" text="0 / 20" class="prep-name-count"/>
+                    </ui:VisualElement>
+                    <ui:Button name="common.confirm" text="CONFIRM" class="prep-confirm-button"/>
+                </ui:VisualElement>
+                <ui:Button name="name-back-button" text="BACK" class="prep-name-back-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="prep-transition-layer" picking-mode="Ignore" class="prep-transition-layer" style="opacity: 0;"/>
+            <ui:VisualElement name="prep-flash" picking-mode="Ignore" class="prep-flash" style="opacity: 0;"/>
+            <ui:VisualElement name="prep-message-layer" picking-mode="Ignore" class="prep-message-layer">
+                <ui:Label name="prep-error" text="" class="prep-error is-hidden"/>
+                <ui:VisualElement name="prep-recovery" picking-mode="Position" class="prep-recovery"/>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

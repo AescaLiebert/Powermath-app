@@ -154,10 +154,6 @@
 .auth-input-email {
 }
 
-/* =========================================================================
-   Centralized Status Toast Notification Overlay
-   ========================================================================= */
-
 .status-toast-container {
     position: absolute;
     top: 0;
@@ -261,3 +257,5 @@
     flex-shrink: 1;
 }
 
+.isHidden {
+}

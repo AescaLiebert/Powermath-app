@@ -5,7 +5,7 @@ namespace PowerMath.Gameplay.Combat
     public readonly struct StageId : IEquatable<StageId>
     {
         public const int First = 1;
-        public const int Final = 200;
+        public const int Final = 215;
 
         public StageId(int value)
         {

@@ -161,6 +161,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<VisualElement>(root, "combat-answer-content");
             Require<VisualElement>(root, "combat-feedback-card");
             Require<VisualElement>(root, "combat-score-stack");
+            Require<Image>(root, "combat-result-sticker");
             Require<Label>(root, "combat-feedback-title");
             Require<Label>(root, "combat-battle-banner");
             Require<VisualElement>(root, "main-menu-transition-layer");

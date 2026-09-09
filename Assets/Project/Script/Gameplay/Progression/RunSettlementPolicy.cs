@@ -1,4 +1,5 @@
 using System;
+using PowerMath.Gameplay.Combat;
 using PowerMath.PlayerData;
 
 namespace PowerMath.Gameplay.Progression
@@ -53,7 +54,7 @@ namespace PowerMath.Gameplay.Progression
                 reason = "Finish the current question first.";
                 return false;
             }
-            int stage = Math.Min(200, Math.Max(1,
+            int stage = Math.Min(StageId.Final, Math.Max(1,
                 Math.Max(player.progression.currentStage, player.activeRun.currentStage)));
             if (type == RunSettlementType.Death &&
                 !string.Equals(player.activeRun.phase, "RunDefeat", StringComparison.Ordinal))
@@ -81,7 +82,7 @@ namespace PowerMath.Gameplay.Progression
             if (player?.progression == null || player.activeRun == null)
                 throw new InvalidOperationException("Player run data is unavailable.");
 
-            int stage = Math.Min(200, Math.Max(1,
+            int stage = Math.Min(StageId.Final, Math.Max(1,
                 Math.Max(player.progression.currentStage, player.activeRun.currentStage)));
             long weightedTenths = checked(
                 player.activeRun.silverEarned * 5L +

@@ -26,6 +26,8 @@ namespace PowerMath.Session
 
     public static class PlayerLifecyclePolicy
     {
+        public const int MaximumDisplayNameLength = 20;
+
         public static bool IsCharacter(string id) => id == "ricko" || id == "stellar";
         public static bool IsLocale(string locale) => locale == "th" || locale == "en";
         public static bool IsComplete(PlayerSnapshot player) =>
@@ -35,8 +37,9 @@ namespace PowerMath.Session
         {
             name = (input ?? string.Empty).Normalize(NormalizationForm.FormC).Trim();
             if (string.IsNullOrWhiteSpace(name)) return false;
-            // Starting authoring limit: verify Thai input and small profile layouts before release.
-            if (new StringInfo(name).LengthInTextElements > 24) return false;
+            // Shared with the 20-character profile layouts; text elements keep Thai input intact.
+            if (new StringInfo(name).LengthInTextElements >
+                MaximumDisplayNameLength) return false;
             foreach (char c in name)
                 if (char.IsControl(c) || c == '<' || c == '>') return false;
             return true;
@@ -116,4 +119,3 @@ namespace PowerMath.Session
             _client.ExecuteLifecycle(command, succeeded, failed);
     }
 }
-

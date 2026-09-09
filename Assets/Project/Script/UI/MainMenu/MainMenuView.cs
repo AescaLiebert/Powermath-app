@@ -42,8 +42,8 @@ namespace PowerMath.UI.MainMenu
             }
 
             _displayNameLabel.text = model.DisplayName;
-            _loadoutCharacterNameLabel.text = model.DisplayName;
-            _loadoutCharacterNameLabel.tooltip = model.DisplayName;
+            _loadoutCharacterNameLabel.text = model.CharacterName;
+            _loadoutCharacterNameLabel.tooltip = model.CharacterName;
             _stageLabel.text = model.StageText;
             _stageProgress.value = model.StageProgress;
             _walletLabel.text = model.WalletText;

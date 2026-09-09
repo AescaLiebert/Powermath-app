@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B4-B01
   displayName: Dreadwake Megalodon
-  thaiDisplayName: "\u0E09\u0E25\u0E32\u0E21\u0E21\u0E31\u0E08\u0E08\u0E38\u0E23\u0E32\u0E0A \u0E40\u0E21\u0E01\u0E32\u0E42\u0E25\u0E14\u0E2D\u0E19"
+  thaiDisplayName: "\u0E09\u0E25\u0E32\u0E21\u0E21\u0E31\u0E08\u0E08\u0E38\u0E23\u0E32\u0E0A
+    \u0E40\u0E21\u0E01\u0E32\u0E42\u0E25\u0E14\u0E2D\u0E19"
   biomeId: biome-4
   encounterKind: 2
   baseHp: 250
   maximumCooldown: 2
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: f7b9817140eb0e442945d650911efade, type: 3}

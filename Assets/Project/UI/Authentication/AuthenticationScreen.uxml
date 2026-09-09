@@ -4,7 +4,7 @@
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <Style src="project://database/Assets/Project/UI/Authentication/AuthenticationScreen.uss?fileID=7433441132597879392&amp;guid=9f1b74330a223c54aaa2e321b93f1f97&amp;type=3#AuthenticationScreen"/>
     <ui:VisualElement name="Authentication / Desktop / 1680x945" enabled="true" class="mw-screen auth-root is-ready">
-        <ui:VisualElement name="Background Artwork / Reference" enabled="true" picking-mode="Ignore" class="auth-background" style="background-image: url(&quot;project://database/Assets/Project/Art/UI/illustration/LogInScreen.png?fileID=2800000&amp;guid=4af4e25d6d3ca274397465c3504c8e99&amp;type=3#LogInScreen&quot;);"/>
+        <ui:VisualElement name="Background Artwork / Reference" enabled="true" picking-mode="Ignore" class="auth-background" style="background-image: none;"/>
         <ui:VisualElement name="Atmosphere / Soft Blue Veil" enabled="true" picking-mode="Ignore" class="auth-atmosphere" style="opacity: 0;"/>
         <ui:VisualElement name="safe-area" class="mw-safe-area auth-safe-area">
             <ui:VisualElement name="Logo" picking-mode="Ignore" class="auth-logo"/>

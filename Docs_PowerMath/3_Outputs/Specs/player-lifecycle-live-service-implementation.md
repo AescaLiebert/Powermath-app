@@ -26,6 +26,8 @@ Design and architecture approved by the user's “LGTM”. Placeholder art and o
 | Future authority | Typed lifecycle gateway and mailbox/event/announcement server contracts; direct adapter explicitly reports IsServerAuthoritative = false |
 | Tutorial | Independent persisted version/checkpoint fields; authored tutorial progression intentionally unavailable until an approved step catalog is supplied |
 
+The 2026-09-09 public-combat pass also moved the release check in front of direct login/default repair and added raw current-schema plus exact-revision validation before academic progression writes. See `public-webgl-combat-polish-audit.md` for evidence and remaining deployment limits.
+
 ## Authoring
 
 - Edit `Assets/Project/Resources/CharacterPresentationCatalog.asset` in Unity. Fill each character's selection art, default profile icon, hub sprite, battle sprite and optional animation controller. Keep IDs `ricko` and `stellar` unchanged.
@@ -33,7 +35,15 @@ Design and architecture approved by the user's “LGTM”. Placeholder art and o
 - Video uses a URL because WebGL does not support embedded VideoClip assets. See [Unity's Web video documentation](https://docs.unity.cn/6000.1/Documentation/Manual/webgl-video.html).
 - Add text to `Assets/Project/Resources/Localization/UI.json`. Static UXML text uses `class="loc-semantic.key"`; dynamic presenters resolve `LocalizationService.Get(key, args)` and re-render on locale change.
 - Catalog coverage currently targets startup, authentication, onboarding and the core static menu labels. Existing dynamic gameplay/economy status copy and content names are not all translated by this pass. Do not bind an initial static key to a live counter: re-render its formatted key from its presenter.
-- Name input has a starting maximum of 24 text elements. Verify the longest Thai names against final profile layouts before release.
+- Name input has a starting maximum of 20 Unicode text elements. Verify the longest Thai names against final profile layouts before release.
+
+## Bootstrap cinematic enhancement (2026-09-09)
+
+The first-run preparation view now follows Figma section `118:479`: centered type-on/fade narrative, full-screen opening video, a looping character-selection video with invisible left/right targets, mirrored Ricko/Stellar detail compositions, separated colored-shadow character motion, a generated dot field, staggered black-square wipes, and an opposite-side name card. Character detail is modeled as explicit Entering, Holding, and Exiting states so input is disabled during transitions and the selected state never disappears on an arbitrary frame.
+
+The existing authoritative checkpoints remain unchanged: `opening` is acknowledged before selection, character choice is saved before name entry, and the completion callback (which routes BootstrapScene to MainMenuScene) only fires after the final save succeeds and the white flash plays. Existing complete players continue to bypass preparation.
+
+Editor/native builds use the checked-in opening and selection MP4 clips. Both definitions expose hosted URL fields for WebGL; if no valid selection URL is authored, the exact character overview sprites provide a usable static fallback. No build profile, dependency, Firebase rule, or scene-list setting was changed.
 
 ## Persistence behavior
 

@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
   enemyId: B4-N05
   displayName: Flint, The Treasure Hunter
-  thaiDisplayName: "\u0E19\u0E31\u0E01\u0E25\u0E48\u0E32\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34 \u0E1F\u0E34\u0E19\u0E15\u0E4C"
+  thaiDisplayName: "\u0E19\u0E31\u0E01\u0E25\u0E48\u0E32\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34
+    \u0E1F\u0E34\u0E19\u0E15\u0E4C"
   biomeId: biome-4
   encounterKind: 0
   baseHp: 47
   maximumCooldown: 4
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 0}
+  enemySprite: {fileID: 21300000, guid: e91e0af06e0b1954c9c813eadc838400, type: 3}

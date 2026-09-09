@@ -18,6 +18,7 @@ namespace PowerMath.UI.MainMenu
         private readonly Label _title;
         private readonly VisualElement _accentLeft;
         private readonly VisualElement _accentRight;
+        private readonly VisualElement[] _squares;
         private readonly VisualElement[] _topTargets;
         private readonly VisualElement _playerMenu;
         private readonly VisualElement _dashboard;
@@ -39,6 +40,10 @@ namespace PowerMath.UI.MainMenu
             _title = Require<Label>(root, "battle-start-title");
             _accentLeft = Require<VisualElement>(root, "battle-start-accent-left");
             _accentRight = Require<VisualElement>(root, "battle-start-accent-right");
+            _squares = new VisualElement[9];
+            for (int index = 0; index < _squares.Length; index++)
+                _squares[index] = Require<VisualElement>(
+                    root, "transition-square-" + index);
             _topTargets = new[]
             {
                 Require<VisualElement>(root, "Player Summary Shadow"),
@@ -64,6 +69,7 @@ namespace PowerMath.UI.MainMenu
             SetInputLocked(true);
             _transitionLayer.AddToClassList("is-bootstrap-active");
             _cover.RemoveFromClassList("is-scene-revealed");
+            SetSquaresRevealed(false);
             SetTitleVisible(false);
         }
 
@@ -80,6 +86,7 @@ namespace PowerMath.UI.MainMenu
         public void RevealScene()
         {
             _cover.AddToClassList("is-scene-revealed");
+            SetSquaresRevealed(true);
         }
 
         public void RevealTop()
@@ -124,6 +131,7 @@ namespace PowerMath.UI.MainMenu
             _screen.RemoveFromClassList(ReducedMotionClass);
             _transitionLayer.RemoveFromClassList("is-bootstrap-active");
             _cover.AddToClassList("is-scene-revealed");
+            SetSquaresRevealed(true);
             SetTitleVisible(false);
             RevealTop();
             RevealPlayerMenu();
@@ -212,6 +220,13 @@ namespace PowerMath.UI.MainMenu
             _title.EnableInClassList("is-visible", visible);
             _accentLeft.EnableInClassList("is-visible", visible);
             _accentRight.EnableInClassList("is-visible", visible);
+        }
+
+        private void SetSquaresRevealed(bool revealed)
+        {
+            for (int index = 0; index < _squares.Length; index++)
+                _squares[index].EnableInClassList(
+                    "is-scene-revealed", revealed);
         }
 
         private static T Require<T>(VisualElement root, string name)

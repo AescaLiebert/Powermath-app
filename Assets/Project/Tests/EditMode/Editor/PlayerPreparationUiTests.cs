@@ -14,7 +14,7 @@ namespace PowerMath.Tests.EditMode
     public sealed class PlayerPreparationUiTests
     {
         [UnityTest]
-        public IEnumerator BothCharactersCanCompletePlaceholderPreparation()
+        public IEnumerator BothCharactersCompleteCinematicPreparationWithExplicitMotionStates()
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             yield return new EnterPlayMode();
@@ -27,7 +27,8 @@ namespace PowerMath.Tests.EditMode
             target.Create();
             settings.targetTexture = target;
             document.panelSettings = settings;
-            document.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Project/UI/Bootstrap/BootstrapScreen.uxml");
+            document.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                "Assets/Project/UI/BootstrapUI.uxml");
             yield return null;
             foreach (string id in new[] { "ricko", "stellar" })
             {
@@ -40,10 +41,14 @@ namespace PowerMath.Tests.EditMode
                     onboarding = new PlayerSnapshot.OnboardingData { version = 1, phase = "opening" }
                 };
                 Assert.AreEqual(PlayerSessionStore.HydrationResult.Success, store.TryHydrate(new BootstrapResponse { schemaVersion = 3, player = player }));
-                owner.AddComponent<PlayerPreparationPresenter>().Initialize(document.rootVisualElement, store, new EditorLifecycleCommands(), () => completed = true);
+                var presenter = owner.AddComponent<PlayerPreparationPresenter>();
+                presenter.Initialize(document.rootVisualElement, store, new EditorLifecycleCommands(), () => completed = true);
                 yield return null;
                 Submit(document, "common.continue");
-                yield return null;
+                yield return WaitForState(
+                    presenter,
+                    PlayerPreparationSequenceState.CharacterSelection,
+                    1f);
                 Assert.AreEqual("character", store.Snapshot.onboarding.phase);
                 if (id == "ricko")
                 {
@@ -53,23 +58,30 @@ namespace PowerMath.Tests.EditMode
                     Assert.Greater(document.rootVisualElement.Q<Image>("portrait-ricko").resolvedStyle.width, 0);
                     Assert.IsTrue(document.rootVisualElement.Q<Image>("portrait-ricko").sprite != null);
                     Assert.Greater(document.rootVisualElement.Q<Image>("portrait-ricko").sprite.vertices.Length, 0);
-                    var previous = RenderTexture.active;
-                    RenderTexture.active = target;
-                    var capture = new Texture2D(target.width, target.height, TextureFormat.RGB24, false);
-                    capture.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
-                    capture.Apply();
-                    RenderTexture.active = previous;
-                    System.IO.File.WriteAllBytes("Logs/LifecycleValidation/character-selection.png", capture.EncodeToPNG());
-                    Object.Destroy(capture);
+                    Capture(target, "character-selection.png");
                 }
                 Submit(document, id);
-                yield return null;
+                yield return WaitForState(
+                    presenter,
+                    PlayerPreparationSequenceState.CharacterSelectedHolding,
+                    3f);
+                Assert.AreEqual(id == "ricko", document.rootVisualElement
+                    .Q<VisualElement>("prep-character-detail")
+                    .ClassListContains("is-ricko"));
+                Capture(target, "character-selected-" + id + ".png");
                 Submit(document, "onboarding.choose");
-                yield return null;
+                yield return WaitForState(
+                    presenter,
+                    PlayerPreparationSequenceState.NameEntry,
+                    3f);
+                yield return WaitForEnabled(document, "common.confirm", 2f);
                 Assert.AreEqual("name", store.Snapshot.onboarding.phase);
+                Capture(target, "name-entry-" + id + ".png");
                 document.rootVisualElement.Q<TextField>("preparation-display-name").value = "ผู้กล้า";
                 Submit(document, "common.confirm");
-                yield return null;
+                float completionDeadline = Time.realtimeSinceStartup + 3f;
+                while (!completed && Time.realtimeSinceStartup < completionDeadline)
+                    yield return null;
                 Assert.IsTrue(completed);
                 Assert.AreEqual(id, store.Snapshot.profile.characterId);
                 Assert.AreEqual("ผู้กล้า", store.Snapshot.profile.displayName);
@@ -82,6 +94,55 @@ namespace PowerMath.Tests.EditMode
             Object.Destroy(target);
             yield return new ExitPlayMode();
         }
+
+        private static IEnumerator WaitForState(
+            PlayerPreparationPresenter presenter,
+            PlayerPreparationSequenceState expected,
+            float timeoutSeconds)
+        {
+            float deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (presenter != null && presenter.State != expected &&
+                   Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+            Assert.IsNotNull(presenter);
+            Assert.AreEqual(expected, presenter.State);
+        }
+
+        private static IEnumerator WaitForEnabled(
+            UIDocument document,
+            string elementName,
+            float timeoutSeconds)
+        {
+            var element = document.rootVisualElement.Q<VisualElement>(elementName);
+            Assert.IsNotNull(element, elementName);
+            float deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (!element.enabledInHierarchy && Time.realtimeSinceStartup < deadline)
+                yield return null;
+            Assert.IsTrue(element.enabledInHierarchy, elementName + " stayed disabled.");
+        }
+
+        private static void Capture(RenderTexture target, string fileName)
+        {
+            string directory = "Logs/LifecycleValidation";
+            System.IO.Directory.CreateDirectory(directory);
+            var previous = RenderTexture.active;
+            RenderTexture.active = target;
+            var capture = new Texture2D(
+                target.width,
+                target.height,
+                TextureFormat.RGB24,
+                false);
+            capture.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
+            capture.Apply();
+            RenderTexture.active = previous;
+            System.IO.File.WriteAllBytes(
+                System.IO.Path.Combine(directory, fileName),
+                capture.EncodeToPNG());
+            Object.Destroy(capture);
+        }
+
         private static void Submit(UIDocument document, string name)
         {
             var button = document.rootVisualElement.Q<Button>(name);

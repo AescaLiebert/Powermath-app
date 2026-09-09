@@ -132,14 +132,23 @@ namespace PowerMath.Gameplay.Combat
 
     public static class StageClassificationPolicy
     {
+        public static StageEncounterKind Classify(StageId stage, int biomeLastStage, bool isFinalBiome)
+        {
+            if (stage.Value == biomeLastStage)
+                return isFinalBiome ? StageEncounterKind.FinalBoss : StageEncounterKind.BigBoss;
+            if (stage.Value % 5 == 0)
+                return StageEncounterKind.MiniBoss;
+            return StageEncounterKind.NormalMonster;
+        }
+
         public static StageEncounterKind Classify(StageId stage)
         {
             if (stage.Value == StageId.Final) return StageEncounterKind.FinalBoss;
-            if (stage.Value % 30 == 0) return StageEncounterKind.BigBoss;
             if (stage.Value % 5 == 0) return StageEncounterKind.MiniBoss;
             return StageEncounterKind.NormalMonster;
         }
-        public static bool IsProtected(StageId stage) => Classify(stage) != StageEncounterKind.NormalMonster;
+
+        public static bool IsProtected(StageId stage) => stage.Value % 5 == 0;
     }
 
     public sealed class StageEncounterResolver
@@ -151,7 +160,9 @@ namespace PowerMath.Gameplay.Combat
         {
             if (string.IsNullOrWhiteSpace(runId)) throw new ArgumentException("Run ID is required.", nameof(runId));
             BiomeData biome = _map.GetBiome(stage);
-            StageEncounterKind kind = StageClassificationPolicy.Classify(stage);
+            bool isFinalBiome = _map.Biomes != null && _map.Biomes.Count > 0 &&
+                _map.Biomes[_map.Biomes.Count - 1] == biome;
+            StageEncounterKind kind = StageClassificationPolicy.Classify(stage, biome.LastStage, isFinalBiome);
             if (kind == StageEncounterKind.NormalMonster && _map.TryGetEvent(stage, out EventData eventData))
                 return new EncounterSelection(stage, biome.Id, biome.Title, StageEncounterKind.ChallengeEvent,
                     eventData.Id, eventData.Title, 1, 0, eventData.QuestionDocumentId);
@@ -209,10 +220,14 @@ namespace PowerMath.Gameplay.Combat
         public static StageMapData Create()
         {
             var biomes = new List<BiomeData>();
+            int[] biomeLengths = { 30, 30, 30, 30, 40, 30, 25 };
+            int currentFirst = 1;
             for (int biomeIndex = 0; biomeIndex < 7; biomeIndex++)
             {
-                int first = biomeIndex * 30 + 1;
-                int last = biomeIndex == 6 ? 200 : first + 29;
+                int first = currentFirst;
+                int last = first + biomeLengths[biomeIndex] - 1;
+                currentFirst = last + 1;
+                bool isFinalBiome = biomeIndex == 6;
                 string biomeId = $"biome-{biomeIndex + 1}";
                 int normalBaseHp = 30 + biomeIndex * 5;
                 var normals = new[]
@@ -226,8 +241,8 @@ namespace PowerMath.Gameplay.Combat
                 for (int stage = first; stage <= last; stage++)
                 {
                     StageId stageId = new StageId(stage);
-                    StageEncounterKind kind = StageClassificationPolicy.Classify(stageId);
-                    if (kind == StageEncounterKind.NormalMonster) continue;
+                    if (!StageClassificationPolicy.IsProtected(stageId)) continue;
+                    StageEncounterKind kind = StageClassificationPolicy.Classify(stageId, last, isFinalBiome);
                     int bossBaseHp = kind == StageEncounterKind.MiniBoss ? 45 + biomeIndex * 15
                         : kind == StageEncounterKind.BigBoss ? 100 + biomeIndex * 50 : 500;
                     bosses.Add(stage, new MonsterData($"boss-{stage}",

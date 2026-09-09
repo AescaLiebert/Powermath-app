@@ -7,7 +7,7 @@
     --auth-placeholder: rgb(179, 179, 179);
     --auth-orange-middle: rgb(255, 158, 46);
     --auth-orange-end: rgb(255, 209, 71);
-    background-color: rgb(176, 219, 245);
+    background-color: transparent;
 }
 
 .auth-background, .auth-atmosphere, .auth-logo, .auth-border, .auth-utility, .auth-version {
@@ -24,7 +24,7 @@
 
 .auth-background {
     top: 0; right: 0; bottom: 0; left: 0;
-    background-image: url("project://database/Assets/Project/Art/UI/illustration/LogInScreen.png?fileID=2800000&guid=4af4e25d6d3ca274397465c3504c8e99&type=3#LogInScreen");
+    background-image: none;
     -unity-background-scale-mode: scale-and-crop;
 }
 

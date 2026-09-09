@@ -58,10 +58,16 @@ namespace PowerMath.UI.QuestionSequence
         private Label _rewardScoreLabel;
         private Label _rewardFormulaLabel;
         private Label _rewardDamageLabel;
+        private Image _rewardSticker;
 
         private VisualElement _overlayFailure;
         private Label _failureEqLabel;
         private Label _failureWrongValLabel;
+        private Image _failureSticker;
+
+        [Header("Stickers")]
+        [SerializeField] private Sprite _stickerCorrect;
+        [SerializeField] private Sprite _stickerFail;
 
         // Debug Buttons
         private Button _btnState1;
@@ -308,10 +314,14 @@ namespace PowerMath.UI.QuestionSequence
             _rewardScoreLabel = _overlayReward?.Q<Label>("reward-score");
             _rewardFormulaLabel = _overlayReward?.Q<Label>("reward-formula");
             _rewardDamageLabel = _overlayReward?.Q<Label>("reward-damage");
+            _rewardSticker = _overlayReward?.Q<Image>("reward-sticker");
 
             _overlayFailure = _root.Q<VisualElement>("overlay-failure");
             _failureEqLabel = _overlayFailure?.Q<Label>("failure-eq");
             _failureWrongValLabel = _overlayFailure?.Q<Label>("failure-wrong-val");
+            _failureSticker = _overlayFailure?.Q<Image>("failure-sticker");
+
+            ResolveStickerSprites();
 
             // Debug Buttons
             _btnState1 = _root.Q<Button>("btn-state-1");
@@ -666,6 +676,45 @@ namespace PowerMath.UI.QuestionSequence
                     // Clean subtraction: (answer + 10) - 10 = answer
                     int subtrahend = 10;
                     return $"{answer + subtrahend} - {subtrahend} = ?";
+            }
+        }
+
+        private void ResolveStickerSprites()
+        {
+            if (_stickerCorrect == null)
+            {
+#if UNITY_EDITOR
+                _stickerCorrect = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/Project/Art/Character/Sticker_Power_Correct.PNG");
+#endif
+                if (_stickerCorrect == null)
+                {
+                    _stickerCorrect = Resources.Load<Sprite>("Character/Sticker_Power_Correct")
+                        ?? Resources.Load<Sprite>("Sticker_Power_Correct");
+                }
+            }
+
+            if (_stickerFail == null)
+            {
+#if UNITY_EDITOR
+                _stickerFail = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/Project/Art/Character/Sticker_Power_Fail.PNG");
+#endif
+                if (_stickerFail == null)
+                {
+                    _stickerFail = Resources.Load<Sprite>("Character/Sticker_Power_Fail")
+                        ?? Resources.Load<Sprite>("Sticker_Power_Fail");
+                }
+            }
+
+            if (_rewardSticker != null && _stickerCorrect != null)
+            {
+                _rewardSticker.sprite = _stickerCorrect;
+            }
+
+            if (_failureSticker != null && _stickerFail != null)
+            {
+                _failureSticker.sprite = _stickerFail;
             }
         }
     }

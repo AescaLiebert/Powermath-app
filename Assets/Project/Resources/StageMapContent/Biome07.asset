@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.BiomeDefinition
   biomeId: biome-7
   fallbackTitle: Biome 7
-  firstStage: 181
-  lastStage: 200
+  firstStage: 191
+  lastStage: 215
   backgroundSprite: {fileID: 21300000, guid: b7cf0a0d473727c4c81b70fed80c7445, type: 3}
+  secondaryBackgroundSprite: {fileID: 21300000, guid: dbe04f77b67ff0948ac52aa426d2b4bb, type: 3}
   mapLandmarkSprite: {fileID: 0}
   normalizedMapPosition: {x: 1, y: 0.42}
   normalMonsters:
@@ -32,13 +33,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 74f2eeb39b0a8d34cba6a0f7604a36e3, type: 2}
   - {fileID: 11400000, guid: e93438e65e69f424ebba3d687dba846b, type: 2}
   bossBindings:
-  - stage: 200
+  - stage: 195
     monster: {fileID: 11400000, guid: 97a2dea15259dd5449f463ae5a1afc9c, type: 2}
-  - stage: 205
+  - stage: 200
     monster: {fileID: 11400000, guid: 196943dbca9f875458abcdda821057db, type: 2}
-  - stage: 210
+  - stage: 205
     monster: {fileID: 11400000, guid: 230fe6f9c3667654ba484678e0bc3315, type: 2}
-  - stage: 215
+  - stage: 210
     monster: {fileID: 11400000, guid: 724c1c863572fd543b627f528384e06e, type: 2}
-  - stage: 220
+  - stage: 215
     monster: {fileID: 11400000, guid: 336e31aa3ce7cd645813769b5e8b072a, type: 2}

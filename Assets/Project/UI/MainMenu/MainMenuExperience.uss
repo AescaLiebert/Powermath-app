@@ -28,7 +28,7 @@
     top: 0;
     bottom: 0;
     opacity: 0;
-    background-color: rgb(8, 20, 42);
+    background-color: transparent;
     transition-property: opacity;
     transition-duration: 0.42s;
     transition-timing-function: ease-out;
@@ -43,22 +43,49 @@
     opacity: 0;
 }
 
+.battle-transition-square {
+    position: absolute;
+    width: 34%;
+    height: 34%;
+    background-color: rgb(13, 49, 94);
+    transition-property: translate, opacity;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-in-out-cubic;
+}
+
+.battle-transition-square--0, .battle-transition-square--3, .battle-transition-square--6 { left: 0; }
+.battle-transition-square--1, .battle-transition-square--4, .battle-transition-square--7 { left: 33%; }
+.battle-transition-square--2, .battle-transition-square--5, .battle-transition-square--8 { left: 66%; }
+.battle-transition-square--0, .battle-transition-square--1, .battle-transition-square--2 { top: 0; }
+.battle-transition-square--3, .battle-transition-square--4, .battle-transition-square--5 { top: 33%; }
+.battle-transition-square--6, .battle-transition-square--7, .battle-transition-square--8 { top: 66%; }
+
+.battle-transition-square.is-scene-revealed { opacity: 0; }
+.battle-transition-square--0.is-scene-revealed,
+.battle-transition-square--2.is-scene-revealed,
+.battle-transition-square--4.is-scene-revealed,
+.battle-transition-square--6.is-scene-revealed,
+.battle-transition-square--8.is-scene-revealed { translate: -340% 0; }
+.battle-transition-square--1.is-scene-revealed,
+.battle-transition-square--3.is-scene-revealed,
+.battle-transition-square--5.is-scene-revealed,
+.battle-transition-square--7.is-scene-revealed { translate: 340% 0; }
+
 .battle-start-title {
-    min-width: 720px;
-    padding: 20px 64px;
+    min-width: 620px;
+    padding: 8px 24px;
     opacity: 0;
     scale: 1.35 1.35;
-    color: rgb(255, 244, 198);
-    background-color: rgba(13, 49, 94, 0.96);
-    border-width: 4px;
-    border-color: rgb(255, 194, 64);
-    border-radius: 22px;
-    font-size: 78px;
-    letter-spacing: 8px;
+    color: white;
+    background-color: transparent;
+    border-width: 0;
+    font-size: 52px;
+    letter-spacing: 4px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    -unity-text-outline-width: 3px;
-    -unity-text-outline-color: rgb(8, 26, 54);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(8, 26, 54, 0.75);
+    text-shadow: 0 4px 12px rgba(5, 12, 26, 0.75);
     transition-property: opacity, scale;
     transition-duration: 0.24s;
     transition-timing-function: ease-out-back;
@@ -74,6 +101,7 @@
     width: 48%;
     height: 18px;
     opacity: 0;
+    display: none;
     background-color: rgb(67, 180, 226);
     border-top-width: 4px;
     border-bottom-width: 4px;
@@ -117,12 +145,16 @@
     display: none;
 }
 
+.main-menu-root.is-reduced-motion .battle-transition-square {
+    transition-duration: 0.20s;
+    translate: 0 0;
+}
+
 .main-menu-safe-area,
 .main-shell {
     overflow: hidden;
 }
 
-/* Figma 34:12 — Main Menu UI / Reworked. These tokens mirror the source styles. */
 .main-menu-root {
     --figma-cream: rgb(255, 248, 235);
     --figma-navy: rgb(18, 57, 107);
@@ -131,10 +163,10 @@
     --figma-blue-soft: rgb(234, 242, 248);
     --figma-blue: rgb(43, 108, 176);
     --figma-red: rgb(255, 83, 83);
-    --figma-shadow: rgba(10, 36, 61, 0.20);
+    --figma-shadow: rgba(10, 36, 61, 0.2);
     --stage-info-surface: rgba(255, 248, 235, 0.94);
     --stage-info-outline: rgba(155, 178, 200, 0.95);
-    --stage-info-track: rgba(245, 240, 233, 0.20);
+    --stage-info-track: rgba(245, 240, 233, 0.2);
     --stage-info-fill: rgb(214, 34, 45);
     --stage-info-fill-dark: rgb(155, 11, 13);
     --boss-hp-fill-base: rgb(255, 178, 179);
@@ -334,7 +366,9 @@
     overflow: visible;
 }
 
-.hud-rank-currency--last { margin-right: 0; }
+.hud-rank-currency--last {
+    margin-right: 0;
+}
 
 .hud-rank-value-shell {
     position: absolute;
@@ -374,11 +408,24 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.hud-rank-icon--silver { left: 1px; top: 2px; width: 43px; height: 43px; }
+.hud-rank-icon--silver {
+    left: 1px;
+    top: 2px;
+    width: 43px;
+    height: 43px;
+}
 
-.hud-rank-icon--silver { background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_sliver.png?fileID=-8422487062728157231&guid=ac63900fe97682a4bac070effc08d269&type=3#coin_sliver_0"); }
-.hud-rank-icon--gold { background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_gold.png?fileID=4793385847135534003&guid=7ac6778b768ae6b4792baa5619425848&type=3#coin_gold_1"); }
-.hud-rank-icon--diamond { background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_diamond.png?fileID=6309500834797410919&guid=5452206884f11c442b7cedd0f4e9962d&type=3#coin_diamond_0"); }
+.hud-rank-icon--silver {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_sliver.png?fileID=-8422487062728157231&guid=ac63900fe97682a4bac070effc08d269&type=3#coin_sliver_0");
+}
+
+.hud-rank-icon--gold {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_gold.png?fileID=4793385847135534003&guid=7ac6778b768ae6b4792baa5619425848&type=3#coin_gold_1");
+}
+
+.hud-rank-icon--diamond {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_diamond.png?fileID=6309500834797410919&guid=5452206884f11c442b7cedd0f4e9962d&type=3#coin_diamond_0");
+}
 
 .figma-stage-status {
     position: absolute;
@@ -402,40 +449,272 @@
     width: 540px;
     height: 184px;
     translate: -270px 0;
-    --figma-shadow-color: rgba(10, 36, 61, 0.20);
+    --figma-shadow-color: rgba(10, 36, 61, 0.2);
     --figma-shadow-offset-y: 8;
     --figma-shadow-blur: 18;
     --figma-shadow-spread: 0;
     --figma-shadow-radius: 28;
 }
 
-.figma-stage-heading { width: 180px; height: 36px; flex-shrink: 0; flex-direction: row; align-items: center; justify-content: center; }
-.figma-stage-title { width: 114px; height: 36px; margin: 0 14px; padding: 0; color: var(--figma-navy); font-size: 27px; letter-spacing: -1px; -unity-font-style: bold; -unity-text-align: middle-center; white-space: nowrap; }
-.stage-info-vector { width: 19px; height: 19px; flex-shrink: 0; color: var(--figma-navy); }
-.figma-stage-divider { width: 492px; height: 2px; margin-top: 12px; background-color: var(--figma-divider); border-radius: 1px; }
-.figma-boss-row { width: 492px; height: 28px; margin-top: 12px; flex-shrink: 0; justify-content: center; }
-.figma-boss-slider { position: absolute; left: 0; top: -0.5px; width: 492px; height: 29px; margin: 0; padding: 0; overflow: hidden; border-width: 1.5px; border-color: rgb(0, 0, 0); border-radius: 10px; }
-.figma-boss-track { position: absolute; left: 0; top: 0; width: 490.67px; height: 29px; background-color: var(--stage-info-track); border-width: 1px; border-color: rgb(0, 0, 0); border-radius: 10px; }
-.figma-boss-fill { position: absolute; left: 0; top: 0; width: 78%; max-width: 492px; height: 28.194px; overflow: visible; border-radius: 10px; }
-.figma-boss-fill-base-shadow { position: absolute; left: 0; right: 0; top: 0; height: 28.194px; --figma-shadow-color: var(--stage-info-fill-dark); --figma-shadow-offset-y: 1; --figma-shadow-radius: 10; }
-.figma-boss-fill-base { position: absolute; left: 0; right: 0; top: 0; height: 28.194px; background-color: var(--boss-hp-fill-base); border-width: 1px; border-color: var(--stage-info-fill-dark); border-radius: 10px; }
-.figma-boss-fill-gradient-shadow { position: absolute; left: 0; right: 0; top: 1px; height: 27px; --figma-shadow-color: var(--stage-info-fill-dark); --figma-shadow-offset-y: 1; --figma-shadow-radius: 10; }
-.figma-boss-fill-gradient { position: absolute; left: 0; right: 0; top: 1px; height: 27px; overflow: hidden; border-radius: 10px; --figma-gradient-stop-count: 3; --figma-gradient-color-0: var(--boss-hp-gradient-dark); --figma-gradient-stop-0: 0.01923077; --figma-gradient-color-1: var(--boss-hp-gradient-middle); --figma-gradient-stop-1: 0.48076922; --figma-gradient-color-2: var(--boss-hp-gradient-light); --figma-gradient-stop-2: 1; --figma-gradient-start-x: 0.5; --figma-gradient-start-y: 1.57707958; --figma-gradient-end-x: 0.5; --figma-gradient-end-y: -0.43103405; }
-.figma-boss-value-source { display: none; }
-.figma-boss-copy { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
-.figma-boss-name, .figma-boss-value { position: absolute; height: 22px; margin: 0; padding: 0; color: white; font-size: 18px; white-space: nowrap; overflow: hidden; -unity-font-style: bold; -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(0, 0, 0, 0.9); }
-.figma-boss-name { left: 6px; top: 1px; width: 169px; -unity-text-align: upper-left; text-overflow: ellipsis; }
-.figma-boss-value { right: 9px; top: 4px; width: 98px; -unity-text-align: upper-right; }
-.figma-boss-text-shadow { color: rgb(0, 0, 0); -unity-text-outline-width: 0; }
-.figma-boss-name-shadow { top: 1.5px; }
-.figma-boss-value-shadow { top: 4.5px; }
-.figma-enemy-abilities { width: 448px; height: 50px; margin-top: 12px; flex-grow: 0; flex-shrink: 0; flex-direction: row; align-items: flex-start; align-content: flex-start; justify-content: flex-start; }
-.figma-ability { width: 68px; height: 50px; min-width: 68px; min-height: 50px; margin: 0; padding: 0; flex-grow: 0; flex-shrink: 0; -unity-text-align: middle-center; color: var(--figma-blue); background-color: var(--figma-blue-soft); border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 4px; border-left-color: var(--figma-slate); border-right-color: var(--figma-slate); border-top-color: white; border-bottom-color: var(--stage-info-ability-shadow); border-radius: 14px; font-size: 15px; -unity-font-style: bold; }
-.figma-grid-gap-right { margin-right: var(--stage-info-grid-gap); }
-.figma-ability--attack { color: rgb(176, 43, 45); background-color: var(--figma-red); border-left-color: rgb(87, 34, 35); border-right-color: rgb(87, 34, 35); border-top-color: rgb(255, 164, 164); border-bottom-color: rgb(87, 34, 35); -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(255, 255, 255, 0.85); }
+.figma-stage-heading {
+    width: 180px;
+    height: 36px;
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
 
-/* Replaced by the bound Figma Stage Status above. */
-.hud-encounter-panel { display: none; }
+.figma-stage-title {
+    width: 114px;
+    height: 36px;
+    margin: 0 14px;
+    padding: 0;
+    color: var(--figma-navy);
+    font-size: 27px;
+    letter-spacing: -1px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.stage-info-vector {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    color: var(--figma-navy);
+}
+
+.figma-stage-divider {
+    width: 492px;
+    height: 2px;
+    margin-top: 12px;
+    background-color: var(--figma-divider);
+    border-radius: 1px;
+}
+
+.figma-boss-row {
+    width: 492px;
+    height: 28px;
+    margin-top: 12px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.figma-boss-slider {
+    position: absolute;
+    left: 0;
+    top: -0.5px;
+    width: 492px;
+    height: 29px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border-width: 1.5px;
+    border-color: rgb(0, 0, 0);
+    border-radius: 10px;
+}
+
+.figma-boss-track {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 490.67px;
+    height: 29px;
+    background-color: var(--stage-info-track);
+    border-width: 1px;
+    border-color: rgb(0, 0, 0);
+    border-radius: 10px;
+}
+
+.figma-boss-fill-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.45);
+    border-radius: 10px;
+}
+
+.figma-boss-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 78%;
+    max-width: 492px;
+    height: 28.194px;
+    overflow: visible;
+    border-radius: 10px;
+}
+
+.figma-boss-fill-base-shadow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 28.194px;
+    --figma-shadow-color: var(--stage-info-fill-dark);
+    --figma-shadow-offset-y: 1;
+    --figma-shadow-radius: 10;
+}
+
+.figma-boss-fill-base {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 28.194px;
+    background-color: var(--boss-hp-fill-base);
+    border-width: 1px;
+    border-color: var(--stage-info-fill-dark);
+    border-radius: 10px;
+}
+
+.figma-boss-fill-gradient-shadow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 1px;
+    height: 27px;
+    --figma-shadow-color: var(--stage-info-fill-dark);
+    --figma-shadow-offset-y: 1;
+    --figma-shadow-radius: 10;
+}
+
+.figma-boss-fill-gradient {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 1px;
+    height: 27px;
+    overflow: hidden;
+    border-radius: 10px;
+    --figma-gradient-stop-count: 3;
+    --figma-gradient-color-0: var(--boss-hp-gradient-dark);
+    --figma-gradient-stop-0: 0.01923077;
+    --figma-gradient-color-1: var(--boss-hp-gradient-middle);
+    --figma-gradient-stop-1: 0.4807692;
+    --figma-gradient-color-2: var(--boss-hp-gradient-light);
+    --figma-gradient-stop-2: 1;
+    --figma-gradient-start-x: 0.5;
+    --figma-gradient-start-y: 1.57708;
+    --figma-gradient-end-x: 0.5;
+    --figma-gradient-end-y: -0.4310341;
+    background-color: rgb(0, 0, 0);
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.figma-boss-value-source {
+    display: none;
+}
+
+.figma-boss-copy {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.figma-boss-name,
+.figma-boss-value {
+    position: absolute;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+    color: white;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    -unity-font-style: bold;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.9);
+}
+
+.figma-boss-name {
+    left: 6px;
+    top: 1px;
+    width: 169px;
+    -unity-text-align: upper-left;
+    text-overflow: ellipsis;
+}
+
+.figma-boss-value {
+    right: 9px;
+    top: 4px;
+    width: 98px;
+    -unity-text-align: upper-right;
+}
+
+.figma-boss-text-shadow {
+    color: rgb(0, 0, 0);
+    -unity-text-outline-width: 0;
+}
+
+.figma-boss-name-shadow {
+    top: 1.5px;
+}
+
+.figma-boss-value-shadow {
+    top: 4.5px;
+}
+
+.figma-enemy-abilities {
+    width: 448px;
+    height: 50px;
+    margin-top: 12px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: flex-start;
+}
+
+.figma-ability {
+    width: 68px;
+    height: 50px;
+    min-width: 68px;
+    min-height: 50px;
+    margin: 0;
+    padding: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
+    -unity-text-align: middle-center;
+    color: var(--figma-blue);
+    background-color: var(--figma-blue-soft);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 4px;
+    border-left-color: var(--figma-slate);
+    border-right-color: var(--figma-slate);
+    border-top-color: white;
+    border-bottom-color: var(--stage-info-ability-shadow);
+    border-radius: 14px;
+    font-size: 15px;
+    -unity-font-style: bold;
+}
+
+.figma-grid-gap-right {
+    margin-right: var(--stage-info-grid-gap);
+}
+
+.figma-ability--attack {
+    color: rgb(176, 43, 45);
+    background-color: var(--figma-red);
+    border-left-color: rgb(87, 34, 35);
+    border-right-color: rgb(87, 34, 35);
+    border-top-color: rgb(255, 164, 164);
+    border-bottom-color: rgb(87, 34, 35);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(255, 255, 255, 0.85);
+}
+
+.hud-encounter-panel {
+    display: none;
+}
 
 .hud-navigator {
     --navigator-fill: rgba(255, 247, 224, 0.94);
@@ -468,9 +747,17 @@
     --figma-shadow-radius: 29;
 }
 
-.hud-icon-button-shadow--biome { left: 0; }
-.hud-icon-button-shadow--leaderboard { left: 86px; }
-.hud-icon-button-shadow--settings { left: 172px; }
+.hud-icon-button-shadow--biome {
+    left: 0;
+}
+
+.hud-icon-button-shadow--leaderboard {
+    left: 86px;
+}
+
+.hud-icon-button-shadow--settings {
+    left: 172px;
+}
 
 .hud-icon-button {
     min-width: 58px;
@@ -545,12 +832,12 @@
 .hud-player-menu {
     --player-menu-fill: rgba(255, 248, 235, 0.94);
     --player-menu-stroke: rgba(155, 178, 200, 0.95);
-    --player-menu-shadow-color: rgba(10, 36, 61, 0.20);
+    --player-menu-shadow-color: rgba(10, 36, 61, 0.2);
     --player-card-outer-fill: rgb(251, 233, 198);
     --player-card-outer-stroke: rgb(165, 185, 180);
     --player-card-fill-start: rgb(247, 240, 227);
     --player-card-fill-end: rgb(255, 241, 215);
-    --player-card-detail-stroke: rgba(67, 48, 20, 0.30);
+    --player-card-detail-stroke: rgba(67, 48, 20, 0.3);
     --power-coin-field-fill: rgba(234, 242, 248, 0.96);
     --power-coin-field-stroke: rgb(134, 134, 134);
     --power-coin-field-shadow: rgba(0, 0, 0, 0.25);
@@ -675,7 +962,6 @@
 }
 
 .hud-player-menu-toggle.is-collapsed {
-    /* Keep the reopen handle inside the viewport after the panel exits left. */
     translate: -230px 0;
     transition-duration: 0.22s;
     transition-timing-function: ease-in-back;
@@ -737,8 +1023,13 @@
     --figma-shadow-inset: 1;
 }
 
-.hud-power-coin-inner-shadow--left { --figma-shadow-offset-x: -3; }
-.hud-power-coin-inner-shadow--right { --figma-shadow-offset-x: 3; }
+.hud-power-coin-inner-shadow--left {
+    --figma-shadow-offset-x: -3;
+}
+
+.hud-power-coin-inner-shadow--right {
+    --figma-shadow-offset-x: 3;
+}
 
 .hud-power-coin-value {
     position: absolute;
@@ -785,7 +1076,9 @@
 }
 
 .hud-player-menu-button--hub,
-.hud-player-menu-button--gacha { margin-bottom: 19px; }
+.hud-player-menu-button--gacha {
+    margin-bottom: 19px;
+}
 
 .hud-player-menu-card {
     position: absolute;
@@ -852,9 +1145,17 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.hud-player-menu-card-icon--hub { background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_hub.png?fileID=-8103456751641217067&guid=6cab5b8d77fadb849805f18da5af206a&type=3#Icon_hub_0"); }
-.hud-player-menu-card-icon--gacha { background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Pet.png?fileID=6700543945172676342&guid=8e828c1bf7b8b8548b698a7140aacaef&type=3#Icon_Pet_1"); }
-.hud-player-menu-card-icon--rebirth { background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=-2324710863503425689&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth_0"); }
+.hud-player-menu-card-icon--hub {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_hub.png?fileID=-8103456751641217067&guid=6cab5b8d77fadb849805f18da5af206a&type=3#Icon_hub_0");
+}
+
+.hud-player-menu-card-icon--gacha {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Pet.png?fileID=6700543945172676342&guid=8e828c1bf7b8b8548b698a7140aacaef&type=3#Icon_Pet_1");
+}
+
+.hud-player-menu-card-icon--rebirth {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=-2324710863503425689&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth_0");
+}
 
 .hud-player-menu-card-label {
     position: absolute;
@@ -935,7 +1236,7 @@
 }
 
 .hud-player-menu-button.is-feature-locked .hud-player-menu-card-label {
-    opacity: 0.60;
+    opacity: 0.6;
 }
 
 .hud-player-menu-button:disabled {
@@ -1093,18 +1394,18 @@
 
 .hud-enemy-action--armed {
     border-color: rgb(255, 226, 112);
-    scale: 1.10 1.10;
+    scale: 1.1 1.1;
 }
 
 .hud-enemy-action--consuming {
     opacity: 0;
-    scale: 1.30 0.55;
+    scale: 1.3 0.55;
     translate: 0 -10px;
 }
 
 .hud-enemy-action--cancelled {
     opacity: 0;
-    scale: 0.60 0.60;
+    scale: 0.6 0.6;
     translate: 0 8px;
 }
 
@@ -1126,7 +1427,7 @@
 
 .ui-lifecycle--entering {
     opacity: 0;
-    scale: 0.90 0.90;
+    scale: 0.9 0.9;
     translate: 0 12px;
 }
 
@@ -1194,7 +1495,7 @@
 
 .hud-attack-button:hover,
 .hud-attack-button:focus {
-    scale: 1.10 1.10;
+    scale: 1.1 1.1;
     translate: 0 -4px;
     background-color: rgb(48, 132, 210);
     border-color: rgb(255, 226, 112);
@@ -1215,7 +1516,7 @@
 .hud-dashboard {
     --loadout-panel-fill: rgb(247, 240, 227);
     --loadout-panel-stroke: rgb(93, 93, 93);
-    --loadout-panel-detail-stroke: rgba(67, 48, 20, 0.30);
+    --loadout-panel-detail-stroke: rgba(67, 48, 20, 0.3);
     --loadout-slot-stroke: rgb(12, 55, 106);
     --loadout-slot-fill-0: rgb(255, 249, 238);
     --loadout-slot-fill-1: rgb(255, 244, 228);
@@ -1236,7 +1537,7 @@
     top: 0;
     width: 633px;
     height: 237px;
-    --figma-shadow-color: rgba(10, 36, 61, 0.20);
+    --figma-shadow-color: rgba(10, 36, 61, 0.2);
     --figma-shadow-offset-x: 0;
     --figma-shadow-offset-y: 8;
     --figma-shadow-blur: 9;
@@ -1336,9 +1637,17 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.hud-loadout-heart--last { margin-right: 0; }
-.hud-loadout-heart.is-empty { opacity: 0.22; }
-.hud-loadout-heart.is-unused { display: none; }
+.hud-loadout-heart--last {
+    margin-right: 0;
+}
+
+.hud-loadout-heart.is-empty {
+    opacity: 0.22;
+}
+
+.hud-loadout-heart.is-unused {
+    display: none;
+}
 
 .hud-loadout-inventory-row {
     position: absolute;
@@ -1360,9 +1669,19 @@
     border-radius: 18px;
 }
 
-.hud-loadout-slot--last { margin-right: 0; }
-.hud-loadout-slot--large { width: 126px; height: 143px; }
-.hud-loadout-slot--small { width: 100px; height: 132px; }
+.hud-loadout-slot--last {
+    margin-right: 0;
+}
+
+.hud-loadout-slot--large {
+    width: 126px;
+    height: 143px;
+}
+
+.hud-loadout-slot--small {
+    width: 100px;
+    height: 132px;
+}
 
 .hud-loadout-slot-shadow {
     position: absolute;
@@ -1376,8 +1695,15 @@
     --figma-shadow-radius: 18;
 }
 
-.hud-loadout-slot-shadow--large { width: 126px; height: 143px; }
-.hud-loadout-slot-shadow--small { width: 100px; height: 132px; }
+.hud-loadout-slot-shadow--large {
+    width: 126px;
+    height: 143px;
+}
+
+.hud-loadout-slot-shadow--small {
+    width: 100px;
+    height: 132px;
+}
 
 .hud-loadout-slot-gradient {
     position: absolute;
@@ -1404,7 +1730,7 @@
     position: absolute;
     left: 1px;
     top: 1px;
-    background-color: rgba(255, 247, 234, 0.10);
+    background-color: rgba(255, 247, 234, 0.1);
     border-left-width: 1.5px;
     border-right-width: 1.5px;
     border-top-width: 2px;
@@ -1416,9 +1742,20 @@
     border-radius: 15px;
 }
 
-.hud-loadout-slot-border--large { width: 120px; height: 137px; }
-.hud-loadout-slot-border--weapon { top: 2px; height: 136px; }
-.hud-loadout-slot-border--small { width: 94px; height: 126px; }
+.hud-loadout-slot-border--large {
+    width: 120px;
+    height: 137px;
+}
+
+.hud-loadout-slot-border--weapon {
+    top: 2px;
+    height: 136px;
+}
+
+.hud-loadout-slot-border--small {
+    width: 94px;
+    height: 126px;
+}
 
 .hud-loadout-artwork {
     position: absolute;
@@ -1488,6 +1825,17 @@
     right: 5%;
 }
 
+.combat-attempt-panel.combat-attempt-panel--retained-video-narrow {
+    left: 12px;
+    right: 12px;
+    top: 44%;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 .navigator-modal {
     top: 0;
 }
@@ -1504,7 +1852,6 @@
     border-left-color: rgb(244, 111, 83);
 }
 
-/* Reward Magnet Feedback FX */
 .reward-magnet-overlay {
     position: absolute;
     left: 0;

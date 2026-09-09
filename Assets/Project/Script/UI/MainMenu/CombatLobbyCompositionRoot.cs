@@ -51,6 +51,12 @@ namespace PowerMath.UI.MainMenu
 
         [Tooltip("Actor timing/motion and critical-impact tuning. Runtime defaults are used until assigned.")]
         [SerializeField] private CombatJuiceProfileDefinition combatJuiceProfile;
+        [Tooltip("Optional authored battle clips; safe generated cues fill missing slots.")]
+        [SerializeField] private BattleSfxLibraryDefinition battleSfxLibrary;
+
+        [Header("Result Stickers")]
+        [SerializeField] private Sprite stickerCorrect;
+        [SerializeField] private Sprite stickerFail;
 
         [Header("Combat Text Anchoring")]
         [Tooltip("Normalized anchor within enemy RectTransform for FCT spawn (0.5, 0.5 = center).")]
@@ -79,6 +85,7 @@ namespace PowerMath.UI.MainMenu
         private UiSceneContext _uiContext;
         private Sprite _runtimeEnemySprite;
         private RewardMagnetFeedbackPlayer _rewardMagnet;
+        private CombatAudioPlayer _combatAudio;
         private int _questionCatalogLoadGeneration;
         private bool _questionCatalogLoadCompleted;
 
@@ -139,6 +146,8 @@ namespace PowerMath.UI.MainMenu
                     runtimeSettings != null && runtimeSettings.ReducedMotion,
                     GameVersionChecker.IsFeatureAvailable(GameFeature.BiomeMap)
                 );
+                ResolveResultStickers();
+                _view.SetResultStickers(stickerCorrect, stickerFail);
             }
             catch (System.InvalidOperationException exception)
             {
@@ -522,7 +531,7 @@ namespace PowerMath.UI.MainMenu
                         restoredCombat.EnemyName,
                         restoredCombat.EnemyCurrentHp > 0 ? restoredCombat.EnemyCurrentHp : restoredCombat.EnemyMaximumHp,
                         restoredCombat.EnemyMaximumHp,
-                        restoredCombat.EnemyRemainingCooldown,
+                        restoredCombat.EnemyRemainingCooldown > 0 ? restoredCombat.EnemyRemainingCooldown : restoredCombat.EnemyMaximumCooldown,
                         restoredCombat.EnemyMaximumCooldown,
                         restoredCombat.PlayerCurrentHearts > 0 ? restoredCombat.PlayerCurrentHearts : maximumHearts,
                         restoredCombat.PlayerMaximumHearts > 0 ? restoredCombat.PlayerMaximumHearts : maximumHearts,
@@ -618,7 +627,8 @@ namespace PowerMath.UI.MainMenu
             }
 
             BindSceneCanvas();
-            CombatAudioPlayer audio = new CombatAudioPlayer(source);
+            CombatAudioPlayer audio = new CombatAudioPlayer(source, battleSfxLibrary);
+            _combatAudio = audio;
             var academicAudio = new AcademicAudioPlayer(source);
             VisualElement rootVisualElement = GetComponent<UIDocument>().rootVisualElement;
             _rewardMagnet = new RewardMagnetFeedbackPlayer(
@@ -654,7 +664,7 @@ namespace PowerMath.UI.MainMenu
             );
             _view.ConfigureStageMap(resolvedMap, RenderBiomeOnCanvas,
                 RenderEncounterOnCanvas, CrossfadeBiomeBackground,
-                ResolveLocalizedEnemyName);
+                ResolveLocalizedEnemyName, RequiresBackgroundTransition);
 
             _presenter = new CombatLobbyPresenter(
                 _view,
@@ -669,8 +679,13 @@ namespace PowerMath.UI.MainMenu
                 _interactionGate
             );
             _presenter.Initialize();
+            MainMenuTransitionController transition =
+                GetComponent<MainMenuTransitionController>();
             if (pendingPresentation != null)
+            {
                 _presenter.RecoverPendingPresentation();
+                transition?.NotifyRecoveryReady();
+            }
             else if (!string.IsNullOrWhiteSpace(startupNotice))
                 _view.SetResult(startupNotice, true);
             GameApiSettings settings = GetComponent<MainMenuPresenter>()?.ApiSettings;
@@ -702,7 +717,8 @@ namespace PowerMath.UI.MainMenu
                 PowerMath.Diagnostics.AppLog.Error("Combat", $"Run progression controls could not start: {exception.Message}");
             }
 
-            GetComponent<MainMenuTransitionController>()?.NotifySessionReady();
+            if (pendingPresentation == null)
+                transition?.NotifySessionReady();
         }
 
         private void SetUnavailable(string playerMessage)
@@ -892,6 +908,9 @@ namespace PowerMath.UI.MainMenu
                     reducedMotion,
                     combatJuiceProfile,
                     playerRest);
+                _playerActor.ConfigureInteractionEligibility(() =>
+                    _interactionGate == null ||
+                    _interactionGate.IsAllowed(InteractionScope.Lobby));
                 CharacterPresentationBinding.ApplyToPlayerActor(_playerActor);
             }
             if (_sceneEnemy != null)
@@ -909,12 +928,16 @@ namespace PowerMath.UI.MainMenu
                     reducedMotion,
                     combatJuiceProfile,
                     enemyRest);
+                _enemyActor.ConfigureInteractionEligibility(() =>
+                    _interactionGate == null ||
+                    _interactionGate.IsAllowed(InteractionScope.Lobby));
                 _enemyDamageAnchor = _enemyActor.DamageTextAnchor;
             }
         }
 
         private void OnActorTapped()
         {
+            _combatAudio?.PlayActorClick();
             _view?.RequestAttack();
         }
 
@@ -1038,9 +1061,11 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
-        private IEnumerator CrossfadeBiomeBackground(string biomeId, float duration)
+        private IEnumerator CrossfadeBiomeBackground(
+            CombatSnapshot destination,
+            float duration)
         {
-            Sprite targetSprite = stageMapDefinition?.FindBiome(biomeId)?.BackgroundSprite;
+            Sprite targetSprite = ResolveBackground(destination);
             if (targetSprite == null || _sceneBackground == null)
             {
                 yield break;
@@ -1051,38 +1076,53 @@ namespace PowerMath.UI.MainMenu
                 yield break;
             }
 
-            bool reducedMotion = runtimeSettings != null && runtimeSettings.ReducedMotion;
-            if (reducedMotion || _sceneBackgroundTransition == null)
+            float halfDuration = Mathf.Max(0.1f, duration * 0.5f);
+            try
             {
+                float elapsed = 0f;
+                while (elapsed < halfDuration)
+                {
+                    elapsed += Time.unscaledDeltaTime > 0f
+                        ? Time.unscaledDeltaTime : 0.02f;
+                    float alpha = 1f - Mathf.SmoothStep(
+                        0f, 1f, Mathf.Clamp01(elapsed / halfDuration));
+                    _sceneBackground.color = new Color(1f, 1f, 1f, alpha);
+                    yield return null;
+                }
+
+                // Switch only after the outgoing image is fully invisible.
+                _sceneBackground.color = new Color(1f, 1f, 1f, 0f);
+                _sceneBackground.overrideSprite = targetSprite;
+
+                elapsed = 0f;
+                while (elapsed < halfDuration)
+                {
+                    elapsed += Time.unscaledDeltaTime > 0f
+                        ? Time.unscaledDeltaTime : 0.02f;
+                    float alpha = Mathf.SmoothStep(
+                        0f, 1f, Mathf.Clamp01(elapsed / halfDuration));
+                    _sceneBackground.color = new Color(1f, 1f, 1f, alpha);
+                    yield return null;
+                }
+            }
+            finally
+            {
+                // The destination already belongs to an accepted result. If a
+                // presentation coroutine is interrupted, leave a stable saved view.
                 _sceneBackground.overrideSprite = targetSprite;
                 _sceneBackground.color = Color.white;
-                yield break;
+                if (_sceneBackgroundTransition != null)
+                {
+                    _sceneBackgroundTransition.color =
+                        new Color(1f, 1f, 1f, 0f);
+                    _sceneBackgroundTransition.gameObject.SetActive(false);
+                }
             }
-
-            float fadeDuration = Mathf.Max(0.1f, duration);
-            _sceneBackgroundTransition.overrideSprite = targetSprite;
-            _sceneBackgroundTransition.color = new Color(1f, 1f, 1f, 0f);
-            _sceneBackgroundTransition.gameObject.SetActive(true);
-
-            float elapsed = 0f;
-            while (elapsed < fadeDuration)
-            {
-                elapsed += Time.unscaledDeltaTime > 0 ? Time.unscaledDeltaTime : 0.02f;
-                float t = Mathf.Clamp01(elapsed / fadeDuration);
-                float smoothT = Mathf.SmoothStep(0f, 1f, t);
-                _sceneBackgroundTransition.color = new Color(1f, 1f, 1f, smoothT);
-                yield return null;
-            }
-
-            _sceneBackground.overrideSprite = targetSprite;
-            _sceneBackground.color = Color.white;
-            _sceneBackgroundTransition.color = new Color(1f, 1f, 1f, 0f);
-            _sceneBackgroundTransition.gameObject.SetActive(false);
         }
 
-        private void RenderBiomeOnCanvas(string biomeId)
+        private void RenderBiomeOnCanvas(CombatSnapshot snapshot)
         {
-            Sprite sprite = stageMapDefinition?.FindBiome(biomeId)?.BackgroundSprite;
+            Sprite sprite = ResolveBackground(snapshot);
             if (_sceneBackground != null && sprite != null)
             {
                 _sceneBackground.overrideSprite = sprite;
@@ -1095,6 +1135,20 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
+        private bool RequiresBackgroundTransition(CombatSnapshot snapshot)
+        {
+            Sprite desired = ResolveBackground(snapshot);
+            return desired != null && _sceneBackground != null &&
+                _sceneBackground.overrideSprite != desired;
+        }
+
+        private Sprite ResolveBackground(CombatSnapshot snapshot)
+        {
+            if (snapshot == null) return null;
+            BiomeDefinition biome = stageMapDefinition?.FindBiome(snapshot.BiomeId);
+            return biome?.ResolveBackground(snapshot.Stage.Value);
+        }
+
         private void RenderEncounterOnCanvas(string encounterId)
         {
             EnemyDefinition monster = stageMapDefinition?.FindMonster(encounterId);
@@ -1104,6 +1158,14 @@ namespace PowerMath.UI.MainMenu
             if (sprite == null) sprite = ResolveFallbackEnemySprite();
             if (_sceneEnemy != null && sprite != null)
             {
+                StageEncounterKind kind = monster?.EncounterKind ??
+                    StageEncounterKind.ChallengeEvent;
+                _enemyActor?.ConfigureDeathProfile(
+                    kind == StageEncounterKind.BigBoss ||
+                    kind == StageEncounterKind.FinalBoss);
+                // Actor animation chooses its own state sprite and clears Image's
+                // override. Rebind the actor too so Appear/Idle retain this encounter.
+                _enemyActor?.ConfigureSprites(sprite);
                 _sceneEnemy.overrideSprite = sprite;
                 _sceneEnemy.gameObject.SetActive(true);
             }
@@ -1333,6 +1395,35 @@ namespace PowerMath.UI.MainMenu
                 exception is System.ArgumentOutOfRangeException)
             {
                 return false;
+            }
+        }
+
+        private void ResolveResultStickers()
+        {
+            if (stickerCorrect == null)
+            {
+#if UNITY_EDITOR
+                stickerCorrect = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/Project/Art/Character/Sticker_Power_Correct.PNG");
+#endif
+                if (stickerCorrect == null)
+                {
+                    stickerCorrect = Resources.Load<Sprite>("Character/Sticker_Power_Correct")
+                        ?? Resources.Load<Sprite>("Sticker_Power_Correct");
+                }
+            }
+
+            if (stickerFail == null)
+            {
+#if UNITY_EDITOR
+                stickerFail = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/Project/Art/Character/Sticker_Power_Fail.PNG");
+#endif
+                if (stickerFail == null)
+                {
+                    stickerFail = Resources.Load<Sprite>("Character/Sticker_Power_Fail")
+                        ?? Resources.Load<Sprite>("Sticker_Power_Fail");
+                }
             }
         }
     }

@@ -1,9 +1,14 @@
 using NUnit.Framework;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Academic.Unity;
+using PowerMath.Gameplay.Combat.Presentation;
 using PowerMath.UI.Core;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace PowerMath.Gameplay.Combat.Unity.Tests
@@ -12,6 +17,42 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
     {
         private const string MainMenuUxml =
             "Assets/Project/UI/MainMenuUI.uxml";
+
+        [Test]
+        public void BiomeDefinition_UsesSecondBackgroundFromExactMidpoint()
+        {
+            var biome = ScriptableObject.CreateInstance<BiomeDefinition>();
+            var texture = new Texture2D(4, 4);
+            var primary = Sprite.Create(texture, new Rect(0, 0, 4, 4), Vector2.zero);
+            var secondary = Sprite.Create(texture, new Rect(0, 0, 4, 4), Vector2.zero);
+            try
+            {
+                SetPrivateField(biome, "firstStage", 1);
+                SetPrivateField(biome, "lastStage", 30);
+                SetPrivateField(biome, "backgroundSprite", primary);
+                SetPrivateField(biome, "secondaryBackgroundSprite", secondary);
+
+                Assert.That(biome.MidpointStage, Is.EqualTo(16));
+                Assert.That(biome.ResolveBackground(15), Is.SameAs(primary));
+                Assert.That(biome.ResolveBackground(16), Is.SameAs(secondary));
+                Assert.That(biome.ResolveBackground(30), Is.SameAs(secondary));
+            }
+            finally
+            {
+                Object.DestroyImmediate(biome);
+                Object.DestroyImmediate(primary);
+                Object.DestroyImmediate(secondary);
+                Object.DestroyImmediate(texture);
+            }
+        }
+
+        private static void SetPrivateField<T>(BiomeDefinition target, string name, T value)
+        {
+            FieldInfo field = typeof(BiomeDefinition).GetField(
+                name, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"Expected serialized field {name}.");
+            field.SetValue(target, value);
+        }
 
         [Test]
         public void MainMenuAsset_SatisfiesCombatViewContract()
@@ -246,6 +287,17 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 root.Q<VisualElement>("combat-score-stack").childCount,
                 Is.EqualTo(5),
                 "Three score rows should be connected by two visual arrows.");
+
+            var stickerSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+            view.SetResultStickers(stickerSprite, stickerSprite);
+            view.ShowAnswerFeedback("✓", "CORRECT", "OK", true);
+            var stickerImage = root.Q<Image>("combat-result-sticker");
+            Assert.That(stickerImage, Is.Not.Null);
+            Assert.That(stickerImage.ClassListContains("is-hidden"), Is.False);
+            Assert.That(stickerImage.sprite, Is.SameAs(stickerSprite));
+
+            view.HideAnswerFeedback();
+            Assert.That(stickerImage.ClassListContains("is-hidden"), Is.True);
         }
 
         [Test]
@@ -423,7 +475,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
 
         [Test]
-        public void PlayBiomeTransition_PopulatesTitleAndCoordinatesSequence()
+        public void PlayBiomeTransition_ChangesBackgroundWithoutRevealingDestinationEnemy()
         {
             VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 MainMenuUxml
@@ -439,11 +491,11 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             StageMapData stageMap = DevelopmentStageMapFactory.Create();
             view.ConfigureStageMap(
                 stageMap,
-                biomeId => renderedBiome = biomeId,
+                snapshot => renderedBiome = snapshot.BiomeId,
                 encounterId => renderedEncounter = encounterId,
-                (biomeId, duration) =>
+                (snapshot, duration) =>
                 {
-                    crossfadedBiome = biomeId;
+                    crossfadedBiome = snapshot.BiomeId;
                     crossfadedDuration = duration;
                     return null;
                 }
@@ -469,16 +521,83 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             );
 
             var routine = view.PlayBiomeTransition(destinationSnapshot);
-            while (routine.MoveNext())
-            {
-                // Advance routine
-            }
+            // A detached tree has no scheduled lifecycle updates. Advance only
+            // to the title hold, after the background callback has completed.
+            Assert.That(routine.MoveNext(), Is.True);
+            Assert.That(routine.Current, Is.TypeOf<WaitForSecondsRealtime>());
 
             Assert.That(root.Q<Label>("combat-biome-transition-title").text, Is.EqualTo("CRYSTAL CAVERNS"));
-            Assert.That(root.Q<Label>("combat-biome-transition-kicker").text, Is.EqualTo("ENTERING NEW BIOME"));
+            Assert.That(root.Q<Label>("combat-biome-transition-kicker").text, Is.Empty);
             Assert.That(crossfadedBiome, Is.EqualTo("biome-2"));
             Assert.That(crossfadedDuration, Is.GreaterThan(0f));
-            Assert.That(renderedEncounter, Is.EqualTo("biome-2-scout"));
+            Assert.That(renderedBiome, Is.Null);
+            Assert.That(renderedEncounter, Is.Null,
+                "The encounter belongs to the subsequent entrance, after the title exits.");
+            (routine as System.IDisposable)?.Dispose();
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void EncounterEntrance_WaitsForBiomeTransition_RecoverySkipsIt(bool biomeChanged)
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MainMenuUxml);
+            using var view = new CombatLobbyView(asset.CloneTree(), reducedMotion: true);
+            var actorObject = new GameObject("Destination enemy", typeof(RectTransform),
+                typeof(UnityEngine.UI.Image));
+            var calls = new List<string>();
+            try
+            {
+                var actor = actorObject.AddComponent<ActorPresentationController>();
+                actor.Initialize(PresentationActor.Enemy, true);
+                actor.CancelAndApply(ActorVisualState.Hidden);
+                view.ConfigureStageMap(DevelopmentStageMapFactory.Create(),
+                    _ => calls.Add("bind background"),
+                    _ => calls.Add("bind encounter"),
+                    (_, __) =>
+                    {
+                        calls.Add("transition background");
+                        return null;
+                    });
+                var feedback = new CombatFeedbackPlayer(view, null, true, enemyActor: actor);
+                var destination = new CombatSnapshot(new StageId(31), "biome-2-scout",
+                    "Crystal Scout", 80, 80, 3, 3, 3, 3, CombatPhase.PresentingResult,
+                    true, "biome-2", "Crystal Caverns", StageEncounterKind.NormalMonster,
+                    string.Empty, 0);
+                IEnumerator entrance = feedback.PlayEncounterEntrance(destination, biomeChanged);
+
+                Assert.That(entrance.MoveNext(), Is.True);
+                if (biomeChanged)
+                {
+                    Assert.That(calls, Is.Empty,
+                        "Destination binding must wait for the yielded transition.");
+                    Assert.That(actor.State, Is.EqualTo(ActorVisualState.Hidden));
+                    var transition = (IEnumerator)entrance.Current;
+                    Assert.That(transition.MoveNext(), Is.True);
+                    Assert.That(calls, Is.EqualTo(new[] { "transition background" }));
+                    Assert.That(actor.State, Is.EqualTo(ActorVisualState.Hidden));
+                    (transition as System.IDisposable)?.Dispose();
+
+                    // Resume the caller as Unity does only after its yielded child
+                    // completes. Lifecycle timing is covered in scene tests.
+                    Assert.That(entrance.MoveNext(), Is.True);
+                }
+
+                Assert.That(calls, Is.EqualTo(biomeChanged
+                    ? new[] { "transition background", "bind background", "bind encounter" }
+                    : new[] { "bind background", "bind encounter" }));
+                Assert.That(actor.State, Is.EqualTo(ActorVisualState.Hidden));
+                Assert.That(view.IsEnemyActionQueueStable, Is.False,
+                    "The new queue must initiate before interaction can reopen.");
+                var appear = (IEnumerator)entrance.Current;
+                Assert.That(appear.MoveNext(), Is.True);
+                Assert.That(actor.State, Is.EqualTo(ActorVisualState.Appearing));
+                (appear as System.IDisposable)?.Dispose();
+                (entrance as System.IDisposable)?.Dispose();
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(actorObject);
+            }
         }
 
         [Test]
@@ -535,4 +654,3 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
     }
 }
-

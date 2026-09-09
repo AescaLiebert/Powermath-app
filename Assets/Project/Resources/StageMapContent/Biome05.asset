@@ -15,8 +15,9 @@ MonoBehaviour:
   biomeId: biome-5
   fallbackTitle: Biome 5
   firstStage: 121
-  lastStage: 150
+  lastStage: 160
   backgroundSprite: {fileID: 21300000, guid: 7a825a54dc885074a927384b1dacd191, type: 3}
+  secondaryBackgroundSprite: {fileID: 21300000, guid: b8e4ef638e8b03a40bedb6c271a1dd19, type: 3}
   mapLandmarkSprite: {fileID: 0}
   normalizedMapPosition: {x: 0.6666667, y: 0.42}
   normalMonsters:
