@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Pets;
+using PowerMath.Localization;
 using PowerMath.PlayerData;
+using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -147,8 +149,8 @@ namespace PowerMath.UI.MainMenu
             bool gachaAvailable = GameVersionChecker.IsFeatureAvailable(GameFeature.PetGacha);
             if (!gachaAvailable)
             {
-                _open.SetEnabled(false);
-                _open.pickingMode = PickingMode.Ignore;
+                _open.SetEnabled(true);
+                _open.pickingMode = PickingMode.Position;
                 _open.tooltip = "Pet Gacha (Locked in v1.0)";
                 _open.AddToClassList("is-feature-locked");
                 _lockOverlay?.RemoveFromClassList("is-hidden");
@@ -173,7 +175,12 @@ namespace PowerMath.UI.MainMenu
 
         private void Open()
         {
-            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PetGacha)) return;
+            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PetGacha))
+            {
+                StatusMessageService.ShowWarning(
+                    LocalizationService.Get("menu.lockedFeatureUpdate"));
+                return;
+            }
             if (!IsConfigured || _busy) return;
             if (!_panelHost.TryOpen(
                     MainMenuPanelId.PetGacha,
@@ -303,7 +310,7 @@ namespace PowerMath.UI.MainMenu
             _confirmation.style.display = DisplayStyle.Flex;
             _result.style.display = DisplayStyle.None;
             _confirmation.Focus();
-            _confirm.text = "CONFIRM PULL";
+            _confirm.text = PowerMath.Localization.LocalizationService.Get("menu.confirmPull");
             _confirm.SetEnabled(true);
             _cancel.SetEnabled(true);
             _status.text = string.Empty;
@@ -368,7 +375,7 @@ namespace PowerMath.UI.MainMenu
             _close.SetEnabled(false);
             _cancel.SetEnabled(false);
             _confirm.SetEnabled(false);
-            _status.text = "Saving this pull to Firebase...";
+            _status.text = PowerMath.Localization.LocalizationService.Get("menu.savingPull");
             _confirmationSummary.text =
                 "Saving this pull…\nYour result will appear after the transaction is accepted.";
             SetSemanticState("is-busy");
@@ -424,7 +431,7 @@ namespace PowerMath.UI.MainMenu
             if (failure.Code == PetGachaFailureCode.RecoverableTransport)
             {
                 _committed = true;
-                _confirm.text = "RECOVER PULL";
+                _confirm.text = PowerMath.Localization.LocalizationService.Get("menu.recoverPull");
                 _confirm.SetEnabled(true);
                 _cancel.SetEnabled(false);
                 _close.SetEnabled(false);
@@ -471,7 +478,7 @@ namespace PowerMath.UI.MainMenu
             else
             {
                 _resultName.text = receipt.PetId.ToUpperInvariant();
-                _resultRarity.text = "PET";
+                _resultRarity.text = PowerMath.Localization.LocalizationService.Get("menu.pet");
                 _resultIcon.style.backgroundImage = StyleKeyword.None;
             }
 

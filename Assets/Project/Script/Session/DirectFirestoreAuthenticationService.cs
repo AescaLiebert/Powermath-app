@@ -34,12 +34,25 @@ namespace PowerMath.Session
                     value => manifest = value,
                     error => manifestError = error);
 
+                if (!string.IsNullOrWhiteSpace(manifestError))
+                {
+                    PowerMath.Diagnostics.AppLog.Warning(
+                        "Version",
+                        manifestError + " Continuing with authentication.");
+                }
+
                 VersionCompatibilityResult compatibility =
                     GameVersionChecker.EvaluateCompatibility(
                         manifest,
                         Application.version,
                         PlayerSessionStore.SupportedSchemaVersion,
                         out string statusMessage);
+                if (compatibility == VersionCompatibilityResult.Compatible &&
+                    !string.IsNullOrWhiteSpace(statusMessage) &&
+                    string.IsNullOrWhiteSpace(manifestError))
+                {
+                    PowerMath.Diagnostics.AppLog.Warning("Version", statusMessage);
+                }
                 if (compatibility != VersionCompatibilityResult.Compatible &&
                     compatibility != VersionCompatibilityResult.UpdateRecommended)
                 {

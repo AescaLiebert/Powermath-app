@@ -105,6 +105,158 @@ namespace PowerMath.Tests.EditMode
             Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
         }
 
+        [TestCase("Hum")]
+        [TestCase("hum99")]
+        [TestCase("Hee")]
+        [TestCase("hee555")]
+        [TestCase("Sus")]
+        [TestCase("sus123")]
+        [TestCase("Kuy")]
+        [TestCase("kuyza")]
+        [TestCase("Kuay")]
+        [TestCase("Yed")]
+        [TestCase("yed99")]
+        [TestCase("Hia")]
+        [TestCase("Dokthong")]
+        [TestCase("Dorkthong")]
+        [TestCase("Meung")]
+        public void ThaiProfanityWrittenInEnglish_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Thai-in-EN word '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
+        [TestCase("ฟัค")]
+        [TestCase("ฟักยู")]
+        [TestCase("ฟัคยู")]
+        [TestCase("ชิท")]
+        [TestCase("บิทช์")]
+        [TestCase("พอร์น")]
+        [TestCase("เซ็กส์")]
+        [TestCase("นู้ด")]
+        [TestCase("ดิก")]
+        [TestCase("ค็อก")]
+        public void EnglishProfanityWrittenInThaiScript_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"EN-in-TH word '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
+        [TestCase("YesMom")]
+        [TestCase("Yes-Mom")]
+        [TestCase("Yes_Mom")]
+        [TestCase("yes.mom")]
+        [TestCase("YesMae")]
+        [TestCase("YesMother")]
+        [TestCase("เยสมัม")]
+        [TestCase("เยส-มัม")]
+        [TestCase("เยสแม่")]
+        [TestCase("YedMom")]
+        [TestCase("EatShit")]
+        [TestCase("SuckDick")]
+        [TestCase("พ่อมึงตาย")]
+        public void CompoundInnuendosAndPhrases_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Compound innuendo '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
+        [TestCase("fuc")]
+        [TestCase("fck")]
+        [TestCase("fuk")]
+        [TestCase("dic")]
+        [TestCase("dik")]
+        [TestCase("suc")]
+        [TestCase("sux")]
+        [TestCase("bch")]
+        [TestCase("cnt")]
+        [TestCase("stfu")]
+        [TestCase("gtfo")]
+        [TestCase("wtf")]
+        [TestCase("kys")]
+        public void ShortenedAndAbbreviatedToxicWords_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Shortened toxic word '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
+        [TestCase("A$$")]
+        [TestCase("A$s")]
+        [TestCase("a$$hole")]
+        [TestCase("fu¢k")]
+        [TestCase("b!tch")]
+        [TestCase("d!ck")]
+        [TestCase("5h!t")]
+        [TestCase("p0rn")]
+        public void SpecialSymbolsAndLeetspeakVariations_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Symbol obfuscation '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
+        [TestCase("kill yourself")]
+        [TestCase("go die")]
+        [TestCase("kill you")]
+        [TestCase("suicide")]
+        [TestCase("rape")]
+        [TestCase("molest")]
+        [TestCase("nigger")]
+        [TestCase("faggot")]
+        [TestCase("retard")]
+        public void ThreatsViolenceAndHateSpeechEnglish_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Hate/threat term '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
+        [TestCase("คย")]
+        [TestCase("ค.ย.")]
+        [TestCase("ค-ย")]
+        [TestCase("ค_ย")]
+        [TestCase("เห้")]
+        [TestCase("ไอ้เห้")]
+        [TestCase("พมต")]
+        [TestCase("มมต")]
+        [TestCase("พ่องตาย")]
+        [TestCase("แม่งตาย")]
+        [TestCase("หาพ่อง")]
+        public void ThaiShortenedAndGamingSlang_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Thai slang '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
+        [TestCase("ไปตายซะ")]
+        [TestCase("กูจะฆ่ามึง")]
+        [TestCase("ฆ่าตัวตาย")]
+        [TestCase("ข่มขืน")]
+        [TestCase("รุมโทรม")]
+        [TestCase("ปัญญาอ่อน")]
+        [TestCase("ไอ้ปัญญาอ่อน")]
+        [TestCase("ไอ้เอ๋อ")]
+        [TestCase("เศษสวะ")]
+        public void ThaiThreatsViolenceAndHateSpeech_AreDenied(string input)
+        {
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Thai threat/hate term '{input}' should have been denied.");
+            Assert.AreEqual(DisplayNameDenialReason.InappropriateContent, result.Reason);
+            Assert.AreEqual("onboarding.nameInappropriate", result.LocalizationKey);
+        }
+
         [TestCase("Pass")]
         [TestCase("Classic")]
         [TestCase("Assistant")]
@@ -114,10 +266,26 @@ namespace PowerMath.Tests.EditMode
         [TestCase("Hello")]
         [TestCase("Ricko")]
         [TestCase("Stellar")]
+        [TestCase("Humphrey")]
+        [TestCase("Sustain")]
+        [TestCase("Grape")]
+        [TestCase("Grapes")]
+        [TestCase("Success")]
+        [TestCase("Dictionary")]
+        [TestCase("Fuchsia")]
+        [TestCase("Asset")]
+        [TestCase("Assemble")]
         [TestCase("ผู้กล้า")]
         [TestCase("หีบ")]
         [TestCase("หีบสมบัติ")]
         [TestCase("กูเกิล")]
+        [TestCase("ฟักทอง")]
+        [TestCase("คัมภีร์")]
+        [TestCase("ดิกชันนารี")]
+        [TestCase("ค็อกเทล")]
+        [TestCase("เทคนิค")]
+        [TestCase("ผู้ฆ่ามังกร")]
+        [TestCase("ปัญญา")]
         public void ScunthorpeAllowlist_PermitsHarmlessWords(string input)
         {
             Assert.IsTrue(DisplayNamePolicy.TryValidate(input, out string normalized, out var result),
@@ -132,9 +300,18 @@ namespace PowerMath.Tests.EditMode
         [TestCase("visit game.com")]
         [TestCase("discord.gg/play")]
         [TestCase("http://badsite")]
+        [TestCase("@gmail")]
+        [TestCase("@twitter")]
+        [TestCase("user@gmail.com")]
+        [TestCase("@somchai")]
+        [TestCase("ig:somchai")]
+        [TestCase("fb:alex")]
+        [TestCase("line:student01")]
+        [TestCase("dc:gamer#1234")]
         public void ContactInformationAndUrls_AreDenied(string input)
         {
-            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result));
+            Assert.IsFalse(DisplayNamePolicy.TryValidate(input, out _, out var result),
+                $"Contact/PII '{input}' should have been denied.");
             Assert.AreEqual(DisplayNameDenialReason.ContactInformation, result.Reason);
             Assert.AreEqual("onboarding.nameContactInfo", result.LocalizationKey);
         }
@@ -169,6 +346,16 @@ namespace PowerMath.Tests.EditMode
             {
                 StatusMessageService.MessagePublished -= handler;
             }
+        }
+
+        [TestCase("level1:student01", "student01")]
+        [TestCase("grade2:somchai99", "somchai99")]
+        public void AccountUsernameExtraction_ResolvesUsernameCorrectly(string playerId, string expected)
+        {
+            var snapshot = new PowerMath.PlayerData.PlayerSnapshot { playerId = playerId };
+            bool ok = PowerMath.UI.Settings.AdminAccountAccessPolicy.TryGetUsername(snapshot, out string username);
+            Assert.IsTrue(ok);
+            Assert.AreEqual(expected, username);
         }
     }
 }

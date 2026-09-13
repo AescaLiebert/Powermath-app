@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -81,6 +81,18 @@ namespace PowerMath.Audio
         [SerializeField] private SfxCueConfig uiButtonClick = new SfxCueConfig(null, 0.60f, 0.03f);
         [SerializeField] private SfxCueConfig uiNavigationBack = new SfxCueConfig(null, 0.55f, 0.02f);
 
+        [Header("Authentication SFX")]
+        [SerializeField] private SfxCueConfig authLoginClick = new SfxCueConfig(null, 0.65f, 0.02f);
+        [SerializeField] private SfxCueConfig authSuccess = new SfxCueConfig(null, 0.75f, 0.02f);
+        [SerializeField] private SfxCueConfig authFailure = new SfxCueConfig(null, 0.80f, 0.02f);
+        [SerializeField] private SfxCueConfig authLanguageSwitch = new SfxCueConfig(null, 0.60f, 0.03f);
+
+        [Header("Reward System SFX")]
+        [SerializeField] private SfxCueConfig rewardOnDrop = new SfxCueConfig(null, 0.75f, 0.04f);
+        [SerializeField] private SfxCueConfig rewardMagnetism = new SfxCueConfig(null, 0.65f, 0.03f);
+        [SerializeField] private SfxCueConfig rewardCurrencyRank = new SfxCueConfig(null, 0.70f, 0.02f);
+        [SerializeField] private SfxCueConfig rewardCurrencyPowerCoin = new SfxCueConfig(null, 0.75f, 0.03f);
+
         [Header("Generic UI Animation SFX (USS Styles)")]
         [SerializeField] private UiAnimationSfxStyle[] uiStyles = Array.Empty<UiAnimationSfxStyle>();
 
@@ -102,6 +114,14 @@ namespace PowerMath.Audio
         private static AudioClip _fbFailure;
         private static AudioClip _fbMultiplier;
         private static AudioClip _fbBiomeTransition;
+        private static AudioClip _fbAuthClick;
+        private static AudioClip _fbAuthSuccess;
+        private static AudioClip _fbAuthFailure;
+        private static AudioClip _fbAuthLang;
+        private static AudioClip _fbRewardDrop;
+        private static AudioClip _fbRewardMagnet;
+        private static AudioClip _fbCurrencyRank;
+        private static AudioClip _fbCurrencyCoin;
 
         public SfxCueConfig PlayerAttackSwing => playerAttackSwing;
         public SfxCueConfig PlayerAttackFail => playerAttackFail;
@@ -140,17 +160,33 @@ namespace PowerMath.Audio
         public SfxCueConfig NameConfirmed => nameConfirmed;
         public SfxCueConfig UiButtonClick => uiButtonClick;
         public SfxCueConfig UiNavigationBack => uiNavigationBack;
+
+        public SfxCueConfig AuthLoginClick => authLoginClick;
+        public SfxCueConfig AuthSuccess => authSuccess;
+        public SfxCueConfig AuthFailure => authFailure;
+        public SfxCueConfig AuthLanguageSwitch => authLanguageSwitch;
+
+        public SfxCueConfig RewardOnDrop => rewardOnDrop;
+        public SfxCueConfig RewardMagnetism => rewardMagnetism;
+        public SfxCueConfig RewardCurrencyRank => rewardCurrencyRank;
+        public SfxCueConfig RewardCurrencyPowerCoin => rewardCurrencyPowerCoin;
+
         public IReadOnlyList<UiAnimationSfxStyle> UiStyles => uiStyles ?? Array.Empty<UiAnimationSfxStyle>();
 
         public EncounterKindSfxBinding FindEncounterBinding(string kind)
         {
             if (string.IsNullOrEmpty(kind) || encounterKindBindings == null) return null;
+            string normalizedTarget = kind.Replace(" ", string.Empty).Replace("_", string.Empty);
             for (int i = 0; i < encounterKindBindings.Length; i++)
             {
-                if (encounterKindBindings[i] != null &&
-                    string.Equals(encounterKindBindings[i].EncounterKind, kind, StringComparison.OrdinalIgnoreCase))
+                if (encounterKindBindings[i] != null)
                 {
-                    return encounterKindBindings[i];
+                    string candidate = encounterKindBindings[i].EncounterKind ?? string.Empty;
+                    string normalizedCandidate = candidate.Replace(" ", string.Empty).Replace("_", string.Empty);
+                    if (string.Equals(normalizedCandidate, normalizedTarget, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return encounterKindBindings[i];
+                    }
                 }
             }
             return null;
@@ -227,6 +263,30 @@ namespace PowerMath.Audio
                 case "biome_transition":
                     if (_fbBiomeTransition == null) _fbBiomeTransition = CreateHarmonicChord("SFX_FB_Biome", new[] { 392f, 493.88f, 587.33f, 783.99f }, 0.70f, 0.16f);
                     return _fbBiomeTransition;
+                case "auth_click":
+                    if (_fbAuthClick == null) _fbAuthClick = CreateTone("SFX_FB_AuthClick", 620f, 0.04f, 0.06f);
+                    return _fbAuthClick;
+                case "auth_success":
+                    if (_fbAuthSuccess == null) _fbAuthSuccess = CreateHarmonicChord("SFX_FB_AuthSuccess", new[] { 523.25f, 659.25f, 783.99f, 1046.50f }, 0.40f, 0.16f);
+                    return _fbAuthSuccess;
+                case "auth_failure":
+                    if (_fbAuthFailure == null) _fbAuthFailure = CreateSweep("SFX_FB_AuthFailure", 280f, 130f, 0.30f, 0.15f, 0.06f);
+                    return _fbAuthFailure;
+                case "auth_language":
+                    if (_fbAuthLang == null) _fbAuthLang = CreateHarmonicChord("SFX_FB_AuthLang", new[] { 440f, 660f }, 0.12f, 0.12f);
+                    return _fbAuthLang;
+                case "reward_drop":
+                    if (_fbRewardDrop == null) _fbRewardDrop = CreateSweep("SFX_FB_RewardDrop", 680f, 320f, 0.14f, 0.18f, 0.10f);
+                    return _fbRewardDrop;
+                case "reward_magnet":
+                    if (_fbRewardMagnet == null) _fbRewardMagnet = CreateSweep("SFX_FB_RewardMagnet", 300f, 750f, 0.22f, 0.14f, 0.08f);
+                    return _fbRewardMagnet;
+                case "currency_rank":
+                    if (_fbCurrencyRank == null) _fbCurrencyRank = CreateHarmonicChord("SFX_FB_CurrencyRank", new[] { 740f, 1110f }, 0.12f, 0.12f);
+                    return _fbCurrencyRank;
+                case "currency_coin":
+                    if (_fbCurrencyCoin == null) _fbCurrencyCoin = CreateTone("SFX_FB_CurrencyCoin", 920f, 0.08f, 0.16f);
+                    return _fbCurrencyCoin;
                 default:
                     return GetFallbackClip("click");
             }

@@ -1,74 +1,3 @@
-.main-menu-utility-bar {
-    position: absolute;
-    left: 18px;
-    right: 18px;
-    top: 14px;
-    height: 58px;
-    padding-left: 10px;
-    padding-right: 12px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    background-color: rgba(12, 31, 62, 0.94);
-    border-left-width: 2px;
-    border-right-width: 2px;
-    border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-left-color: rgba(95, 211, 225, 0.62);
-    border-right-color: rgba(95, 211, 225, 0.62);
-    border-top-color: rgba(95, 211, 225, 0.62);
-    border-bottom-color: rgba(95, 211, 225, 0.62);
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-}
-
-.main-menu-utility-back {
-    width: 46px;
-    height: 42px;
-    min-height: 42px;
-    margin-right: 0;
-    padding: 0;
-    color: rgb(255, 249, 232);
-    background-color: rgba(95, 211, 225, 0.18);
-    border-left-color: rgb(95, 211, 225);
-    border-right-color: rgb(95, 211, 225);
-    border-top-color: rgb(95, 211, 225);
-    border-bottom-color: rgb(95, 211, 225);
-    font-size: 24px;
-    transition-property: scale, translate, background-color;
-    transition-duration: 0.14s;
-    transition-timing-function: ease-out-back;
-}
-
-.main-menu-utility-back:hover,
-.main-menu-utility-back:focus {
-    scale: 1.06 1.06;
-    translate: -2px 0;
-    background-color: rgba(95, 211, 225, 0.32);
-}
-
-.main-menu-utility-back:active {
-    scale: 0.9 0.9;
-}
-
-.main-menu-utility-currency {
-    min-width: 96px;
-    margin-left: 0;
-    padding: 7px 12px;
-    color: rgb(255, 249, 232);
-    background-color: rgba(255, 255, 255, 0.1);
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
-    border-bottom-left-radius: 14px;
-    border-bottom-right-radius: 14px;
-    font-size: 14px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-center;
-}
-
-.main-menu-utility-currency--power { color: rgb(255, 202, 84); }
 
 .main-menu-notification {
     position: absolute;
@@ -111,4 +40,18 @@
     -unity-font-style: bold;
     white-space: normal;
     -unity-text-align: middle-center;
+}
+
+/* ─── SVG Icon Replacements ─── */
+
+.panel-close-icon {
+    width: 22px; height: 22px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_close_cross.svg?fileID=11400000&guid=a5e0eb5ca687b0e4e93d4f2ce910c18f&type=2#icon_close_cross");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.hud-player-menu-chevron {
+    width: 42px; height: 88px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_player_menu_chevron.svg?fileID=11400000&guid=2f89953a387d7a44baa1cd250a2d028d&type=2#icon_player_menu_chevron");
+    -unity-background-scale-mode: scale-to-fit;
 }

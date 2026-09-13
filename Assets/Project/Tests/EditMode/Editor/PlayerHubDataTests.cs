@@ -63,16 +63,15 @@ namespace PowerMath.Tests.EditMode
 
             PlayerStatProjection projection = PlayerStatProjectionFactory.Create(
                 player,
-                5,
                 WeaponAscensionPolicy.DefaultBaseWeaponAttack,
                 0.2d,
                 50d,
                 catalog);
 
-            Assert.That(projection.PetAttack, Is.EqualTo(7));
+            Assert.That(projection.PetFlatAttack, Is.EqualTo(7));
             Assert.That(projection.HasConfiguredPetStats, Is.True);
             Assert.That(projection.PermanentAttackSubtotal,
-                Is.EqualTo(projection.BaseAttack + projection.Weapon.Attack + 7));
+                Is.EqualTo(projection.Weapon.Attack + 7));
         }
 
         [Test]
@@ -86,7 +85,6 @@ namespace PowerMath.Tests.EditMode
             Assert.Throws<InvalidOperationException>(() =>
                 PlayerStatProjectionFactory.Create(
                     player,
-                    5,
                     WeaponAscensionPolicy.DefaultBaseWeaponAttack,
                     0.2d,
                     50d,

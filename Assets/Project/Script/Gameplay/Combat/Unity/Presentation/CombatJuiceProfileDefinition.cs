@@ -35,6 +35,12 @@ namespace PowerMath.Gameplay.Combat.Unity
         [SerializeField, Range(0f, 0.1f)] private float majorDeathShakeRatio = 0.015f;
         [SerializeField, Min(0f)] private float rebirthRise = 58f;
 
+        [Header("Idle Breathing - Subtle Starting Values")]
+        [SerializeField, Min(0.5f)] private float idleBreathSeconds = 3.2f;
+        [SerializeField, Range(0f, 0.05f)] private float idleBreathScaleX = 0.004f;
+        [SerializeField, Range(0f, 0.05f)] private float idleBreathScaleY = 0.012f;
+        [SerializeField, Range(0f, 8f)] private float idleBreathRisePixels = 2f;
+
         [Header("Critical Impact")]
         [SerializeField, Min(0f)] private float criticalImpulseSeconds = 0.18f;
         [SerializeField, Min(0f)] private float criticalImpulseAmplitude = 14f;
@@ -80,6 +86,10 @@ namespace PowerMath.Gameplay.Combat.Unity
         public float MajorDeathDropRatio => majorDeathDropRatio;
         public float MajorDeathShakeRatio => majorDeathShakeRatio;
         public float RebirthRise => rebirthRise;
+        public float IdleBreathSeconds => Mathf.Max(0.5f, idleBreathSeconds);
+        public float IdleBreathScaleX => idleBreathScaleX;
+        public float IdleBreathScaleY => idleBreathScaleY;
+        public float IdleBreathRisePixels => idleBreathRisePixels;
         public float CriticalImpulseSeconds => criticalImpulseSeconds;
         public float CriticalImpulseAmplitude => criticalImpulseAmplitude;
         public int CriticalImpulseOscillations => Mathf.Max(1, criticalImpulseOscillations);

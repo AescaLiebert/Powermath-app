@@ -146,7 +146,7 @@ namespace PowerMath.Gameplay.Combat
                 question.Id,
                 isEvent ? question.Rank : reservation.Reservation.RankAtCommit,
                 question.VideoUri,
-                $"QA target answer: {question.CorrectAnswer}",
+                $"Answer: {question.CorrectAnswer}",
                 question.YouTubeVideoId,
                 isEvent ? QuestionContentKind.EventQuestion : QuestionContentKind.RankQuestion,
                 isEvent ? combatBefore.QuestionDocumentId : string.Empty

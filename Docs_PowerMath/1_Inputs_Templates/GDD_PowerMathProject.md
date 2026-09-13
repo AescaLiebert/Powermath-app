@@ -415,20 +415,27 @@ WorldLevel = ceil(Stage / 5)
 GrowthSteps = WorldLevel - 1
 ```
 
-Enemy HP gains an additive 12% of the global normal-enemy HP baseline per completed World Level step:
+Enemy HP scales dynamically across three distinct game phases to match player power growth:
+
+- **Early Game (Stages 1–60, World Levels 1–12)**:
+  `GrowthFactor = 1.0 + 0.12 × (WorldLevel - 1)`
+  Normal monsters baseline 30–45 HP, Bosses 100–125 HP. Bosses in Biomes 1–2 have a relaxed 3-turn action cooldown before attacking.
+- **Mid Game (Stages 61–140, World Levels 13–28)**:
+  `GrowthFactor = 2.32 + 0.25 × (WorldLevel - 12)`
+  Normal monsters scale to 200–600 HP, Bosses scale to 750–1,500 HP (cooldown 2 actions).
+- **Late Game (Stages 141–215, World Levels 29–43)**:
+  `GrowthFactor = 6.32 + 1.975 × (WorldLevel - 28)`
+  Escalation designed to match endgame Weapon Ascend (1,000–1,500 ATK) and Diamond rank damage. At Stage 200 (World Level 40), `GrowthFactor ≈ 30.0×`, scaling the 5,000 Base HP Final Boss to **~150,000 HP**.
 
 ```text
-ScaledNormalHP = NormalHPBaseline × (1 + 0.12 × GrowthSteps)
-EncounterHP = ScaledNormalHP × EncounterClassMultiplier
-SpawnHP = max(1, round(EncounterHP × RandomRange(0.95, 1.05)))
+ScaledHP = BaseHP × PhaseGrowthFactor
+SpawnHP = max(1, round(ScaledHP × RandomRange(0.95, 1.05)))
 ```
 
-- `EncounterClassMultiplier` is `1.0` for normal monsters. Mini-Boss, Big-Boss, and Final-Boss multipliers are data-defined tuning values.
-- Normal Monster Definitions never provide `BaseHP`; biome selection changes identity/presentation and cooldown, not the Stage HP baseline.
+- Bosses on Biomes 1 and 2 feature a 3-turn action cooldown before attacking; later bosses attack every 2 turns.
+- Normal Monster Definitions provide Base HP per biome archetype; Event stages use 1 HP.
 - The server generates and saves Spawn HP once. Refreshing cannot reroll enemy HP.
 - Only enemy HP uses the World Level scaling formula.
-
-This is a **starting formula**. Playtest the number of correct attempts required per enemy across early, middle, and late runs. If late fights become repetitive rather than more strategic, reduce HP growth or strengthen the planned upgrade curve.
 
 ---
 
@@ -480,19 +487,21 @@ The weapon shop is removed. `Weapon Ascend` is a permanent, linear Level 0–100
 - A failed, retried, or duplicated Ascend request cannot spend Power Coins or grant a level more than once.
 - Level 100 is the maximum. The Ascend button becomes `MAX LEVEL` and cannot spend currency.
 
-Starting Weapon ATK curve for Ascension Level `L`, clamped from 0 to 100:
+Weapon ATK curve for Ascension Level `L`, clamped from 0 to 100 (Default Base ATK = 20):
 
 ```text
-WeaponATK(L) = 5 + round(20 × (L / 20)^1.2)
+WeaponATK(L) = 20 + round(1480 × (L / 100)^2)
 ```
 
-Starting cost to upgrade from Level `L` to `L + 1`:
+Cost to upgrade from Level `L` to `L + 1`:
 
 ```text
-AscendCost(L) = ceil(8 × 1.06^L) Power Coins
+AscendCost(L) = round(10 + 4 × L + 0.35 × L^2) Power Coins
 ```
 
-These are starting values. The ATK power curve gives visible growth without the extreme late-game values of repeated percentage compounding; the cost curve makes later Ascends meaningfully more valuable decisions. Human economy testing must compare Weapon Ascend with the fixed 25-Power-Coin Pet Gacha before either curve is finalized.
+- Early levels (0–20) cost 10–230 PC, giving immediate progression and frequent rewards for young students (6–10 yo).
+- Mid levels (21–50) scale to 390 ATK and cost up to 1,085 PC.
+- Late levels (51–100) scale to 1,500 ATK, with Level 99 $\to$ 100 costing ~3,910 PC (total lifetime cumulative cost ~135,000 PC).
 
 #### Ascend Milestones
 
@@ -516,7 +525,8 @@ Weapon presentation tiers are data-defined in an ordered Unity `WeaponAscensionC
 | 80–99 | Legendary Sword | Strong aura and premium ornament |
 | 100 | Power Wisdom Sword | Final signature transformation |
 
-At Level 20, the Champion Sword has `ATK +25`, `CR +6%`, and `CD +7%`.
+At Level 20, the Champion Sword has `ATK +79`, `CR +6%`, and `CD +7%`.
+At Level 100, the Power Wisdom Sword reaches `ATK 1,500`, `CR +30%`, and `CD +42%`.
 
 ### RNG Card Draw
 
@@ -553,12 +563,12 @@ At Level 20, the Champion Sword has `ATK +25`, `CR +6%`, and `CD +7%`.
 - Player HP reaching zero ends the run immediately.
 - The server snapshots the final run values, calculates and grants the run reward once, clears in-run state, and returns the player to Stage 1.
 - Death and Rebirth use the same progression-reset rules.
-- Death settlement grants `+0.1%` permanent Legacy ATK per Stage reached in that run. It does not increment Prestige/Honor.
+- Death settlement grants `+0.25%` permanent Legacy ATK per Stage reached in that run (+50.0% at Stage 200, +7.5% at Stage 30). It does not increment Prestige/Honor.
 - If settlement cannot be saved, the player remains in `RunDefeat` and may retry the same run transaction; combat cannot restart and rewards cannot duplicate.
 
-### Rebirth from Stage 50
+### Rebirth from Stage 30
 
-- The optional Rebirth button becomes available after the current run reaches Stage 50 and remains available through Stage 200.
+- The optional Rebirth button becomes available after the current run reaches Stage 30 and remains available through Stage 200.
 - Rebirth can be requested only from a safe Main Menu/combat-lobby state with no committed or unresolved question.
 - The confirmation previews the same Stage-based Power Coin and Legacy ATK settlement used by death, plus the Rebirth-only `+1` Prestige/Honor.
 - Rebirth clears the same run, question-cycle, and audit state as death and returns the student to Stage 1 while preserving their current active Rank.
@@ -593,28 +603,29 @@ The values below are weighting coefficients in the run-reset formula, not a dire
 
 | Currency Earned This Run | Power Coin Weight |
 | --- | ---: |
-| 1 Silver | 0.5 |
-| 1 Gold | 0.7 |
-| 1 Diamond | 1.0 |
+| 1 Silver | 1.0 |
+| 1 Gold | 1.5 |
+| 1 Diamond | 2.0 |
 
 ### Power Coins
 
 - Power Coins are permanent and spendable.
 - A pet gacha pull costs **25 Power Coins**.
 - Weapon Ascend and Pet Gacha are the only Power Coin spending systems.
-- Power Coins come from first-clear minigame rewards and death/rebirth run rewards.
+- Power Coins come from first-clear minigame rewards, challenge events, flat stage completion bonuses, and death/rebirth run rewards.
+- *Pet System Roadmap Note*: Currently equip-driven. A planned future update will transition pet passives to an account-wide, collection-stacked passive model with purely cosmetic pet equipping to eliminate cognitive load for 6–10 year olds.
 
-### Starting Run-Reward Formula
+### Run-Reward Formula
 
 ```text
 WeightedRankCurrency =
-    (SilverEarnedThisRun × 0.5)
-    + (GoldEarnedThisRun × 0.7)
-    + (DiamondEarnedThisRun × 1.0)
+    (SilverEarnedThisRun × 1.0)
+    + (GoldEarnedThisRun × 1.5)
+    + (DiamondEarnedThisRun × 2.0)
 
-CompletionFactor = (StageReached / 200)²
+CompletionFactor = StageReached / 200
 
-RunPowerCoins = floor(
+RunPowerCoins = StageReached + floor(
     WeightedRankCurrency
     × CompletionFactor
     × BonusMultiplier
@@ -622,14 +633,13 @@ RunPowerCoins = floor(
 ```
 
 - `StageReached` is clamped from 1 to 200.
-- The formula uses currency earned during the current run, never the player’s permanent balance.
+- **Flat Stage Bonus**: Each cleared stage grants a flat `+1 Power Coin` upon settlement, ensuring even early deaths reward progress.
+- **Challenge Events**: Special challenge monster encounters reward 10–20 Power Coins based on student response speed.
+- The weighted currency component uses currency earned during the current run, never the player’s permanent balance.
 - `BonusMultiplier` is snapshotted before in-run effects are cleared.
-- A result below 1 rounds down to 0; very short failed runs may grant no Power Coins.
 - Each death or rebirth transaction can grant its reward only once.
 - Power Coins, Legacy ATK, and Prestige/Honor from a reset are committed atomically with the Stage 1 reset.
-- Rebirth requires `StageReached >= 50`; death and Rebirth otherwise use the same reward/reset calculation.
-
-This is a **starting formula**. Simulate Power Coins per minute for normal progression, deliberate early death, and repeat minigame routes. Continuing a viable run must remain more profitable than intentional death. If farming wins, increase the completion exponent or reduce repeat rewards before changing unrelated systems.
+- Rebirth requires `StageReached >= 30`; death and Rebirth otherwise use the same reward/reset calculation.
 
 ---
 

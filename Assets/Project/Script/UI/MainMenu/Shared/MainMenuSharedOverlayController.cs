@@ -18,9 +18,6 @@ namespace PowerMath.UI.MainMenu
     {
         private IMainMenuPanelHost _panelHost;
         private VisualElement _root;
-        private VisualElement _bar;
-        private Button _back;
-        private Label _powerCoins;
         private VisualElement _notice;
         private Label _noticeText;
         private int _noticeRevision;
@@ -49,7 +46,7 @@ namespace PowerMath.UI.MainMenu
 
         public void SetBackEnabled(bool enabled)
         {
-            if (_back != null) _back.SetEnabled(enabled);
+            // Utility bar has been deprecated and removed.
         }
 
         public void Publish(
@@ -92,90 +89,20 @@ namespace PowerMath.UI.MainMenu
             if (_initialized) return;
             _panelHost = panelHost;
             _root = root;
-            _bar = Require<VisualElement>(root, "main-menu-utility-bar");
-            _back = Require<Button>(root, "main-menu-utility-back");
-            _powerCoins = Require<Label>(root, "main-menu-utility-power-coins");
             _notice = Require<VisualElement>(root, "main-menu-notification");
             _noticeText = Require<Label>(root, "main-menu-notification-text");
-            _back.clicked += Back;
-            _panelHost.PanelOpened += OnPanelOpened;
-            _panelHost.PanelClosed += OnPanelClosed;
-            if (PlayerSessionStore.Instance != null)
-                PlayerSessionStore.Instance.Changed += OnPlayerChanged;
             _initialized = true;
-            _bar.style.display = DisplayStyle.None;
             _notice.style.display = DisplayStyle.None;
-            OnPlayerChanged(PlayerSessionStore.Instance?.Snapshot);
         }
 
         private void OnDestroy()
         {
-            if (!_initialized) return;
-            _back.clicked -= Back;
-            _panelHost.PanelOpened -= OnPanelOpened;
-            _panelHost.PanelClosed -= OnPanelClosed;
-            if (PlayerSessionStore.Instance != null)
-                PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
-        }
-
-        private void Back()
-        {
-            if (!_back.enabledSelf) return;
-            Button localClose = ResolveLocalClose(_panelHost.OpenPanel);
-            if (localClose != null && !localClose.enabledSelf)
-            {
-                Publish("Please wait for the current action to finish.",
-                    MainMenuNoticeKind.Information);
-                return;
-            }
-            _panelHost.TryCloseCurrent();
-        }
-
-        private Button ResolveLocalClose(MainMenuPanelId panelId)
-        {
-            string elementName;
-            switch (panelId)
-            {
-                case MainMenuPanelId.WorldMap: elementName = "combat-map-close"; break;
-                case MainMenuPanelId.PlayerHub: elementName = "player-hub-close"; break;
-                case MainMenuPanelId.ProfileAnalytics: elementName = "profile-analytics-close"; break;
-                case MainMenuPanelId.PetGacha: elementName = "pet-gacha-close"; break;
-                case MainMenuPanelId.Leaderboard: elementName = "leaderboard-close"; break;
-                default: return null;
-            }
-            return _root?.Q<Button>(elementName);
-        }
-
-        private void OnPanelOpened(MainMenuPanelId panelId)
-        {
-            bool visible = IsSharedPanel(panelId);
-            _bar.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-            SetBackEnabled(true);
-        }
-
-        private void OnPanelClosed(MainMenuPanelId _)
-        {
-            _bar.style.display = DisplayStyle.None;
-            SetBackEnabled(true);
-        }
-
-        private void OnPlayerChanged(PlayerSnapshot player)
-        {
-            long powerCoins = player?.wallet?.powerCoins ?? 0;
-            _powerCoins.text = $"PWR {powerCoins:N0}";
-        }
-
-        private static bool IsSharedPanel(MainMenuPanelId panelId)
-        {
-            return false;
+            _initialized = false;
         }
 
         private static bool HasOverlayContract(VisualElement root)
         {
-            return root.Q<VisualElement>("main-menu-utility-bar") != null &&
-                root.Q<Button>("main-menu-utility-back") != null &&
-                root.Q<Label>("main-menu-utility-power-coins") != null &&
-                root.Q<VisualElement>("main-menu-notification") != null &&
+            return root.Q<VisualElement>("main-menu-notification") != null &&
                 root.Q<Label>("main-menu-notification-text") != null;
         }
 

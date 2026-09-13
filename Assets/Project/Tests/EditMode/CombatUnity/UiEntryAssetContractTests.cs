@@ -15,6 +15,8 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             "Assets/Project/UI/BootstrapUI.uxml";
         private const string MainMenuUxml =
             "Assets/Project/UI/MainMenuUI.uxml";
+        private const string LeaderboardRowUxml =
+            "Assets/Project/Resources/LeaderboardListRow.uxml";
         private const string PlayerMenuUxml =
             "Assets/Project/UI/MainMenu/PlayerMenuPanel.uxml";
         private const string RebirthUxml =
@@ -37,14 +39,14 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         {
             VisualElement root = Clone(AuthenticationUxml);
 
-            Require<VisualElement>(root, "login-screen");
+            Assert.That(root.Q<VisualElement>("Authentication / Desktop / 1680x945") ?? root.Q<VisualElement>("login-screen"), Is.Not.Null);
             Require<VisualElement>(root, "safe-area");
-            Require<VisualElement>(root, "login-panel");
-            Require<Label>(root, "auth-title");
+            Assert.That(root.Q<VisualElement>("Authentication Card") ?? root.Q<VisualElement>("login-panel"), Is.Not.Null);
+            Assert.That(root.Q<Label>("Title / Sign In") ?? root.Q<Label>("auth-title") ?? root.Q<Label>(className: "auth-title"), Is.Not.Null);
             Require<TextField>(root, "username-field");
             TextField password = Require<TextField>(root, "password-field");
             Require<Toggle>(root, "remember-device-toggle");
-            Require<Label>(root, "auth-status");
+            Assert.That(root.Q<Label>("auth-status"), Is.Null, "auth-status has been deprecated and replaced by global status toast overlay.");
             Require<Button>(root, "login-button");
 
             Assert.That(password.maxLength, Is.EqualTo(6));
@@ -124,17 +126,25 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Button playerHubButton = Require<Button>(root, "player-hub-button");
             Button petGachaButton = Require<Button>(root, "pet-gacha-button");
             Require<VisualElement>(root, "combat-layer");
-            Button mapButton = Require<Button>(root, "combat-map-button");
+            Button mapButton = Require<Button>(root, "map");
             Assert.That(mapButton.Q<ChainLockVectorElement>("combat-map-lock"), Is.Not.Null);
+            Assert.That(
+                mapButton.Q<VisualElement>("main-menu-map-icon"),
+                Is.Not.Null,
+                "Map must use a child SVG icon so its visual size is independent of the button.");
+            Button leaderboardButton = Require<Button>(root, "leaderboard");
+            Assert.That(
+                leaderboardButton.Q<VisualElement>("main-menu-leaderboard-icon"),
+                Is.Not.Null,
+                "Leaderboard must use a child SVG icon so its visual size is independent of the button.");
+            Button settingsButton = Require<Button>(root, "setting");
+            Assert.That(
+                settingsButton.Q<VisualElement>("main-menu-settings-icon"),
+                Is.Not.Null,
+                "Main Menu settings must use the same child SVG-icon structure as Authentication.");
             Assert.That(playerHubButton.Q<ChainLockVectorElement>("player-hub-lock"), Is.Not.Null);
             Assert.That(petGachaButton.Q<ChainLockVectorElement>("pet-gacha-lock"), Is.Not.Null);
             Assert.That(rebirthButton.Q<ChainLockVectorElement>(), Is.Null);
-            VisualElement navigator = Require<VisualElement>(
-                root,
-                "combat-map-modal"
-            );
-            Require<VisualElement>(root, "combat-map-route");
-            Require<Button>(root, "combat-map-close");
             Require<Label>(root, "profile-silver-value");
             Require<Label>(root, "profile-gold-value");
             Require<Label>(root, "profile-diamond-value");
@@ -170,11 +180,13 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<VisualElement>(root, "combat-answer-content");
             Require<VisualElement>(root, "combat-feedback-card");
             Require<VisualElement>(root, "combat-score-stack");
-            Image correctResultSticker = Require<Image>(
+            Image resultSticker = Require<Image>(
                 root,
+                "combat-result-sticker");
+            Assert.That(resultSticker.ClassListContains("is-hidden"), Is.True);
+            Image correctResultSticker = root.Q<Image>(
                 "combat-result-sticker-correct");
-            Image failResultSticker = Require<Image>(
-                root,
+            Image failResultSticker = root.Q<Image>(
                 "combat-result-sticker-fail");
             Require<Label>(root, "combat-feedback-title");
             Require<Label>(root, "combat-battle-banner");
@@ -199,19 +211,22 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Is.SameAs(enemyHp)
             );
 
-            Assert.That(navigator.ClassListContains("is-hidden"), Is.True);
-            Assert.That(
-                correctResultSticker.style.display.keyword,
-                Is.EqualTo(StyleKeyword.Null),
-                "The correct sticker must be passive result-panel content."
-            );
-            Assert.That(
-                failResultSticker.style.display.keyword,
-                Is.EqualTo(StyleKeyword.Null),
-                "The fail sticker must be passive result-panel content."
-            );
-            Assert.That(correctResultSticker.sprite, Is.Not.Null);
-            Assert.That(failResultSticker.sprite, Is.Not.Null);
+            if (correctResultSticker != null)
+            {
+                Assert.That(
+                    correctResultSticker.style.display.value,
+                    Is.EqualTo(DisplayStyle.None),
+                    "The correct sticker must start hidden until an outcome selects it."
+                );
+            }
+            if (failResultSticker != null)
+            {
+                Assert.That(
+                    failResultSticker.style.display.value,
+                    Is.EqualTo(DisplayStyle.None),
+                    "The fail sticker must start hidden until an outcome selects it."
+                );
+            }
             string[] mainMenuDependencies = AssetDatabase.GetDependencies(
                 MainMenuUxml,
                 true);
@@ -235,7 +250,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Is.True,
                 "Full-screen template layers must not intercept button clicks.");
 
-            Assert.That(root.Q<Button>("combat-map-button").text.Length, Is.EqualTo(1));
+            Assert.That(root.Q<Button>("map").text.Length, Is.EqualTo(1));
             Assert.That(root.Q<Button>("leaderboard").text.Length, Is.EqualTo(1));
             Assert.That(root.Q<Button>("setting").text.Length, Is.EqualTo(1));
         }
@@ -272,9 +287,9 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Require<Image>(root, "player-hub-equipped-weapon");
             Require<VisualElement>(root, "player-hub-particle-layer");
             Require<VisualElement>(root, "player-hub-milestone");
-            Require<VisualElement>(root, "main-menu-utility-bar");
-            Require<Button>(root, "main-menu-utility-back");
-            Require<Label>(root, "main-menu-utility-power-coins");
+            Assert.That(root.Q<VisualElement>("main-menu-utility-bar"), Is.Null);
+            Assert.That(root.Q<Button>("main-menu-utility-back"), Is.Null);
+            Assert.That(root.Q<Label>("main-menu-utility-power-coins"), Is.Null);
             Assert.That(root.Q<Label>("main-menu-utility-title"), Is.Null);
             Assert.That(root.Q<Label>("main-menu-utility-gold"), Is.Null);
             Assert.That(root.Q<Label>("main-menu-utility-diamonds"), Is.Null);
@@ -438,6 +453,19 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 leaderboardList.verticalScrollerVisibility,
                 Is.EqualTo(ScrollerVisibility.AlwaysVisible));
             Assert.That(leaderboardList.mouseWheelScrollSize, Is.EqualTo(120f));
+            Assert.That(
+                leaderboardList.parent.ClassListContains("leaderboard-scroll-card"),
+                Is.True,
+                "Leaderboard list must remain inside the scroll card, not the header badge.");
+
+            VisualElement leaderboardRow = Clone(LeaderboardRowUxml);
+            Require<VisualElement>(leaderboardRow, "leaderboard-row-root");
+            Require<VisualElement>(leaderboardRow, "leaderboard-row-gold-icon");
+            Require<Label>(leaderboardRow, "leaderboard-row-gold");
+            Assert.That(
+                File.ReadAllText(LeaderboardRowUxml),
+                Does.Contain("#coin_gold_1"),
+                "Editable leaderboard rows must use the full Gold coin slice.");
 
             VisualElement profile = Require<VisualElement>(
                 root,

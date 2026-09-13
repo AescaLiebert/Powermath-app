@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Globalization;
 using System.Text;
@@ -277,11 +277,11 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             if (!DisplayNamePolicy.TryNormalize(_name.value, out string value, out string error))
             { _status.text = error; SetSemanticState("is-error"); return; }
             if (string.Equals(value, _player.profile.displayName, StringComparison.Ordinal))
-            { _status.text = "That is already your display name."; SetSemanticState("is-error"); return; }
+            { _status.text = PowerMath.Localization.LocalizationService.Get("errors.sameName"); SetSemanticState("is-error"); return; }
             _busy = true;
             _save.SetEnabled(false);
             _close.SetEnabled(false);
-            _status.text = "Saving…";
+            _status.text = PowerMath.Localization.LocalizationService.Get("common.saving");
             SetSemanticState("is-busy");
             _store.Save(value,
                 message =>
@@ -320,7 +320,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _name.value = _player.profile?.displayName ?? string.Empty;
             long changedAt = _player.profile?.displayNameChangedAtUnixSeconds ?? 0;
             if (changedAt <= 0)
-                _status.text = "First change is available now.";
+                _status.text = PowerMath.Localization.LocalizationService.Get("menu.firstChangeAvailable");
             else
             {
                 DateTimeOffset next = DateTimeOffset.FromUnixTimeSeconds(

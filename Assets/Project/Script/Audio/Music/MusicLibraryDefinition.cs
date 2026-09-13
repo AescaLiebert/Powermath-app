@@ -28,8 +28,8 @@ namespace PowerMath.Audio
         [SerializeField] private float bossInterruptDuration = 0.8f;
 
         [Range(0.05f, 0.5f)]
-        [Tooltip("Target volume multiplier when ducked by Question Sequence / YouTube (-80% to -90% volume reduction = 0.10 to 0.20).")]
-        [SerializeField] private float duckVolumeFactor = 0.15f;
+        [Tooltip("Target volume multiplier when ducked by Question Sequence / YouTube (-70% reduction = 0.30).")]
+        [SerializeField] private float duckVolumeFactor = 0.30f;
 
         [Range(0.1f, 3f)]
         [Tooltip("Duration in seconds to smoothly lerp volume in and out of ducking.")]
@@ -49,6 +49,38 @@ namespace PowerMath.Audio
         public float BossInterruptDuration => Mathf.Max(0.05f, bossInterruptDuration);
         public float DuckVolumeFactor => Mathf.Clamp(duckVolumeFactor, 0.05f, 0.5f);
         public float DuckFadeDuration => Mathf.Max(0.05f, duckFadeDuration);
+
+        public IEnumerable<AudioClip> ConfiguredClips
+        {
+            get
+            {
+                var seen = new HashSet<AudioClip>();
+                MusicTrackConfig[] coreTracks =
+                {
+                    loginMusic,
+                    defaultBattleMusic,
+                    bossBattleMusic
+                };
+                for (int index = 0; index < coreTracks.Length; index++)
+                {
+                    AudioClip clip = coreTracks[index]?.Clip;
+                    if (clip != null && seen.Add(clip))
+                    {
+                        yield return clip;
+                    }
+                }
+
+                foreach (BiomeMusicBinding binding in
+                    biomeBattleTracks ?? Array.Empty<BiomeMusicBinding>())
+                {
+                    AudioClip clip = binding?.Track?.Clip;
+                    if (clip != null && seen.Add(clip))
+                    {
+                        yield return clip;
+                    }
+                }
+            }
+        }
 
         public MusicTrackConfig ResolveBattleTrack(string biomeId)
         {

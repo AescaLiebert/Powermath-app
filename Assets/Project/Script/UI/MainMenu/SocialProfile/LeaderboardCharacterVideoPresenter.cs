@@ -29,7 +29,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         {
             _target = root?.Q<Image>(".character-sprite-placeholder");
             _placeholder = _target?.Q<Label>("Slot Label");
-            _catalog = Resources.Load<CharacterPresentationCatalog>("CharacterPresentationCatalog");
+            _catalog = CharacterPresentationCatalog.Load();
             if (_target != null)
                 _target.pickingMode = PickingMode.Ignore;
         }
@@ -66,6 +66,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
             if (_player != null && _characterId == characterId)
             {
+                _visible = true;
                 _player.Play();
                 _target.image = _output;
                 SetPlaceholder(false);
@@ -75,11 +76,11 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             StopVideo();
             _characterId = characterId;
 #if UNITY_WEBGL && !UNITY_EDITOR
-            int width = 1024;
-            int height = 1536;
+            int width = 720;
+            int height = 1080;
 #else
-            int width = definition.hubVideo.width > 0 ? (int)definition.hubVideo.width : 1024;
-            int height = definition.hubVideo.height > 0 ? (int)definition.hubVideo.height : 1524;
+            int width = definition.hubVideo != null && definition.hubVideo.width > 0 ? (int)definition.hubVideo.width : 720;
+            int height = definition.hubVideo != null && definition.hubVideo.height > 0 ? (int)definition.hubVideo.height : 1080;
 #endif
             _source = CreateTexture(width, height, "Leaderboard Character Video Source");
             _output = CreateTexture(width, height, "Leaderboard Character Video Chroma");
@@ -109,6 +110,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _target.sprite = null;
             _target.image = _output;
             SetPlaceholder(false);
+            _visible = true;
             _player.Play();
         }
 
@@ -122,7 +124,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private void LateUpdate()
         {
             if (!_visible || _player == null || !_player.isPrepared ||
-                _source == null || _output == null || _chromaMaterial == null)
+                _source == null || _output == null || _chromaMaterial == null ||
+                !_source.IsCreated() || !_output.IsCreated())
                 return;
 
             RenderTexture previous = RenderTexture.active;
@@ -135,6 +138,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private void StopVideo()
         {
+            _visible = false;
             if (_target != null && ReferenceEquals(_target.image, _output))
                 _target.image = null;
             if (_player != null)

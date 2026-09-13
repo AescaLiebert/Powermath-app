@@ -62,6 +62,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathYouTubeHide();
 #endif
+            PowerMath.Audio.MusicController.Instance?.EnsurePlayback();
         }
 
         private void OnDisable()
@@ -76,6 +77,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathYouTubeSetAnswerMode();
 #endif
+            PowerMath.Audio.MusicController.Instance?.EnsurePlayback();
             Action<QuestionPresentationResult> completed = _completed;
             _completed = null;
             completed?.Invoke(new QuestionPresentationResult(
@@ -89,7 +91,15 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             string[] parts = (payload ?? string.Empty).Split('|');
             if (parts.Length == 0 || !TryMatchGeneration(parts[0], out int generation)) return;
-            CompleteUnavailable(generation, "This YouTube video could not be played.");
+            string reason = parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1])
+                ? parts[1].Trim()
+                : "unknown";
+            PowerMath.Diagnostics.AppLog.Warning(
+                "YouTube",
+                $"Embedded question playback failed ({reason}).");
+            CompleteUnavailable(
+                generation,
+                $"This YouTube video could not be played [{reason}].");
         }
 
         private bool TryMatchGeneration(string text, out int generation)
@@ -104,6 +114,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathYouTubeHide();
 #endif
+            PowerMath.Audio.MusicController.Instance?.EnsurePlayback();
             Action<QuestionPresentationResult> completed = _completed;
             _completed = null;
             completed?.Invoke(new QuestionPresentationResult(

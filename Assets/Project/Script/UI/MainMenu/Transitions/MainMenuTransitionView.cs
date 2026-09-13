@@ -15,6 +15,7 @@ namespace PowerMath.UI.MainMenu
         private readonly VisualElement _safeArea;
         private readonly VisualElement _transitionLayer;
         private readonly VisualElement _cover;
+        private readonly VisualElement _battleBanner;
         private readonly Label _title;
         private readonly VisualElement _accentLeft;
         private readonly VisualElement _accentRight;
@@ -37,6 +38,7 @@ namespace PowerMath.UI.MainMenu
             _safeArea.pickingMode = PickingMode.Ignore;
             _transitionLayer = Require<VisualElement>(root, "main-menu-transition-layer");
             _cover = Require<VisualElement>(root, "main-menu-transition-cover");
+            _battleBanner = Require<VisualElement>(root, "battle-start-banner");
             _title = Require<Label>(root, "battle-start-title");
             _accentLeft = Require<VisualElement>(root, "battle-start-accent-left");
             _accentRight = Require<VisualElement>(root, "battle-start-accent-right");
@@ -217,6 +219,7 @@ namespace PowerMath.UI.MainMenu
 
         private void SetTitleVisible(bool visible)
         {
+            _battleBanner.EnableInClassList("is-visible", visible);
             _title.EnableInClassList("is-visible", visible);
             _accentLeft.EnableInClassList("is-visible", visible);
             _accentRight.EnableInClassList("is-visible", visible);

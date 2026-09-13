@@ -1,20 +1,23 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/MainMenu/AdminPanel.uss?fileID=7433441132597879392&amp;guid=0cd82efce4261564b869fe4761529a07&amp;type=3#AdminPanel"/>
     <ui:VisualElement name="admin-panel-modal" enabled="true" focusable="true" class="social-modal admin-modal is-hidden">
-        <ui:VisualElement class="admin-backdrop admin-backdrop--crimson" picking-mode="Ignore"/>
-        <ui:VisualElement class="admin-backdrop admin-backdrop--cobalt" picking-mode="Ignore"/>
-        <ui:Label text="ADMIN" class="admin-watermark" picking-mode="Ignore"/>
+        <ui:VisualElement picking-mode="Ignore" class="admin-backdrop admin-backdrop--crimson"/>
+        <ui:VisualElement picking-mode="Ignore" class="admin-backdrop admin-backdrop--cobalt"/>
+        <ui:Label text="ADMIN" picking-mode="Ignore" class="admin-watermark"/>
         <ui:VisualElement class="admin-shell">
             <ui:VisualElement class="admin-header">
                 <ui:VisualElement class="admin-heading">
                     <ui:Label text="ADMIN PANEL" class="admin-title"/>
                     <ui:Label text="Administrative tools and account management" class="admin-subtitle"/>
                 </ui:VisualElement>
-                <ui:Button name="admin-panel-close" text="×" tooltip="Close Admin Panel" class="admin-close"/>
+                <ui:Button name="admin-panel-close" text="" tooltip="Close Admin Panel" class="admin-close">
+                    <ui:VisualElement picking-mode="Ignore" class="panel-close-icon" style="top: 50%;"/>
+                </ui:Button>
             </ui:VisualElement>
             <ui:ScrollView class="admin-scroll">
                 <ui:VisualElement class="admin-account-card">
                     <ui:VisualElement class="admin-account-icon-wrap">
-                        <ui:Label text="A" class="admin-account-icon" picking-mode="Ignore"/>
+                        <ui:Label text="A" picking-mode="Ignore" class="admin-account-icon"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="admin-account-info">
                         <ui:Label text="ACTIVE ACCOUNT" class="admin-account-label"/>
@@ -26,7 +29,7 @@
                         <ui:Label text="COMMAND: RESET USER DATA" class="admin-command-title"/>
                         <ui:Label text="DANGER ZONE" class="admin-command-badge"/>
                     </ui:VisualElement>
-                    <ui:Label text="This command resets all Firebase Firestore game progress (stages, rank currencies, weapon upgrades, pets, academic inventories, question history, and analytics) back to brand-new account defaults. It also permanently removes this user's entry from the public Leaderboard. Login credentials (username &amp; password) will be preserved." class="admin-command-desc"/>
+                    <ui:Label text="This command resets all Firebase Firestore game progress (stages, rank currencies, weapon upgrades, pets, academic inventories, question history, and analytics) back to brand-new account defaults. It also permanently removes this user&apos;s entry from the public Leaderboard. Login credentials (username &amp; password) will be preserved." class="admin-command-desc"/>
                     <ui:VisualElement class="admin-action-row">
                         <ui:Button name="admin-reset-button" text="RESET USER DATA" tooltip="Rollback all game data to fresh account" class="admin-action-btn admin-action-btn--danger"/>
                     </ui:VisualElement>

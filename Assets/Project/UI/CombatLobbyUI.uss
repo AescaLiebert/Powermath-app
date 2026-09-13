@@ -768,6 +768,201 @@
 
 .combat-map-button:hover,
 .combat-map-button:focus {
+    margin-top: 9px;
+    align-self: center;
+    color: white;
+    background-color: rgb(39, 139, 102);
+    border-radius: 14px;
+    font-size: 19px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(5, 10, 25, 0.92);
+}
+
+.pet-gacha-confirmation-card,
+.pet-gacha-result-card {
+    width: 560px;
+    max-width: 88%;
+    padding: 28px;
+    align-items: center;
+    background-color: rgb(34, 50, 82);
+    border-width: 3px;
+    border-color: rgb(94, 204, 169);
+    border-radius: 22px;
+}
+
+.pet-gacha-overlay-title {
+    color: white;
+    font-size: 29px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-confirmation-summary {
+    margin-top: 15px;
+    color: rgb(221, 231, 247);
+    font-size: 18px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-actions {
+    margin-top: 16px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.pet-gacha-actions > Button {
+    margin-left: 7px;
+    margin-right: 7px;
+}
+
+.pet-gacha-confirm {
+    margin-top: 0;
+}
+
+.pet-gacha-result-card {
+    transition-property: scale, opacity;
+    transition-duration: 0.18s;
+}
+
+.pet-gacha-result--reveal .pet-gacha-result-card {
+    scale: 1.04 1.04;
+}
+
+.pet-gacha-result--new .pet-gacha-result-card {
+    border-color: rgb(255, 211, 92);
+    background-color: rgb(55, 66, 105);
+}
+
+.pet-gacha-result--duplicate .pet-gacha-result-card {
+    border-color: rgb(135, 154, 186);
+    background-color: rgb(46, 56, 78);
+}
+
+.pet-gacha-result-rarity {
+    color: rgb(255, 223, 130);
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.pet-gacha-result-icon {
+    width: 190px;
+    height: 190px;
+    margin-top: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+    background-color: rgba(12, 21, 41, 0.72);
+    border-radius: 22px;
+}
+
+.pet-gacha-result-name {
+    margin-top: 12px;
+    color: white;
+    font-size: 32px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-result-state {
+    margin-top: 8px;
+    color: rgb(110, 241, 154);
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.pet-gacha-result--duplicate .pet-gacha-result-state {
+    color: rgb(210, 219, 235);
+}
+
+.pet-gacha-result-balance {
+    margin-top: 8px;
+    color: rgb(255, 221, 111);
+    font-size: 17px;
+    -unity-font-style: bold;
+}
+
+.combat-hud {
+    position: absolute;
+    top: 0;
+    left: 32%;
+    right: 32%;
+    min-height: 142px;
+    padding: 10px 20px;
+    background-color: rgba(12, 20, 40, 0.92);
+    border-radius: 18px;
+    border-width: 2px;
+    border-color: rgba(107, 191, 255, 0.75);
+}
+
+.academic-rank-hud {
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top-width: 1px;
+    border-top-color: rgba(107, 191, 255, 0.55);
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.academic-rank-label {
+    font-size: 19px;
+    -unity-font-style: bold;
+    color: rgb(201, 221, 255);
+}
+
+.academic-rank-detail {
+    font-size: 15px;
+    color: rgb(198, 210, 231);
+}
+
+.combat-stage-label {
+    font-size: 26px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(255, 226, 129);
+}
+
+.combat-stage-progress {
+    height: 18px;
+    margin-top: 6px;
+}
+
+.combat-biome-row {
+    margin-top: 5px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.combat-biome-label {
+    color: rgb(157, 220, 255);
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.combat-map-button {
+    height: 30px;
+    padding-left: 12px;
+    padding-right: 12px;
+    color: white;
+    background-color: rgb(40, 91, 139);
+    border-radius: 10px;
+    transition-property: scale, translate, background-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.combat-map-button:hover,
+.combat-map-button:focus {
     scale: 1.05 1.05;
     translate: 0 -1px;
     background-color: rgb(55, 115, 175);
@@ -789,7 +984,6 @@
     align-items: center;
     justify-content: center;
     background-color: rgba(5, 10, 23, 0.88);
-    z-index: 120;
 }
 
 .combat-biome-transition {
@@ -801,7 +995,6 @@
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 110;
     background-color: transparent;
     transition-property: opacity;
     transition-duration: 320ms;
@@ -820,7 +1013,8 @@
 .combat-biome-transition-card {
     align-items: center;
     justify-content: center;
-    min-width: 480px;
+    width: 1180px;
+    max-width: 92%;
     padding: 12px 36px;
     background-color: transparent;
     border-width: 0;
@@ -830,18 +1024,10 @@
 }
 
 .combat-biome-title-row {
+    width: 100%;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-}
-
-.combat-biome-ornament {
-    color: white;
-    font-size: 24px;
-    letter-spacing: 2px;
-    margin-left: 16px;
-    margin-right: 16px;
-    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.8);
 }
 
 .combat-map-card {
@@ -865,14 +1051,15 @@
 }
 
 .combat-biome-transition-title {
+    min-width: 550px;
+    max-width: 900px;
     color: white;
-    font-size: 46px;
+    font-size: 136px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    letter-spacing: 2px;
-    margin-top: 6px;
-    margin-bottom: 8px;
-    text-shadow: 0 4px 18px rgba(0, 0, 0, 0.85);
+    letter-spacing: 4px;
+    margin: 6px 20px 8px 20px;
+    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.88);
 }
 
 .combat-map-subtitle {
@@ -883,14 +1070,108 @@
 
 .combat-biome-transition-kicker {
     color: rgb(165, 220, 255);
-    display: none;
+    font-size: 32px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    letter-spacing: 4px;
+    letter-spacing: 7px;
+    margin-bottom: 4px;
 }
 
 .combat-biome-transition-accent {
-    display: none;
+    width: 210px;
+    height: 7px;
+    flex-shrink: 1;
+    background-color: rgb(255, 213, 91);
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+.combat-biome-transition-sparkle {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    margin-left: 14px;
+    margin-right: 14px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_star_sparkle.svg?fileID=3286163911610860551&guid=a5fa73d757521a24396f3866b85c51cb&type=3#icon_star_sparkle");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.combat-biome-transition-sparkle--right {
+    rotate: 180deg;
+}
+
+.combat-boss-warning {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.combat-boss-warning-wash {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(119, 0, 9, 0.67);
+}
+
+.combat-boss-warning-band {
+    position: absolute;
+    left: -5%;
+    width: 110%;
+    height: 82px;
+    background-color: rgba(190, 12, 23, 0.94);
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-color: rgb(255, 211, 74);
+}
+
+.combat-boss-warning-band--top {
+    top: 18%;
+    rotate: -2deg;
+}
+
+.combat-boss-warning-band--bottom {
+    bottom: 18%;
+    rotate: 2deg;
+}
+
+.combat-boss-warning-content {
+    min-width: 760px;
+    padding: 28px 70px;
+    align-items: center;
+    background-color: rgba(78, 0, 7, 0.92);
+    border-top-width: 6px;
+    border-bottom-width: 6px;
+    border-color: rgb(255, 213, 91);
+}
+
+.combat-boss-warning-kicker,
+.combat-boss-warning-subtitle {
+    color: rgb(255, 220, 126);
+    font-size: 24px;
+    letter-spacing: 8px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.combat-boss-warning-title {
+    margin-top: 4px;
+    margin-bottom: 6px;
+    color: white;
+    font-size: 116px;
+    letter-spacing: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 4px;
+    -unity-text-outline-color: rgb(91, 0, 7);
+    text-shadow: 0 8px 0 rgba(40, 0, 4, 0.82);
 }
 
 .combat-map-route {
@@ -954,7 +1235,7 @@
     width: 34px;
     height: 34px;
     margin-right: 10px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=21300000&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -1398,25 +1679,22 @@
 .combat-result-sticker {
     position: absolute;
     top: -35px;
-    left: 192px;
-    right: auto;
+    right: 192px;
     width: 512px;
     height: 512px;
     -unity-background-scale-mode: scale-to-fit;
-    scale: 1 1;
-    opacity: 1;
+}
+
+.combat-result-sticker.is-hidden {
+    display: none;
+}
+
+.combat-result-sticker--correct {
+    background-image: resource("Character/Sticker_Power_Correct");
 }
 
 .combat-result-sticker--fail {
-    display: none;
-}
-
-.combat-feedback-card--negative .combat-result-sticker--correct {
-    display: none;
-}
-
-.combat-feedback-card--negative .combat-result-sticker--fail {
-    display: flex;
+    background-image: resource("Character/Sticker_Power_Fail");
 }
 
 .combat-feedback-banner {
@@ -1770,4 +2048,8 @@
     color: rgb(255, 137, 35);
     -unity-text-outline-width: 2px;
     -unity-text-outline-color: rgb(65, 11, 4);
+}
+
+.hud-loadout-character-name {
+    color: rgb(0, 0, 0);
 }

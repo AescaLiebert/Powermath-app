@@ -15,8 +15,7 @@ MonoBehaviour:
   randomSeed: 1337
   criticalRate: 0.2
   criticalDamagePercent: 50
-  baseAttack: 20
-  baseWeaponAttack: 0
+  baseWeaponAttack: 20
   maximumHearts: 3
   maximumAnswerLength: 6
   preparationSeconds: 1

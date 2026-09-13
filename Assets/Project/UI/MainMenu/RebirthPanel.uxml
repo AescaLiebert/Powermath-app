@@ -8,7 +8,7 @@
                 <pm:FigmaShadowElement name="Rebirth / Header Inner Shadow" class="rebirth-header-inner-shadow"/>
                 <ui:VisualElement name="Rebirth / Title Group" class="rebirth-title-group">
                     <ui:VisualElement name="image 3" class="rebirth-title-icon"/>
-                    <ui:Label name="Title" text="REBIRTH" class="rebirth-title"/>
+                    <ui:Label name="Title" text="REBIRTH" class="loc-menu.rebirthTitle rebirth-title"/>
                 </ui:VisualElement>
                 <ui:Button name="Button / Close" class="rebirth-close-button">
                     <pm:FigmaGradientElement name="Button / Close Gradient" class="rebirth-close-gradient"/>
@@ -84,16 +84,16 @@
                     <pm:FigmaShadowElement class="rebirth-progress-drop-shadow"/>
                     <ui:VisualElement name="Progress Icon" class="rebirth-progress-track">
                         <pm:FigmaGradientElement class="rebirth-progress-gradient"/><pm:FigmaShadowElement class="rebirth-progress-inner-top"/><pm:FigmaShadowElement class="rebirth-progress-inner-bottom"/>
-                        <ui:VisualElement name="Enemy Ability" class="rebirth-progress-fill"/><ui:Label name="Progress Value" text="3 / 50" class="rebirth-progress-value"/>
+                        <ui:VisualElement name="Enemy Ability" class="rebirth-progress-fill"/><ui:Label name="Progress Value" text="3 / 30" class="rebirth-progress-value"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Label name="run-settlement-status" text="" class="rebirth-status"/>
                 <ui:Button name="Button / Rebirth" class="rebirth-action-button">
                     <pm:FigmaShadowElement class="rebirth-action-drop-shadow"/><ui:VisualElement name="Rectangle 9" class="rebirth-action-base"/><ui:VisualElement name="Rectangle 11" class="rebirth-action-highlight"/><pm:FigmaGradientElement name="Rectangle 10" class="rebirth-action-gradient"/><ui:VisualElement name="Line 5" class="rebirth-action-line"/>
-                    <ui:VisualElement name="Content" class="rebirth-action-content"><ui:VisualElement name="image 3" class="rebirth-action-icon"/><ui:VisualElement name="Rebirth" class="rebirth-action-label-group"><ui:Label name="Text Component" text="Rebirth" class="rebirth-action-label"/></ui:VisualElement></ui:VisualElement>
+                    <ui:VisualElement name="Content" class="rebirth-action-content"><ui:VisualElement name="image 3" class="rebirth-action-icon"/><ui:VisualElement name="Rebirth" class="rebirth-action-label-group"><ui:Label name="Text Component" text="Rebirth" class="loc-menu.rebirth rebirth-action-label"/></ui:VisualElement></ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="run-settlement-continue" class="rebirth-action-button rebirth-continue-button">
-                    <pm:FigmaShadowElement class="rebirth-action-drop-shadow"/><ui:VisualElement class="rebirth-action-base"/><ui:VisualElement class="rebirth-action-highlight"/><pm:FigmaGradientElement class="rebirth-action-gradient"/><ui:VisualElement class="rebirth-action-line"/><ui:VisualElement class="rebirth-action-content rebirth-action-content--continue"><ui:Label text="Continue" class="rebirth-action-label"/></ui:VisualElement>
+                    <pm:FigmaShadowElement class="rebirth-action-drop-shadow"/><ui:VisualElement class="rebirth-action-base"/><ui:VisualElement class="rebirth-action-highlight"/><pm:FigmaGradientElement class="rebirth-action-gradient"/><ui:VisualElement class="rebirth-action-line"/><ui:VisualElement class="rebirth-action-content rebirth-action-content--continue"><ui:Label text="Continue" class="loc-common.continue rebirth-action-label"/></ui:VisualElement>
                 </ui:Button>
             </ui:VisualElement>
         </ui:VisualElement>

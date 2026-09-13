@@ -110,8 +110,8 @@ namespace PowerMath.Bootstrap
                 !Version.TryParse(NormalizeVersion(manifest.minSupportedVersion), out _) ||
                 IsVersionOlder(manifest.clientVersion, manifest.minSupportedVersion))
             {
-                statusMessage = "Invalid release policy. Please retry.";
-                return VersionCompatibilityResult.NetworkError;
+                statusMessage = "Release policy is unavailable or invalid; continuing with built-in player-data compatibility checks.";
+                return VersionCompatibilityResult.Compatible;
             }
 
             if (manifest.maintenance != null && manifest.maintenance.isActive)

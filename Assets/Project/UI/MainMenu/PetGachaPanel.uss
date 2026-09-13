@@ -78,7 +78,7 @@
     width: 34px;
     height: 34px;
     margin-right: 10px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=21300000&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -273,7 +273,7 @@
 }
 
 .pet-gacha-call-mark {
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_title_pet.png?fileID=6674195197632703334&guid=1b2e391e263824a498bd75fc33eae64a&type=3#Icon_title_pet_0");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_title_pet.png?fileID=21300000&guid=1b2e391e263824a498bd75fc33eae64a&type=3#Icon_title_pet");
     -unity-background-scale-mode: scale-to-fit;
     color: rgba(0, 0, 0, 0);
 }
@@ -478,7 +478,7 @@
 .pet-gacha-result-icon {
     width: 390px;
     height: 390px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Pet.png?fileID=6700543945172676342&guid=8e828c1bf7b8b8548b698a7140aacaef&type=3#Icon_Pet_1");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Pet.png?fileID=21300000&guid=8e828c1bf7b8b8548b698a7140aacaef&type=3#Icon_Pet");
     -unity-background-scale-mode: scale-to-fit;
     transition-property: scale, opacity;
     transition-duration: 0.28s;
@@ -570,4 +570,17 @@
 .pet-gacha-modal.is-reduced-motion .pet-gacha-result-icon,
 .pet-gacha-modal.is-reduced-motion .pet-gacha-result-halo {
     transition-duration: 0s;
+}
+
+/* ─── SVG Icon Replacements ─── */
+
+.pet-gacha-star-icon {
+    width: 37px; height: 37px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_star_sparkle.svg?fileID=11400000&guid=a5fa73d757521a24396f3866b85c51cb&type=2#icon_star_sparkle");
+    -unity-background-scale-mode: scale-to-fit;
+}
+.pet-gacha-diamond-icon {
+    width: 19px; height: 26px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_diamond_sparkle.svg?fileID=11400000&guid=4420f8d6944dfff4f9effe686d407c85&type=2#icon_diamond_sparkle");
+    -unity-background-scale-mode: scale-to-fit;
 }

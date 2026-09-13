@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Biome02
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.BiomeDefinition
   biomeId: biome-2
-  fallbackTitle: Biome 2
+  fallbackTitle: Sumeru
   firstStage: 31
   lastStage: 60
   backgroundSprite: {fileID: 21300000, guid: 592cb320a6fce5d48bdf304f32705252, type: 3}
-  secondaryBackgroundSprite: {fileID: 21300000, guid: 72f66f5e1491cd248bdde747294ec45d, type: 3}
+  secondaryBackgroundSprite: {fileID: 1390185892949759197, guid: ce28491569ca8524e99b48bbda63e231, type: 3}
   mapLandmarkSprite: {fileID: 0}
   normalizedMapPosition: {x: 0.16666667, y: 0.58}
   normalMonsters:

@@ -16,8 +16,17 @@ Use a clean browser profile and test desktop plus one mobile-sized viewport.
 4. Start a YouTube-backed combat question. Confirm the player fits the entire Unity canvas and no navy/blue layer covers it.
 5. Let the video finish. Confirm the iframe disappears and the answer panel appears at the center without moving to a side rail.
 6. Submit a correct answer and an incorrect answer. Confirm the matching sticker appears, result feedback completes, and only then the question surface exits.
-7. Block YouTube autoplay or network access and retry. Confirm the attempt fails closed, the opaque overlay is removed, and the player can continue.
-8. Rapidly start/cancel or transition away from a question. Confirm late iframe callbacks do not open or complete a newer question.
+7. On Android Chrome and iOS Safari, start a YouTube question. Confirm muted
+   inline playback begins automatically, the game music continues, and the normal
+   answer panel appears after the video ends.
+8. Block YouTube network access or use an unavailable video. Confirm the attempt
+   fails closed, the opaque overlay is removed, and the player can continue.
+9. Rapidly start/cancel or transition away from a question. Confirm late iframe callbacks do not open or complete a newer question.
+10. Attempt to pause/tap the video. Confirm playback resumes automatically; if it
+    cannot resume for 12 seconds, the overlay closes, the attempt is restored, and
+    the lobby remains interactive.
+11. Enter fullscreen from Settings and start a question. Confirm the video remains
+    above the game because both are children of the fullscreen Unity container.
 
 ## Expected compatibility boundary
 

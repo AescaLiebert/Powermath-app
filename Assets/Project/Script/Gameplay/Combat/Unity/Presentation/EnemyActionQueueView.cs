@@ -16,6 +16,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         public EnemyActionQueueView(VisualElement root)
         {
             _root = root ?? throw new ArgumentNullException(nameof(root));
+            // Keep the queue anchored to the left even when a scene/style override
+            // sets the container's default justification to center.
+            _root.style.justifyContent = Justify.FlexStart;
         }
 
         public int Count => _tokens.Count;
@@ -171,6 +174,10 @@ namespace PowerMath.Gameplay.Combat.Unity
             token.EnableInClassList("hud-enemy-action--spent", isSpent);
             token.EnableInClassList("hud-enemy-action--danger", isDanger);
             token.EnableInClassList("hud-enemy-action--entering", entering);
+            if (kind != EnemyActionTokenKind.Walk)
+            {
+                token.style.color = Color.white;
+            }
             _tokens.Add(token);
             _root.Add(token);
             RefreshTokenSpacing();

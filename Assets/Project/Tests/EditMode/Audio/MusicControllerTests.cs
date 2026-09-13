@@ -97,8 +97,8 @@ namespace PowerMath.Tests.EditMode.Audio
             _controller.Tick(_library.DefaultCrossfadeDuration + 0.1f);
             Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.5f));
 
-            // 2. Simulate timeline elapsed
-            _controller.BattleSource.time = 15.0f;
+            // 2. Simulate timeline elapsed (within 2.5s fallback clip length)
+            _controller.BattleSource.time = 1.5f;
 
             // 3. Big Boss appears
             _controller.SetBossBattleActive(true);
@@ -113,7 +113,7 @@ namespace PowerMath.Tests.EditMode.Audio
             // Battle channel should be silent (0 volume) but NOT stopped!
             Assert.That(_controller.BattleSource.volume, Is.EqualTo(0f));
             // Timeline should not have reset to 0
-            Assert.That(_controller.BattleSource.time, Is.EqualTo(15.0f).Within(0.1f));
+            Assert.That(_controller.BattleSource.time, Is.EqualTo(1.5f).Within(0.1f));
 
             // 4. Boss defeated, returning to regular battle
             _controller.SetBossBattleActive(false);
@@ -124,11 +124,54 @@ namespace PowerMath.Tests.EditMode.Audio
             // Boss fades to 0, Battle music returns to full volume
             Assert.That(_controller.BossSource.volume, Is.EqualTo(0f));
             Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.5f));
-            Assert.That(_controller.BattleSource.time, Is.EqualTo(15.0f).Within(0.1f));
+            Assert.That(_controller.BattleSource.time, Is.EqualTo(1.5f).Within(0.1f));
         }
 
         [Test]
-        public void MusicController_SetDucking_ReducesCombatVolumeBy80To90Percent()
+        public void MusicController_EnemyOverride_ReplacesAndRestoresBattleMusic()
+        {
+            var enemyClip = AudioClip.Create("EnemyBattleMusic", 1000, 1, 22050, false);
+            var enemyTrack = new MusicTrackConfig(enemyClip, 0.6f, true);
+
+            _controller.PlayBattleMusic("verdant-grove");
+            _controller.Tick(_library.DefaultCrossfadeDuration + 0.1f);
+
+            _controller.SetEncounterMusicOverride(enemyTrack);
+            Assert.That(_controller.IsEncounterOverrideActive, Is.True);
+            Assert.That(_controller.IsBossActive, Is.False);
+            Assert.That(_controller.BossSource.clip, Is.SameAs(enemyClip));
+
+            _controller.Tick(_library.BossInterruptDuration + 0.1f);
+            Assert.That(_controller.BossSource.volume, Is.EqualTo(0.6f).Within(0.02f));
+            Assert.That(_controller.BattleSource.volume, Is.EqualTo(0f));
+
+            _controller.SetEncounterMusicOverride(null);
+            _controller.Tick(_library.BossInterruptDuration + 0.1f);
+
+            Assert.That(_controller.IsEncounterOverrideActive, Is.False);
+            Assert.That(_controller.BossSource.volume, Is.EqualTo(0f));
+            Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.5f));
+        }
+
+        [Test]
+        public void MusicController_BossCustomOverride_TakesPriorityOverGlobalBossMusic()
+        {
+            var customBossClip = AudioClip.Create("CustomBossBattleMusic", 1000, 1, 22050, false);
+            var customBossTrack = new MusicTrackConfig(customBossClip, 0.7f, true);
+
+            _controller.PlayBattleMusic();
+            _controller.SetEncounterMusicOverride(customBossTrack, isBossEncounter: true);
+
+            Assert.That(_controller.IsBossActive, Is.True);
+            Assert.That(_controller.IsEncounterOverrideActive, Is.True);
+            Assert.That(_controller.BossSource.clip, Is.SameAs(customBossClip));
+
+            _controller.Tick(_library.BossInterruptDuration + 0.1f);
+            Assert.That(_controller.BossSource.volume, Is.EqualTo(0.7f).Within(0.02f));
+        }
+
+        [Test]
+        public void MusicController_SetDucking_ReducesCombatVolumeToDuckedFactor()
         {
             _controller.PlayBattleMusic();
             _controller.Tick(_library.DefaultCrossfadeDuration + 0.1f);
@@ -141,7 +184,7 @@ namespace PowerMath.Tests.EditMode.Audio
 
             _controller.Tick(_library.DuckFadeDuration + 0.1f);
 
-            // Volume should be ducked by ~85% (0.15 of normalVolume)
+            // Volume should be ducked by -70% (0.30 of normalVolume)
             float expectedDucked = normalVolume * _library.DuckVolumeFactor;
             Assert.That(_controller.BattleSource.volume, Is.EqualTo(expectedDucked).Within(0.02f));
             Assert.That(_controller.CurrentDuckMultiplier, Is.EqualTo(_library.DuckVolumeFactor).Within(0.01f));
@@ -191,6 +234,95 @@ namespace PowerMath.Tests.EditMode.Audio
             _library.DefaultBattleMusic.VolumeScale = 0.35f;
             _controller.Tick(0.01f);
             Assert.That(_controller.BattleSource.volume, Is.EqualTo(0.35f).Within(0.01f));
+        }
+
+        [Test]
+        public void MusicController_FadeOutBossMusic_SmoothlyFadesBossChannelToZeroAndClearsState()
+        {
+            _controller.PlayBattleMusic();
+            _controller.SetBossBattleActive(true);
+            _controller.Tick(_library.BossInterruptDuration + 0.1f);
+            Assert.That(_controller.BossSource.volume, Is.GreaterThan(0.5f));
+            Assert.That(_controller.IsBossActive, Is.True);
+
+            _controller.FadeOutBossMusic(1.0f);
+            Assert.That(_controller.IsBossActive, Is.False);
+            Assert.That(_controller.IsEncounterOverrideActive, Is.False);
+
+            _controller.Tick(1.1f);
+            Assert.That(_controller.BossSource.volume, Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void MusicController_PlayBattleMusic_BossToNewBiome_DifferentMusic_KicksInSuddenly()
+        {
+            // Configure a second biome with a distinct clip
+            AudioClip distinctClip = AudioClip.Create("DistinctBiomeClip", 44100, 1, 22050, false);
+            var binding = new BiomeMusicBinding("crystal-caverns", new MusicTrackConfig(distinctClip, 0.9f, true));
+            var tracksField = typeof(MusicLibraryDefinition).GetField("biomeBattleTracks", BindingFlags.NonPublic | BindingFlags.Instance);
+            tracksField?.SetValue(_library, new[] { binding });
+
+            _controller.PlayBattleMusic();
+            _controller.SetBossBattleActive(true);
+            _controller.Tick(_library.BossInterruptDuration + 0.1f);
+            Assert.That(_controller.BossSource.volume, Is.GreaterThan(0.5f));
+
+            // Boss dies -> boss music fades out
+            _controller.FadeOutBossMusic(1.0f);
+            _controller.Tick(1.1f);
+            Assert.That(_controller.BossSource.volume, Is.EqualTo(0f));
+
+            // Entering new biome with DIFFERENT music -> sudden kick-in at full volume immediately!
+            _controller.PlayBattleMusic("crystal-caverns");
+
+            Assert.That(_controller.BattleSource.clip, Is.SameAs(distinctClip));
+            Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.5f), "Different track after boss must kick in at full volume immediately");
+            Assert.That(_controller.BattleSource.time, Is.EqualTo(0f), "Different track must start at 0");
+            Assert.That(_controller.BossSource.isPlaying, Is.False, "Boss channel should be stopped immediately");
+        }
+
+        [Test]
+        public void MusicController_PlayBattleMusic_BossToNewBiome_SameMusic_DoesNotRestartPlayback()
+        {
+            _controller.PlayBattleMusic();
+            _controller.BattleSource.time = 1.2f;
+
+            _controller.SetBossBattleActive(true);
+            _controller.Tick(_library.BossInterruptDuration + 0.1f);
+            Assert.That(_controller.BossSource.volume, Is.GreaterThan(0.5f));
+
+            // Boss dies -> boss music fades out
+            _controller.FadeOutBossMusic(1.0f);
+            _controller.Tick(1.1f);
+
+            // Entering a biome with the SAME music track -> continuous playback must NOT restart
+            _controller.PlayBattleMusic("same-track-biome");
+
+            Assert.That(_controller.BattleSource.time, Is.EqualTo(1.2f).Within(0.001f), "Same music track must retain playback position and not restart");
+        }
+
+        [Test]
+        public void MusicController_PlayBattleMusic_MidBiome_DoesNotRestartPlayback()
+        {
+            _controller.PlayBattleMusic("verdant-grove");
+            _controller.BattleSource.time = 1.5f;
+
+            // Mid-biome call with the same biome
+            _controller.PlayBattleMusic("verdant-grove");
+
+            Assert.That(_controller.BattleSource.time, Is.EqualTo(1.5f).Within(0.001f), "Mid-biome change must not restart music");
+        }
+
+        [Test]
+        public void MusicController_PlayBattleMusic_SameTrack_DoesNotRestartPlayback()
+        {
+            _controller.PlayBattleMusic();
+            _controller.BattleSource.time = 0.8f;
+
+            // Repeated call for default track
+            _controller.PlayBattleMusic();
+
+            Assert.That(_controller.BattleSource.time, Is.EqualTo(0.8f).Within(0.001f), "Same music track must not restart itself");
         }
     }
 }

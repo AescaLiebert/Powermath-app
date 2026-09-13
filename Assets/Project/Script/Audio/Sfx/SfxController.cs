@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -370,6 +370,46 @@ namespace PowerMath.Audio
             }
         }
 
+        public void PlayAuthentication(AuthenticationSfxState state)
+        {
+            EnsureLibrary();
+            switch (state)
+            {
+                case AuthenticationSfxState.LoginClick:
+                    PlayCueWithFallback(library.AuthLoginClick, "auth_click");
+                    break;
+                case AuthenticationSfxState.Success:
+                    PlayCueWithFallback(library.AuthSuccess, "auth_success");
+                    break;
+                case AuthenticationSfxState.Failure:
+                    PlayCueWithFallback(library.AuthFailure, "auth_failure");
+                    break;
+                case AuthenticationSfxState.LanguageSwitch:
+                    PlayCueWithFallback(library.AuthLanguageSwitch, "auth_language");
+                    break;
+            }
+        }
+
+        public void PlayReward(RewardSfxState state)
+        {
+            EnsureLibrary();
+            switch (state)
+            {
+                case RewardSfxState.OnDrop:
+                    PlayCueWithFallback(library.RewardOnDrop, "reward_drop");
+                    break;
+                case RewardSfxState.Magnetism:
+                    PlayCueWithFallback(library.RewardMagnetism, "reward_magnet");
+                    break;
+                case RewardSfxState.CurrencyRank:
+                    PlayCueWithFallback(library.RewardCurrencyRank, "currency_rank");
+                    break;
+                case RewardSfxState.CurrencyPowerCoin:
+                    PlayCueWithFallback(library.RewardCurrencyPowerCoin, "currency_coin");
+                    break;
+            }
+        }
+
         public void PlayUiStyle(string ussClassOrStyleKey, bool isClick = true)
         {
             EnsureLibrary();
@@ -384,7 +424,19 @@ namespace PowerMath.Audio
                 }
             }
 
-            // Generic UI fallback
+            // UI fallback to standard button/hover audio if available in library
+            if (isClick && library.UiButtonClick != null && library.UiButtonClick.HasClip())
+            {
+                PlayCue(library.UiButtonClick);
+                return;
+            }
+            if (!isClick && library.CharacterCardHover != null && library.CharacterCardHover.HasClip())
+            {
+                PlayCue(library.CharacterCardHover);
+                return;
+            }
+
+            // Generic procedural UI fallback
             PlayCueWithFallback(null, isClick ? "click" : "tick");
         }
     }

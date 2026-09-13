@@ -39,7 +39,7 @@ The focused checks cover stages 15/16 midpoint selection, deferred destination b
 
 ## Deployed browser checkpoint
 
-Test actual supported desktop, iOS, and Android browsers in portrait and landscape. Confirm the YouTube iframe never overlaps the keypad, no standard player controls or pointer interaction are available, resize/orientation does not strand the iframe, completion fires once, and a replaced/cancelled video cannot complete the current question. Record whether delayed autoplay is blocked; if it is, add and verify an application-owned Play Video action outside the iframe.
+Test actual supported desktop, iOS, and Android browsers in portrait and landscape. Confirm the YouTube iframe never overlaps the keypad, resize/orientation does not strand the iframe, completion fires once, and a replaced/cancelled video cannot complete the current question. When delayed autoplay is blocked, confirm YouTube's native Play control remains tappable; after playback enters `PLAYING`, confirm pointer interaction is disabled for the remainder of the assessment video.
 
 Refresh during committed question, answer window, saved result, each death, both halves of background fade, enemy entrance, and terminal reset. Each case must restore the accepted attempt/stage/HP/receipt without duplicate rewards or rerolling content.
 

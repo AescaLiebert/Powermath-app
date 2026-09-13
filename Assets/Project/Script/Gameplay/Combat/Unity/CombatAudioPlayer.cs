@@ -15,6 +15,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly AudioClip _enemyAttack;
         private readonly AudioClip _defeat;
         private readonly AudioClip _biomeTransition;
+        private readonly AudioClip _bossWarning;
         private readonly BattleSfxLibraryDefinition _library;
         private readonly AudioClip[] _fallbackSwings;
         private readonly AudioClip[] _fallbackHits;
@@ -65,6 +66,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                 0.75f,
                 0.16f
             );
+            _bossWarning = CreateSweep(
+                "CombatBossWarning", 96f, 38f, 0.72f, 0.30f, 0.34f);
         }
 
         public void PlayPopUp()
@@ -105,6 +108,32 @@ namespace PowerMath.Gameplay.Combat.Unity
                 PowerMath.Audio.SfxController.Instance.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.ResultFail);
             else
                 Play(_timeout);
+        }
+
+        public void PlayCountdownTick(bool isWarning = false)
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+            {
+                PowerMath.Audio.SfxController.Instance.PlayQuestion(isWarning
+                    ? PowerMath.Audio.QuestionSequenceSfxState.CountdownWarning
+                    : PowerMath.Audio.QuestionSequenceSfxState.CountdownTick);
+            }
+            else
+            {
+                Play(_key);
+            }
+        }
+
+        public void PlayDamageMultiplying()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+            {
+                PowerMath.Audio.SfxController.Instance.PlayQuestion(PowerMath.Audio.QuestionSequenceSfxState.DamageMultiplying);
+            }
+            else
+            {
+                Play(_commit);
+            }
         }
 
         public void PlayHit(bool critical)
@@ -148,6 +177,27 @@ namespace PowerMath.Gameplay.Combat.Unity
                 PowerMath.Audio.SfxController.Instance.PlayBattle(PowerMath.Audio.BattleSfxState.BiomeTransition);
             else
                 Play(_biomeTransition);
+        }
+
+        public void PlayBossWarning()
+        {
+            if (PowerMath.Audio.SfxController.Instance != null)
+            {
+                var binding = PowerMath.Audio.SfxController.Instance.Library?.FindEncounterBinding("BigBoss");
+                if (binding != null && binding.AppearSfx != null && binding.AppearSfx.HasClip())
+                {
+                    PowerMath.Audio.SfxController.Instance.PlayCue(binding.AppearSfx);
+                    return;
+                }
+            }
+
+            // Fallback sweep when no authored encounter audio is assigned
+            Play(_bossWarning);
+        }
+
+        public void FadeOutBossMusic(float fadeDuration = 1.2f)
+        {
+            PowerMath.Audio.MusicController.Instance?.FadeOutBossMusic(fadeDuration);
         }
 
         public void PlaySwing()

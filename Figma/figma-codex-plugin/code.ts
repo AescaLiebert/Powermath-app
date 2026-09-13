@@ -468,6 +468,16 @@ async function inspectNode(command: BridgeCommand) {
       result.boundVariables = node.boundVariables;
     }
 
+    if ('vectorPaths' in node) {
+      result.vectorPaths = (node as any).vectorPaths;
+    }
+    if ('fillGeometry' in node) {
+      result.fillGeometry = (node as any).fillGeometry;
+    }
+    if ('strokeGeometry' in node) {
+      result.strokeGeometry = (node as any).strokeGeometry;
+    }
+
     if (depth < maxDepth && visited < maxNodes && 'children' in node) {
       result.children = node.children
         .slice(0, maxNodes - visited)
@@ -632,6 +642,21 @@ async function setAllTextFonts(command: BridgeCommand) {
 
 async function exportNodePreview(command: BridgeCommand) {
   const node = await requireSceneNode(command.nodeId);
+  const format = String(command.format ?? 'JPG').toUpperCase();
+  if (format === 'SVG') {
+    const bytes = await node.exportAsync({ format: 'SVG' });
+    let text = '';
+    for (let i = 0; i < bytes.length; i++) {
+      text += String.fromCharCode(bytes[i]);
+    }
+    return {
+      nodeId: node.id,
+      name: node.name,
+      mimeType: 'image/svg+xml',
+      svg: text,
+      base64: figma.base64Encode(bytes),
+    };
+  }
   const width = Math.max(320, Math.min(1800, finiteNumber(command.width, 1400)));
   const bytes = await node.exportAsync({
     format: 'JPG',

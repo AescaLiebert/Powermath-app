@@ -1,0 +1,53 @@
+.settings-modal { position: absolute; left: 0; right: 0; top: 0; bottom: 0; color: rgb(20, 48, 91); background-color: rgb(255, 249, 232); }
+.settings-backdrop { position: absolute; border-radius: 50%; }
+.settings-backdrop--sun { left: -14%; top: -42%; width: 56%; height: 116%; background-color: rgba(255, 194, 64, 0.19); }
+.settings-backdrop--sky { right: -18%; bottom: -48%; width: 62%; height: 118%; background-color: rgba(95, 211, 225, 0.18); border-width: 14px; border-color: rgba(32, 92, 183, 0.15); }
+.settings-shell { position: absolute; left: 42px; right: 42px; top: 28px; bottom: 28px; }
+.settings-header { min-height: 86px; padding: 0 8px; flex-direction: row; align-items: center; justify-content: space-between; }
+.settings-heading { flex-grow: 1; }
+.settings-title { color: rgb(20, 48, 91); font-size: 46px; -unity-font-style: bold; letter-spacing: -1px; }
+.settings-subtitle { color: rgb(46, 84, 122); font-size: 15px; -unity-font-style: bold; }
+.settings-close { min-width: 54px; width: 54px; min-height: 54px; height: 54px; padding: 0; background-color: rgb(255, 249, 232); border-radius: 15px; border-width: 3px; border-color: rgb(222, 199, 157); }
+.settings-close:hover, .settings-close:focus { scale: 1.06 1.06; translate: 0 -2px; background-color: rgb(255, 235, 204); border-color: rgb(255, 194, 64); }
+.settings-tabs { height: 54px; margin: 4px 8px 12px; padding: 5px; flex-direction: row; background-color: rgba(219, 241, 246, 0.86); border-radius: 16px; }
+.settings-tab { flex-grow: 1; margin: 0 3px; color: rgb(46, 84, 122); background-color: rgba(255,255,255,0); border-width: 0; border-radius: 12px; -unity-font-style: bold; font-size: 15px; }
+.settings-tab:hover, .settings-tab:focus { background-color: rgba(255,255,255,0.7); }
+.settings-tab.is-selected { color: rgb(255,255,255); background-color: rgb(32, 92, 183); }
+.settings-scroll { flex-grow: 1; min-height: 0; padding: 8px; }
+.settings-page { flex-grow: 1; }
+.settings-card { min-height: 86px; margin-bottom: 14px; padding: 18px 20px; flex-direction: row; align-items: center; background-color: rgba(255,255,255,0.91); border-radius: 18px; border-width: 3px; border-color: rgb(222, 199, 157); }
+.settings-card--stack { flex-direction: column; align-items: stretch; }
+.settings-card-copy { flex-grow: 1; margin-right: 18px; }
+.settings-card-title { color: rgb(20, 48, 91); font-size: 18px; -unity-font-style: bold; }
+.settings-card-description { margin-top: 5px; color: rgb(72, 99, 126); font-size: 13px; white-space: normal; }
+.settings-friendly-note { margin-top: 10px; color: rgb(72, 99, 126); font-size: 14px; -unity-text-align: middle-center; }
+.settings-toggle { min-width: 62px; }
+.settings-language-row { min-width: 174px; flex-direction: row; justify-content: flex-end; }
+.settings-language-button { min-width: 76px; min-height: 46px; margin-left: 8px; color: rgb(46, 84, 122); background-color: rgb(255, 249, 232); border-radius: 12px; border-width: 3px; border-color: rgb(222, 199, 157); -unity-font-style: bold; font-size: 15px; }
+.settings-language-button:hover, .settings-language-button:focus { border-color: rgb(95, 211, 225); background-color: rgb(239, 252, 255); }
+.settings-language-button.is-selected { color: rgb(255, 255, 255); background-color: rgb(32, 92, 183); border-color: rgb(20, 48, 91); }
+.settings-account-card { border-color: rgb(117, 151, 177); }
+.settings-account-status { min-height: 18px; margin-top: 4px; color: rgb(46, 84, 122); font-size: 12px; }
+.settings-account-status.is-error { color: rgb(178, 36, 52); }
+.settings-logout-button { min-width: 160px; min-height: 48px; color: rgb(255, 255, 255); background-color: rgb(32, 92, 183); border-color: rgb(20, 48, 91); border-width: 3px; border-radius: 13px; -unity-font-style: bold; }
+.settings-logout-button:hover, .settings-logout-button:focus { background-color: rgb(43, 119, 206); border-color: rgb(95, 211, 225); }
+.settings-row-heading { flex-direction: row; justify-content: space-between; align-items: center; }
+.settings-value { color: rgb(32, 92, 183); font-size: 17px; -unity-font-style: bold; }
+.settings-slider { margin-top: 12px; }
+.settings-test-banner { margin-bottom: 14px; padding: 14px 18px; background-color: rgb(219, 241, 246); border-radius: 16px; border-width: 3px; border-color: rgb(32, 92, 183); }
+.settings-test-banner__title { color: rgb(32, 92, 183); -unity-font-style: bold; font-size: 17px; }
+.settings-test-banner__copy { color: rgb(46, 84, 122); font-size: 13px; }
+.settings-admin-grid { flex-direction: row; flex-wrap: wrap; align-items: stretch; }
+.settings-admin-card { width: 48%; min-width: 310px; margin-right: 2%; }
+.settings-field { margin-top: 8px; }
+.settings-field .unity-base-field__label { min-width: 120px; color: rgb(46, 84, 122); -unity-font-style: bold; }
+.settings-check { margin-top: 10px; color: rgb(46, 84, 122); -unity-font-style: bold; }
+.settings-action { min-height: 42px; margin-top: 12px; }
+.settings-rank-row { margin-top: 10px; flex-direction: row; }
+.settings-rank-button { flex-grow: 1; min-height: 40px; margin-right: 5px; color: rgb(20, 48, 91); background-color: rgb(255, 243, 210); border-radius: 10px; border-width: 2px; border-color: rgb(222, 199, 157); -unity-font-style: bold; }
+.settings-danger-card { border-color: rgb(220, 53, 69); background-color: rgb(255, 240, 238); }
+.settings-danger-title { color: rgb(178, 36, 52); }
+.settings-danger-button { color: white; background-color: rgb(190, 45, 60); border-color: rgb(145, 25, 39); }
+.settings-danger-button.is-confirming { background-color: rgb(128, 23, 35); }
+.settings-admin-status { margin: 4px 4px 16px; min-height: 28px; -unity-text-align: middle-center; }
+.settings-modal.is-hidden, .settings-page.is-hidden, .settings-admin-only.is-hidden { display: none; }

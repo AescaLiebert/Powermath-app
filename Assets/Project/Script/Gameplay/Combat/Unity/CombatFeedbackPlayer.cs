@@ -94,32 +94,37 @@ namespace PowerMath.Gameplay.Combat.Unity
                 {
                     _view.AddFeedbackStep(
                         "BASE ATK",
-                        breakdown.BaseAttack.ToString(CultureInfo.InvariantCulture),
+                        breakdown.EffectiveAttack.ToString(CultureInfo.InvariantCulture),
                         false);
+                    _audio?.PlayDamageMultiplying();
                     yield return new WaitForSecondsRealtime(rowDelay);
 
                     _view.AddFeedbackStep(
                         "RANK",
                         FormatMultiplier(breakdown.RankMultiplier),
                         false);
+                    _audio?.PlayDamageMultiplying();
                     yield return new WaitForSecondsRealtime(rowDelay);
 
                     _view.AddFeedbackStep(
                         "BUFF",
                         FormatMultiplier(breakdown.BuffMultiplier),
                         false);
+                    _audio?.PlayDamageMultiplying();
                     yield return new WaitForSecondsRealtime(rowDelay);
 
                     _view.AddFeedbackStep(
                         resolution.IsCritical ? "CRITICAL" : "NO CRITICAL",
                         FormatMultiplier(breakdown.CriticalMultiplier),
                         false);
+                    _audio?.PlayDamageMultiplying();
                     yield return new WaitForSecondsRealtime(rowDelay);
 
                     _view.AddFeedbackStep(
                         $"RESPONSE SCORE {resolution.ResponseScore}",
                         FormatMultiplier(breakdown.ResponseMultiplier),
                         false);
+                    _audio?.PlayDamageMultiplying();
                     yield return new WaitForSecondsRealtime(rowDelay);
                 }
                 else
@@ -128,6 +133,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                         "RESPONSE SCORE",
                         resolution.ResponseScore.ToString(CultureInfo.InvariantCulture),
                         false);
+                    _audio?.PlayDamageMultiplying();
                     yield return new WaitForSecondsRealtime(rowDelay);
                 }
 
@@ -135,6 +141,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     "FINAL DAMAGE",
                     resolution.FinalDamage.ToString(CultureInfo.InvariantCulture),
                     true);
+                _audio?.PlayDamageMultiplying();
                 yield return new WaitForSecondsRealtime(
                     _reducedMotion ? 0.18f : 0.38f);
             }
@@ -154,10 +161,11 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (resolution.IsCorrect)
             {
-                _audio?.PlaySwing();
                 if (_playerActor != null)
                     yield return _playerActor.Play(
                         PresentationActionKind.PlayerPrimaryAttack);
+                else
+                    _audio?.PlaySwing();
                 bool componentFct = _floatingText != null &&
                     _floatingText.IsReady && _enemyDamageAnchor != null &&
                     receipt != null;
@@ -240,7 +248,17 @@ namespace PowerMath.Gameplay.Combat.Unity
                         enemyPos);
                 }
 
-                _audio?.PlayDeath(_enemyActor?.IsMajorDeath ?? false);
+                bool isMajorDeath = (_enemyActor?.IsMajorDeath ?? false) ||
+                    (PowerMath.Audio.MusicController.Instance != null &&
+                     (PowerMath.Audio.MusicController.Instance.IsBossActive ||
+                      PowerMath.Audio.MusicController.Instance.IsEncounterOverrideActive));
+
+                if (isMajorDeath)
+                {
+                    _audio?.FadeOutBossMusic(1.2f);
+                }
+
+                _audio?.PlayDeath(isMajorDeath);
                 yield return RunConcurrent(
                     receipt == null
                         ? null
@@ -261,7 +279,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                 yield return new WaitForSecondsRealtime(0.55f);
                 if (_enemyActor != null)
                     yield return _enemyActor.Play(PresentationActionKind.EnemyAttack);
-                _audio?.PlayEnemyAttack();
+                else
+                    _audio?.PlayEnemyAttack();
                 yield return new WaitForSecondsRealtime(0.35f);
                 if (_playerActor != null)
                     yield return _playerActor.Play(
@@ -313,6 +332,11 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
             _view.PrepareEncounterPresentation(destination);
             _view.InitiateEnemyActions(destination);
+            if (IsBossEncounter(destination))
+            {
+                _audio?.PlayBossWarning();
+                yield return _view.PlayBossWarning();
+            }
             if (_enemyActor != null)
                 yield return _enemyActor.Play(PresentationActionKind.EnemyAppear);
         }
@@ -365,7 +389,12 @@ namespace PowerMath.Gameplay.Combat.Unity
                 if (receipt.StageAdvanced)
                 {
                     CombatSnapshot destination = ToCombatSnapshot(receipt.Destination);
-                    yield return PlayEncounterEntrance(destination);
+                    // Recovery is authoritative state restoration, not a replay.
+                    // Bind directly to the saved encounter and leave the actor idle.
+                    _view.SkipBossWarning();
+                    _view.PrepareEncounterPresentation(destination);
+                    _view.InitiateEnemyActions(destination);
+                    _enemyActor?.CancelAndApply(ActorVisualState.Idle);
                 }
             }
             else if (receipt.EnemyAttacked)
@@ -374,7 +403,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                     receipt.PresentationId, token, false);
                 if (_enemyActor != null)
                     yield return _enemyActor.Play(PresentationActionKind.EnemyAttack);
-                _audio?.PlayEnemyAttack();
+                else
+                    _audio?.PlayEnemyAttack();
                 if (_playerActor != null)
                     yield return _playerActor.Play(PresentationActionKind.PlayerTakeDamage);
                 if (receipt.PlayerDefeated)
@@ -393,6 +423,13 @@ namespace PowerMath.Gameplay.Combat.Unity
                 yield return _view.ConsumeEnemyAction(
                     receipt.PresentationId, token, false);
             }
+        }
+
+        private static bool IsBossEncounter(CombatSnapshot snapshot)
+        {
+            return snapshot != null &&
+                (snapshot.EncounterKind == StageEncounterKind.BigBoss ||
+                 snapshot.EncounterKind == StageEncounterKind.FinalBoss);
         }
 
         private IEnumerator RunConcurrent(params IEnumerator[] routines)

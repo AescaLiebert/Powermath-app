@@ -25,9 +25,6 @@ namespace PowerMath.PlayerLifecycle
         private readonly Button _openingSkipButton;
         private readonly VisualElement _selectionStage;
         private readonly Image _selectionVideoImage;
-        private readonly VisualElement _selectionFallback;
-        private readonly Image _rickoOverview;
-        private readonly Image _stellarOverview;
         private readonly Label _selectionTitle;
         private readonly Label _selectionHint;
         private readonly Button _rickoButton;
@@ -79,9 +76,6 @@ namespace PowerMath.PlayerLifecycle
             _openingSkipButton = Require<Button>(root, "onboarding.skip");
             _selectionStage = Require<VisualElement>(root, "prep-character-selection");
             _selectionVideoImage = Require<Image>(root, "prep-selection-video-image");
-            _selectionFallback = Require<VisualElement>(root, "prep-selection-fallback");
-            _rickoOverview = Require<Image>(root, "portrait-ricko");
-            _stellarOverview = Require<Image>(root, "portrait-stellar");
             _selectionTitle = Require<Label>(root, "prep-selection-title");
             _selectionHint = Require<Label>(root, "prep-selection-hint");
             _rickoButton = Require<Button>(root, "ricko");
@@ -128,8 +122,6 @@ namespace PowerMath.PlayerLifecycle
             _nameField.maxLength = MaximumDisplayNameLength;
             _openingVideoImage.scaleMode = ScaleMode.ScaleAndCrop;
             _selectionVideoImage.scaleMode = ScaleMode.ScaleAndCrop;
-            _rickoOverview.scaleMode = ScaleMode.ScaleAndCrop;
-            _stellarOverview.scaleMode = ScaleMode.ScaleAndCrop;
             _detailArt.scaleMode = ScaleMode.ScaleAndCrop;
             _detailShadow.scaleMode = ScaleMode.ScaleAndCrop;
             _nameArt.scaleMode = ScaleMode.ScaleToFit;
@@ -196,10 +188,7 @@ namespace PowerMath.PlayerLifecycle
             _videoStatus.EnableInClassList("is-hidden", string.IsNullOrWhiteSpace(status));
         }
 
-        public void ShowSelection(
-            RenderTexture texture,
-            Sprite rickoOverview,
-            Sprite stellarOverview)
+        public void ShowSelection(RenderTexture texture)
         {
             ShowOnly(_selectionStage);
             SetState(PlayerPreparationSequenceState.CharacterSelection);
@@ -208,11 +197,6 @@ namespace PowerMath.PlayerLifecycle
             _selectionVideoImage.style.display = hasVideo
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
-            _selectionFallback.style.display = hasVideo
-                ? DisplayStyle.None
-                : DisplayStyle.Flex;
-            _rickoOverview.sprite = rickoOverview;
-            _stellarOverview.sprite = stellarOverview;
             ClearError();
         }
 

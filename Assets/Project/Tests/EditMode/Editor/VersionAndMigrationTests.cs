@@ -89,6 +89,26 @@ namespace PowerMath.Tests.EditMode
         }
 
         [Test]
+        public void VersionChecker_InvalidManifestDoesNotBlockGameplay()
+        {
+            var invalidManifest = new GameVersionManifest
+            {
+                clientVersion = "1.0.0.0",
+                minSupportedVersion = "2.0.0.0",
+                schemaVersion = 1
+            };
+
+            var result = GameVersionChecker.EvaluateCompatibility(
+                invalidManifest,
+                "1.0.0.0",
+                3,
+                out string message);
+
+            Assert.That(result, Is.EqualTo(VersionCompatibilityResult.Compatible));
+            Assert.That(message, Does.Contain("continuing"));
+        }
+
+        [Test]
         public void PlayerSchemaMigrator_EnsuresBaselineDefaultsOnEmptySnapshot()
         {
             var snapshot = new PlayerSnapshot

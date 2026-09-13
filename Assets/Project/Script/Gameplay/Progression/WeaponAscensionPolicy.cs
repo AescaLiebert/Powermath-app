@@ -22,13 +22,13 @@ namespace PowerMath.Gameplay.Progression
     {
         public const string CanonicalItemId = "weapon-ascension";
         public const int MaximumLevel = 100;
-        public const int DefaultBaseWeaponAttack = 5;
+        public const int DefaultBaseWeaponAttack = 20;
 
         public static long GetNextCost(int currentLevel)
         {
             ValidateLevel(currentLevel);
             if (currentLevel >= MaximumLevel) return 0;
-            return checked((long)Math.Ceiling(8d * Math.Pow(1.06d, currentLevel)));
+            return checked((long)Math.Round(10d + 4d * currentLevel + 0.35d * currentLevel * currentLevel, MidpointRounding.AwayFromZero));
         }
 
         public static WeaponAscensionStats GetStats(int level)
@@ -41,8 +41,9 @@ namespace PowerMath.Gameplay.Progression
             ValidateLevel(level);
             if (baseWeaponAttack < 0)
                 throw new ArgumentOutOfRangeException(nameof(baseWeaponAttack));
+            double progress = level / 100d;
             int attack = checked(baseWeaponAttack + (int)Math.Round(
-                20d * Math.Pow(level / 20d, 1.2d),
+                1480d * progress * progress,
                 MidpointRounding.AwayFromZero));
             return new WeaponAscensionStats(
                 level,

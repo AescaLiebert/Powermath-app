@@ -4,6 +4,7 @@ using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
+using PowerMath.Localization;
 using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -20,7 +21,6 @@ namespace PowerMath.UI.MainMenu
         private readonly PetGachaCatalogDefinition _petDefinition;
         private readonly PetGachaCatalog _petCatalog;
         private readonly IPetEquipCommandStore _petEquipStore;
-        private readonly int _baseAttack;
         private readonly int _baseWeaponAttack;
         private readonly double _baseCriticalRate;
         private readonly double _baseCriticalDamagePercent;
@@ -44,7 +44,6 @@ namespace PowerMath.UI.MainMenu
             PetGachaCatalogDefinition petDefinition,
             PetGachaCatalog petCatalog,
             IPetEquipCommandStore petEquipStore,
-            int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent,
@@ -61,7 +60,6 @@ namespace PowerMath.UI.MainMenu
             _petDefinition = petDefinition;
             _petCatalog = petCatalog;
             _petEquipStore = petEquipStore;
-            _baseAttack = baseAttack;
             _baseWeaponAttack = baseWeaponAttack;
             _baseCriticalRate = baseCriticalRate;
             _baseCriticalDamagePercent = baseCriticalDamagePercent;
@@ -122,8 +120,8 @@ namespace PowerMath.UI.MainMenu
             bool hubAvailable = GameVersionChecker.IsFeatureAvailable(GameFeature.PlayerHub);
             if (!hubAvailable)
             {
-                _view.OpenButton.SetEnabled(false);
-                _view.OpenButton.pickingMode = PickingMode.Ignore;
+                _view.OpenButton.SetEnabled(true);
+                _view.OpenButton.pickingMode = PickingMode.Position;
                 _view.OpenButton.tooltip = "Player Hub (Locked in v1.0)";
                 _view.OpenButton.AddToClassList("is-feature-locked");
                 _view.LockOverlay?.RemoveFromClassList("is-hidden");
@@ -143,7 +141,12 @@ namespace PowerMath.UI.MainMenu
 
         private void Open()
         {
-            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PlayerHub)) return;
+            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PlayerHub))
+            {
+                StatusMessageService.ShowWarning(
+                    LocalizationService.Get("menu.lockedFeatureUpdate"));
+                return;
+            }
 
             if (_busy || !_panelHost.TryOpen(
                     MainMenuPanelId.PlayerHub,
@@ -196,7 +199,6 @@ namespace PowerMath.UI.MainMenu
         {
             return PlayerStatProjectionFactory.Create(
                 _player,
-                _baseAttack,
                 _baseWeaponAttack,
                 _baseCriticalRate,
                 _baseCriticalDamagePercent,
@@ -207,9 +209,17 @@ namespace PowerMath.UI.MainMenu
         {
             RenderSummary(stats);
             _view.EffectiveAttack.text = $"{stats.EffectiveAttack:N0} ATK";
-            _view.AttackBreakdown.text = stats.HasConfiguredPetStats
-                ? $"BASE {stats.BaseAttack:N0}  -  WEAPON {stats.Weapon.Attack:N0}  -  PET {stats.PetAttack:N0}"
-                : $"BASE {stats.BaseAttack:N0}  -  WEAPON {stats.Weapon.Attack:N0}";
+            if (stats.HasConfiguredPetStats)
+            {
+                string petText = stats.PetMultiplierPercent > 0d
+                    ? $"  -  PET +{stats.PetFlatAttack:N0} / ×{1d + stats.PetMultiplierPercent / 100d:0.##}"
+                    : $"  -  PET +{stats.PetFlatAttack:N0}";
+                _view.AttackBreakdown.text = $"WEAPON {stats.Weapon.Attack:N0}{petText}";
+            }
+            else
+            {
+                _view.AttackBreakdown.text = $"WEAPON {stats.Weapon.Attack:N0}";
+            }
             _view.LegacyBonus.text =
                 $"REBIRTH +{stats.LegacyBasisPoints / 100d:0.0}%  -  +{stats.LegacyBonusAttack:N0} ATK";
             _view.PetStatus.text = string.Empty;
@@ -235,9 +245,9 @@ namespace PowerMath.UI.MainMenu
 
             if (current.Level >= WeaponAscensionPolicy.MaximumLevel)
             {
-                _view.WeaponNext.text = "MAXIMUM POWER REACHED";
-                _view.WeaponCost.text = "NO FURTHER ASCENSION";
-                _view.UpgradeButton.text = "MAX LEVEL";
+                _view.WeaponNext.text = PowerMath.Localization.LocalizationService.Get("menu.maxPower");
+                _view.WeaponCost.text = PowerMath.Localization.LocalizationService.Get("menu.noAscension");
+                _view.UpgradeButton.text = PowerMath.Localization.LocalizationService.Get("menu.maxLevel");
                 _view.UpgradeButton.SetEnabled(false);
                 return;
             }
@@ -251,8 +261,8 @@ namespace PowerMath.UI.MainMenu
             string nextName = nextTier?.displayName ?? currentName;
             _view.WeaponNext.text =
                 $"{nextName.ToUpperInvariant()}  LV.{next.Level}\nATK {next.Attack:N0}   CR +{next.CriticalRatePercent}%   CD +{next.CriticalDamagePercent}%";
-            _view.WeaponCost.text = $"{cost:N0} POWER COINS";
-            _view.UpgradeButton.text = $"ASCEND  PWR {cost:N0}";
+            _view.WeaponCost.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, PowerMath.Localization.LocalizationService.Get("menu.powerCoinCost"), cost);
+            _view.UpgradeButton.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, PowerMath.Localization.LocalizationService.Get("menu.ascendCost"), cost);
             _view.UpgradeButton.SetEnabled(CanMutate(out _));
         }
 

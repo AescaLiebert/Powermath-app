@@ -32,6 +32,7 @@ namespace PowerMath.Audio
         [SerializeField] private float musicVolume = 1f;
         [SerializeField] private bool isMuted = false;
         [SerializeField] private bool isBossActive = false;
+        [SerializeField] private bool isEncounterOverrideActive = false;
         [SerializeField] private int duckingRequestCount = 0;
         [SerializeField] private string currentBattleBiomeId = string.Empty;
 
@@ -57,6 +58,9 @@ namespace PowerMath.Audio
 
         private float _currentDuckMultiplier = 1f;
         private float _duckProgress = 0f; // 0 = unducked (1.0), 1 = fully ducked (duckVolumeFactor)
+        private MusicTrackConfig _activeEncounterMusic;
+        private MusicLibraryDefinition _preloadedLibrary;
+        private bool _wasBossDefeated;
 
         public float MasterVolume
         {
@@ -77,6 +81,7 @@ namespace PowerMath.Audio
         }
 
         public bool IsBossActive => isBossActive;
+        public bool IsEncounterOverrideActive => isEncounterOverrideActive;
         public bool IsDucked => duckingRequestCount > 0;
         public string CurrentBattleBiomeId => currentBattleBiomeId;
         public MusicLibraryDefinition Library => library;
@@ -124,6 +129,23 @@ namespace PowerMath.Audio
             {
                 library = ScriptableObject.CreateInstance<MusicLibraryDefinition>();
             }
+
+            if (_preloadedLibrary != library)
+            {
+                _preloadedLibrary = library;
+                foreach (AudioClip clip in library.ConfiguredClips)
+                {
+                    PreloadClip(clip);
+                }
+            }
+        }
+
+        public void PreloadClip(AudioClip clip)
+        {
+            if (clip != null && clip.loadState == AudioDataLoadState.Unloaded)
+            {
+                clip.LoadAudioData();
+            }
         }
 
         private void InitializeChannels()
@@ -161,6 +183,9 @@ namespace PowerMath.Audio
             FadeOutChannel(_battleChannel, library.DefaultCrossfadeDuration, stopOnZero: true);
             FadeOutChannel(_bossChannel, library.BossInterruptDuration, stopOnZero: true);
             isBossActive = false;
+            isEncounterOverrideActive = false;
+            _activeEncounterMusic = null;
+            _wasBossDefeated = false;
 
             AudioClip loginClip = library.GetLoginClipWithFallback();
             float targetScale = library.LoginMusic?.VolumeScale ?? 0.85f;
@@ -182,7 +207,7 @@ namespace PowerMath.Audio
             }
         }
 
-        public void PlayBattleMusic(string biomeId = null)
+        public void PlayBattleMusic(string biomeId = null, bool suddenKickIn = false, bool forceRestart = false)
         {
             InitializeChannels();
             EnsureLibrary();
@@ -190,55 +215,117 @@ namespace PowerMath.Audio
             // Fade out theme music smoothly
             FadeOutChannel(_themeChannel, library.DefaultCrossfadeDuration, stopOnZero: true);
 
-            currentBattleBiomeId = biomeId;
             AudioClip battleClip = library.GetBattleClipWithFallback(biomeId);
+            PreloadClip(battleClip);
             MusicTrackConfig config = library.ResolveBattleTrack(biomeId);
             float targetScale = config?.VolumeScale ?? 0.85f;
             _battleChannel.TrackVolumeScale = targetScale;
 
-            if (_battleSource.clip != battleClip)
+            bool isSameBiome = string.Equals(currentBattleBiomeId, biomeId, StringComparison.OrdinalIgnoreCase);
+            bool isDifferentClip = (_battleSource.clip != battleClip);
+            // Sudden kick-in polish applies ONLY when coming from a boss defeat into a new biome with different music,
+            // or when explicitly requested with a different music track.
+            bool shouldSuddenKickIn = isDifferentClip && (suddenKickIn || (_wasBossDefeated && !isSameBiome));
+
+            currentBattleBiomeId = biomeId;
+            _wasBossDefeated = false;
+
+            if (isDifferentClip || forceRestart)
             {
-                // Smooth crossfade to new biome track
                 _battleSource.clip = battleClip;
                 _battleSource.loop = config?.Loop ?? true;
                 _battleSource.time = 0f;
-                _battleSource.Play();
+
+                if (shouldSuddenKickIn)
+                {
+                    if (_bossChannel != null)
+                    {
+                        _bossChannel.CurrentBaseVolume = 0f;
+                        _bossChannel.TargetBaseVolume = 0f;
+                        if (_bossSource != null && _bossSource.isPlaying)
+                        {
+                            _bossSource.Stop();
+                        }
+                        isBossActive = false;
+                        isEncounterOverrideActive = false;
+                        _activeEncounterMusic = null;
+                    }
+
+                    _battleChannel.CurrentBaseVolume = 1f;
+                    _battleChannel.TargetBaseVolume = 1f;
+                    _battleChannel.FadeSpeed = 1f;
+                    _battleChannel.StopOnZero = false;
+                    _battleSource.volume = Mathf.Clamp01(targetScale * masterVolume * musicVolume);
+                    _battleSource.Play();
+                }
+                else
+                {
+                    // Start a newly selected biome track silently and crossfade
+                    _battleChannel.CurrentBaseVolume = 0f;
+                    _battleSource.volume = 0f;
+                    _battleSource.Play();
+                    _battleChannel.FadeSpeed = 1f / library.DefaultCrossfadeDuration;
+                    _battleChannel.StopOnZero = false;
+                    _battleChannel.TargetBaseVolume = isEncounterOverrideActive ? 0f : 1f;
+                }
             }
-            else if (!_battleSource.isPlaying)
+            else
             {
-                _battleSource.Play();
+                // Same music track: continuous playback must NOT be interrupted or restarted.
+                if (!_battleSource.isPlaying)
+                {
+                    _battleSource.Play();
+                }
+
+                _battleChannel.FadeSpeed = 1f / library.DefaultCrossfadeDuration;
+                _battleChannel.StopOnZero = false;
+                _battleChannel.TargetBaseVolume = isEncounterOverrideActive ? 0f : 1f;
             }
-
-            _battleChannel.FadeSpeed = 1f / library.DefaultCrossfadeDuration;
-            _battleChannel.StopOnZero = false;
-
-            // If Big Boss is currently interrupting, battle music remains running at 0 volume.
-            // Otherwise, it fades up to full volume.
-            _battleChannel.TargetBaseVolume = isBossActive ? 0f : 1f;
         }
 
         public void SetBossBattleActive(bool isActive)
         {
+            SetEncounterMusicOverride(null, isActive);
+        }
+
+        public void SetEncounterMusicOverride(MusicTrackConfig customTrack, bool isBossEncounter = false)
+        {
             InitializeChannels();
             EnsureLibrary();
 
-            if (isBossActive == isActive) return;
-            isBossActive = isActive;
+            bool hasCustomTrack = customTrack != null && customTrack.Clip != null;
+            bool shouldOverride = hasCustomTrack || isBossEncounter;
+            MusicTrackConfig desiredTrack = hasCustomTrack ? customTrack :
+                (isBossEncounter ? library.BossBattleMusic : null);
+
+            isBossActive = isBossEncounter;
 
             float duration = library.BossInterruptDuration;
 
-            if (isActive)
+            if (shouldOverride)
             {
-                // Boss arrives:
-                // 1. Boss channel starts playing and fades in.
-                AudioClip bossClip = library.GetBossClipWithFallback();
-                float targetScale = library.BossBattleMusic?.VolumeScale ?? 0.95f;
+                AudioClip overrideClip = hasCustomTrack
+                    ? customTrack.Clip
+                    : library.GetBossClipWithFallback();
+                PreloadClip(overrideClip);
+                float targetScale = desiredTrack?.VolumeScale ?? 0.95f;
+                bool trackChanged = _bossSource.clip != overrideClip;
+
+                isEncounterOverrideActive = true;
+                _activeEncounterMusic = desiredTrack;
                 _bossChannel.TrackVolumeScale = targetScale;
 
-                if (_bossSource.clip != bossClip || !_bossSource.isPlaying)
+                if (trackChanged || !_bossSource.isPlaying)
                 {
-                    _bossSource.clip = bossClip;
-                    _bossSource.loop = library.BossBattleMusic?.Loop ?? true;
+                    // A changed encounter track begins silent so it cannot pop at the
+                    // previous override's full volume before the next audio tick.
+                    if (trackChanged)
+                    {
+                        _bossChannel.CurrentBaseVolume = 0f;
+                        _bossSource.volume = 0f;
+                    }
+                    _bossSource.clip = overrideClip;
+                    _bossSource.loop = desiredTrack?.Loop ?? true;
                     _bossSource.time = 0f;
                     _bossSource.Play();
                 }
@@ -247,23 +334,20 @@ namespace PowerMath.Audio
                 _bossChannel.TargetBaseVolume = 1f;
                 _bossChannel.StopOnZero = false;
 
-                // 2. Normal battle channel fades to 0 volume BUT DOES NOT STOP!
-                // It continues playing in the background without retracking.
+                // Underlying battle music continues silently so it can resume at
+                // its current timeline position after the encounter override.
                 _battleChannel.FadeSpeed = 1f / duration;
                 _battleChannel.TargetBaseVolume = 0f;
-                _battleChannel.StopOnZero = false; // Keep playing silently!
+                _battleChannel.StopOnZero = false;
             }
             else
             {
-                // Boss finishes:
-                // 1. Boss channel fades out and stops when 0.
+                if (!isEncounterOverrideActive) return;
+
+                isEncounterOverrideActive = false;
+                _activeEncounterMusic = null;
                 FadeOutChannel(_bossChannel, duration, stopOnZero: true);
 
-                // 2. Normal battle channel fades back up smoothly at current timeline position.
-                if (!_battleSource.isPlaying)
-                {
-                    _battleSource.Play();
-                }
                 _battleChannel.FadeSpeed = 1f / duration;
                 _battleChannel.TargetBaseVolume = 1f;
                 _battleChannel.StopOnZero = false;
@@ -272,13 +356,10 @@ namespace PowerMath.Audio
 
         public void SetDucking(bool isDucked)
         {
-            if (isDucked)
+            duckingRequestCount = isDucked ? 1 : 0;
+            if (!isDucked)
             {
-                duckingRequestCount++;
-            }
-            else
-            {
-                duckingRequestCount = Mathf.Max(0, duckingRequestCount - 1);
+                EnsurePlayback();
             }
         }
 
@@ -292,6 +373,76 @@ namespace PowerMath.Audio
             FadeOutChannel(_battleChannel, duration, stopOnZero: true);
             FadeOutChannel(_bossChannel, duration, stopOnZero: true);
             isBossActive = false;
+            isEncounterOverrideActive = false;
+            _activeEncounterMusic = null;
+            _wasBossDefeated = false;
+        }
+
+        public void ResetBattleState()
+        {
+            InitializeChannels();
+            currentBattleBiomeId = string.Empty;
+            isBossActive = false;
+            isEncounterOverrideActive = false;
+            _activeEncounterMusic = null;
+            _wasBossDefeated = false;
+
+            if (_battleSource != null)
+            {
+                _battleSource.Stop();
+                _battleSource.time = 0f;
+                _battleSource.clip = null;
+            }
+            if (_bossSource != null)
+            {
+                _bossSource.Stop();
+                _bossSource.time = 0f;
+                _bossSource.clip = null;
+            }
+            if (_battleChannel != null)
+            {
+                _battleChannel.CurrentBaseVolume = 0f;
+                _battleChannel.TargetBaseVolume = 0f;
+            }
+            if (_bossChannel != null)
+            {
+                _bossChannel.CurrentBaseVolume = 0f;
+                _bossChannel.TargetBaseVolume = 0f;
+            }
+        }
+
+        public void FadeOutBossMusic(float fadeDuration = 1.2f)
+        {
+            InitializeChannels();
+            EnsureLibrary();
+
+            float duration = fadeDuration > 0f ? fadeDuration : library.BossInterruptDuration;
+            FadeOutChannel(_bossChannel, duration, stopOnZero: true);
+            isBossActive = false;
+            isEncounterOverrideActive = false;
+            _activeEncounterMusic = null;
+            _wasBossDefeated = true;
+        }
+
+        public void EnsurePlayback()
+        {
+            if (AudioListener.pause)
+            {
+                AudioListener.pause = false;
+            }
+
+            if (_themeChannel != null && _themeChannel.TargetBaseVolume > 0.0001f && _themeSource != null && !_themeSource.isPlaying && _themeSource.clip != null)
+            {
+                _themeSource.Play();
+            }
+            if (_battleChannel != null && _battleChannel.TargetBaseVolume > 0.0001f && _battleSource != null && !_battleSource.isPlaying && _battleSource.clip != null)
+            {
+                _battleSource.Play();
+            }
+            if (_bossChannel != null && _bossChannel.TargetBaseVolume > 0.0001f && _bossSource != null && !_bossSource.isPlaying && _bossSource.clip != null)
+            {
+                _bossSource.Play();
+            }
         }
 
         private void FadeOutChannel(ChannelState channel, float duration, bool stopOnZero)
@@ -350,9 +501,9 @@ namespace PowerMath.Audio
                 }
             }
 
-            if (_bossChannel != null && library.BossBattleMusic != null)
+            if (_bossChannel != null && _activeEncounterMusic != null)
             {
-                _bossChannel.TrackVolumeScale = library.BossBattleMusic.VolumeScale;
+                _bossChannel.TrackVolumeScale = _activeEncounterMusic.VolumeScale;
             }
         }
 
@@ -370,6 +521,10 @@ namespace PowerMath.Audio
             if (channel.CurrentBaseVolume <= 0.0001f && channel.StopOnZero && channel.Source.isPlaying)
             {
                 channel.Source.Stop();
+            }
+            else if (channel.TargetBaseVolume > 0.0001f && !channel.Source.isPlaying && channel.Source.clip != null)
+            {
+                channel.Source.Play();
             }
 
             if (isMuted)

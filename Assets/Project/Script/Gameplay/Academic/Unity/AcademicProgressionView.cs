@@ -12,6 +12,7 @@ namespace PowerMath.Gameplay.Academic.Unity
         private readonly Label _activeCurrencyLabel;
         private readonly Label _questionMeta;
         private readonly Label _questionPrompt;
+        private readonly VisualElement _equationRow;
         private readonly Label _currencyGain;
         private readonly VisualElement _rankModal;
         private readonly Label _rankModalHeader;
@@ -19,6 +20,7 @@ namespace PowerMath.Gameplay.Academic.Unity
         private readonly Label _rankModalBody;
         private readonly Label _rankModalMultiplier;
         private readonly Button _rankContinueButton;
+
         private readonly VisualElement _rankRouteContainer;
         private readonly VisualElement _rankBadgePrev;
         private readonly VisualElement _rankBadgeCurr;
@@ -45,6 +47,7 @@ namespace PowerMath.Gameplay.Academic.Unity
             _activeCurrencyLabel = Require<Label>(root, "academic-active-currency");
             _questionMeta = Require<Label>(root, "academic-question-meta");
             _questionPrompt = Require<Label>(root, "academic-question-prompt");
+            _equationRow = root.Q<VisualElement>("equation-row");
             _currencyGain = Require<Label>(root, "academic-currency-gain");
             _rankModal = Require<VisualElement>(root, "academic-rank-modal");
             _rankModalHeader = Require<Label>(root, "academic-rank-modal-header");
@@ -125,14 +128,22 @@ namespace PowerMath.Gameplay.Academic.Unity
             }
         }
 
-        public void ShowQuestion(QuestionPresentationDescriptor question)
+        public void ShowQuestion(QuestionPresentationDescriptor question, bool isAdminBypassActive = false)
         {
+            if (question == null) return;
             _questionMeta.text = $"{question.Id} - {question.Rank}";
-            _questionPrompt.text = question.DevelopmentPrompt;
             _questionMeta.style.display = DisplayStyle.Flex;
-            _questionPrompt.style.display = string.IsNullOrEmpty(question.DevelopmentPrompt)
-                ? DisplayStyle.None
-                : DisplayStyle.Flex;
+            bool showPrompt = isAdminBypassActive && !string.IsNullOrEmpty(question.DevelopmentPrompt);
+            _questionPrompt.text = showPrompt ? question.DevelopmentPrompt : string.Empty;
+            _questionPrompt.style.display = showPrompt
+                ? DisplayStyle.Flex
+                : DisplayStyle.None;
+            if (_equationRow != null)
+            {
+                _equationRow.style.display = showPrompt
+                    ? DisplayStyle.Flex
+                    : DisplayStyle.None;
+            }
         }
 
         public void ClearQuestion()
@@ -141,6 +152,10 @@ namespace PowerMath.Gameplay.Academic.Unity
             _questionPrompt.text = string.Empty;
             _questionMeta.style.display = DisplayStyle.None;
             _questionPrompt.style.display = DisplayStyle.None;
+            if (_equationRow != null)
+            {
+                _equationRow.style.display = DisplayStyle.None;
+            }
         }
 
         public void ShowCurrencyGain(AcademicAttemptResult result)

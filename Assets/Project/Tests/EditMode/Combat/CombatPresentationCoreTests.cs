@@ -88,6 +88,35 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [Test]
+        public void Receipt_EnemyAttackedWithZeroHeartDelta_IsValidForInvincibility()
+        {
+            var source = new CombatPresentationSnapshot(
+                new StageId(1), "biome-a", "enemy-a", StageEncounterKind.NormalMonster,
+                10, 10, 0, 2, 3, 3, CombatPhase.Committed);
+            var destination = new CombatPresentationSnapshot(
+                new StageId(1), "biome-a", "enemy-a", StageEncounterKind.NormalMonster,
+                10, 10, 2, 2, 3, 3, CombatPhase.PresentingResult);
+            var receipt = new AttemptPresentationReceipt(
+                "presentation-invincible",
+                "attempt-invincible",
+                AttemptOutcomeKind.Incorrect,
+                0,
+                0,
+                false,
+                source,
+                destination,
+                10,
+                false,
+                true,
+                false,
+                false,
+                false,
+                default);
+
+            Assert.That(receipt.TryValidate(out string error), Is.True, error);
+        }
+
+        [Test]
         public void Readiness_RequiresAuthorityActorsQueueUiAndNoReceipt()
         {
             var ready = new CombatInteractionReadinessSnapshot(

@@ -128,12 +128,31 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 "Primary Navigation");
 
             Assert.That(navigator, Is.Not.Null);
-            Assert.That(root.Q<Button>("combat-map-button").parent,
-                Is.SameAs(navigator));
-            Assert.That(root.Q<Button>("leaderboard").parent,
-                Is.SameAs(navigator));
-            Assert.That(root.Q<Button>("setting").parent,
-                Is.SameAs(navigator));
+            Button mapButton = root.Q<Button>("map");
+            Assert.That(mapButton.parent, Is.SameAs(navigator));
+            VisualElement mapIcon = mapButton.Q<VisualElement>(
+                "main-menu-map-icon");
+            Assert.That(mapIcon, Is.Not.Null);
+            Assert.That(mapIcon.ClassListContains("hud-map-icon"), Is.True);
+            Button leaderboardButton = root.Q<Button>("leaderboard");
+            Assert.That(leaderboardButton.parent, Is.SameAs(navigator));
+            VisualElement leaderboardIcon = leaderboardButton.Q<VisualElement>(
+                "main-menu-leaderboard-icon");
+            Assert.That(leaderboardIcon, Is.Not.Null);
+            Assert.That(
+                leaderboardIcon.ClassListContains("hud-leaderboard-icon"),
+                Is.True);
+            Button settingsButton = root.Q<Button>("setting");
+            Assert.That(settingsButton.parent, Is.SameAs(navigator));
+            Assert.That(
+                settingsButton.ClassListContains("hud-icon-button--settings"),
+                Is.True);
+            VisualElement settingsIcon = settingsButton.Q<VisualElement>(
+                "main-menu-settings-icon");
+            Assert.That(settingsIcon, Is.Not.Null);
+            Assert.That(
+                settingsIcon.ClassListContains("hud-settings-icon"),
+                Is.True);
             Assert.That(navigator.Q<FigmaShadowElement>(
                 "Utility / MAP Shadow"), Is.Not.Null);
             Assert.That(navigator.Q<FigmaShadowElement>(
@@ -288,15 +307,13 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Is.EqualTo(5),
                 "Three score rows should be connected by two visual arrows.");
 
+            var stickerSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+            view.SetResultStickers(stickerSprite, stickerSprite);
             view.ShowAnswerFeedback("OK", "CORRECT", "OK", true);
-            Image correctSticker = root.Q<Image>(
-                "combat-result-sticker-correct");
-            Image failSticker = root.Q<Image>(
-                "combat-result-sticker-fail");
-            Assert.That(correctSticker, Is.Not.Null);
-            Assert.That(failSticker, Is.Not.Null);
-            Assert.That(correctSticker.sprite, Is.Not.Null);
-            Assert.That(failSticker.sprite, Is.Not.Null);
+            var stickerImage = root.Q<Image>("combat-result-sticker");
+            Assert.That(stickerImage, Is.Not.Null);
+            Assert.That(stickerImage.ClassListContains("is-hidden"), Is.False);
+            Assert.That(stickerImage.sprite, Is.SameAs(stickerSprite));
             Assert.That(
                 root.Q<VisualElement>("combat-feedback-card")
                     .ClassListContains("combat-feedback-card--negative"),
@@ -307,11 +324,69 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 root.Q<VisualElement>("combat-feedback-card")
                     .ClassListContains("combat-feedback-card--negative"),
                 Is.True);
+            Assert.That(stickerImage.ClassListContains("is-hidden"), Is.False);
+            Assert.That(stickerImage.sprite, Is.SameAs(stickerSprite));
 
             view.HideAnswerFeedback();
             Assert.That(
                 root.Q<VisualElement>("combat-feedback-card").style.display.value,
                 Is.EqualTo(DisplayStyle.None));
+            Assert.That(stickerImage.ClassListContains("is-hidden"), Is.True);
+        }
+
+        [Test]
+        public void AnswerFeedback_ResultStickers_DirectVisibilityWithoutSelfTransition()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
+            );
+            VisualElement root = asset.CloneTree();
+            using var view = new CombatLobbyView(root);
+
+            VisualElement feedbackCard = root.Q<VisualElement>("combat-feedback-card");
+            VisualElement feedbackContent = root.Q<VisualElement>("combat-feedback-content");
+            VisualElement stickerCorrect = root.Q<VisualElement>("combat-result-sticker-correct");
+            VisualElement stickerFail = root.Q<VisualElement>("combat-result-sticker-fail");
+
+            Assert.That(feedbackCard, Is.Not.Null, "combat-feedback-card must exist.");
+            Assert.That(feedbackContent, Is.Not.Null, "combat-feedback-content must exist.");
+            Assert.That(stickerCorrect, Is.Not.Null, "combat-result-sticker-correct must exist.");
+            Assert.That(stickerFail, Is.Not.Null, "combat-result-sticker-fail must exist.");
+
+            Assert.That(stickerCorrect.parent, Is.SameAs(feedbackContent), "combat-result-sticker-correct must be a child of content.");
+            Assert.That(stickerFail.parent, Is.SameAs(feedbackContent), "combat-result-sticker-fail must be a child of content.");
+
+            // Test initial state
+            Assert.That(stickerCorrect.ClassListContains("is-hidden"), Is.True);
+            Assert.That(stickerFail.ClassListContains("is-hidden"), Is.True);
+
+            // Test SetResultStickerVisibility(true)
+            view.SetResultStickerVisibility(true);
+            Assert.That(stickerCorrect.ClassListContains("is-hidden"), Is.False);
+            Assert.That(stickerFail.ClassListContains("is-hidden"), Is.True);
+
+            // Test SetResultStickerVisibility(false)
+            view.SetResultStickerVisibility(false);
+            Assert.That(stickerCorrect.ClassListContains("is-hidden"), Is.True);
+            Assert.That(stickerFail.ClassListContains("is-hidden"), Is.False);
+
+            // Test SetResultStickerVisibility(null)
+            view.SetResultStickerVisibility(null);
+            Assert.That(stickerCorrect.ClassListContains("is-hidden"), Is.True);
+            Assert.That(stickerFail.ClassListContains("is-hidden"), Is.True);
+
+            // Test ShowAnswerFeedback toggling
+            view.ShowAnswerFeedback("EXCELLENT", "CORRECT", "Great job", true);
+            Assert.That(stickerCorrect.ClassListContains("is-hidden"), Is.False);
+            Assert.That(stickerFail.ClassListContains("is-hidden"), Is.True);
+
+            view.ShowAnswerFeedback("MISS", "FAILURE", "Try again", false);
+            Assert.That(stickerCorrect.ClassListContains("is-hidden"), Is.True);
+            Assert.That(stickerFail.ClassListContains("is-hidden"), Is.False);
+
+            view.HideAnswerFeedback();
+            Assert.That(stickerCorrect.ClassListContains("is-hidden"), Is.True);
+            Assert.That(stickerFail.ClassListContains("is-hidden"), Is.True);
         }
 
         [Test]
@@ -489,6 +564,23 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
 
         [Test]
+        public void MainMenuAsset_ContainsBossWarningContract()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
+            );
+            Assert.That(asset, Is.Not.Null);
+
+            VisualElement root = asset.CloneTree();
+            VisualElement warning = root.Q<VisualElement>("combat-boss-warning");
+            Assert.That(warning, Is.Not.Null);
+            Assert.That(warning.ClassListContains("combat-boss-warning"), Is.True);
+            Assert.That(root.Q<VisualElement>("combat-boss-warning-wash"), Is.Not.Null);
+            Assert.That(root.Q<VisualElement>("combat-boss-warning-content"), Is.Not.Null);
+            Assert.That(root.Q<Label>("combat-boss-warning-title"), Is.Not.Null);
+        }
+
+        [Test]
         public void PlayBiomeTransition_ChangesBackgroundWithoutRevealingDestinationEnemy()
         {
             VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
@@ -541,7 +633,8 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(routine.Current, Is.TypeOf<WaitForSecondsRealtime>());
 
             Assert.That(root.Q<Label>("combat-biome-transition-title").text, Is.EqualTo("CRYSTAL CAVERNS"));
-            Assert.That(root.Q<Label>("combat-biome-transition-kicker").text, Is.Empty);
+            Assert.That(root.Q<Label>("combat-biome-transition-kicker").text,
+                Is.EqualTo("ENTERING NEW BIOME"));
             Assert.That(crossfadedBiome, Is.EqualTo("biome-2"));
             Assert.That(crossfadedDuration, Is.GreaterThan(0f));
             Assert.That(renderedBiome, Is.Null);
@@ -665,6 +758,45 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             view.RefreshLocalizedEnemyName();
             Assert.That(root.Q<Label>("combat-enemy-name").text, Is.EqualTo("สไลม์น้ำแข็ง"));
             Assert.That(root.Q<Label>("combat-enemy-name-shadow").text, Is.EqualTo("สไลม์น้ำแข็ง"));
+        }
+
+        [Test]
+        public void AcademicProgressionView_ShowQuestion_HidesPromptForNormalUser_ShowsOnlyForAdminBypass()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MainMenuUxml);
+            Assert.That(asset, Is.Not.Null);
+
+            VisualElement root = asset.CloneTree();
+            using var view = new AcademicProgressionView(root);
+            view.Bind();
+
+            var descriptor = new QuestionPresentationDescriptor(
+                new QuestionId(1),
+                AcademicRank.Silver,
+                new System.Uri("https://example.com/video"),
+                "Answer: 42",
+                "video-123");
+
+            // Normal user (isAdminBypassActive = false)
+            view.ShowQuestion(descriptor, isAdminBypassActive: false);
+            var prompt = root.Q<Label>("academic-question-prompt");
+            var eqRow = root.Q<VisualElement>("equation-row");
+
+            Assert.That(prompt.text, Is.Empty);
+            Assert.That(prompt.style.display.value, Is.EqualTo(DisplayStyle.None));
+            if (eqRow != null)
+            {
+                Assert.That(eqRow.style.display.value, Is.EqualTo(DisplayStyle.None));
+            }
+
+            // Admin user with bypass active (isAdminBypassActive = true)
+            view.ShowQuestion(descriptor, isAdminBypassActive: true);
+            Assert.That(prompt.text, Is.EqualTo("Answer: 42"));
+            Assert.That(prompt.style.display.value, Is.EqualTo(DisplayStyle.Flex));
+            if (eqRow != null)
+            {
+                Assert.That(eqRow.style.display.value, Is.EqualTo(DisplayStyle.Flex));
+            }
         }
     }
 }

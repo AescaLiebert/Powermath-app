@@ -21,17 +21,8 @@ namespace PowerMath.Tests.EditMode
 
             Assert.That(plan, Is.Not.Null);
             Assert.That(plan.IsEmpty, Is.False);
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.revision"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.profile.displayName"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.profile.publicPlayerId"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.progression.currentStage"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.progression.highestStage"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.wallet.silver"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.wallet.powerCoins"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.inventory"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.activeRun.currentStage"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.academic.auditScore"));
-            Assert.That(plan.FieldPaths, Contains.Item("student_alpha.gamedata.analytics.totalQuestionsResolved"));
+            Assert.That(plan.FieldPaths, Is.EqualTo(new[] { "student_alpha.gamedata" }),
+                "Reset must replace the complete gamedata map so stale fields cannot survive.");
 
             string json = plan.ToJson();
             Assert.That(json, Contains.Substring("\"displayName\":{\"stringValue\":\"student_alpha\"}"));
@@ -39,6 +30,8 @@ namespace PowerMath.Tests.EditMode
             Assert.That(json, Contains.Substring("\"currentStage\":{\"integerValue\":\"1\"}"));
             Assert.That(json, Contains.Substring("\"silver\":{\"integerValue\":\"0\"}"));
             Assert.That(json, Contains.Substring("\"inventory\":{\"arrayValue\":{\"values\":[]}}"));
+            Assert.That(json, Contains.Substring("\"phase\":{\"stringValue\":\"opening\"}"));
+            Assert.That(json, Contains.Substring("\"tutorial\":{\"mapValue\""));
         }
 
         [Test]

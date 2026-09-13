@@ -7,11 +7,16 @@ namespace PowerMath.Gameplay.Pets
     public sealed class PetGachaPet
     {
         public PetGachaPet(string id, string displayName)
-            : this(id, displayName, 0)
+            : this(id, displayName, 0, 0d)
         {
         }
 
         public PetGachaPet(string id, string displayName, int attackBonus)
+            : this(id, displayName, attackBonus, 0d)
+        {
+        }
+
+        public PetGachaPet(string id, string displayName, int attackBonus, double attackMultiplierPercent)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentException("Pet ID is required.", nameof(id));
@@ -19,14 +24,20 @@ namespace PowerMath.Gameplay.Pets
                 throw new ArgumentException("Pet display name is required.", nameof(displayName));
             if (attackBonus < 0)
                 throw new ArgumentOutOfRangeException(nameof(attackBonus));
+            if (attackMultiplierPercent < 0d)
+                throw new ArgumentOutOfRangeException(nameof(attackMultiplierPercent));
             Id = id.Trim();
             DisplayName = displayName.Trim();
             AttackBonus = attackBonus;
+            AttackMultiplierPercent = attackMultiplierPercent;
         }
 
         public string Id { get; }
         public string DisplayName { get; }
+        /// <summary>Flat ATK added to (WeaponATK + PetFlatATK) before multipliers.</summary>
         public int AttackBonus { get; }
+        /// <summary>Percentage bonus applied as a multiplier on (WeaponATK + PetFlatATK). E.g. 10.0 = +10%.</summary>
+        public double AttackMultiplierPercent { get; }
     }
 
     public sealed class PetGachaRarity

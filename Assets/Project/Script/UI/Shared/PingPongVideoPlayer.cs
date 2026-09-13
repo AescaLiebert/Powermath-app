@@ -293,8 +293,15 @@ namespace PowerMath.UI.Shared
 #else
                     _player.clip = reverseClip;
 #endif
-                    _player.time = 0;
-                    _player.Play();
+                    try
+                    {
+                        if (_player.isPrepared) _player.time = 0;
+                        _player.Play();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"[PingPongVideoPlayer] Reverse playback error: {ex.Message}", this);
+                    }
                 }
                 else
                 {
@@ -319,8 +326,15 @@ namespace PowerMath.UI.Shared
                 }
 #endif
 
-                _player.time = 0;
-                _player.Play();
+                try
+                {
+                    if (_player.isPrepared) _player.time = 0;
+                    _player.Play();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[PingPongVideoPlayer] Forward playback error: {ex.Message}", this);
+                }
             }
         }
 
@@ -361,6 +375,7 @@ namespace PowerMath.UI.Shared
 
         private bool ApplyWebSource(PlaybackDirection direction)
         {
+            if (_player == null) return false;
             string configured = direction == PlaybackDirection.Reverse
                 ? reverseUrl
                 : forwardUrl;
@@ -370,8 +385,11 @@ namespace PowerMath.UI.Shared
                 return false;
             }
 
-            _player.source = VideoSource.Url;
-            _player.url = url;
+            if (_player.source != VideoSource.Url || _player.url != url)
+            {
+                _player.source = VideoSource.Url;
+                _player.url = url;
+            }
             return true;
         }
 #else

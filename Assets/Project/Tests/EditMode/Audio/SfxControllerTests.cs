@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using NUnit.Framework;
 using PowerMath.Audio;
 using UnityEngine;
@@ -41,7 +41,9 @@ namespace PowerMath.Tests.EditMode.Audio
             string[] cueKeys = {
                 "swing", "fail", "hit", "crit", "hurt",
                 "enemy_appear", "enemy_attack", "enemy_hurt", "die_normal", "die_major",
-                "popup", "click", "tick", "success", "failure", "multiplier", "biome_transition"
+                "popup", "click", "tick", "success", "failure", "multiplier", "biome_transition",
+                "auth_click", "auth_success", "auth_failure", "auth_language",
+                "reward_drop", "reward_magnet", "currency_rank", "currency_coin"
             };
 
             for (int i = 0; i < cueKeys.Length; i++)
@@ -90,6 +92,14 @@ namespace PowerMath.Tests.EditMode.Audio
             Assert.DoesNotThrow(() => _controller.PlayEnemy(EnemySfxState.Appear, "NormalMonster"));
             Assert.DoesNotThrow(() => _controller.PlayEnemy(EnemySfxState.Attack, "BigBoss"));
             Assert.DoesNotThrow(() => _controller.PlayEnemy(EnemySfxState.Die, "BigBoss", customProfile));
+
+            var binding = new EncounterKindSfxBinding("Big Boss", new SfxCueConfig(customClip), null, null, null);
+            var bindingsField = typeof(SfxLibraryDefinition).GetField("encounterKindBindings", BindingFlags.NonPublic | BindingFlags.Instance);
+            bindingsField?.SetValue(_library, new[] { binding });
+
+            Assert.That(_library.FindEncounterBinding("BigBoss"), Is.Not.Null);
+            Assert.That(_library.FindEncounterBinding("Big Boss"), Is.Not.Null);
+            Assert.That(_library.FindEncounterBinding("big_boss"), Is.Not.Null);
         }
 
         [Test]
@@ -113,6 +123,24 @@ namespace PowerMath.Tests.EditMode.Audio
             Assert.DoesNotThrow(() => _controller.PlayCharacterSelection(CharacterSelectionSfxState.CardHover));
             Assert.DoesNotThrow(() => _controller.PlayCharacterSelection(CharacterSelectionSfxState.CardClick));
             Assert.DoesNotThrow(() => _controller.PlayCharacterSelection(CharacterSelectionSfxState.CharacterAccepted));
+        }
+
+        [Test]
+        public void SfxController_PlayAuthentication_PlaysExpectedCues()
+        {
+            Assert.DoesNotThrow(() => _controller.PlayAuthentication(AuthenticationSfxState.LoginClick));
+            Assert.DoesNotThrow(() => _controller.PlayAuthentication(AuthenticationSfxState.Success));
+            Assert.DoesNotThrow(() => _controller.PlayAuthentication(AuthenticationSfxState.Failure));
+            Assert.DoesNotThrow(() => _controller.PlayAuthentication(AuthenticationSfxState.LanguageSwitch));
+        }
+
+        [Test]
+        public void SfxController_PlayReward_PlaysExpectedCues()
+        {
+            Assert.DoesNotThrow(() => _controller.PlayReward(RewardSfxState.OnDrop));
+            Assert.DoesNotThrow(() => _controller.PlayReward(RewardSfxState.Magnetism));
+            Assert.DoesNotThrow(() => _controller.PlayReward(RewardSfxState.CurrencyRank));
+            Assert.DoesNotThrow(() => _controller.PlayReward(RewardSfxState.CurrencyPowerCoin));
         }
 
         [Test]

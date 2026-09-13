@@ -96,7 +96,7 @@
     width: 34px;
     height: 34px;
     margin-right: 10px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=21300000&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -351,4 +351,12 @@
 
 .profile-analytics-modal.is-success .profile-name-status {
     color: rgb(185, 245, 202);
+}
+
+/* ─── SVG Icon Replacements ─── */
+
+.profile-star-icon {
+    width: 30px; height: 30px;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_star_sparkle.svg?fileID=11400000&guid=a5fa73d757521a24396f3866b85c51cb&type=2#icon_star_sparkle");
+    -unity-background-scale-mode: scale-to-fit; align-self: center;
 }

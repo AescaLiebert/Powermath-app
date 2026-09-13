@@ -87,6 +87,59 @@
     transition-duration: 0.08s;
 }
 
+/* Universal Consensus Circular Utility Button Standard:
+   Covers .mw-utility-button, .hud-icon-button, and .auth-utility across screens */
+.mw-utility-button,
+.hud-icon-button,
+.auth-utility {
+    min-width: 58px;
+    width: 58px;
+    min-height: 58px;
+    height: 58px;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    border-radius: 29px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    -unity-background-scale-mode: scale-to-fit;
+    transition-property: scale, translate, background-color, border-color;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out-back;
+}
+
+.mw-utility-button:hover,
+.mw-utility-button:focus,
+.hud-icon-button:hover,
+.hud-icon-button:focus,
+.auth-utility:hover,
+.auth-utility:focus {
+    background-color: rgb(255, 251, 238);
+    border-color: rgb(240, 188, 83);
+    scale: 1.06 1.06;
+    translate: 0 -2px;
+}
+
+.mw-utility-button:active,
+.hud-icon-button:active,
+.auth-utility:active {
+    scale: 0.92 0.92;
+    translate: 0 2px;
+    transition-duration: 0.08s;
+}
+
+.mw-utility-button:disabled,
+.hud-icon-button:disabled,
+.auth-utility:disabled {
+    opacity: 0.72;
+    scale: 1 1;
+    translate: 0 0;
+}
+
 .mw-status {
     min-height: auto;
     padding: 12px;
@@ -257,5 +310,19 @@
     flex-shrink: 1;
 }
 
-.isHidden {
+
+
+.generic-star {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    margin-left: 10px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    -unity-text-outline-color: rgb(0, 0, 0);
+    text-shadow: 0 0 0 rgb(0, 0, 0);
+    background-color: rgba(255, 255, 255, 0);
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
 }

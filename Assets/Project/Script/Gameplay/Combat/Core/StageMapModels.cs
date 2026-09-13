@@ -184,9 +184,27 @@ namespace PowerMath.Gameplay.Combat
 
     public static class StageHpPolicy
     {
+        public static long CalculateGrowthBasisPoints(int worldLevel, int earlyGrowthBasisPoints = 1200)
+        {
+            if (worldLevel <= 12)
+            {
+                // Early Game (Stages 1-60): Standard growth per WorldLevel (default 12% = 1200 bp)
+                return 10000L + (long)(worldLevel - 1) * earlyGrowthBasisPoints;
+            }
+            if (worldLevel <= 28)
+            {
+                // Mid Game (Stages 61-140): Base early growth + 25% per WorldLevel
+                long baseEarly = 10000L + 11L * earlyGrowthBasisPoints;
+                return baseEarly + (long)(worldLevel - 12) * 2500L;
+            }
+            // Late Game (Stages 141-215): Accelerating endgame growth reaching ~30.0x at WorldLevel 40 (Stage 200)
+            long baseMid = 10000L + 11L * earlyGrowthBasisPoints + 16L * 2500L;
+            return baseMid + (long)(worldLevel - 28) * 19750L;
+        }
+
         public static int Calculate(StageMapData map, MonsterData monster, string runId, StageId stage)
         {
-            long growth = 10000L + (long)(stage.WorldLevel - 1) * map.GrowthBasisPoints;
+            long growth = CalculateGrowthBasisPoints(stage.WorldLevel, map.GrowthBasisPoints);
             ulong hash = StableHash64.Compute(runId, map.CatalogVersion, stage.Value.ToString(), "hp");
             int span = map.VariationBasisPoints * 2 + 1;
             long variation = 10000L - map.VariationBasisPoints + (long)(hash % (ulong)span);
@@ -244,10 +262,11 @@ namespace PowerMath.Gameplay.Combat
                     if (!StageClassificationPolicy.IsProtected(stageId)) continue;
                     StageEncounterKind kind = StageClassificationPolicy.Classify(stageId, last, isFinalBiome);
                     int bossBaseHp = kind == StageEncounterKind.MiniBoss ? 45 + biomeIndex * 15
-                        : kind == StageEncounterKind.BigBoss ? 100 + biomeIndex * 50 : 500;
+                        : kind == StageEncounterKind.BigBoss ? 100 + biomeIndex * 50 : 5000;
+                    int bossCooldown = (biomeIndex < 2 || kind == StageEncounterKind.MiniBoss) ? 3 : 2;
                     bosses.Add(stage, new MonsterData($"boss-{stage}",
                         kind == StageEncounterKind.FinalBoss ? "Final Boss" : $"{kind} {stage}",
-                        kind, biomeId, kind == StageEncounterKind.MiniBoss ? 3 : 2, bossBaseHp, 10000));
+                        kind, biomeId, bossCooldown, bossBaseHp, 10000));
                 }
                 biomes.Add(new BiomeData(biomeId, $"Biome {biomeIndex + 1}",
                     first, last, normals, bosses));

@@ -19,9 +19,11 @@ We establish a 3-part system for version negotiation, cache invalidation, and da
    - Host `version.json` on Cloudflare with `Cache-Control: no-cache, no-store, must-revalidate`.
    - Client fetches this manifest during `GameBootstrapper` before player authentication.
    - Evaluates `minSupportedVersion`, `clientVersion`, `schemaVersion`, and `maintenance.isActive`.
+   - A missing, unreachable, or malformed manifest fails open with a diagnostic warning. Authentication and player-data operations continue using the client's built-in schema compatibility checks.
+   - A valid manifest still enforces maintenance mode, minimum client version, and maximum supported player-data schema.
 
 2. **CDN & WebGL Browser Cache Invalidation**:
-   - Cloudflare `_headers` configure immutable caching (`max-age=31536000, immutable`) for hashed build files (`/Build/*.unityweb`) and strictly no-cache for entry points (`index.html`, `version.json`, `sw.js`).
+   - Cloudflare Pages `_headers` keeps `index.html`, `version.json`, and `ServiceWorker.js` fresh. Large Unity build and streaming files are hosted separately on R2 with CORS enabled.
    - WebGL bridge (`PowerMathWebBridge.jslib` & `WebCacheBridge.cs`) provides `PowerMathPurgeCacheAndReload()` to clear IndexedDB `UnityCache` and Cache Storage when a hard update is required.
 
 3. **Client User Data Migration Pipeline**:
@@ -45,6 +47,7 @@ We establish a 3-part system for version negotiation, cache invalidation, and da
 
 ### Negative / Trade-offs
 - An initial HTTP request to `version.json` is added to the bootstrap sequence (mitigated with 3-second timeout and cache-busting timestamp).
+- Release-policy availability is not an authentication dependency; transient hosting or network failures cannot lock all users out.
 
 ### Migration
 - Added `WebCacheBridge.cs`, `GameVersionChecker.cs`, `GameVersionManifest.cs`, and `PlayerSchemaMigrator.cs`.

@@ -3,6 +3,7 @@ using PowerMath.Bootstrap;
 using PowerMath.PlayerData;
 using PowerMath.Session;
 using PowerMath.UI.MainMenu.SocialProfile;
+using PowerMath.UI.Settings;
 using UnityEngine;
 
 namespace PowerMath.UI.MainMenu
@@ -25,6 +26,9 @@ namespace PowerMath.UI.MainMenu
 
         private void Awake()
         {
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = 60;
+
             _view = GetComponent<MainMenuView>();
             _sceneFlow = GetComponent<SceneFlowController>();
 
@@ -41,6 +45,10 @@ namespace PowerMath.UI.MainMenu
             if (GetComponent<SocialProfileCompositionRoot>() == null)
             {
                 gameObject.AddComponent<SocialProfileCompositionRoot>();
+            }
+            if (GetComponent<SettingsCompositionRoot>() == null)
+            {
+                gameObject.AddComponent<SettingsCompositionRoot>();
             }
             if (GetComponent<ProfileActivityTracker>() == null)
             {

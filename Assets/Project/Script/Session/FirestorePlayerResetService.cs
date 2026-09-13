@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Text;
 using PowerMath.PlayerData;
+using PowerMath.UI.Settings;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -20,6 +21,12 @@ namespace PowerMath.Session
 
         public IEnumerator ResetUserData(Action onSuccess, Action<string> onFailure)
         {
+            if (!AdminAccountAccessPolicy.IsAuthorized(_player))
+            {
+                onFailure?.Invoke("This account is not authorized to reset player data.");
+                yield break;
+            }
+
             if (_player == null)
             {
                 onFailure?.Invoke("No active player data to reset.");
@@ -53,14 +60,8 @@ namespace PowerMath.Session
                 yield break;
             }
 
-            // Step 1: Remove old leaderboard projection if publicPlayerId exists
             string oldPublicId = _player.profile?.publicPlayerId?.Trim();
-            if (IsValidPublicPlayerId(oldPublicId) && _settings.TryGetLeaderboardDocument(levelId, out string leaderboardUrl))
-            {
-                yield return DeleteLeaderboardEntry(leaderboardUrl, oldPublicId);
-            }
-
-            // Step 2: Fetch level document for updateTime concurrency token
+            // Validate the player revision before changing any projection.
             string updateTime;
             using (UnityWebRequest get = UnityWebRequest.Get(levelUrl))
             {
@@ -78,9 +79,15 @@ namespace PowerMath.Session
                 }
 
                 updateTime = updateValue.Text;
+                if (!TryReadRevision(root, username, out long remoteRevision) ||
+                    remoteRevision != _player.revision)
+                {
+                    onFailure?.Invoke("Player data changed on another client. Refresh and try again.");
+                    yield break;
+                }
             }
 
-            // Step 3: Send Game Data reset PATCH
+            // Replace the complete game data map while leaving sibling userdata intact.
             string newPublicId = Guid.NewGuid().ToString("N");
             FirestorePatchPlan resetPlan = PlayerResetPayloadBuilder.BuildGameDataResetPlan(username, newPublicId);
 
@@ -120,6 +127,13 @@ namespace PowerMath.Session
                     }
                     yield break;
                 }
+            }
+
+            // Only remove the public projection after the authoritative reset commits.
+            if (IsValidPublicPlayerId(oldPublicId) &&
+                _settings.TryGetLeaderboardDocument(levelId, out string leaderboardUrl))
+            {
+                yield return DeleteLeaderboardEntry(leaderboardUrl, oldPublicId);
             }
 
             onSuccess?.Invoke();
@@ -168,6 +182,19 @@ namespace PowerMath.Session
             return true;
         }
 
+        private static bool TryReadRevision(JsonValue document, string username, out long revision)
+        {
+            revision = 0;
+            return FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue documentFields) &&
+                documentFields.TryGet(username, out JsonValue student) &&
+                FirestoreJsonNavigator.TryGetMapFields(student, out JsonValue studentFields) &&
+                studentFields.TryGet("gamedata", out JsonValue gameDataValue) &&
+                FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData) &&
+                gameData.TryGet("revision", out JsonValue revisionValue) &&
+                FirestoreJsonNavigator.TryReadInteger(revisionValue, out revision) &&
+                revision >= 0;
+        }
+
         private static bool IsValidPublicPlayerId(string value)
         {
             if (string.IsNullOrEmpty(value) || value.Length != 32) return false;
@@ -183,6 +210,20 @@ namespace PowerMath.Session
         {
             if (_player == null) return;
             _player.revision = 0;
+            _player.onboarding = new PlayerSnapshot.OnboardingData
+            {
+                version = 1,
+                phase = "opening",
+                openingCheckpointId = string.Empty,
+                selectedCharacterId = string.Empty,
+                completionOperationId = string.Empty,
+                legacyPlayer = false
+            };
+            _player.tutorial = new PlayerSnapshot.TutorialData
+            {
+                version = 1,
+                checkpointId = string.Empty
+            };
             if (_player.profile != null)
             {
                 _player.profile.publicPlayerId = Guid.NewGuid().ToString("N");
@@ -199,6 +240,9 @@ namespace PowerMath.Session
                 _player.progression.firstStage200ReachedAtUnixSeconds = 0;
                 _player.progression.totalDamage = 0;
                 _player.progression.legacyAtkBonusBasisPoints = 0;
+                _player.progression.leaderboardSnapshotAtUnixSeconds = 0;
+                _player.progression.lastSnapshotHighestStage = 0;
+                _player.progression.lastSnapshotWeightedScore = 0;
             }
             if (_player.wallet != null)
             {

@@ -19,6 +19,7 @@ namespace PowerMath.Gameplay.Combat
         private readonly IRandomSource _random;
         private readonly DamageCalculator _damageCalculator = new DamageCalculator();
         private readonly PlayerCombatStats _stats;
+        private readonly bool _invincible;
         private StageId _stage;
         private EncounterSelection _selection;
         private EnemyState _enemy;
@@ -30,23 +31,26 @@ namespace PowerMath.Gameplay.Combat
 
         public LocalRunEncounterEngine(StageId stage, string runId,
             StageEncounterResolver resolver, IRandomSource random,
-            int maximumHearts, PlayerCombatStats stats)
+            int maximumHearts, PlayerCombatStats stats, bool invincible = false)
         {
             if (maximumHearts <= 0) throw new ArgumentOutOfRangeException(nameof(maximumHearts));
             _stage = stage; _runId = runId ?? throw new ArgumentNullException(nameof(runId));
             _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
             _random = random ?? throw new ArgumentNullException(nameof(random));
             _maximumHearts = maximumHearts; _currentHearts = maximumHearts; _stats = stats;
+            _invincible = invincible;
             LoadSelection(_resolver.Resolve(_runId, _stage), true);
         }
 
         public LocalRunEncounterEngine(CombatSnapshot restored, string runId,
-            StageEncounterResolver resolver, IRandomSource random, PlayerCombatStats stats)
+            StageEncounterResolver resolver, IRandomSource random, PlayerCombatStats stats,
+            bool invincible = false)
         {
             if (restored == null) throw new ArgumentNullException(nameof(restored));
             _stage = restored.Stage; _runId = runId ?? throw new ArgumentNullException(nameof(runId));
             _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
             _random = random ?? throw new ArgumentNullException(nameof(random)); _stats = stats;
+            _invincible = invincible;
             _maximumHearts = restored.PlayerMaximumHearts; _currentHearts = restored.PlayerCurrentHearts;
             _selection = _resolver.Resolve(_runId, _stage);
             if (!string.Equals(_selection.EncounterId, restored.EnemyId, StringComparison.Ordinal) ||
@@ -136,13 +140,14 @@ namespace PowerMath.Gameplay.Combat
             else if (_selection.IsEvent)
             {
                 attacked = true; _eventAttemptOrdinal++;
-                _currentHearts = Math.Max(0, _currentHearts - 1);
+                if (!_invincible) _currentHearts = Math.Max(0, _currentHearts - 1);
                 playerDefeated = _currentHearts == 0;
                 _phase = playerDefeated ? CombatPhase.RunDefeat : CombatPhase.PresentingResult;
             }
             else if (_enemy.RemainingCooldown == 0)
             {
-                attacked = true; _currentHearts = Math.Max(0, _currentHearts - 1);
+                attacked = true;
+                if (!_invincible) _currentHearts = Math.Max(0, _currentHearts - 1);
                 playerDefeated = _currentHearts == 0; _enemy.ResetCooldown();
                 _phase = playerDefeated ? CombatPhase.RunDefeat : CombatPhase.PresentingResult;
             }

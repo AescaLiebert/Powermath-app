@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using PowerMath.Bootstrap;
 using PowerMath.PlayerData;
@@ -111,7 +111,7 @@ namespace PowerMath.UI.MainMenu.Admin
 
             RenderAccountSummary();
             ResetConfirmState();
-            _statusLabel.text = "Ready";
+            _statusLabel.text = PowerMath.Localization.LocalizationService.Get("common.ready");
             SetSemanticState();
         }
 
@@ -132,9 +132,9 @@ namespace PowerMath.UI.MainMenu.Admin
             if (!_confirmingReset)
             {
                 _confirmingReset = true;
-                _resetButton.text = "CONFIRM RESET USER DATA";
+                _resetButton.text = PowerMath.Localization.LocalizationService.Get("admin.resetConfirm");
                 _resetButton.AddToClassList("is-confirming");
-                _statusLabel.text = "Warning: Click again to permanently reset all user data.";
+                _statusLabel.text = PowerMath.Localization.LocalizationService.Get("admin.resetWarning");
                 SetSemanticState();
 
                 CancelConfirmTimeout();
@@ -155,10 +155,10 @@ namespace PowerMath.UI.MainMenu.Admin
             _busy = true;
             _confirmingReset = false;
             _resetButton.RemoveFromClassList("is-confirming");
-            _resetButton.text = "RESETTING...";
+            _resetButton.text = PowerMath.Localization.LocalizationService.Get("admin.resetting");
             _resetButton.SetEnabled(false);
             _close.SetEnabled(false);
-            _statusLabel.text = "Resetting player data in Firebase...";
+            _statusLabel.text = PowerMath.Localization.LocalizationService.Get("admin.resettingDetail");
             SetSemanticState("is-busy");
 
             _host.StartCoroutine(_resetService.ResetUserData(OnResetSuccess, OnResetFailure));
@@ -166,7 +166,7 @@ namespace PowerMath.UI.MainMenu.Admin
 
         private void OnResetSuccess()
         {
-            _statusLabel.text = "User data reset successfully! Reloading session...";
+            _statusLabel.text = PowerMath.Localization.LocalizationService.Get("admin.resetSuccess");
             SetSemanticState("is-success");
 
             if (_host != null && _host.isActiveAndEnabled)
@@ -180,8 +180,8 @@ namespace PowerMath.UI.MainMenu.Admin
             _busy = false;
             _resetButton.SetEnabled(true);
             _close.SetEnabled(true);
-            _resetButton.text = "RESET USER DATA";
-            _statusLabel.text = "Reset failed: " + errorMessage;
+            _resetButton.text = PowerMath.Localization.LocalizationService.Get("admin.resetLabel");
+            _statusLabel.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, PowerMath.Localization.LocalizationService.Get("admin.resetFailed"), errorMessage);
             SetSemanticState("is-error");
         }
 
@@ -200,7 +200,7 @@ namespace PowerMath.UI.MainMenu.Admin
             {
                 _sceneFlow.TryLoadScene(targetScene, error =>
                 {
-                    _statusLabel.text = "Reload failed: " + error;
+                    _statusLabel.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, PowerMath.Localization.LocalizationService.Get("admin.reloadFailed"), error);
                     SetSemanticState("is-error");
                 });
             }
@@ -216,7 +216,7 @@ namespace PowerMath.UI.MainMenu.Admin
             if (_confirmingReset && !_busy)
             {
                 ResetConfirmState();
-                _statusLabel.text = "Reset cancelled (timed out).";
+                _statusLabel.text = PowerMath.Localization.LocalizationService.Get("admin.resetTimeout");
             }
         }
 
@@ -233,7 +233,7 @@ namespace PowerMath.UI.MainMenu.Admin
         {
             _confirmingReset = false;
             _resetButton.RemoveFromClassList("is-confirming");
-            _resetButton.text = "RESET USER DATA";
+            _resetButton.text = PowerMath.Localization.LocalizationService.Get("admin.resetLabel");
             _resetButton.SetEnabled(true);
             _close.SetEnabled(true);
         }

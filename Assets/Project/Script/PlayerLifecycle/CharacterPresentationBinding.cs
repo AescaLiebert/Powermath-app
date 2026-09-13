@@ -10,20 +10,25 @@ namespace PowerMath.PlayerLifecycle
         private VisualElement _root;
         private PlayerSessionStore _store;
         private CharacterPresentationCatalog _catalog;
+
         public void Bind(VisualElement root)
         {
+            if (_store != null) _store.Changed -= Render;
+            LocalizationService.Changed -= Refresh;
             _root = root;
-            _catalog = Resources.Load<CharacterPresentationCatalog>("CharacterPresentationCatalog");
+            _catalog = CharacterPresentationCatalog.Load();
             _store = PlayerSessionStore.Instance;
             if (_store != null) _store.Changed += Render;
             LocalizationService.Changed += Refresh;
             Refresh();
         }
+
         private void Refresh() => Render(_store?.Snapshot);
+
         private void Render(PlayerSnapshot player)
         {
             string id = player?.profile?.characterId;
-            if (!Session.PlayerLifecyclePolicy.IsCharacter(id)) return;
+            if (!Session.PlayerLifecyclePolicy.IsCharacter(id)) id = "ricko";
             var definition = _catalog?.Find(id);
             string title = LocalizationService.Get("onboarding." + id);
             string characterName = !string.IsNullOrEmpty(title) && !title.StartsWith("[")
@@ -39,18 +44,20 @@ namespace PowerMath.PlayerLifecycle
                 ApplyToPlayerActor(actor, id);
             }
         }
+
         public static void ApplyToPlayerActor(PowerMath.Gameplay.Combat.Unity.ActorPresentationController actor, string characterId = null)
         {
             if (actor == null || !actor.IsPlayer || actor.gameObject.name == "bg") return;
             string id = characterId ?? PlayerSessionStore.Instance?.Snapshot?.profile?.characterId;
             if (!Session.PlayerLifecyclePolicy.IsCharacter(id)) id = "ricko";
-            var catalog = Resources.Load<CharacterPresentationCatalog>("CharacterPresentationCatalog");
+            var catalog = CharacterPresentationCatalog.Load();
             var definition = catalog?.Find(id);
             actor.ConfigureSprites(
                 CharacterPlaceholderSprites.Resolve(definition?.battleSprite, id),
                 definition?.battleAttackSprite,
                 definition?.battleHurtSprite);
         }
+
         private static void Apply(VisualElement element, Sprite sprite, string title)
         {
             if (element == null) return;
@@ -63,8 +70,7 @@ namespace PowerMath.PlayerLifecycle
             }
             else
             {
-                // An explicit named placeholder avoids implying the opposite protagonist.
-                element.style.backgroundImage = StyleKeyword.None;
+                // Preserve stylesheet default background if already present
                 var placeholder = element.Q<Label>("character-placeholder");
                 if (placeholder == null)
                 {
@@ -76,6 +82,7 @@ namespace PowerMath.PlayerLifecycle
                 element.Query<Label>(className: "player-hub-avatar-placeholder").ForEach(l => l.style.display = DisplayStyle.Flex);
             }
         }
+
         private void OnDestroy()
         {
             if (_store != null) _store.Changed -= Render;

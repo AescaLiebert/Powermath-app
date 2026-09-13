@@ -1,6 +1,7 @@
 using System.Collections;
 using PowerMath.Bootstrap;
 using PowerMath.Session;
+using PowerMath.UI.Settings;
 using UnityEngine;
 
 namespace PowerMath.UI.Authentication
@@ -16,10 +17,16 @@ namespace PowerMath.UI.Authentication
         private IAuthenticationService _authenticationService;
         private bool _requestActive;
 
+        public GameApiSettings ApiSettings => apiSettings;
+
         private void Awake()
         {
             _view = GetComponent<AuthenticationView>();
             _sceneFlow = GetComponent<SceneFlowController>();
+            if (GetComponent<SettingsCompositionRoot>() == null)
+            {
+                gameObject.AddComponent<SettingsCompositionRoot>();
+            }
         }
 
         private void OnEnable()
@@ -50,8 +57,26 @@ namespace PowerMath.UI.Authentication
 #else
             _authenticationService = new DirectFirestoreAuthenticationService(apiSettings);
 #endif
-            _view.RenderReady();
             PowerMath.Audio.MusicController.Instance.PlayLoginMusic();
+
+            if (DirectFirestoreCredentialStore.TryGet(out var saved) && saved.Remembered)
+            {
+                // Remembered credentials found — skip the login form entirely.
+                _view.RenderBusy();
+                _requestActive = true;
+                StartCoroutine(Login(new AuthenticationView.LoginIntent(
+                    saved.Username,
+                    saved.Password,
+                    rememberDevice: true
+                )));
+            }
+            else
+            {
+                // No remembered session — show the form.
+                // Pre-fill the username if one was stored (but not remembered),
+                // so the player only needs to type their password.
+                _view.RenderReady(saved.Username);
+            }
         }
 
         private void OnDisable()
@@ -84,6 +109,7 @@ namespace PowerMath.UI.Authentication
 
         private void OnLoginSucceeded()
         {
+            PowerMath.Audio.SfxController.Instance.PlayAuthentication(PowerMath.Audio.AuthenticationSfxState.Success);
             _view.RenderSuccess();
             if (!_sceneFlow.TryLoadScene(
                 apiSettings.BootstrapSceneName,
@@ -96,6 +122,7 @@ namespace PowerMath.UI.Authentication
         private void OnLoginFailed(FirestoreRestClient.Failure failure)
         {
             _requestActive = false;
+            PowerMath.Audio.SfxController.Instance.PlayAuthentication(PowerMath.Audio.AuthenticationSfxState.Failure);
             bool clearPassword = failure.Kind ==
                 FirestoreRestClient.FailureKind.InvalidCredentials;
             _view.RenderFailure(failure.PlayerMessage, clearPassword);
@@ -104,6 +131,7 @@ namespace PowerMath.UI.Authentication
         private void OnSceneLoadFailed(string playerMessage)
         {
             _requestActive = false;
+            PowerMath.Audio.SfxController.Instance.PlayAuthentication(PowerMath.Audio.AuthenticationSfxState.Failure);
             _view.RenderFailure(playerMessage, false);
         }
     }

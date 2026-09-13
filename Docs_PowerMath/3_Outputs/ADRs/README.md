@@ -19,6 +19,9 @@ graph TD
     ADR013["ADR-013: Canonical Pet Definitions, Loadout, and Shared Main Menu Feedback"]
     ADR014["ADR-014: Scene-Scoped UI Composition and Shared Motion"]
     ADR015["ADR-015: Isolated Question Fallback Practice Session"]
+    ADR016["ADR-016: Player Lifecycle and Live Service Boundaries"]
+    ADR017["ADR-017: Shared Settings and Scoped Admin Test Authority"]
+    ADR018["ADR-018: Firebase-Backed Admin and Mobile Media Recovery"]
     ADR002 -- "supersedes" --> ADR001
     ADR003 -- "supersedes" --> ADR002
     ADR004 -- "extends prototype composition" --> ADR003
@@ -49,6 +52,12 @@ graph TD
     ADR014 -. "proposed consolidation of shared UI feedback" .-> ADR013
     ADR015 -- "supersedes real-save fallback only" --> ADR006
     ADR015 -- "protects pending presentation artifacts" --> ADR012
+    ADR017 -. "shared scene UI and lifecycle" .-> ADR014
+    ADR017 -. "isolated quick-test questions" .-> ADR015
+    ADR017 -. "atomic admin state mutations" .-> ADR008
+    ADR017 -. "future trusted command boundary" .-> ADR016
+    ADR018 -- "supersedes temporary admin runtime" --> ADR017
+    ADR018 -- "hardens embedded media lifecycle" --> ADR006
 ```
 
 Update this diagram as ADRs are added. Show which decisions depend on others.
@@ -72,6 +81,8 @@ Update this diagram as ADRs are added. Show which decisions depend on others.
 | [013](013-canonical-pet-definitions-loadout-and-shared-main-menu-feedback.md) | Canonical Pet Definitions, Loadout, and Shared Main Menu Feedback | **Accepted** | Player Hub data and presentation | Canonical pet assets, idempotent equip, shared utility/notification/FX overlay |
 | [014](014-scene-scoped-ui-composition-and-shared-motion.md) | Scene-Scoped UI Composition and Shared Motion | **Accepted** | UI architecture | Additive foundation and Main Menu pilot approved on 2026-08-29 |
 | [015](015-isolated-question-fallback-practice-session.md) | Isolated Question Fallback Practice Session | **Accepted** | Question fallback resilience | Bundled fallback is local-only and preserves Firebase artifacts |
+| [017](017-shared-settings-and-admin-test-authority.md) | Shared Settings and Scoped Admin Test Authority | **Partially superseded by ADR-018** | Settings/admin test infrastructure | Shared Settings and revision-checked commands retained |
+| [018](018-firebase-backed-admin-and-mobile-media-recovery.md) | Firebase-Backed Admin and Mobile Media Recovery | **Accepted** | Mobile WebGL/admin stabilization | Implemented 2026-09-11; awaiting deployed mobile QA |
 
 ## Phase Mapping
 

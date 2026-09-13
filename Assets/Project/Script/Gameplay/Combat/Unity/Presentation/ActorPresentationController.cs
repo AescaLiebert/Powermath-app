@@ -30,6 +30,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private PresentationActor _actor;
         private Vector2 _authoredPosition;
         private Quaternion _authoredRotation;
+        private Vector3 _authoredScale = Vector3.one;
         private bool _reducedMotion;
         private CombatJuiceProfileDefinition _profile;
         private bool _isPlaying;
@@ -44,6 +45,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private bool _isPointerPressed;
         private float _pressStartTime;
         private Coroutine _juiceCoroutine;
+        private bool _idleBreathApplied;
         private const float HoverScale = 1.05f;
         private const float MaxHoldTime = 0.65f;
         private const float MinBounceScale = 1.12f;
@@ -110,6 +112,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
             _authoredPosition = restPosition ?? _rectTransform.anchoredPosition;
             _authoredRotation = _rectTransform.localRotation;
+            _authoredScale = _rectTransform.localScale;
             DamageTextAnchor = new RectTransformCombatAnchor(
                 _rectTransform, fctNormalizedAnchor, fctOffset);
             gameObject.SetActive(true);
@@ -185,14 +188,38 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             if (eventData != null && eventData.button != PointerEventData.InputButton.Left) return;
             if (!CanPlayInteractionJuice()) return;
-            PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.ActorClick);
+            if (Application.isPlaying)
+                PowerMath.Audio.SfxController.Instance?.PlayBattle(
+                    PowerMath.Audio.BattleSfxState.ActorClick);
             Clicked?.Invoke();
         }
 
         public void TriggerClick()
         {
-            PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.ActorClick);
+            if (!CanPlayInteractionJuice()) return;
+            if (Application.isPlaying)
+                PowerMath.Audio.SfxController.Instance?.PlayBattle(
+                    PowerMath.Audio.BattleSfxState.ActorClick);
             Clicked?.Invoke();
+        }
+
+        public bool TryGetScreenCenter(out Vector2 screenPosition)
+        {
+            screenPosition = default;
+            if (_rectTransform == null) return false;
+            Canvas canvas = _rectTransform.GetComponentInParent<Canvas>();
+            Camera camera = canvas != null &&
+                canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                    ? canvas.worldCamera
+                    : null;
+            Vector3 worldCenter = _rectTransform.TransformPoint(
+                _rectTransform.rect.center);
+            screenPosition = RectTransformUtility.WorldToScreenPoint(
+                camera, worldCenter);
+            return !float.IsNaN(screenPosition.x) &&
+                !float.IsInfinity(screenPosition.x) &&
+                !float.IsNaN(screenPosition.y) &&
+                !float.IsInfinity(screenPosition.y);
         }
 
         public void SimulatePointerEnter() => OnPointerEnter(null);
@@ -213,6 +240,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public IEnumerator Play(PresentationActionKind action)
         {
+            _idleBreathApplied = false;
             StopJuiceAnimation();
             ActorVisualState target = ResolveState(action);
             if (!ActorPresentationStatePolicy.CanTransition(_actor, State, target))
@@ -382,7 +410,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                     break;
                 case ActorVisualState.Appearing:
                     _canvasGroup.alpha = t;
-                    _rectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1f, t);
+                    _rectTransform.localScale = _authoredScale *
+                        Mathf.Lerp(0.78f, 1f, t);
                     break;
                 case ActorVisualState.Dying:
                 {
@@ -445,7 +474,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     _rectTransform.anchoredPosition = _authoredPosition +
                         Vector2.up * (Mathf.Sin(t * Mathf.PI) *
                             Value(p => p.RebirthRise, 58f) * travelScale);
-                    _rectTransform.localScale = Vector3.one *
+                    _rectTransform.localScale = _authoredScale *
                         Mathf.Lerp(0.82f, 1f, Mathf.Clamp01(t * 1.5f));
                     break;
             }
@@ -515,7 +544,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (_rectTransform == null) return;
             _rectTransform.anchoredPosition = _authoredPosition;
             _rectTransform.localRotation = _authoredRotation;
-            _rectTransform.localScale = Vector3.one;
+            _rectTransform.localScale = _authoredScale;
+            _idleBreathApplied = false;
             if (_graphic != null) _graphic.color = _authoredColor;
             if (resetAlpha && _canvasGroup != null) _canvasGroup.alpha = 1f;
             UpdateSprite();
@@ -533,6 +563,40 @@ namespace PowerMath.Gameplay.Combat.Unity
             State = ActorVisualState.Hidden;
             UpdateSprite();
             if (_canvasGroup != null) _canvasGroup.alpha = 0f;
+        }
+
+        private void LateUpdate()
+        {
+            bool canBreathe = !_reducedMotion && !_isPlaying &&
+                _juiceCoroutine == null && !_isPointerHovered &&
+                !_isPointerPressed && State == ActorVisualState.Idle &&
+                gameObject.activeInHierarchy && _rectTransform != null;
+            if (!canBreathe)
+            {
+                if (_idleBreathApplied && !_isPlaying &&
+                    _juiceCoroutine == null && _rectTransform != null)
+                    RestoreAuthoredPose(resetAlpha: false);
+                _idleBreathApplied = false;
+                return;
+            }
+
+            float duration = Value(p => p.IdleBreathSeconds, 3.2f);
+            float phaseOffset = IsPlayer ? 0f : 0.37f;
+            float wave = Mathf.Sin(
+                (Time.unscaledTime / Mathf.Max(0.5f, duration) + phaseOffset) *
+                Mathf.PI * 2f);
+            float scaleX = 1f - wave *
+                Value(p => p.IdleBreathScaleX, 0.004f);
+            float scaleY = 1f + wave *
+                Value(p => p.IdleBreathScaleY, 0.012f);
+            _rectTransform.localScale = new Vector3(
+                _authoredScale.x * scaleX,
+                _authoredScale.y * scaleY,
+                _authoredScale.z);
+            _rectTransform.anchoredPosition = _authoredPosition +
+                Vector2.up * (wave * Value(
+                    p => p.IdleBreathRisePixels, 2f));
+            _idleBreathApplied = true;
         }
 
         private void UpdateSprite()

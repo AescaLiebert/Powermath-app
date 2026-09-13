@@ -5,34 +5,34 @@
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
     <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuExperience.uss?fileID=7433441132597879392&amp;guid=a3168f27716975f42a77b8d15d9be5c1&amp;type=3#MainMenuExperience"/>
     <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuSharedOverlay.uss?fileID=7433441132597879392&amp;guid=0ab46313332b46e8a9fa5e40c123c9d5&amp;type=3#MainMenuSharedOverlay"/>
-    <ui:VisualElement name="content" picking-mode="Ignore" class="main-shell" style="top: 0; bottom: 0; right: -1px; left: 2px;">
+    <ui:VisualElement name="content" picking-mode="Ignore" class="main-shell" style="top: 0; bottom: 0; right: -1px; left: 2px; -unity-text-auto-size: best-fit 10px 100px; overflow: visible;">
         <pm:FigmaShadowElement name="Player Summary Shadow" class="hud-profile-panel-shadow main-menu-transition-top"/>
         <ui:VisualElement name="profile-panel" focusable="true" tooltip="Open Profile Analytics" class="hud-profile-panel main-menu-transition-top">
             <ui:VisualElement name="Player Summary" picking-mode="Ignore" class="figma-object-name"/>
-            <ui:VisualElement name="profile" picking-mode="Ignore" class="hud-profile-icon" style="border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px;">
+            <ui:VisualElement name="profile" picking-mode="Ignore" class="hud-profile-icon" style="border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; -unity-text-align: middle-left; text-overflow: clip;">
                 <ui:VisualElement name="ProfileFrame" picking-mode="Ignore" class="hud-profile-frame" style="border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px;"/>
                 <ui:VisualElement name="Avatar Placeholder" picking-mode="Ignore" class="hud-profile-avatar" style="border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-right-radius: 14px; border-bottom-left-radius: 14px;"/>
-                <ui:VisualElement name="ProfilePic" picking-mode="Ignore" class="hud-profile-picture" style="border-top-left-radius: 13px; border-top-right-radius: 13px; border-bottom-right-radius: 13px; border-bottom-left-radius: 13px;"/>
+                <ui:VisualElement name="ProfilePic" picking-mode="Ignore" class="hud-profile-picture" style="border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; top: 4px; left: 4px;"/>
             </ui:VisualElement>
-            <ui:VisualElement name="info" picking-mode="Ignore" class="hud-profile-copy">
-                <ui:Label text="Loading player..." name="player-display-name" picking-mode="Ignore" class="hud-profile-name" style="letter-spacing: -10px; white-space: nowrap;"/>
+            <ui:VisualElement name="info" picking-mode="Ignore" class="hud-profile-copy" style="visibility: visible;">
+                <ui:Label text="รหัสไห้" name="player-display-name" picking-mode="Ignore" class="hud-profile-name" style="letter-spacing: -10px; white-space: nowrap; padding-top: 5px; padding-bottom: 5px;"/>
                 <ui:VisualElement name="Line 1" picking-mode="Ignore" class="hud-profile-divider"/>
                 <ui:VisualElement name="rank Currency" picking-mode="Ignore" class="hud-rank-currencies">
                     <ui:VisualElement name="sil_cur" tooltip="Silver Rank Currency" class="hud-rank-currency hud-rank-currency--silver">
                         <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-rank-value-shell">
-                            <ui:Label name="profile-silver-value" text="—" picking-mode="Ignore" class="hud-rank-value" style="-unity-text-outline-width: 0.8px; letter-spacing: -5px;"/>
+                            <ui:Label name="profile-silver-value" text="—" picking-mode="Ignore" class="hud-rank-value" style="-unity-text-outline-width: 0; letter-spacing: -5px; color: rgb(14, 57, 107);"/>
                         </ui:VisualElement>
                         <ui:VisualElement name="icon" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--silver"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="gold_cur" tooltip="Gold Rank Currency" class="hud-rank-currency">
                         <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-rank-value-shell">
-                            <ui:Label name="profile-gold-value" text="—" picking-mode="Ignore" class="hud-rank-value" style="-unity-text-outline-width: 0.8px; letter-spacing: -5px; left: 27px;"/>
+                            <ui:Label name="profile-gold-value" text="—" picking-mode="Ignore" class="hud-rank-value" style="-unity-text-outline-width: 0; letter-spacing: -5px; left: 27px; color: rgb(14, 57, 107);"/>
                         </ui:VisualElement>
                         <ui:VisualElement name="icon" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--gold"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="dia_cur" tooltip="Diamond Rank Currency" class="hud-rank-currency hud-rank-currency--last">
                         <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-rank-value-shell">
-                            <ui:Label name="profile-diamond-value" text="—" picking-mode="Ignore" class="hud-rank-value" style="-unity-text-outline-width: 0.8px; letter-spacing: -5px; left: 26px; text-overflow: clip;"/>
+                            <ui:Label name="profile-diamond-value" text="—" picking-mode="Ignore" class="hud-rank-value" style="-unity-text-outline-width: 0; letter-spacing: -5px; left: 26px; text-overflow: clip; color: rgb(14, 57, 107);"/>
                         </ui:VisualElement>
                         <ui:VisualElement name="icon" picking-mode="Ignore" class="hud-rank-icon hud-rank-icon--diamond"/>
                     </ui:VisualElement>
@@ -60,14 +60,14 @@
                     <ui:ProgressBar name="combat-enemy-hp" value="78" high-value="100" class="figma-boss-value-source"/>
                     <ui:VisualElement name="Boss HP Value" picking-mode="Ignore" class="figma-boss-copy" style="overflow: visible;">
                         <ui:Label name="combat-enemy-name-shadow" text="Monster Name" picking-mode="Ignore" class="figma-boss-name figma-boss-text-shadow figma-boss-name-shadow" style="display: none;"/>
-                        <ui:Label name="combat-enemy-hp-label-shadow" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value figma-boss-text-shadow figma-boss-value-shadow" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Material/Font/zh-cn.ttf?fileID=12800000&amp;guid=25d050ba013c6e74bbb3e2c20348ce97&amp;type=3#zh-cn&quot;); -unity-text-align: middle-left; display: none;"/>
-                        <ui:Label name="combat-enemy-name" text="ก๊อ" picking-mode="Ignore" class="figma-boss-name" style="display: flex; top: 2px; left: 6px; -unity-text-outline-width: 0; -unity-font-style: normal; height: 23px; width: 300px; white-space: pre; text-shadow: 0 0 0 rgba(0, 0, 0, 0); overflow: visible; font-size: 17px;"/>
+                        <ui:Label name="combat-enemy-hp-label-shadow" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value figma-boss-text-shadow figma-boss-value-shadow" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/zh-cn.ttf?fileID=12800000&amp;guid=25d050ba013c6e74bbb3e2c20348ce97&amp;type=3#zh-cn&quot;); -unity-text-align: middle-left; display: none;"/>
+                        <ui:Label name="combat-enemy-name" text="ก๊อ" picking-mode="Ignore" class="figma-boss-name" style="display: flex; top: 2px; left: 7px; -unity-text-outline-width: 0; -unity-font-style: normal; height: 23px; width: 300px; white-space: pre; text-shadow: 0 0 0 rgba(0, 0, 0, 0); overflow: visible; font-size: 17px; padding-top: 3px; padding-bottom: 3px; color: rgb(255, 255, 255);"/>
                         <ui:Label name="combat-enemy-hp-label" text="780 / 1000" picking-mode="Ignore" class="figma-boss-value" style="top: 2px; right: 4px; -unity-text-align: middle-right; -unity-text-outline-width: 0; -unity-font-style: normal; width: 143px;"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="combat-enemy-actions" picking-mode="Ignore" class="figma-enemy-abilities Enemy-Abilities">
-                <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
+                <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right" style="-unity-text-auto-size: best-fit 10px 100px; font-size: 15px;"/>
                 <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
                 <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
                 <ui:Label name="Enemy Ability" text="MOVE" class="loc-menu.move figma-ability figma-grid-gap-right"/>
@@ -80,18 +80,21 @@
             <pm:FigmaShadowElement name="Utility / MAP Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--biome"/>
             <pm:FigmaShadowElement name="Utility / CUP Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--leaderboard"/>
             <pm:FigmaShadowElement name="Utility / SET Shadow" class="hud-icon-button-shadow hud-icon-button-shadow--settings"/>
-            <ui:Button name="combat-map-button" text="" tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome" style="-unity-background-scale-mode: scale-to-fit; background-repeat: space no-repeat; -unity-background-image-tint-color: rgb(255, 255, 255);">
-                <pm:ChainLockVectorElement name="combat-map-lock" picking-mode="Ignore" class="hud-chain-lock-overlay"/>
+            <ui:Button name="map" text=" " tooltip="Biome Navigator" class="hud-icon-button hud-icon-button--biome">
+                <ui:VisualElement name="main-menu-map-icon" picking-mode="Ignore" class="hud-map-icon" style="top: 0; height: 36px; width: 35px;"/>
+                <pm:ChainLockVectorElement name="combat-map-lock" picking-mode="Ignore" class="hud-chain-lock-overlay" style="background-color: rgba(0, 0, 0, 0);"/>
             </ui:Button>
-            <ui:Button name="leaderboard" text="" tooltip="Leaderboard" class="hud-icon-button hud-icon-button--leaderboard"/>
-            <ui:Button name="setting" text="" tooltip="Admin / Settings" class="hud-icon-button hud-icon-button--settings">
-                <pm:ChainLockVectorElement name="combat-map-lock" picking-mode="Ignore" class="hud-chain-lock-overlay"/>
+            <ui:Button name="leaderboard" text=" " tooltip="Leaderboard" class="hud-icon-button hud-icon-button--leaderboard">
+                <ui:VisualElement name="main-menu-leaderboard-icon" picking-mode="Ignore" class="hud-leaderboard-icon" style="top: -1px; height: 35px; width: 36px;"/>
+            </ui:Button>
+            <ui:Button name="setting" text=" " tooltip="Settings" class="hud-icon-button hud-icon-button--settings">
+                <ui:VisualElement name="main-menu-settings-icon" picking-mode="Ignore" class="hud-settings-icon"/>
             </ui:Button>
         </ui:VisualElement>
         <ui:VisualElement name="Player Menu" picking-mode="Ignore" class="hud-player-menu main-menu-transition-player-menu">
             <pm:FigmaShadowElement name="Player Menu Shadow" class="hud-player-menu-shadow"/>
             <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle" style="top: 195px; left: 207px;">
-                <ui:Label name="Chevron" text="&lt;" picking-mode="Ignore" class="hud-player-menu-chevron" style="align-items: center;"/>
+                <ui:Label name="Chevron" text="" picking-mode="Ignore" class="hud-player-menu-chevron" style="top: -3px; left: 3px; width: 30px; display: flex;"/>
             </ui:Button>
             <ui:VisualElement name="Primary Navigation" picking-mode="Ignore" class="hud-player-menu-content">
                 <ui:Button name="player-hub-button" text="" tooltip="Player Hub" class="hud-player-menu-button hud-player-menu-button--hub">
@@ -131,7 +134,7 @@
                     <ui:VisualElement name="Currency" picking-mode="Ignore" class="hud-power-coin-currency" style="border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
                         <pm:FigmaShadowElement name="Currency Inner Shadow Left" class="hud-power-coin-inner-shadow hud-power-coin-inner-shadow--left"/>
                         <pm:FigmaShadowElement name="Currency Inner Shadow Right" class="hud-power-coin-inner-shadow hud-power-coin-inner-shadow--right"/>
-                        <ui:Label name="Currency_Value" text="2,300" picking-mode="Ignore" class="hud-power-coin-value" style="top: 5px; left: 52px; -unity-font-style: bold; -unity-text-outline-width: 0.8px; font-size: 20px; width: 122px; letter-spacing: -5px;"/>
+                        <ui:Label name="Currency_Value" text="2,300" picking-mode="Ignore" class="hud-power-coin-value" style="top: 5px; left: 52px; -unity-font-style: bold; -unity-text-outline-width: 0; font-size: 23px; width: 122px; letter-spacing: -5px; color: rgb(14, 57, 107); -unity-text-auto-size: best-fit 20px 100px;"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="hud-power-coin-icon"/>
                 </ui:VisualElement>
@@ -141,6 +144,6 @@
         <ui:ProgressBar name="stage-progress" value="0" high-value="100" class="hud-compat-hidden"/>
         <ui:Label text="" name="wallet-summary" class="hud-compat-hidden"/>
         <ui:Label text="" name="loadout-summary" class="hud-compat-hidden"/>
-        <ui:Button text="Log out" name="logout-button" class="hud-compat-hidden"/>
+        <ui:Button text="Log out" name="logout-button" class="loc-menu.logout hud-compat-hidden"/>
     </ui:VisualElement>
 </ui:UXML>

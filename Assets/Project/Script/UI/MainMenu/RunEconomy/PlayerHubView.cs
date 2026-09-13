@@ -47,7 +47,7 @@ namespace PowerMath.UI.MainMenu
         private readonly VisualElement _petWorkspace;
         private readonly VisualElement _petGrid;
         private readonly Image _weaponSprite;
-        private readonly Label _weaponPlaceholder;
+        private readonly VisualElement _weaponPlaceholder;
 
         public PlayerHubView(VisualElement root)
         {
@@ -88,7 +88,7 @@ namespace PowerMath.UI.MainMenu
             _petWorkspace = Require<VisualElement>(root, "player-hub-pet-workspace");
             _petGrid = Require<VisualElement>(root, "player-hub-pet-grid");
             _weaponSprite = Require<Image>(root, "player-hub-weapon-sprite");
-            _weaponPlaceholder = Require<Label>(root, "player-hub-weapon-placeholder");
+            _weaponPlaceholder = Require<VisualElement>(root, "player-hub-weapon-placeholder");
 
             OpenButton.clicked += RaiseOpen;
             CloseButton.clicked += RaiseClose;

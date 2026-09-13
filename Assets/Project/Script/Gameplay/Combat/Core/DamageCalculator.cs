@@ -104,7 +104,7 @@ namespace PowerMath.Gameplay.Combat
     public readonly struct DamageBreakdown
     {
         public DamageBreakdown(
-            int baseAttack,
+            int effectiveAttack,
             double rankMultiplier,
             double buffMultiplier,
             double criticalMultiplier,
@@ -113,7 +113,7 @@ namespace PowerMath.Gameplay.Combat
             double unroundedDamage,
             int finalDamage)
         {
-            BaseAttack = baseAttack;
+            EffectiveAttack = effectiveAttack;
             RankMultiplier = rankMultiplier;
             BuffMultiplier = buffMultiplier;
             CriticalMultiplier = criticalMultiplier;
@@ -125,7 +125,7 @@ namespace PowerMath.Gameplay.Combat
         }
 
         public bool IsAvailable { get; }
-        public int BaseAttack { get; }
+        public int EffectiveAttack { get; }
         public double RankMultiplier { get; }
         public double BuffMultiplier { get; }
         public double CriticalMultiplier { get; }

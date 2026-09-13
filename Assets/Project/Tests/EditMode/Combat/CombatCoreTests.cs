@@ -66,7 +66,7 @@ namespace PowerMath.Gameplay.Combat.Tests
                 result.ResponseDamageMultiplier,
                 Is.EqualTo(expectedPercent / 100d));
             Assert.That(result.Breakdown.IsAvailable, Is.True);
-            Assert.That(result.Breakdown.BaseAttack, Is.EqualTo(50));
+            Assert.That(result.Breakdown.EffectiveAttack, Is.EqualTo(50));
             Assert.That(result.Breakdown.RankMultiplier, Is.EqualTo(1d));
             Assert.That(result.Breakdown.BuffMultiplier, Is.EqualTo(1d));
             Assert.That(result.Breakdown.ResponseScore, Is.EqualTo(responseScore));
@@ -440,6 +440,34 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [Test]
+        public void RunEncounter_InvincibilityPreventsHeartLoss()
+        {
+            var map = DevelopmentStageMapFactory.Create();
+            var engine = new LocalRunEncounterEngine(
+                new StageId(1),
+                "invincible-test",
+                new StageEncounterResolver(map),
+                new MinimumRandomSource(),
+                3,
+                new PlayerCombatStats(5, 0d, 50d),
+                invincible: true);
+
+            int attempts = engine.Snapshot.EnemyMaximumCooldown;
+            CombatResolution resolution = null;
+            for (int index = 0; index < attempts; index++)
+            {
+                engine.CommitAttempt();
+                resolution = engine.ResolveIncorrect(timedOut: false);
+                if (index < attempts - 1) engine.CompletePresentation();
+            }
+
+            Assert.That(resolution, Is.Not.Null);
+            Assert.That(resolution.EnemyAttacked, Is.True);
+            Assert.That(resolution.Snapshot.PlayerCurrentHearts, Is.EqualTo(3));
+            Assert.That(resolution.PlayerDefeated, Is.False);
+        }
+
+        [Test]
         public void StageHpPolicy_ScalesFromMonsterBaseHpWithWorldLevelGrowth()
         {
             var map = DevelopmentStageMapFactory.Create();
@@ -457,11 +485,11 @@ namespace PowerMath.Gameplay.Combat.Tests
             // 100 * 1.60 = 160 +/- 7% variation -> between 148 and 172
             Assert.That(stage30Hp, Is.InRange(148, 172));
 
-            // Stage 200: World Level 40 -> Growth = 1.0 + 39 * 0.12 = 5.68x
+            // Stage 200: World Level 40 -> Phase 3 Growth = 30.02x
             var finalBoss = new MonsterData("test-final", "Test Final Boss", StageEncounterKind.FinalBoss, "biome-7", 2, 5000);
             int stage200Hp = StageHpPolicy.Calculate(map, finalBoss, runId, new StageId(200));
-            // 5000 * 5.68 = 28400 +/- 7% variation -> between 26412 and 30388
-            Assert.That(stage200Hp, Is.InRange(26412, 30388));
+            // 5000 * 30.02 = 150100 +/- 5% variation -> between 142000 and 158000
+            Assert.That(stage200Hp, Is.InRange(142000, 158000));
         }
 
         [Test]

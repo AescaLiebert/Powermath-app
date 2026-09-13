@@ -8,14 +8,12 @@
     background-color: rgba(195, 229, 244, 0.8);
 }
 
-.is-error .mw-status,
-.auth-status--error {
+.is-error .mw-status {
     color: rgb(151, 54, 58);
     background-color: rgba(255, 220, 208, 0.82);
 }
 
-.is-success .mw-status,
-.auth-status--success {
+.is-success .mw-status {
     color: rgb(34, 105, 78);
     background-color: rgba(207, 240, 213, 0.82);
 }

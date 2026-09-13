@@ -17,7 +17,6 @@ namespace PowerMath.UI.MainMenu
         private readonly PlayerSnapshot _player;
         private readonly FirestoreProgressionCommandStore _store;
         private readonly FirestoreLeaderboardProjectionPublisher _publisher;
-        private readonly int _baseAttack;
         private readonly int _baseWeaponAttack;
         private readonly double _baseCriticalRate;
         private readonly double _baseCriticalDamagePercent;
@@ -47,6 +46,9 @@ namespace PowerMath.UI.MainMenu
         private readonly bool _reducedMotion;
         private IInteractionLock _terminalLock;
         private readonly UiToolkitLifecycleController _lifecycle;
+        private readonly VisualElement _resetTransitionLayer;
+        private readonly VisualElement _resetTransitionCircle;
+        private readonly RewardMagnetFeedbackPlayer _rewardMagnet;
 
         public RunSettlementPanelController(
             MonoBehaviour host,
@@ -54,7 +56,6 @@ namespace PowerMath.UI.MainMenu
             PlayerSnapshot player,
             FirestoreProgressionCommandStore store,
             FirestoreLeaderboardProjectionPublisher publisher,
-            int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent,
@@ -62,13 +63,13 @@ namespace PowerMath.UI.MainMenu
             IMainMenuPanelHost panelHost,
             IMainMenuInteractionGate interactionGate = null,
             ActorPresentationController playerActor = null,
-            bool reducedMotion = false)
+            bool reducedMotion = false,
+            RewardMagnetFeedbackPlayer rewardMagnet = null)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
             _store = store;
             _publisher = publisher;
-            _baseAttack = baseAttack;
             _baseWeaponAttack = baseWeaponAttack;
             _baseCriticalRate = baseCriticalRate;
             _baseCriticalDamagePercent = baseCriticalDamagePercent;
@@ -77,6 +78,7 @@ namespace PowerMath.UI.MainMenu
             _interactionGate = interactionGate;
             _playerActor = playerActor;
             _reducedMotion = reducedMotion;
+            _rewardMagnet = rewardMagnet;
             _modal = Require<VisualElement>(root, "run-settlement-modal");
             _title = Require<Label>(root, "Title");
             _attackBefore = RequireClass<Label>(root, "rebirth-atk-before");
@@ -93,6 +95,10 @@ namespace PowerMath.UI.MainMenu
             _confirmLabel = Require<Label>(root, "Text Component");
             _close = Require<Button>(root, "Button / Close");
             _continue = Require<Button>(root, "run-settlement-continue");
+            _resetTransitionLayer = Require<VisualElement>(
+                root, "run-reset-transition-layer");
+            _resetTransitionCircle = Require<VisualElement>(
+                root, "run-reset-transition-circle");
             _attackBefore.enableRichText = true;
             _attackAfter.enableRichText = true;
             _lifecycle = new UiToolkitLifecycleController(_modal);
@@ -125,6 +131,7 @@ namespace PowerMath.UI.MainMenu
             _terminalLock?.Dispose();
             _terminalLock = null;
             _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            HideResetTransition();
             if (_panelHost.OpenPanel == MainMenuPanelId.Rebirth)
                 _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth);
         }
@@ -142,14 +149,14 @@ namespace PowerMath.UI.MainMenu
             if (!TryBuildPreview(RunSettlementType.Death, out _pendingPreview,
                     out string error))
             {
-                _title.text = "RUN ENDED";
+                _title.text = PowerMath.Localization.LocalizationService.Get("menu.runEnded");
                 _status.text = error;
                 SetSemanticState("is-error");
                 return;
             }
 
             RenderPreview(_pendingPreview, "RUN ENDED");
-            _status.text = "Waiting for the defeat presentation to finish...";
+            _status.text = PowerMath.Localization.LocalizationService.Get("menu.waitingDefeat");
         }
 
         public void NotifyDeathPresentationCompleted()
@@ -160,7 +167,7 @@ namespace PowerMath.UI.MainMenu
                     out string error))
             {
                 AcquireTerminalLock();
-                _title.text = "RUN ENDED";
+                _title.text = PowerMath.Localization.LocalizationService.Get("menu.runEnded");
                 _status.text = error;
                 Show(true, false, true);
                 SetSemanticState("is-error");
@@ -250,7 +257,6 @@ namespace PowerMath.UI.MainMenu
         {
             return PlayerStatProjectionFactory.Create(
                 _player,
-                _baseAttack,
                 _baseWeaponAttack,
                 _baseCriticalRate,
                 _baseCriticalDamagePercent,
@@ -288,7 +294,7 @@ namespace PowerMath.UI.MainMenu
         {
             if (_store == null)
             {
-                _status.text = "Rebirth save is not configured in offline mode.";
+                _status.text = PowerMath.Localization.LocalizationService.Get("errors.rebirthOffline");
                 SetConfirmText("Offline");
                 Show(true, false);
                 SetSemanticState("is-error");
@@ -297,7 +303,7 @@ namespace PowerMath.UI.MainMenu
 
             _busy = true;
             SetSemanticState("is-busy");
-            _status.text = "Saving to Firebase...";
+            _status.text = PowerMath.Localization.LocalizationService.Get("common.savingFirebase");
             SetControls(false);
             RunSettlementAward award = default;
             bool success = false;
@@ -326,15 +332,51 @@ namespace PowerMath.UI.MainMenu
 
             yield return Publish();
             PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
-            if (type == RunSettlementType.Rebirth && _playerActor != null)
+
+            if (type == RunSettlementType.Rebirth)
             {
-                if (_playerActor.State == ActorVisualState.Hidden)
-                    _playerActor.CancelAndApply(ActorVisualState.Idle);
-                yield return _playerActor.Play(PresentationActionKind.PlayerRebirth);
+                // Close modal so that player and currency icons are fully visible during the reward sequence
+                _lifecycle.Exit();
+                while (!_lifecycle.IsStable) yield return null;
+                _panelHost.ForceCloseAll();
+
+                if (_playerActor != null)
+                {
+                    if (_playerActor.State == ActorVisualState.Hidden)
+                        _playerActor.CancelAndApply(ActorVisualState.Idle);
+                    yield return _playerActor.Play(PresentationActionKind.PlayerRebirth);
+                }
+
+                if (award.PowerCoins > 0 && _rewardMagnet != null)
+                {
+                    long resultingCoins = _player.wallet?.powerCoins ?? 0;
+                    long startCoins = Math.Max(0, resultingCoins - award.PowerCoins);
+                    Vector2 origin;
+                    if (_playerActor != null && _playerActor.TryGetScreenCenter(out Vector2 actorCenter))
+                    {
+                        origin = actorCenter;
+                    }
+                    else
+                    {
+                        origin = new Vector2(UnityEngine.Screen.width * 0.5f, UnityEngine.Screen.height * 0.5f);
+                    }
+
+                    int iconCount = (int)Math.Min(award.PowerCoins, 200);
+                    yield return _rewardMagnet.PlayRewardDropAndMagnet(
+                        RewardCurrencyKind.PowerCoin,
+                        startCoins,
+                        award.PowerCoins,
+                        origin,
+                        iconCountOverride: iconCount);
+                    yield return new WaitForSecondsRealtime(0.25f);
+                }
+
+                string sourceRunId = _player.lastRunSettlement?.runId ?? string.Empty;
+                yield return AcknowledgeAndReloadRoutine(sourceRunId);
+                yield break;
             }
-            string acceptedTitle = type == RunSettlementType.Rebirth
-                ? "REBIRTH COMPLETE"
-                : "RUN ENDED";
+
+            string acceptedTitle = "RUN ENDED";
             if (_pendingPreview.Award.StageReached == award.StageReached)
                 RenderPreview(_pendingPreview, acceptedTitle);
             else
@@ -447,7 +489,7 @@ namespace PowerMath.UI.MainMenu
                     out RunSettlementType type))
             {
                 AcquireTerminalLock();
-                _status.text = "This saved run result requires a newer PowerMath version.";
+                _status.text = PowerMath.Localization.LocalizationService.Get("errors.versionMismatch");
                 Show(false, false, true);
                 SetSemanticState("is-error");
                 yield break;
@@ -479,7 +521,7 @@ namespace PowerMath.UI.MainMenu
             }
 
             RenderSavedSettlement(receipt, type);
-            _status.text = "Saved result recovered. Continue to acknowledge it.";
+            _status.text = PowerMath.Localization.LocalizationService.Get("menu.resultRecovered");
             Show(false, true, true);
             SetSemanticState("is-success");
         }
@@ -545,7 +587,7 @@ namespace PowerMath.UI.MainMenu
         private IEnumerator AcknowledgeAndReloadRoutine(string sourceRunId)
         {
             _busy = true;
-            _status.text = "Acknowledging result...";
+            _status.text = PowerMath.Localization.LocalizationService.Get("menu.acknowledging");
             SetControls(false);
             bool success = false;
             string failure = string.Empty;
@@ -553,17 +595,103 @@ namespace PowerMath.UI.MainMenu
                 sourceRunId,
                 () => success = true,
                 message => failure = message);
-            _busy = false;
             if (!success)
             {
+                _busy = false;
                 _status.text = string.IsNullOrWhiteSpace(failure)
                     ? "Result acknowledgement failed. Try again."
                     : failure;
-                SetControls(true);
+                Show(false, true);
                 SetSemanticState("is-error");
                 yield break;
             }
+            yield return PlayResetTransition();
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        private IEnumerator PlayResetTransition()
+        {
+            _lifecycle.Exit();
+            while (!_lifecycle.IsStable) yield return null;
+            _panelHost.ForceCloseAll();
+
+            _resetTransitionLayer.RemoveFromClassList("is-hidden");
+            _resetTransitionLayer.style.display = DisplayStyle.Flex;
+            _resetTransitionLayer.pickingMode = PickingMode.Position;
+            _resetTransitionLayer.BringToFront();
+
+            float width = ResolveDimension(
+                _resetTransitionLayer.resolvedStyle.width,
+                global::UnityEngine.Screen.width,
+                2560f);
+            float height = ResolveDimension(
+                _resetTransitionLayer.resolvedStyle.height,
+                global::UnityEngine.Screen.height,
+                1440f);
+            Vector2 origin = new Vector2(width * 0.30f, height * 0.62f);
+            if (_playerActor != null &&
+                _playerActor.TryGetScreenCenter(out Vector2 screenCenter) &&
+                _resetTransitionLayer.panel != null)
+            {
+                origin = RuntimePanelUtils.ScreenToPanel(
+                    _resetTransitionLayer.panel, screenCenter);
+            }
+
+            float farthestX = Mathf.Max(origin.x, width - origin.x);
+            float farthestY = Mathf.Max(origin.y, height - origin.y);
+            float targetDiameter = Mathf.Sqrt(
+                farthestX * farthestX + farthestY * farthestY) * 2f + 24f;
+            float duration = _reducedMotion ? 0.24f : 0.78f;
+
+            // Fade music away smoothly before the actual Reset
+            PowerMath.Audio.MusicController.Instance?.StopMusic(duration);
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime > 0f
+                    ? Time.unscaledDeltaTime
+                    : 0.02f;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float eased = 1f - Mathf.Pow(1f - t, 3f);
+                ApplyResetCircle(origin, Mathf.Lerp(32f, targetDiameter, eased));
+                yield return null;
+            }
+            ApplyResetCircle(origin, targetDiameter);
+
+            // Clear battle music state so when Stage 1 reloads, it restarts cleanly
+            PowerMath.Audio.MusicController.Instance?.ResetBattleState();
+
+            yield return new WaitForSecondsRealtime(
+                _reducedMotion ? 0.08f : 0.18f);
+        }
+
+        private void ApplyResetCircle(Vector2 origin, float diameter)
+        {
+            _resetTransitionCircle.style.width = diameter;
+            _resetTransitionCircle.style.height = diameter;
+            _resetTransitionCircle.style.left = origin.x - diameter * 0.5f;
+            _resetTransitionCircle.style.top = origin.y - diameter * 0.5f;
+        }
+
+        private void HideResetTransition()
+        {
+            _resetTransitionLayer.AddToClassList("is-hidden");
+            _resetTransitionLayer.style.display = DisplayStyle.None;
+            _resetTransitionLayer.pickingMode = PickingMode.Ignore;
+            ApplyResetCircle(Vector2.zero, 32f);
+        }
+
+        private static float ResolveDimension(
+            float resolved,
+            float screen,
+            float fallback)
+        {
+            if (!float.IsNaN(resolved) && !float.IsInfinity(resolved) &&
+                resolved > 1f) return resolved;
+            if (!float.IsNaN(screen) && !float.IsInfinity(screen) &&
+                screen > 1f) return screen;
+            return fallback;
         }
 
         private void AcquireTerminalLock()

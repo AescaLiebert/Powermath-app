@@ -166,7 +166,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 161285853}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 78284b2b6aa198b4998c3bfb412954df, type: 3}
+  m_VideoClip: {fileID: 32900000, guid: 6f8a72a9e4e16b540a078ab299384347, type: 3}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
@@ -180,12 +180,14 @@ VideoPlayer:
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 0
-  m_TargetAudioSources: []
-  m_DirectAudioVolumes: []
+  m_TargetAudioSources:
+  - {fileID: 0}
+  m_DirectAudioVolumes:
+  - 1
   m_Url: 
-  m_EnabledAudioTracks: 
-  m_DirectAudioMutes: 
-  m_ControlledAudioTrackCount: 0
+  m_EnabledAudioTracks: 01
+  m_DirectAudioMutes: 00
+  m_ControlledAudioTrackCount: 1
   m_PlayOnAwake: 1
   m_SkipOnDrop: 1
   m_Looping: 0
@@ -240,10 +242,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.Shared.PingPongVideoPlayer
   loopMode: 0
-  forwardClip: {fileID: 32900000, guid: 78284b2b6aa198b4998c3bfb412954df, type: 3}
-  reverseClip: {fileID: 32900000, guid: 9a823f6b4501488c9cf782410a62dae3, type: 3}
-  forwardUrl: Videos/LogInLive2D.mp4
-  reverseUrl: Videos/LogInLive2D_Reverse.mp4
+  forwardClip: {fileID: 32900000, guid: 6f8a72a9e4e16b540a078ab299384347, type: 3}
+  reverseClip: {fileID: 32900000, guid: 8f9b1c2d3e4f5a6b7c8d9e0f1a2b3c4d, type: 3}
+  forwardUrl: Videos/V2_LogInLive2D.mp4
+  reverseUrl: Videos/V2_LogInLive2D_Reverse.mp4
   playbackSpeed: 1
   directionChangePauseSeconds: 0
   reverseScrubInterval: 0.033
@@ -394,7 +396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_RenderShadows: 1
+  m_RenderShadows: 0
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
@@ -458,7 +460,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 50
   field of view: 34
   orthographic: 1
   orthographic size: 5
@@ -1097,6 +1099,7 @@ MonoBehaviour:
   musicVolume: 0.2
   isMuted: 0
   isBossActive: 0
+  isEncounterOverrideActive: 0
   duckingRequestCount: 0
   currentBattleBiomeId: 
 --- !u!4 &1690994142

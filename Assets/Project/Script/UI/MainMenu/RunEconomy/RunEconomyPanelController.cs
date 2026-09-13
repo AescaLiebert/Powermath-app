@@ -27,7 +27,6 @@ namespace PowerMath.UI.MainMenu
             QuestionCatalog questions,
             WeaponAscensionCatalogDefinition catalog,
             PetGachaCatalogDefinition petGachaDefinition,
-            int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent,
@@ -36,7 +35,8 @@ namespace PowerMath.UI.MainMenu
             IUiMotionDriver motionDriver,
             IMainMenuPanelHost panelHost,
             IMainMenuInteractionGate interactionGate = null,
-            ActorPresentationController playerActor = null)
+            ActorPresentationController playerActor = null,
+            RewardMagnetFeedbackPlayer rewardMagnet = null)
         {
             if (host == null) throw new ArgumentNullException(nameof(host));
             if (root == null) throw new ArgumentNullException(nameof(root));
@@ -114,7 +114,6 @@ namespace PowerMath.UI.MainMenu
                 player,
                 store,
                 publisher,
-                baseAttack,
                 baseWeaponAttack,
                 baseCriticalRate,
                 baseCriticalDamagePercent,
@@ -122,7 +121,8 @@ namespace PowerMath.UI.MainMenu
                 panelHost,
                 interactionGate,
                 playerActor,
-                reducedMotion);
+                reducedMotion,
+                rewardMagnet);
             _playerHub = new PlayerHubPanelController(
                 host,
                 root,
@@ -133,7 +133,6 @@ namespace PowerMath.UI.MainMenu
                 petGachaDefinition,
                 petCatalog,
                 petEquipStore,
-                baseAttack,
                 baseWeaponAttack,
                 baseCriticalRate,
                 baseCriticalDamagePercent,

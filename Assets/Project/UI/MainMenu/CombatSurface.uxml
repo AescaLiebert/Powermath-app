@@ -1,6 +1,9 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="NavigatorPanel" src="project://database/Assets/Project/UI/MainMenu/NavigatorPanel.uxml?fileID=9197481963319205126&amp;guid=06cb78a1b6c61b949ac197f1543ab3d8&amp;type=3#NavigatorPanel"/>
     <Style src="project://database/Assets/Project/UI/CombatLobbyUI.uss?fileID=7433441132597879392&amp;guid=3ea5ee48f6afce54b8ee62c9ae496672&amp;type=3#CombatLobbyUI"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuExperience.uss?fileID=7433441132597879392&amp;guid=a3168f27716975f42a77b8d15d9be5c1&amp;type=3#MainMenuExperience"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuSharedOverlay.uss?fileID=7433441132597879392&amp;guid=0ab46313332b46e8a9fa5e40c123c9d5&amp;type=3#MainMenuSharedOverlay"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden" style="top: 0;">
         <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel main-menu-transition-top">
             <ui:Label name="combat-stage-label-compat" text="STAGE 1" class="hud-stage-label"/>
@@ -21,7 +24,7 @@
                 <ui:VisualElement name="Panel_Inner" picking-mode="Ignore" class="hud-loadout-panel-inner"/>
             </ui:VisualElement>
             <ui:VisualElement name="Player Loadout / Health Row" picking-mode="Ignore" class="hud-loadout-health-row">
-                <ui:Label name="CharacterName" text="Stellar" picking-mode="Ignore" class="hud-loadout-character-name"/>
+                <ui:Label name="CharacterName" text="Stellar" picking-mode="Ignore" class="hud-loadout-character-name" style="color: rgb(0, 0, 0); width: 117px; flex-grow: 0;"/>
                 <ui:VisualElement name="Health" picking-mode="Ignore" class="hud-loadout-health">
                     <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart"/>
                     <ui:VisualElement name="heart" picking-mode="Ignore" class="hud-loadout-heart"/>
@@ -80,8 +83,8 @@
         <ui:Label name="combat-biome-label" text="PREPARING BIOME" picking-mode="Ignore" class="hud-compat-hidden"/>
         <ui:Label name="combat-damage-label" text="" picking-mode="Ignore" class="combat-damage-label"/>
         <ui:Label name="combat-critical-label" text="CRITICAL" picking-mode="Ignore" class="loc-menu.critical combat-critical-label is-hidden"/>
-        <ui:Label name="combat-battle-banner" text="" picking-mode="Ignore" class="combat-battle-banner is-hidden"/>
-        <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel math-challenge-card is-hidden">
+        <ui:Label name="combat-battle-banner" text="" picking-mode="Ignore" class="combat-battle-banner is-hidden" style="display: flex;"/>
+        <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel math-challenge-card is-hidden" style="bottom: 180px; top: 198px;">
             <ui:VisualElement name="combat-attempt-header" class="combat-attempt-header card-header">
                 <ui:Label text="★" class="combat-attempt-star card-star"/>
                 <ui:Label text="MATH CHALLENGE" class="loc-menu.challenge combat-attempt-title card-title"/>
@@ -90,7 +93,7 @@
             <ui:VisualElement name="combat-answer-content" class="combat-answer-content">
                 <ui:Label name="academic-question-meta" text="SILVER-001 - SILVER" class="academic-question-meta academic-meta"/>
                 <ui:VisualElement name="equation-row" class="equation-row" style="display: none;">
-                    <ui:Label name="academic-question-prompt" text="48 ÷ 6 = ?" class="academic-question-prompt equation-text" style="display: none;"/>
+                    <ui:Label name="academic-question-prompt" text="" class="academic-question-prompt equation-text" style="display: none;"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="combat-timer-widget" class="combat-timer-widget timer-widget">
                     <ui:Label name="combat-timer-label" text="10" class="combat-timer seconds-left"/>
@@ -132,23 +135,34 @@
                 </ui:VisualElement>
                 <ui:Label name="combat-feedback-subtitle" text="Building your attack" class="loc-combat.attackBuild combat-feedback-subtitle"/>
                 <ui:VisualElement name="combat-score-stack" class="combat-score-stack"/>
-                <ui:Image name="combat-result-sticker-correct" sprite="project://database/Assets/Project/Art/Character/Sticker_Power_Correct.PNG?fileID=-8920802317016414413&amp;guid=6d6d43d0806b90349868396e601ceb48&amp;type=3#Sticker_Power_Correct_0" scale-mode="ScaleToFit" picking-mode="Ignore" class="combat-result-sticker combat-result-sticker--correct"/>
-                <ui:Image name="combat-result-sticker-fail" sprite="project://database/Assets/Project/Art/Character/Sticker_Power_Fail.PNG?fileID=-2156568754499997360&amp;guid=561a918517cb31249bf72044128e51cb&amp;type=3#Sticker_Power_Fail_0" scale-mode="ScaleToFit" picking-mode="Ignore" class="combat-result-sticker combat-result-sticker--fail"/>
+                <ui:Image name="combat-result-sticker" picking-mode="Ignore" class="combat-result-sticker is-hidden"/>
+                <ui:Image name="combat-result-sticker-correct" scale-mode="ScaleToFit" picking-mode="Ignore" class="combat-result-sticker combat-result-sticker--correct is-hidden" style="display: none;"/>
+                <ui:Image name="combat-result-sticker-fail" scale-mode="ScaleToFit" picking-mode="Ignore" class="combat-result-sticker combat-result-sticker--fail is-hidden" style="display: none;"/>
             </ui:VisualElement>
             <ui:Label name="combat-result-label" text="" class="combat-result"/>
             <ui:Label name="academic-currency-gain" text="" class="academic-currency-gain"/>
         </ui:VisualElement>
-        <ui:VisualElement name="combat-biome-transition" picking-mode="Ignore" class="combat-biome-transition is-hidden">
+        <ui:VisualElement name="combat-biome-transition" picking-mode="Ignore" class="combat-biome-transition is-hidden" style="display: none;">
             <ui:VisualElement name="combat-biome-transition-backdrop" picking-mode="Ignore" class="combat-biome-transition-backdrop"/>
             <ui:VisualElement name="combat-biome-transition-card" picking-mode="Ignore" class="combat-biome-transition-card">
                 <ui:Label name="combat-biome-transition-kicker" text="ENTERING NEW BIOME" picking-mode="Ignore" class="loc-combat.biomeEnter combat-biome-transition-kicker"/>
-                <ui:Label name="combat-biome-transition-title" text="BIOME" picking-mode="Ignore" class="loc-combat.biome combat-biome-transition-title"/>
+                <ui:Label name="combat-biome-transition-title" text="BIOME" picking-mode="Ignore" class="loc-combat.biome combat-biome-transition-title" style="font-size: 136px;"/>
                 <ui:VisualElement name="combat-biome-transition-accent" picking-mode="Ignore" class="combat-biome-transition-accent"/>
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="combat-boss-warning" picking-mode="Ignore" class="combat-boss-warning is-hidden" style="display: none;">
+            <ui:VisualElement name="combat-boss-warning-wash" picking-mode="Ignore" class="combat-boss-warning-wash"/>
+            <ui:VisualElement name="combat-boss-warning-band-top" picking-mode="Ignore" class="combat-boss-warning-band combat-boss-warning-band--top"/>
+            <ui:VisualElement name="combat-boss-warning-band-bottom" picking-mode="Ignore" class="combat-boss-warning-band combat-boss-warning-band--bottom"/>
+            <ui:VisualElement name="combat-boss-warning-content" picking-mode="Ignore" class="combat-boss-warning-content">
+                <ui:Label name="combat-boss-warning-kicker" text="WARNING" picking-mode="Ignore" class="loc-combat.warning combat-boss-warning-kicker" style="-unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+                <ui:Label name="combat-boss-warning-title" text="DANGER!" picking-mode="Ignore" class="loc-combat.danger combat-boss-warning-title" style="-unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+                <ui:Label name="combat-boss-warning-subtitle" text="APPROACHING" picking-mode="Ignore" class="loc-combat.approaching combat-boss-warning-subtitle" style="-unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:Instance template="NavigatorPanel" picking-mode="Ignore" class="mw-template-fill"/>
-        <ui:VisualElement name="main-menu-interaction-shield" focusable="true" class="main-menu-interaction-shield is-hidden"/>
-        <ui:VisualElement name="academic-rank-modal" picking-mode="Position" class="academic-rank-modal">
+        <ui:VisualElement name="main-menu-interaction-shield" focusable="true" class="main-menu-interaction-shield is-hidden" style="display: flex;"/>
+        <ui:VisualElement name="academic-rank-modal" picking-mode="Position" class="academic-rank-modal" style="display: none;">
             <ui:VisualElement name="academic-rank-aura" picking-mode="Ignore" class="academic-rank-aura"/>
             <ui:VisualElement name="academic-rank-notification" picking-mode="Ignore" class="academic-rank-notification">
                 <ui:VisualElement name="academic-rank-banner" picking-mode="Ignore" class="academic-rank-banner">

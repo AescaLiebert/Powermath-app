@@ -281,7 +281,7 @@ namespace PowerMath.Session
                 string.Equals(storedPassword, password, StringComparison.Ordinal);
         }
 
-        private static bool TryMapPlayer(
+        public static bool TryMapPlayer(
             string username,
             string levelDocumentId,
             string gradeBand,
@@ -303,6 +303,21 @@ namespace PowerMath.Session
             TryGetMapFromFields(gameData, "tutorial", out JsonValue tutorial);
             string displayName = ReadString(profile, "displayName", username);
             string iconId = ReadString(profile, "iconId", "avatar-default");
+
+            bool isAdmin = false;
+            if (TryGetMap(student, "userdata", out JsonValue userData))
+            {
+                isAdmin = ReadBool(userData, "admin") || ReadBool(userData, "isAdmin");
+            }
+            if (!isAdmin && TryGetMapFromFields(student, "userdata", out JsonValue directUserData))
+            {
+                isAdmin = ReadBool(directUserData, "admin") || ReadBool(directUserData, "isAdmin");
+            }
+            if (!isAdmin)
+            {
+                isAdmin = ReadBool(gameData, "admin") || ReadBool(gameData, "isAdmin");
+            }
+
             player = new PlayerSnapshot
             {
                 schemaVersion = ReadInt(gameData, "schemaVersion"),
@@ -317,7 +332,9 @@ namespace PowerMath.Session
                 },
                 tutorial = new PlayerSnapshot.TutorialData { version = ReadInt(tutorial, "version"), checkpointId = ReadString(tutorial, "checkpointId") },
                 playerId = levelDocumentId + ":" + username,
+                isAdmin = isAdmin,
                 revision = ReadLong(gameData, "revision"),
+                adminTuning = MapAdminTuning(gameData),
                 profile = new PlayerSnapshot.ProfileData
                 {
                     characterId = ReadString(profile, "characterId"),
@@ -337,7 +354,10 @@ namespace PowerMath.Session
                     firstStage200Reached = ReadBool(progression, "firstStage200Reached"),
                     firstStage200ReachedAtUnixSeconds = ReadLong(progression, "firstStage200ReachedAtUnixSeconds"),
                     totalDamage = ReadLong(progression, "totalDamage"),
-                    legacyAtkBonusBasisPoints = ReadLong(progression, "legacyAtkBonusBasisPoints")
+                    legacyAtkBonusBasisPoints = ReadLong(progression, "legacyAtkBonusBasisPoints"),
+                    leaderboardSnapshotAtUnixSeconds = ReadLong(progression, "leaderboardSnapshotAtUnixSeconds"),
+                    lastSnapshotHighestStage = ReadLong(progression, "lastSnapshotHighestStage"),
+                    lastSnapshotWeightedScore = ReadLong(progression, "lastSnapshotWeightedScore")
                 },
                 wallet = new PlayerSnapshot.WalletData
                 {
@@ -470,6 +490,21 @@ namespace PowerMath.Session
                 playerCurrentHearts = ReadInt(value, "playerCurrentHearts"),
                 playerMaximumHearts = ReadInt(value, "playerMaximumHearts"),
                 phase = ReadString(value, "phase")
+            };
+        }
+
+        private static PlayerSnapshot.AdminTuningData MapAdminTuning(JsonValue gameData)
+        {
+            if (!TryGetMapFromFields(gameData, "adminTuning", out JsonValue adminTuning))
+                return null;
+            return new PlayerSnapshot.AdminTuningData
+            {
+                combatOverrideEnabled = ReadBool(adminTuning, "combatOverrideEnabled"),
+                attack = ReadInt(adminTuning, "attack"),
+                criticalRateBasisPoints = ReadInt(adminTuning, "criticalRateBasisPoints"),
+                criticalDamageBasisPoints = ReadInt(adminTuning, "criticalDamageBasisPoints"),
+                invincible = ReadBool(adminTuning, "invincible"),
+                bypassVideoQuestion = ReadBool(adminTuning, "bypassVideoQuestion")
             };
         }
 

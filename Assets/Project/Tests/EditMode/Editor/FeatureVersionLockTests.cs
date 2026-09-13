@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.UIElements;
 using PowerMath.Bootstrap;
+using PowerMath.Localization;
 using PowerMath.PlayerData;
 using PowerMath.UI.Core;
 
@@ -89,10 +90,10 @@ namespace PowerMath.Tests.EditMode
 
             VisualElement root = tree.CloneTree();
 
-            Button mapButton = root.Q<Button>("combat-map-button");
+            Button mapButton = root.Q<Button>("map");
             Assert.That(mapButton, Is.Not.Null);
             ChainLockVectorElement mapLock = mapButton.Q<ChainLockVectorElement>("combat-map-lock");
-            Assert.That(mapLock, Is.Not.Null, "combat-map-button must contain combat-map-lock ChainLockVectorElement");
+            Assert.That(mapLock, Is.Not.Null, "map must contain combat-map-lock ChainLockVectorElement");
 
             Button hubButton = root.Q<Button>("player-hub-button");
             Assert.That(hubButton, Is.Not.Null);
@@ -132,6 +133,53 @@ namespace PowerMath.Tests.EditMode
             Assert.That(rebirthButton, Is.Not.Null);
             ChainLockVectorElement rebirthLock = rebirthButton.Q<ChainLockVectorElement>();
             Assert.That(rebirthLock, Is.Null, "rebirth-button in PlayerMenuPanel must NOT contain any ChainLockVectorElement");
+        }
+
+        [Test]
+        public void LockedFeature_LocalizationStrings_ExistInBothEnglishAndThai()
+        {
+            string originalLocale = LocalizationService.Locale;
+            try
+            {
+                LocalizationService.SetLocale("en");
+                string enMessage = LocalizationService.Get("menu.lockedFeatureUpdate");
+                Assert.That(enMessage, Is.EqualTo("Wait for 1.2 Update (16/09/26) sorry!"));
+
+                LocalizationService.SetLocale("th");
+                string thMessage = LocalizationService.Get("menu.lockedFeatureUpdate");
+                Assert.That(thMessage, Is.EqualTo("รออัปเดต 1.2 (16/09/26) ขออภัยด้วยนะ!"));
+            }
+            finally
+            {
+                LocalizationService.SetLocale(originalLocale);
+            }
+        }
+
+        [Test]
+        public void LockedFeature_StatusMessageService_EmitsWarningNotification()
+        {
+            string publishedMessage = null;
+            StatusSeverity publishedSeverity = StatusSeverity.Info;
+
+            System.Action<string, StatusSeverity, int> handler = (msg, sev, dur) =>
+            {
+                publishedMessage = msg;
+                publishedSeverity = sev;
+            };
+
+            StatusMessageService.MessagePublished += handler;
+            try
+            {
+                string expectedMessage = LocalizationService.Get("menu.lockedFeatureUpdate");
+                StatusMessageService.ShowWarning(expectedMessage);
+
+                Assert.That(publishedMessage, Is.EqualTo(expectedMessage));
+                Assert.That(publishedSeverity, Is.EqualTo(StatusSeverity.Warning));
+            }
+            finally
+            {
+                StatusMessageService.MessagePublished -= handler;
+            }
         }
     }
 }

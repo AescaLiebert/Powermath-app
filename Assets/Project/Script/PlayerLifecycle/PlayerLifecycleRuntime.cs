@@ -44,11 +44,16 @@ namespace PowerMath.PlayerLifecycle
                 var root = document.rootVisualElement;
                 if (root == null) continue;
                 PowerMath.UI.Core.StatusToastOverlay.Attach(root);
-                if (document.GetComponent<LocalizedDocument>() != null) continue;
-                var binding = document.gameObject.AddComponent<LocalizedDocument>();
-                binding.Bind(root);
-                var character = document.gameObject.AddComponent<CharacterPresentationBinding>();
-                character.Bind(root);
+                if (document.GetComponent<LocalizedDocument>() == null)
+                {
+                    var binding = document.gameObject.AddComponent<LocalizedDocument>();
+                    binding.Bind(root);
+                }
+                if (document.GetComponent<CharacterPresentationBinding>() == null)
+                {
+                    var character = document.gameObject.AddComponent<CharacterPresentationBinding>();
+                    character.Bind(root);
+                }
             }
         }
 

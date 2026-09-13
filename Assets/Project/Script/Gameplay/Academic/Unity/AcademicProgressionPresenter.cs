@@ -5,10 +5,14 @@ namespace PowerMath.Gameplay.Academic.Unity
     public sealed class AcademicProgressionPresenter : IDisposable
     {
         private readonly AcademicProgressionView _view;
+        private readonly Func<bool> _isAdminBypassActive;
 
-        public AcademicProgressionPresenter(AcademicProgressionView view)
+        public AcademicProgressionPresenter(
+            AcademicProgressionView view,
+            Func<bool> isAdminBypassActive = null)
         {
             _view = view ?? throw new ArgumentNullException(nameof(view));
+            _isAdminBypassActive = isAdminBypassActive ?? (() => false);
         }
 
         public AcademicProgressionView View => _view;
@@ -29,7 +33,7 @@ namespace PowerMath.Gameplay.Academic.Unity
 
         public void ShowQuestion(QuestionPresentationDescriptor question)
         {
-            _view.ShowQuestion(question);
+            _view.ShowQuestion(question, _isAdminBypassActive());
         }
 
         public void ShowAttemptOutcome(AcademicAttemptResult result)

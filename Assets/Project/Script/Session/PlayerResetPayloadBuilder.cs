@@ -19,9 +19,24 @@ namespace PowerMath.Session
             var builder = new FirestorePatchDocumentBuilder();
             string[] root = { username, "gamedata" };
 
+            builder.AddInteger(Join(root, "schemaVersion"),
+                PowerMath.PlayerData.PlayerSchemaMigrator.CurrentSchemaVersion);
             builder.AddInteger(Join(root, "revision"), 0);
+            builder.AddString(Join(root, "preferences", "locale"), string.Empty);
+
+            // Player Prep / first-run state. Credentials live in the sibling
+            // userdata map and are intentionally not part of this reset patch.
+            builder.AddInteger(Join(root, "onboarding", "version"), 1);
+            builder.AddString(Join(root, "onboarding", "phase"), "opening");
+            builder.AddString(Join(root, "onboarding", "openingCheckpointId"), string.Empty);
+            builder.AddString(Join(root, "onboarding", "selectedCharacterId"), string.Empty);
+            builder.AddString(Join(root, "onboarding", "completionOperationId"), string.Empty);
+            builder.AddBoolean(Join(root, "onboarding", "legacyPlayer"), false);
+            builder.AddInteger(Join(root, "tutorial", "version"), 1);
+            builder.AddString(Join(root, "tutorial", "checkpointId"), string.Empty);
 
             // Profile
+            builder.AddString(Join(root, "profile", "characterId"), string.Empty);
             builder.AddString(Join(root, "profile", "displayName"), username);
             builder.AddString(Join(root, "profile", "iconId"), "avatar-default");
             builder.AddString(Join(root, "profile", "publicPlayerId"), publicId);
@@ -37,6 +52,9 @@ namespace PowerMath.Session
             builder.AddInteger(Join(root, "progression", "firstStage200ReachedAtUnixSeconds"), 0);
             builder.AddInteger(Join(root, "progression", "totalDamage"), 0);
             builder.AddInteger(Join(root, "progression", "legacyAtkBonusBasisPoints"), 0);
+            builder.AddInteger(Join(root, "progression", "leaderboardSnapshotAtUnixSeconds"), 0);
+            builder.AddInteger(Join(root, "progression", "lastSnapshotHighestStage"), 0);
+            builder.AddInteger(Join(root, "progression", "lastSnapshotWeightedScore"), 0);
 
             // Wallet
             builder.AddInteger(Join(root, "wallet", "silver"), 0);
@@ -133,7 +151,13 @@ namespace PowerMath.Session
                 }
             }
 
-            return builder.Build();
+            FirestorePatchPlan completeMap = builder.Build();
+            return new FirestorePatchPlan(
+                completeMap.Root,
+                new[]
+                {
+                    FirestoreFieldPath.EscapeSegment(username) + ".gamedata"
+                });
         }
 
         public static FirestorePatchPlan BuildLeaderboardDeletionPlan(string oldPublicPlayerId)

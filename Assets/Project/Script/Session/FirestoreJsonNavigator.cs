@@ -172,13 +172,32 @@ namespace PowerMath.Session
         public static bool TryReadBoolean(JsonValue value, out bool result)
         {
             result = false;
-            if (!TryGetScalar(value, "booleanValue", JsonValueKind.Boolean, out JsonValue leaf))
+            if (value == null) return false;
+            if (value.Kind == JsonValueKind.Boolean)
             {
-                return false;
+                result = value.Boolean;
+                return true;
             }
-
-            result = leaf.Boolean;
-            return true;
+            if (TryGetScalar(value, "booleanValue", JsonValueKind.Boolean, out JsonValue leaf))
+            {
+                result = leaf.Boolean;
+                return true;
+            }
+            if (TryGetScalar(value, "booleanValue", JsonValueKind.String, out JsonValue boolStrLeaf) &&
+                bool.TryParse(boolStrLeaf.Text, out result))
+            {
+                return true;
+            }
+            if (TryGetScalar(value, "stringValue", JsonValueKind.String, out JsonValue strLeaf) &&
+                bool.TryParse(strLeaf.Text, out result))
+            {
+                return true;
+            }
+            if (value.Kind == JsonValueKind.String && bool.TryParse(value.Text, out result))
+            {
+                return true;
+            }
+            return false;
         }
 
         public static bool IsNull(JsonValue value)

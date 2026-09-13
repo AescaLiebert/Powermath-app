@@ -12,12 +12,29 @@ namespace PowerMath.PlayerData
     {
         private readonly GameApiSettings _settings;
 
+        private static readonly System.Collections.Generic.Dictionary<string, string> s_lastPublishedSignatures =
+            new System.Collections.Generic.Dictionary<string, string>(StringComparer.Ordinal);
+
         public FirestoreLeaderboardProjectionPublisher(GameApiSettings settings)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
-        public IEnumerator Publish(PlayerSnapshot player, Action completed, Action<string> failed)
+        public static void InvalidateSignature(string publicPlayerId)
+        {
+            if (!string.IsNullOrEmpty(publicPlayerId))
+                s_lastPublishedSignatures.Remove(publicPlayerId.Trim());
+        }
+
+        public static void ClearSignatures()
+        {
+            s_lastPublishedSignatures.Clear();
+        }
+
+        public IEnumerator Publish(PlayerSnapshot player, Action completed, Action<string> failed) =>
+            Publish(player, completed, failed, force: false);
+
+        public IEnumerator Publish(PlayerSnapshot player, Action completed, Action<string> failed, bool force)
         {
             if (!TryResolve(player, out string levelId, out string publicId) ||
                 !_settings.TryGetLeaderboardDocument(levelId, out string url))
@@ -44,6 +61,25 @@ namespace PowerMath.PlayerData
                 yield break;
             }
 
+            long snapshotAtUnixSeconds = progression.leaderboardSnapshotAtUnixSeconds;
+            if (snapshotAtUnixSeconds <= 0 ||
+                highestStage != progression.lastSnapshotHighestStage ||
+                weighted != progression.lastSnapshotWeightedScore)
+            {
+                snapshotAtUnixSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                progression.leaderboardSnapshotAtUnixSeconds = snapshotAtUnixSeconds;
+                progression.lastSnapshotHighestStage = highestStage;
+                progression.lastSnapshotWeightedScore = weighted;
+            }
+
+            string signature = $"{player.revision}|{profile.displayName}|{profile.characterId}|{profile.iconId}|{loadout.avatarId}|{loadout.petId}|{loadout.weaponId}|{weaponLevel}|{currentStage}|{highestStage}|{wallet.silver}|{wallet.gold}|{wallet.diamond}|{weighted}|{progression.totalDamage}|{progression.prestige}|{progression.firstStage200ReachedAtUnixSeconds}|{snapshotAtUnixSeconds}";
+            if (!force && s_lastPublishedSignatures.TryGetValue(publicId, out string lastSig) &&
+                string.Equals(lastSig, signature, StringComparison.Ordinal))
+            {
+                completed?.Invoke();
+                yield break;
+            }
+
             var builder = new FirestorePatchDocumentBuilder();
             string[] root = { publicId };
             builder.AddInteger(Join(root, "entryRevision"), player.revision);
@@ -64,6 +100,7 @@ namespace PowerMath.PlayerData
             builder.AddInteger(Join(root, "prestige"), Math.Max(0, progression.prestige));
             builder.AddInteger(Join(root, "firstStage200ReachedAtUnixSeconds"),
                 Math.Max(0, progression.firstStage200ReachedAtUnixSeconds));
+            builder.AddInteger(Join(root, "snapshotAtUnixSeconds"), snapshotAtUnixSeconds);
             FirestorePatchPlan plan = builder.Build();
 
             var address = new StringBuilder(url);
@@ -87,6 +124,7 @@ namespace PowerMath.PlayerData
                     yield break;
                 }
             }
+            s_lastPublishedSignatures[publicId] = signature;
             completed?.Invoke();
         }
 

@@ -21,3 +21,23 @@ MonoBehaviour:
   maximumCooldown: 3
   hpMultiplierBasisPoints: 10000
   enemySprite: {fileID: 21300000, guid: 1175cd0445dfa6c4ea13efda214d3ff5, type: 3}
+  customBattleMusic:
+    clip: {fileID: 0}
+    volumeScale: 1
+    loop: 1
+  customAppearSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customHurtSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customAttackSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customDieSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}

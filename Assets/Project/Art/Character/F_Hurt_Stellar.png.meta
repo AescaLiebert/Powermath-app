@@ -3,11 +3,17 @@ guid: 08ce6492ee65e4a4abf4315f7328bbe5
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3942754537868404408
-    second: F_Hurt_Stellar (1)_0
+      213: -704564906324953728
+    second: F_Hurt_Stellar_0
   - first:
-      213: 6391156413482441390
-    second: F_Hurt_Stellar (1)_1
+      213: -6206931411580476904
+    second: F_Hurt_Stellar_1
+  - first:
+      213: 2457861018294354988
+    second: F_Hurt_Stellar_2
+  - first:
+      213: -172702249910672362
+    second: F_Hurt_Stellar_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -116,13 +122,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: F_Hurt_Stellar (1)_0
+      name: F_Hurt_Stellar_0
       rect:
         serializedVersion: 2
-        x: 144
-        y: 0
-        width: 658
-        height: 1004
+        x: 18
+        y: 60
+        width: 954
+        height: 1325
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,19 +137,63 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8b6a432dc5a77b630800000000000000
-      internalID: 3942754537868404408
+      spriteID: 0857b4d53f1e836f0800000000000000
+      internalID: -704564906324953728
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: F_Hurt_Stellar (1)_1
+      name: F_Hurt_Stellar_1
       rect:
         serializedVersion: 2
-        x: 475
-        y: 974
-        width: 17
+        x: 665
+        y: 40
+        width: 33
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 812288354cc8cd9a0800000000000000
+      internalID: -6206931411580476904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: F_Hurt_Stellar_2
+      rect:
+        serializedVersion: 2
+        x: 700
+        y: 11
+        width: 35
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2407b6e2931c1220800000000000000
+      internalID: 2457861018294354988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: F_Hurt_Stellar_3
+      rect:
+        serializedVersion: 2
+        x: 750
+        y: 3
+        width: 13
         height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -153,8 +203,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: eaa949175e2f1b850800000000000000
-      internalID: 6391156413482441390
+      spriteID: 614e92ef7307a9df0800000000000000
+      internalID: -172702249910672362
       vertices: []
       indices: 
       edges: []
@@ -173,8 +223,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      F_Hurt_Stellar (1)_0: 3942754537868404408
-      F_Hurt_Stellar (1)_1: 6391156413482441390
+      F_Hurt_Stellar_0: -704564906324953728
+      F_Hurt_Stellar_1: -6206931411580476904
+      F_Hurt_Stellar_2: 2457861018294354988
+      F_Hurt_Stellar_3: -172702249910672362
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

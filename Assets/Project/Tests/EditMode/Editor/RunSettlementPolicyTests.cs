@@ -37,7 +37,7 @@ namespace PowerMath.Tests.EditMode
         }
 
         [Test]
-        public void CanSettle_RebirthUnderStage50_ReturnsFalseWithReason()
+        public void CanSettle_RebirthUnderStage30_ReturnsFalseWithReason()
         {
             PlayerSnapshot player = CreatePlayer(stage: 15);
 
@@ -47,13 +47,13 @@ namespace PowerMath.Tests.EditMode
                 out string reason);
 
             Assert.That(canSettle, Is.False);
-            Assert.That(reason, Is.EqualTo("Rebirth unlocks at Stage 50."));
+            Assert.That(reason, Is.EqualTo("Rebirth unlocks at Stage 30."));
         }
 
         [Test]
-        public void CanSettle_RebirthAtStage50InValidPhase_ReturnsTrue()
+        public void CanSettle_RebirthAtStage30InValidPhase_ReturnsTrue()
         {
-            PlayerSnapshot player = CreatePlayer(stage: 50, phase: "EnemyReady");
+            PlayerSnapshot player = CreatePlayer(stage: 30, phase: "EnemyReady");
 
             bool canSettle = RunSettlementPolicy.CanSettle(
                 player,
@@ -67,7 +67,7 @@ namespace PowerMath.Tests.EditMode
         [Test]
         public void CanSettle_RebirthDuringUnresolvedQuestion_ReturnsFalse()
         {
-            PlayerSnapshot player = CreatePlayer(stage: 50, phase: "EnemyReady", committedAttempt: "attempt-456");
+            PlayerSnapshot player = CreatePlayer(stage: 30, phase: "EnemyReady", committedAttempt: "attempt-456");
 
             bool canSettle = RunSettlementPolicy.CanSettle(
                 player,
@@ -86,22 +86,22 @@ namespace PowerMath.Tests.EditMode
             RunSettlementAward award = RunSettlementPolicy.Calculate(player, RunSettlementType.Rebirth);
 
             Assert.That(award.StageReached, Is.EqualTo(12));
-            Assert.That(award.LegacyBasisPoints, Is.EqualTo(120)); // 12 * 10
+            Assert.That(award.LegacyBasisPoints, Is.EqualTo(300)); // 12 * 25
             Assert.That(award.Prestige, Is.EqualTo(1));
-            Assert.That(award.PowerCoins, Is.GreaterThanOrEqualTo(0));
+            Assert.That(award.PowerCoins, Is.EqualTo(13)); // 12 flat + 1 weighted
         }
 
         [Test]
-        public void Calculate_AtStage50_ComputesAccurateAward()
+        public void Calculate_AtStage30_ComputesAccurateAward()
         {
-            PlayerSnapshot player = CreatePlayer(stage: 50);
+            PlayerSnapshot player = CreatePlayer(stage: 30);
 
             RunSettlementAward award = RunSettlementPolicy.Calculate(player, RunSettlementType.Rebirth);
 
-            Assert.That(award.StageReached, Is.EqualTo(50));
-            Assert.That(award.LegacyBasisPoints, Is.EqualTo(500)); // 50 * 10
+            Assert.That(award.StageReached, Is.EqualTo(30));
+            Assert.That(award.LegacyBasisPoints, Is.EqualTo(750)); // 30 * 25
             Assert.That(award.Prestige, Is.EqualTo(1));
-            Assert.That(award.PowerCoins, Is.GreaterThan(0));
+            Assert.That(award.PowerCoins, Is.EqualTo(33)); // 30 flat + 3 weighted
         }
 
         [Test]

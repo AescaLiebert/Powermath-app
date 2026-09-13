@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace PowerMath.Audio
@@ -193,5 +193,21 @@ namespace PowerMath.Audio
         NameConfirmed,
         ButtonClick,
         NavigationBack
+    }
+
+    public enum AuthenticationSfxState
+    {
+        LoginClick,
+        Success,
+        Failure,
+        LanguageSwitch
+    }
+
+    public enum RewardSfxState
+    {
+        OnDrop,
+        Magnetism,
+        CurrencyRank,
+        CurrencyPowerCoin
     }
 }

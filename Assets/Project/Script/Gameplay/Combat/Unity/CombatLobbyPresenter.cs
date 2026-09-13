@@ -30,7 +30,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly IMainMenuInteractionGate _interactionGate;
         private IInteractionLock _attemptLock;
         private IInteractionLock _resolutionLock;
-        private bool _isDucked;
+        private bool _musicDucked;
 
         public event Action<CombatPhase> TerminalPresentationCompleted;
 
@@ -90,6 +90,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 return;
             }
 
+            SetMusicDucked(false);
             _runner.StopCombatRoutines();
             _feedback.Cancel();
             _questionPresentation.Cancel();
@@ -110,22 +111,13 @@ namespace PowerMath.Gameplay.Combat.Unity
             _attemptLock = null;
             _bound = false;
             _presentationInFlight = false;
-            UpdateMusicDucking(false);
-        }
-
-        private void UpdateMusicDucking(bool active)
-        {
-            if (_isDucked != active)
-            {
-                _isDucked = active;
-                PowerMath.Audio.MusicController.Instance.SetDucking(active);
-            }
         }
 
         public bool RecoverPendingPresentation()
         {
             AttemptPresentationReceipt receipt = _coordinator.PendingPresentation;
             if (!_bound || receipt == null || _saveInFlight) return false;
+            SetMusicDucked(false);
             _presentationInFlight = true;
             _resolutionLock = _interactionGate?.Acquire(
                 "combat-recovery:" + receipt.PresentationId,
@@ -158,7 +150,6 @@ namespace PowerMath.Gameplay.Combat.Unity
             _view.SetAnswer(string.Empty, false);
             _view.SetAnswerInputEnabled(false);
             _academic.ShowQuestion(commit.Question);
-            UpdateMusicDucking(true);
             Save(
                 _saveRequests.CreateSaveRequest(
                     GameplaySavePoint.AttemptCommitted,
@@ -166,6 +157,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 () =>
                 {
                     _view.SetResult("PREPARING QUESTION...", true);
+                    SetMusicDucked(true);
                     _questionPresentation.Begin(
                         commit.Question,
                         OnQuestionPresentationCompleted);
@@ -182,6 +174,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (!result.IsReady)
             {
+                SetMusicDucked(false);
                 _coordinator.VoidContentFailure();
                 Save(
                     _saveRequests.CreateSaveRequest(GameplaySavePoint.ContentFailureVoided),
@@ -196,7 +189,6 @@ namespace PowerMath.Gameplay.Combat.Unity
                                 : result.PlayerMessage,
                             false);
                         _view.ShowAttempt(false);
-                        UpdateMusicDucking(false);
                         _attemptLock?.Dispose();
                         _attemptLock = null;
                     });
@@ -279,6 +271,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnAttemptResolved(AttemptResolution resolution)
         {
+            SetMusicDucked(false);
             _presentationInFlight = true;
             _resolutionLock = _interactionGate?.Acquire(
                 "combat-presentation:" + resolution.Presentation?.PresentationId,
@@ -297,6 +290,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private IEnumerator TimerRoutine()
         {
+            int lastSecond = -1;
             while (_coordinator.Phase == CombatPhase.Preparation ||
                    _coordinator.Phase == CombatPhase.Answering)
             {
@@ -304,18 +298,24 @@ namespace PowerMath.Gameplay.Combat.Unity
                     UnityEngine.Time.realtimeSinceStartupAsDouble
                 );
                 _view.SetTimer(timing);
+                if (!timing.IsPreparation && timing.DisplayedSeconds > 0 && timing.DisplayedSeconds != lastSecond)
+                {
+                    lastSecond = timing.DisplayedSeconds;
+                    bool isWarning = timing.RemainingSeconds <= 3.0d;
+                    _audio?.PlayCountdownTick(isWarning);
+                }
                 yield return null;
             }
         }
 
         private IEnumerator ResolutionRoutine(AttemptResolution resolution)
         {
+            SetMusicDucked(false);
             string presentationId = resolution.Presentation?.PresentationId ?? string.Empty;
             yield return _feedback.PlayAnswerFeedback(resolution);
             _questionPresentation.Dismiss();
             _view.SetRetainedQuestionLayout(false);
             _view.ShowAttempt(false);
-            UpdateMusicDucking(false);
             yield return _feedback.PlayBattleFeedback(resolution);
             while (!_feedback.AreActorsStable ||
                    !_view.IsEnemyActionQueueStable ||
@@ -354,8 +354,9 @@ namespace PowerMath.Gameplay.Combat.Unity
             {
                 _view.SetAnswerInputEnabled(false);
             }
-            if (!terminal && _view.IsEnemyActionQueueStable)
+            if (!terminal)
             {
+                while (!_view.IsEnemyActionQueueStable) yield return null;
                 _resolutionLock?.Dispose();
                 _resolutionLock = null;
             }
@@ -389,8 +390,9 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _resolutionLock?.Dispose();
                 _resolutionLock = null;
             }
-            if (!terminal && _view.IsEnemyActionQueueStable)
+            if (!terminal)
             {
+                while (!_view.IsEnemyActionQueueStable) yield return null;
                 _resolutionLock?.Dispose();
                 _resolutionLock = null;
             }
@@ -419,6 +421,16 @@ namespace PowerMath.Gameplay.Combat.Unity
                             : message);
                     }
                 });
+        }
+
+        private void SetMusicDucked(bool ducked)
+        {
+            if (_musicDucked == ducked) return;
+            _musicDucked = ducked;
+            if (PowerMath.Audio.MusicController.Instance != null)
+            {
+                PowerMath.Audio.MusicController.Instance.SetDucking(ducked);
+            }
         }
     }
 }

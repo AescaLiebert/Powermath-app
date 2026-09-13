@@ -38,7 +38,7 @@ namespace PowerMath.Gameplay.Progression
 
     public static class RunSettlementPolicy
     {
-        public const int MinimumRebirthStage = 50;
+        public const int MinimumRebirthStage = 30;
         public const int DefaultBonusBasisPoints = 10000;
 
         public static bool CanSettle(PlayerSnapshot player, RunSettlementType type, out string reason)
@@ -64,7 +64,7 @@ namespace PowerMath.Gameplay.Progression
             }
             if (type == RunSettlementType.Rebirth && stage < MinimumRebirthStage)
             {
-                reason = "Rebirth unlocks at Stage 50.";
+                reason = "Rebirth unlocks at Stage 30.";
                 return false;
             }
             if (type == RunSettlementType.Rebirth &&
@@ -85,18 +85,20 @@ namespace PowerMath.Gameplay.Progression
             int stage = Math.Min(StageId.Final, Math.Max(1,
                 Math.Max(player.progression.currentStage, player.activeRun.currentStage)));
             long weightedTenths = checked(
-                player.activeRun.silverEarned * 5L +
-                player.activeRun.goldEarned * 7L +
-                player.activeRun.diamondEarned * 10L);
+                player.activeRun.silverEarned * 10L +
+                player.activeRun.goldEarned * 15L +
+                player.activeRun.diamondEarned * 20L);
             long bonusBasisPoints = Math.Max(
                 DefaultBonusBasisPoints,
                 player.activeRun.bonusMultiplierBasisPoints);
-            long numerator = checked(checked(weightedTenths * stage * stage) * bonusBasisPoints);
-            long powerCoins = numerator / 4000000000L;
+            long numerator = checked(checked(weightedTenths * stage) * bonusBasisPoints);
+            long weightedCoins = numerator / 20000000L;
+            long flatStageCoins = stage;
+            long powerCoins = checked(flatStageCoins + weightedCoins);
             return new RunSettlementAward(
                 stage,
                 powerCoins,
-                checked(stage * 10L),
+                checked(stage * 25L),
                 type == RunSettlementType.Rebirth ? 1 : 0);
         }
     }

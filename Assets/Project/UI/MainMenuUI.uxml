@@ -3,7 +3,6 @@
     <ui:Template name="LegacyFeaturePanels" src="project://database/Assets/Project/UI/MainMenu/LegacyFeaturePanels.uxml?fileID=9197481963319205126&amp;guid=103f3110e42504747956c1b845dd65a2&amp;type=3#LegacyFeaturePanels"/>
     <ui:Template name="MainMenuShell" src="project://database/Assets/Project/UI/MainMenu/MainMenuShell.uxml?fileID=9197481963319205126&amp;guid=a627e06624973a54693ce44339524e61&amp;type=3#MainMenuShell"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
-    <Style src="project://database/Assets/Project/UI/QuestionSequence/QuestionSequencePalette.uss?fileID=7433441132597879392&amp;guid=73c93a98f8534bd8b43afedd91eaddd9&amp;type=3#QuestionSequencePalette"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
@@ -14,17 +13,12 @@
     <Style src="project://database/Assets/Project/UI/MainMenu/PetGachaPanel.uss?fileID=7433441132597879392&amp;guid=3d40160347b7bcc449b9a900de6ae62a&amp;type=3#PetGachaPanel"/>
     <Style src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uss?fileID=7433441132597879392&amp;guid=9cb9d7a720d16eb4db4946f3cbb1a86e&amp;type=3#LeaderboardPanel"/>
     <Style src="project://database/Assets/Project/UI/MainMenu/ProfileAnalyticsPanel.uss?fileID=7433441132597879392&amp;guid=6ee03a27eb16be44caacfddce5237c0f&amp;type=3#ProfileAnalyticsPanel"/>
-    <Style src="project://database/Assets/Project/UI/MainMenu/AdminPanel.uss?fileID=7433441132597879392&amp;guid=0cd82efce4261564b869fe4761529a07&amp;type=3#AdminPanel"/>
     <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuSharedOverlay.uss?fileID=7433441132597879392&amp;guid=0ab46313332b46e8a9fa5e40c123c9d5&amp;type=3#MainMenuSharedOverlay"/>
     <ui:VisualElement name="main-menu-screen" picking-mode="Ignore" class="mw-screen main-menu-root is-ready">
         <ui:VisualElement name="safe-area" picking-mode="Ignore" class="mw-safe-area main-menu-safe-area">
             <ui:Instance template="MainMenuShell" picking-mode="Ignore" class="mw-template-fill"/>
             <ui:Instance template="CombatSurface" picking-mode="Ignore" class="mw-template-fill"/>
             <ui:Instance template="LegacyFeaturePanels" picking-mode="Ignore" class="mw-template-fill"/>
-        </ui:VisualElement>
-        <ui:VisualElement name="main-menu-utility-bar" class="main-menu-utility-bar" style="left: auto;">
-            <ui:Button name="main-menu-utility-back" text="X" tooltip="Back" class="main-menu-utility-back" style="border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; margin-right: 4px;"/>
-            <ui:Label name="main-menu-utility-power-coins" text="PWR 0" class="main-menu-utility-currency main-menu-utility-currency--power"/>
         </ui:VisualElement>
         <ui:VisualElement name="main-menu-notification" picking-mode="Ignore" class="main-menu-notification" style="flex-direction: column; bottom: auto; top: 50px;">
             <ui:Label name="main-menu-notification-text" text="" picking-mode="Ignore" class="main-menu-notification__text"/>
@@ -40,9 +34,16 @@
             <ui:VisualElement name="transition-square-6" picking-mode="Ignore" class="battle-transition-square battle-transition-square--6"/>
             <ui:VisualElement name="transition-square-7" picking-mode="Ignore" class="battle-transition-square battle-transition-square--7"/>
             <ui:VisualElement name="transition-square-8" picking-mode="Ignore" class="battle-transition-square battle-transition-square--8"/>
-            <ui:VisualElement name="battle-start-accent-left" picking-mode="Ignore" class="battle-start-accent battle-start-accent--left"/>
-            <ui:VisualElement name="battle-start-accent-right" picking-mode="Ignore" class="battle-start-accent battle-start-accent--right"/>
-            <ui:Label name="battle-start-title" text="————  ×  BATTLE!  ×  ————" picking-mode="Ignore" class="battle-start-title"/>
+            <ui:VisualElement name="battle-start-banner" picking-mode="Ignore" class="battle-start-banner">
+                <ui:VisualElement name="battle-start-accent-left" picking-mode="Ignore" class="battle-start-accent battle-start-accent--left"/>
+                <ui:VisualElement picking-mode="Ignore" class="battle-start-sparkle battle-start-sparkle--left"/>
+                <ui:Label name="battle-start-title" text="BATTLE!" picking-mode="Ignore" class="battle-start-title"/>
+                <ui:VisualElement picking-mode="Ignore" class="battle-start-sparkle battle-start-sparkle--right"/>
+                <ui:VisualElement name="battle-start-accent-right" picking-mode="Ignore" class="battle-start-accent battle-start-accent--right"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="run-reset-transition-layer" picking-mode="Ignore" class="run-reset-transition-layer is-hidden">
+            <ui:VisualElement name="run-reset-transition-circle" picking-mode="Ignore" class="run-reset-transition-circle"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

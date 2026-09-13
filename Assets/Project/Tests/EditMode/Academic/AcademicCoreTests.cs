@@ -361,5 +361,55 @@ namespace PowerMath.Gameplay.Academic.Tests
             Assert.That(result.IsSuccess, Is.True, string.Join("; ", result.Errors));
             return result.Catalog;
         }
+
+        [TestCase(8, 0, "48 ÷ 6 = ?")]
+        [TestCase(8, 5, "48 ÷ 6 = ?")]
+        [TestCase(0, 1, "0 + 0 = ?")]
+        public void FallbackQuestionEquationGenerator_KnownCases(int answer, int questionId, string expected)
+        {
+            string equation = PowerMath.Gameplay.Academic.Core.FallbackQuestionEquationGenerator.FormatEquation(answer, questionId);
+            Assert.That(equation, Is.EqualTo(expected));
+        }
+
+        [TestCase(10, 1)]
+        [TestCase(15, 2)]
+        [TestCase(24, 3)]
+        [TestCase(30, 4)]
+        [TestCase(100, 7)]
+        public void FallbackQuestionEquationGenerator_GeneratesValidEquation(int answer, int questionId)
+        {
+            string equation = PowerMath.Gameplay.Academic.Core.FallbackQuestionEquationGenerator.FormatEquation(answer, questionId);
+            Assert.That(equation, Does.EndWith("= ?"));
+
+            string expression = equation.Replace("= ?", "").Trim();
+            if (expression.Contains("÷"))
+            {
+                string[] parts = expression.Split('÷');
+                int left = int.Parse(parts[0].Trim());
+                int right = int.Parse(parts[1].Trim());
+                Assert.That(left / right, Is.EqualTo(answer));
+            }
+            else if (expression.Contains("+"))
+            {
+                string[] parts = expression.Split('+');
+                int left = int.Parse(parts[0].Trim());
+                int right = int.Parse(parts[1].Trim());
+                Assert.That(left + right, Is.EqualTo(answer));
+            }
+            else if (expression.Contains("×"))
+            {
+                string[] parts = expression.Split('×');
+                int left = int.Parse(parts[0].Trim());
+                int right = int.Parse(parts[1].Trim());
+                Assert.That(left * right, Is.EqualTo(answer));
+            }
+            else if (expression.Contains("-"))
+            {
+                string[] parts = expression.Split('-');
+                int left = int.Parse(parts[0].Trim());
+                int right = int.Parse(parts[1].Trim());
+                Assert.That(left - right, Is.EqualTo(answer));
+            }
+        }
     }
 }

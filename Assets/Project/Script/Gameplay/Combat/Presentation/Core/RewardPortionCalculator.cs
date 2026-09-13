@@ -10,7 +10,15 @@ namespace PowerMath.Gameplay.Combat.Presentation
             if (totalAmount <= 0) return Array.Empty<long>();
             if (maxIcons <= 0) maxIcons = 5;
 
-            if (totalAmount == 1) return new[] { 1L };
+            if (totalAmount <= maxIcons)
+            {
+                long[] unitPortions = new long[totalAmount];
+                for (int i = 0; i < totalAmount; i++)
+                {
+                    unitPortions[i] = 1L;
+                }
+                return unitPortions;
+            }
 
             int count = (int)Math.Min(totalAmount, (long)maxIcons);
             if (count < 2) count = 2;
@@ -69,8 +77,14 @@ namespace PowerMath.Gameplay.Combat.Presentation
                 case 5:
                     return new[] { 0.28f, 0.12f, 0.32f, 0.16f, 0.12f };
                 case 6:
-                default:
                     return new[] { 0.25f, 0.10f, 0.25f, 0.15f, 0.15f, 0.10f };
+                default:
+                    float[] dynamicWeights = new float[count];
+                    for (int i = 0; i < count; i++)
+                    {
+                        dynamicWeights[i] = 1f + 0.2f * (float)Math.Sin(i * 1.3f);
+                    }
+                    return dynamicWeights;
             }
         }
     }

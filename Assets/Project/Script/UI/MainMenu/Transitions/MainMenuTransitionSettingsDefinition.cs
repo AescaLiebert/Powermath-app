@@ -9,9 +9,9 @@ namespace PowerMath.UI.MainMenu
     {
         [Header("Bootstrap")]
         [Min(0f)] [SerializeField] private float initialSettleSeconds = 0.05f;
-        [Min(0f)] [SerializeField] private float titleEntrySeconds = 0.25f;
-        [Min(0f)] [SerializeField] private float titleHoldSeconds = 0.80f;
-        [Min(0f)] [SerializeField] private float titleExitSeconds = 0.30f;
+        [Min(0f)] [SerializeField] private float titleEntrySeconds = 0.42f;
+        [Min(0f)] [SerializeField] private float titleHoldSeconds = 1.20f;
+        [Min(0f)] [SerializeField] private float titleExitSeconds = 0.48f;
         [Min(0f)] [SerializeField] private float sceneRevealSeconds = 0.35f;
         [Min(0f)] [SerializeField] private float characterEntrySeconds = 0.45f;
         [Min(0f)] [SerializeField] private float characterStaggerSeconds = 0.06f;

@@ -7,6 +7,7 @@ using PowerMath.Localization;
 using PowerMath.PlayerData;
 using PowerMath.Session;
 using PowerMath.UI.Core;
+using PowerMath.UI.Settings;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Video;
@@ -52,6 +53,7 @@ namespace PowerMath.PlayerLifecycle
         private bool _videoPrepared;
         private bool _videoEnded;
         private bool _videoFailed;
+        private bool _selectionFramePresented;
         private bool _busy;
         private bool _completionTransition;
         private bool _destinationLoaded;
@@ -77,8 +79,7 @@ namespace PowerMath.PlayerLifecycle
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _commands = commands ?? throw new ArgumentNullException(nameof(commands));
             _completed = completed ?? throw new ArgumentNullException(nameof(completed));
-            _catalog = Resources.Load<CharacterPresentationCatalog>(
-                "CharacterPresentationCatalog");
+            _catalog = CharacterPresentationCatalog.Load();
             _opening = Resources.Load<OpeningSequenceDefinition>("OpeningSequence");
             var runtimeSettings = Resources.Load<
                 PowerMath.Gameplay.Combat.Unity.CombatRuntimeSettingsDefinition>(
@@ -276,15 +277,7 @@ namespace PowerMath.PlayerLifecycle
         private void ShowCharacterSelection()
         {
             CleanupVideo();
-            CharacterPresentationCatalog.Character ricko = _catalog?.Find("ricko");
-            CharacterPresentationCatalog.Character stellar = _catalog?.Find("stellar");
-            Sprite rickoArt = CharacterPlaceholderSprites.Resolve(
-                ricko?.overviewArt ?? ricko?.selectionArt,
-                "ricko");
-            Sprite stellarArt = CharacterPlaceholderSprites.Resolve(
-                stellar?.overviewArt ?? stellar?.selectionArt,
-                "stellar");
-            _view.ShowSelection(null, rickoArt, stellarArt);
+            _view.ShowSelection(null);
             _view.SetInteractive(!_busy && _pending == null);
             PowerMath.Audio.MusicController.Instance.PlayLoginMusic();
 
@@ -316,12 +309,55 @@ namespace PowerMath.PlayerLifecycle
             Sprite art = CharacterPlaceholderSprites.Resolve(
                 definition?.overviewArt ?? definition?.selectionArt,
                 selected);
-            string initial = _name ?? (_store.Snapshot.onboarding.legacyPlayer
-                ? _store.Snapshot.profile.displayName
-                : string.Empty);
+            string initial = ResolveDefaultDisplayName();
             _name = initial;
             _view.ShowNameEntry(selected, art, initial);
             _view.SetInteractive(!_busy && _pending == null);
+        }
+
+        private string ResolveDefaultDisplayName()
+        {
+            if (!string.IsNullOrWhiteSpace(_name))
+            {
+                return _name;
+            }
+
+            var snapshot = _store?.Snapshot;
+            if (snapshot == null) return string.Empty;
+
+            // 1. Existing profile display name if already set
+            string profileName = snapshot.profile?.displayName?.Trim();
+            if (!string.IsNullOrEmpty(profileName))
+            {
+                return ClampToMaximumLength(profileName);
+            }
+
+            // 2. Extract username from playerId (format: {levelId}:{username})
+            if (AdminAccountAccessPolicy.TryGetUsername(snapshot, out string username) && !string.IsNullOrEmpty(username))
+            {
+                return ClampToMaximumLength(username);
+            }
+
+            // 3. Fallback: raw playerId if no colon separator
+            string rawId = snapshot.playerId?.Trim();
+            if (!string.IsNullOrEmpty(rawId))
+            {
+                return ClampToMaximumLength(rawId);
+            }
+
+            return string.Empty;
+        }
+
+        private static string ClampToMaximumLength(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            var stringInfo = new StringInfo(input);
+            if (stringInfo.LengthInTextElements <= DisplayNamePolicy.MaximumDisplayNameLength)
+            {
+                return input;
+            }
+
+            return stringInfo.SubstringByTextElements(0, DisplayNamePolicy.MaximumDisplayNameLength);
         }
 
         private void OnOpeningSkipRequested()
@@ -763,6 +799,7 @@ namespace PowerMath.PlayerLifecycle
             _videoEnded = false;
             _videoFailed = false;
             _video.prepareCompleted += OnVideoPrepared;
+            _video.started += OnVideoStarted;
             _video.loopPointReached += OnVideoEnded;
             _video.errorReceived += OnVideoError;
 
@@ -836,19 +873,22 @@ namespace PowerMath.PlayerLifecycle
             _videoPrepared = true;
             if (_videoPurpose == VideoPurpose.Selection)
             {
-                CharacterPresentationCatalog.Character ricko = _catalog?.Find("ricko");
-                CharacterPresentationCatalog.Character stellar = _catalog?.Find("stellar");
-                _view.ShowSelection(
-                    _videoTexture,
-                    CharacterPlaceholderSprites.Resolve(
-                        ricko?.overviewArt ?? ricko?.selectionArt,
-                        "ricko"),
-                    CharacterPlaceholderSprites.Resolve(
-                        stellar?.overviewArt ?? stellar?.selectionArt,
-                        "stellar"));
-                _view.SetInteractive(!_busy && _pending == null);
                 player.Play();
             }
+        }
+
+        private void OnVideoStarted(VideoPlayer player)
+        {
+            if (player != _video ||
+                _videoPurpose != VideoPurpose.Selection ||
+                _selectionFramePresented)
+            {
+                return;
+            }
+
+            _selectionFramePresented = true;
+            _view.ShowSelection(_videoTexture);
+            _view.SetInteractive(!_busy && _pending == null);
         }
 
         private void OnVideoEnded(VideoPlayer player)
@@ -869,16 +909,7 @@ namespace PowerMath.PlayerLifecycle
                 this);
             if (_videoPurpose == VideoPurpose.Selection)
             {
-                CharacterPresentationCatalog.Character ricko = _catalog?.Find("ricko");
-                CharacterPresentationCatalog.Character stellar = _catalog?.Find("stellar");
-                _view.ShowSelection(
-                    null,
-                    CharacterPlaceholderSprites.Resolve(
-                        ricko?.overviewArt ?? ricko?.selectionArt,
-                        "ricko"),
-                    CharacterPlaceholderSprites.Resolve(
-                        stellar?.overviewArt ?? stellar?.selectionArt,
-                        "stellar"));
+                _view.ShowSelection(null);
                 _view.SetInteractive(true);
             }
         }
@@ -888,6 +919,7 @@ namespace PowerMath.PlayerLifecycle
             if (_video != null)
             {
                 _video.prepareCompleted -= OnVideoPrepared;
+                _video.started -= OnVideoStarted;
                 _video.loopPointReached -= OnVideoEnded;
                 _video.errorReceived -= OnVideoError;
                 _video.Stop();
@@ -904,6 +936,7 @@ namespace PowerMath.PlayerLifecycle
             _videoPrepared = false;
             _videoEnded = false;
             _videoFailed = false;
+            _selectionFramePresented = false;
         }
 
         private void OnLocaleChanged()

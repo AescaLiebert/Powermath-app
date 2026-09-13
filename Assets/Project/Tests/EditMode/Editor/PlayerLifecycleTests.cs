@@ -84,12 +84,15 @@ namespace PowerMath.Tests.EditMode
             Assert.AreEqual(valid, PlayerLifecyclePolicy.TryNormalizeName(value, out _));
 
         [Test]
-        public void InvalidReleasePolicyFailsClosed()
+        public void InvalidReleasePolicyFailsOpen()
         {
-            Assert.AreEqual(VersionCompatibilityResult.NetworkError,
-                GameVersionChecker.EvaluateCompatibility(null, "1.0", 3, out _));
-            Assert.AreEqual(VersionCompatibilityResult.NetworkError,
-                GameVersionChecker.EvaluateCompatibility(new GameVersionManifest(), "1.0", 3, out _));
+            Assert.AreEqual(VersionCompatibilityResult.Compatible,
+                GameVersionChecker.EvaluateCompatibility(null, "1.0", 3, out string missingMessage));
+            StringAssert.Contains("continuing", missingMessage.ToLowerInvariant());
+
+            Assert.AreEqual(VersionCompatibilityResult.Compatible,
+                GameVersionChecker.EvaluateCompatibility(new GameVersionManifest(), "1.0", 3, out string invalidMessage));
+            StringAssert.Contains("continuing", invalidMessage.ToLowerInvariant());
         }
         [Test]
         public void DefaultsDoNotOverwriteExistingWalletOrUnknownFeatureData()

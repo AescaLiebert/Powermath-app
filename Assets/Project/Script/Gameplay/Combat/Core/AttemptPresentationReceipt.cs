@@ -180,7 +180,8 @@ namespace PowerMath.Gameplay.Combat
             if (PlayerDefeated && (Destination.PlayerCurrentHearts != 0 ||
                 Destination.Phase != CombatPhase.RunDefeat))
                 return Fail("Player defeat requires zero hearts and RunDefeat.", out error);
-            if (EnemyAttacked && Source.PlayerCurrentHearts - Destination.PlayerCurrentHearts != 1)
+            int heartDelta = Source.PlayerCurrentHearts - Destination.PlayerCurrentHearts;
+            if (EnemyAttacked && heartDelta != 1 && heartDelta != 0)
                 return Fail("Enemy attack must agree with the accepted heart delta.", out error);
             if (!EnemyAttacked && Source.PlayerCurrentHearts != Destination.PlayerCurrentHearts)
                 return Fail("Hearts changed without an accepted enemy attack.", out error);

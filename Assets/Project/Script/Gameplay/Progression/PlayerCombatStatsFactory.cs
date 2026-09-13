@@ -8,13 +8,11 @@ namespace PowerMath.Gameplay.Progression
     {
         public static PlayerCombatStats Create(
             PlayerSnapshot player,
-            int baseAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent)
         {
             return Create(
                 player,
-                baseAttack,
                 WeaponAscensionPolicy.DefaultBaseWeaponAttack,
                 baseCriticalRate,
                 baseCriticalDamagePercent);
@@ -22,14 +20,12 @@ namespace PowerMath.Gameplay.Progression
 
         public static PlayerCombatStats Create(
             PlayerSnapshot player,
-            int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent)
         {
             return PlayerStatProjectionFactory.Create(
                 player,
-                baseAttack,
                 baseWeaponAttack,
                 baseCriticalRate,
                 baseCriticalDamagePercent).ToCombatStats();
@@ -37,7 +33,6 @@ namespace PowerMath.Gameplay.Progression
 
         public static PlayerCombatStats Create(
             PlayerSnapshot player,
-            int baseAttack,
             int baseWeaponAttack,
             double baseCriticalRate,
             double baseCriticalDamagePercent,
@@ -45,7 +40,6 @@ namespace PowerMath.Gameplay.Progression
         {
             return PlayerStatProjectionFactory.Create(
                 player,
-                baseAttack,
                 baseWeaponAttack,
                 baseCriticalRate,
                 baseCriticalDamagePercent,

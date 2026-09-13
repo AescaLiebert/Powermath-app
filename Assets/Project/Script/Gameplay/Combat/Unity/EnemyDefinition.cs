@@ -27,6 +27,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         [SerializeField] private Sprite enemySprite;
 
         [Header("Audio Ownership (Optional Custom Overrides)")]
+        [Tooltip("Custom battle music for this specific enemy. If unassigned, biome/default battle music is used; bosses fall back to the global boss battle music.")]
+        [SerializeField] private MusicTrackConfig customBattleMusic;
         [Tooltip("Custom SFX played when this specific enemy appears. If unassigned, defaults to encounter kind / global SFX.")]
         [SerializeField] private SfxCueConfig customAppearSfx;
         [Tooltip("Custom SFX played when this specific enemy takes damage.")]
@@ -47,6 +49,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public int MaximumCooldown => maximumCooldown;
         public int HpMultiplierBasisPoints => hpMultiplierBasisPoints;
 
+        public MusicTrackConfig BattleMusic => customBattleMusic;
         public SfxCueConfig AppearSfx => customAppearSfx;
         public SfxCueConfig HurtSfx => customHurtSfx;
         public SfxCueConfig AttackSfx => customAttackSfx;

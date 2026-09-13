@@ -48,7 +48,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="hud-power-coin-icon"/>
             </ui:VisualElement>
-            <ui:Label name="player-menu-atk" text="—" picking-mode="Ignore" class="hud-compat-hidden"/>
+            <ui:Label name="player-menu-atk" text="&#x2014;" picking-mode="Ignore" class="hud-compat-hidden"/>
         </ui:VisualElement>
         <ui:Button name="Collapse Handle" text="" tooltip="Close Player Menu" class="hud-player-menu-toggle">
             <ui:Label name="Chevron" text="&lt;" picking-mode="Ignore" class="hud-player-menu-chevron"/>

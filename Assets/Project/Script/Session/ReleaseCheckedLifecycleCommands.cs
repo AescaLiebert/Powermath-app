@@ -18,8 +18,25 @@ namespace PowerMath.Session
             if (_settings.EnableVersionCheck)
             {
                 GameVersionManifest manifest = null;
-                yield return GameVersionChecker.FetchManifest(_settings.VersionManifestUrl, _settings.RequestTimeoutSeconds, value => manifest = value, _ => { });
+                string manifestError = null;
+                yield return GameVersionChecker.FetchManifest(
+                    _settings.VersionManifestUrl,
+                    _settings.RequestTimeoutSeconds,
+                    value => manifest = value,
+                    error => manifestError = error);
+                if (!string.IsNullOrWhiteSpace(manifestError))
+                {
+                    PowerMath.Diagnostics.AppLog.Warning(
+                        "Version",
+                        manifestError + " Continuing with the player-data operation.");
+                }
                 var result = GameVersionChecker.EvaluateCompatibility(manifest, Application.version, PlayerSessionStore.SupportedSchemaVersion, out string message);
+                if (result == VersionCompatibilityResult.Compatible &&
+                    !string.IsNullOrWhiteSpace(message) &&
+                    string.IsNullOrWhiteSpace(manifestError))
+                {
+                    PowerMath.Diagnostics.AppLog.Warning("Version", message);
+                }
                 if (result != VersionCompatibilityResult.Compatible && result != VersionCompatibilityResult.UpdateRecommended)
                 {
                     failed?.Invoke(new FirestoreRestClient.Failure(

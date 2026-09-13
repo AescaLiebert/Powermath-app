@@ -76,14 +76,16 @@ namespace PowerMath.Gameplay.Combat.Unity
             long startAmount,
             long grantAmount,
             Vector2 screenOrWorldOrigin,
-            Action<long> onIncrement = null)
+            Action<long> onIncrement = null,
+            int? iconCountOverride = null)
         {
             if (grantAmount <= 0) yield break;
 
             EnsureOverlay();
             VisualElement target = ResolveTargetElement(kind);
             VisualElement bounceTarget = ResolveBounceTarget(kind, target);
-            long[] portions = RewardPortionCalculator.CalculatePortions(grantAmount);
+            int maxIcons = iconCountOverride ?? 5;
+            long[] portions = RewardPortionCalculator.CalculatePortions(grantAmount, maxIcons);
             if (portions == null || portions.Length == 0) yield break;
 
             Vector2 originPanel = ConvertToPanelCoordinates(screenOrWorldOrigin);
@@ -92,9 +94,18 @@ namespace PowerMath.Gameplay.Combat.Unity
             float flightSeconds = reducedMotion ? 0.15f : (_profile != null ? _profile.RewardMagnetFlightSeconds : 0.48f);
             float staggerSeconds = reducedMotion ? 0.02f : (_profile != null ? _profile.RewardStaggerSeconds : 0.06f);
 
+            int totalIcons = portions.Length;
+            if (totalIcons > 10)
+            {
+                staggerSeconds = Mathf.Min(staggerSeconds, 0.85f / totalIcons);
+                popSeconds = Mathf.Min(popSeconds, 0.22f);
+                flightSeconds = Mathf.Min(flightSeconds, 0.40f);
+            }
+
             int completedCount = 0;
             long accumulated = 0;
-            int totalIcons = portions.Length;
+
+            PowerMath.Audio.SfxController.Instance?.PlayReward(PowerMath.Audio.RewardSfxState.OnDrop);
 
             for (int i = 0; i < totalIcons; i++)
             {
@@ -111,11 +122,19 @@ namespace PowerMath.Gameplay.Combat.Unity
                 // Scatter calculation
                 float angle = totalIcons == 1
                     ? 0f
-                    : Mathf.Lerp(-55f, 55f, (float)index / (totalIcons - 1));
+                    : (totalIcons > 10
+                        ? UnityEngine.Random.Range(-135f, 135f)
+                        : Mathf.Lerp(-55f, 55f, (float)index / (totalIcons - 1)));
                 float rad = angle * Mathf.Deg2Rad;
-                float radius = reducedMotion ? 20f : UnityEngine.Random.Range(45f, 75f);
+                float radius = reducedMotion
+                    ? 20f
+                    : (totalIcons > 10
+                        ? UnityEngine.Random.Range(35f, 120f)
+                        : UnityEngine.Random.Range(45f, 75f));
                 Vector2 scatterOffset = new Vector2(Mathf.Sin(rad) * radius, -Mathf.Cos(rad) * radius * 0.7f + 15f);
                 Vector2 scatterPos = originPanel + scatterOffset;
+
+                bool playMagnetSfx = (totalIcons <= 10) || (index % 12 == 0) || (index == totalIcons - 1);
 
                 // Launch Coroutine or Staggered Animation
                 _overlayLayer.schedule.Execute(() =>
@@ -130,6 +149,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                         popSeconds,
                         flightSeconds,
                         portion,
+                        playMagnetSfx,
                         () =>
                         {
                             completedCount++;
@@ -139,8 +159,22 @@ namespace PowerMath.Gameplay.Combat.Unity
                             // Target scale bounce on Rank Currency Icon
                             PlayTargetBounce(bounceTarget ?? target);
 
-                            // Audio
-                            _audio?.PlayCurrency();
+                            // Audio: Distinguish Power Coin vs Rank Currency
+                            if (PowerMath.Audio.SfxController.Instance != null)
+                            {
+                                if (kind == RewardCurrencyKind.PowerCoin)
+                                {
+                                    PowerMath.Audio.SfxController.Instance.PlayReward(PowerMath.Audio.RewardSfxState.CurrencyPowerCoin);
+                                }
+                                else
+                                {
+                                    PowerMath.Audio.SfxController.Instance.PlayReward(PowerMath.Audio.RewardSfxState.CurrencyRank);
+                                }
+                            }
+                            else
+                            {
+                                _audio?.PlayCurrency();
+                            }
 
                             // Incremental text callback
                             onIncrement?.Invoke(currentTotal);
@@ -169,6 +203,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             float popDuration,
             float flightDuration,
             long portion,
+            bool playMagnetSfx,
             Action onLanded)
         {
             if (_disposed || icon == null) return;
@@ -196,6 +231,10 @@ namespace PowerMath.Gameplay.Combat.Unity
                         if (_disposed || icon.parent == null) return;
 
                         // Phase 2: Magnet flight to target
+                        if (playMagnetSfx)
+                        {
+                            PowerMath.Audio.SfxController.Instance?.PlayReward(PowerMath.Audio.RewardSfxState.Magnetism);
+                        }
                         Vector2 finalScatter = scatterPos;
                         UiMotionHandle flightTween = _motionDriver.Tween(
                             icon,
@@ -309,7 +348,6 @@ namespace PowerMath.Gameplay.Combat.Unity
                 default:
                     return _root.Q<Label>("Currency_Value") ??
                            _root.Q<Label>("player-menu-power-coins") ??
-                           _root.Q<Label>("main-menu-utility-power-coins") ??
                            _root.Q<VisualElement>("Player Menu");
             }
         }
@@ -340,7 +378,6 @@ namespace PowerMath.Gameplay.Combat.Unity
                     return _root.Q<VisualElement>("Power-Coin-Icon") ??
                            _root.Q<VisualElement>("Currency_Value")?.parent?.Q<VisualElement>("icon") ??
                            _root.Q<VisualElement>("player-menu-power-coins")?.parent?.Q<VisualElement>("icon") ??
-                           _root.Q<VisualElement>("main-menu-utility-power-coins")?.parent?.Q<VisualElement>("icon") ??
                            targetText;
             }
         }
@@ -397,9 +434,9 @@ namespace PowerMath.Gameplay.Combat.Unity
                         : kind == RewardCurrencyKind.RankGold ? "Gold" : "Diamond";
                     label.text = $"{rankPrefix}: {amount}";
                 }
-                else if (label.name == "main-menu-utility-power-coins")
+                else if (label.name == "Currency_Value")
                 {
-                    label.text = $"PWR {amount:N0}";
+                    label.text = amount.ToString("N0", CultureInfo.InvariantCulture);
                 }
                 else
                 {

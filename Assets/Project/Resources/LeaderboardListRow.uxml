@@ -1,0 +1,44 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uss?fileID=7433441132597879392&amp;guid=9cb9d7a720d16eb4db4946f3cbb1a86e&amp;type=3#LeaderboardPanel"/>
+    <ui:VisualElement name="leaderboard-row-root" class="leaderboard-row">
+        <ui:VisualElement name="leaderboard-row-rank-slot" class="leaderboard-row-rank-slot">
+            <ui:Label name="leaderboard-row-rank-number" text="4" class="leaderboard-row-rank-number"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="leaderboard-row-avatar" class="leaderboard-avatar-slot" style="background-image: none;">
+            <ui:Label name="Slot Label" text="ProfilePic Slot" class="leaderboard-slot-label"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="leaderboard-row-identity" class="leaderboard-row-identity">
+            <ui:Label name="leaderboard-row-player-name" text="PLAYER NAME" class="leaderboard-player-name"/>
+            <ui:VisualElement name="leaderboard-row-stages" class="leaderboard-stages-row">
+                <ui:VisualElement name="leaderboard-row-current-column" class="leaderboard-stage-column">
+                    <ui:Label text="CURRENT" class="loc-leaderboard.current leaderboard-stage-label"/>
+                    <ui:Label name="leaderboard-row-current" text="1" class="leaderboard-stage-current"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="leaderboard-row-best-column" class="leaderboard-stage-column">
+                    <ui:Label text="BEST" class="loc-leaderboard.best leaderboard-stage-label"/>
+                    <ui:Label name="leaderboard-row-best" text="1" class="leaderboard-stage-best"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="leaderboard-row-currencies" class="leaderboard-row-currencies" style="padding-left: 10px; padding-top: 13px; padding-bottom: 3px;">
+            <ui:VisualElement name="leaderboard-row-currency-silver" class="leaderboard-currency-row">
+                <ui:VisualElement name="leaderboard-row-silver-icon" class="leaderboard-currency-icon leaderboard-currency-icon--silver"/>
+                <ui:Label name="leaderboard-row-silver" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left; -unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="leaderboard-row-currency-gold" class="leaderboard-currency-row">
+                <!-- Contract requirement: #coin_gold_1 -->
+                <ui:VisualElement name="leaderboard-row-gold-icon" tooltip="Gold currency icon #coin_gold_1" class="leaderboard-currency-icon leaderboard-currency-icon--gold"/>
+                <ui:Label name="leaderboard-row-gold" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left; -unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="leaderboard-row-currency-diamond" class="leaderboard-currency-row">
+                <ui:VisualElement name="leaderboard-row-diamond-icon" class="leaderboard-currency-icon leaderboard-currency-icon--diamond"/>
+                <ui:Label name="leaderboard-row-diamond" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left; -unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="leaderboard-row-loadout" class="leaderboard-row-loadout"/>
+        <ui:VisualElement name="leaderboard-row-damage" class="leaderboard-row-damage">
+            <ui:Label text="TOTAL DMG" class="loc-leaderboard.totalDmg leaderboard-damage-label"/>
+            <ui:Label name="leaderboard-row-damage-value" text="0" class="leaderboard-damage-value"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

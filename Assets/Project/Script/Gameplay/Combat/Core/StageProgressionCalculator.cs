@@ -8,6 +8,19 @@ namespace PowerMath.Gameplay.Combat
         private const double MinimumRandomFactor = 0.95d;
         private const double RandomFactorSpan = 0.10d;
 
+        public static double GetPhaseGrowthMultiplier(int worldLevel)
+        {
+            if (worldLevel <= 12)
+            {
+                return 1d + GrowthPerWorldLevel * (worldLevel - 1);
+            }
+            if (worldLevel <= 28)
+            {
+                return 2.32d + 0.25d * (worldLevel - 12);
+            }
+            return 6.32d + 1.975d * (worldLevel - 28);
+        }
+
         public int CalculateSpawnHp(
             StageId stage,
             int baseHp,
@@ -23,8 +36,8 @@ namespace PowerMath.Gameplay.Combat
                 throw new ArgumentOutOfRangeException(nameof(randomUnit));
             }
 
-            int growthSteps = stage.WorldLevel - 1;
-            double scaledHp = baseHp * (1d + GrowthPerWorldLevel * growthSteps);
+            double growthMultiplier = GetPhaseGrowthMultiplier(stage.WorldLevel);
+            double scaledHp = baseHp * growthMultiplier;
             double randomFactor = MinimumRandomFactor + RandomFactorSpan * randomUnit;
             int rounded = (int)Math.Round(
                 scaledHp * randomFactor,

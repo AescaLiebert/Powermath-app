@@ -11,6 +11,7 @@ competition                         collection
       userdata                      map
         username                    account username string
         password                    exactly six ASCII digits, stored as string
+        admin                       optional boolean managed manually by the owner
       gamedata                      map (direct fields)
   level2                            document -> Grade 5
   level3                            document -> Grade 6
@@ -37,6 +38,9 @@ An empty `game1` map is valid and opens Main Menu with safe defaults: the userna
 These optional fields match the current Unity `PlayerSnapshot`:
 
 - `revision`: integer
+- `adminTuning`: optional map containing `combatOverrideEnabled`, integer `attack`,
+  integer `criticalRateBasisPoints`, integer `criticalDamageBasisPoints`, and
+  boolean `invincible`; Unity reads this only when `userdata.admin` is true
 - `profile`: map containing `displayName`, `iconId`, `publicPlayerId`, and integer `displayNameChangedAtUnixSeconds`
 - `progression`: map containing `currentStage`, lifetime `highestStage`, `activeRank`, `rankProgress`, `prestige`, `legacyAtkBonusBasisPoints`, `firstStage200Reached`, integer `firstStage200ReachedAtUnixSeconds`, and integer `totalDamage`
 - `wallet`: map containing integer `silver`, `gold`, `diamond`, and `powerCoins`
@@ -48,6 +52,12 @@ These optional fields match the current Unity `PlayerSnapshot`:
 - `analytics`: map containing resolved outcome totals, response score/efficiency sums, play time, last applied attempt ID, and per-Rank aggregates
 
 `game2` and `temp` remain out of scope.
+
+Admin access is data-driven. The project owner grants or revokes the Admin tab by
+manually setting the account's `userdata.admin` boolean in Firebase. The client
+does not infer admin authority from usernames or display names. Admin commands
+write the same account's canonical `gamedata`, reload it from Firebase after each
+successful patch, and use the refreshed revision for the next command.
 
 ## Public leaderboard projection
 

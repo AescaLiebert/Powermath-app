@@ -19,6 +19,7 @@ namespace PowerMath.Gameplay.Academic.Unity
         }
 
         public void PlayCurrency() => Play(_currency);
+
         public void PlayTransition(RankTransition transition) =>
             Play(transition.IsPromotion ? _promotion : _adjustment);
 

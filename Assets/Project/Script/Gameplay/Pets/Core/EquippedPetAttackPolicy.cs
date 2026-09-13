@@ -25,7 +25,23 @@ namespace PowerMath.Gameplay.Pets
             IEnumerable<PetOwnershipRecord> ownership,
             out bool hasConfiguredPetStats)
         {
+            return Resolve(
+                equippedPetId,
+                catalog,
+                ownership,
+                out hasConfiguredPetStats,
+                out _);
+        }
+
+        public static int Resolve(
+            string equippedPetId,
+            PetGachaCatalog catalog,
+            IEnumerable<PetOwnershipRecord> ownership,
+            out bool hasConfiguredPetStats,
+            out double petMultiplierPercent)
+        {
             hasConfiguredPetStats = false;
+            petMultiplierPercent = 0d;
             if (string.IsNullOrWhiteSpace(equippedPetId)) return 0;
             if (catalog == null ||
                 !catalog.TryGetPet(equippedPetId, out PetGachaPet pet))
@@ -53,6 +69,7 @@ namespace PowerMath.Gameplay.Pets
             }
 
             hasConfiguredPetStats = true;
+            petMultiplierPercent = pet.AttackMultiplierPercent;
             return pet.AttackBonus;
         }
     }

@@ -20,7 +20,7 @@ blocked_by: []
 
 ## Goal
 
-Turn death and optional Stage 50+ Rebirth into safe, understandable persistent settlements: reward Power Coins, grant the same Stage-based permanent ATK increase, preserve the current Rank, reset audit/question runtime, and protect account progression. Replace the weapon shop with one kid-friendly Level 0–100 Weapon Ascend path purchased only with Power Coins.
+Turn death and optional Stage 30+ Rebirth into safe, understandable persistent settlements: reward Power Coins via a generous linear + flat stage formula, grant the same Stage-based permanent ATK increase (+0.25% per stage, +50% at Stage 200), preserve the current Rank, reset audit/question runtime, and protect account progression. Replace the weapon shop with one kid-friendly Level 0–100 Weapon Ascend path (Base ATK 20 -> 1,500) purchased only with Power Coins.
 
 ## Current State
 
@@ -33,14 +33,14 @@ Turn death and optional Stage 50+ Rebirth into safe, understandable persistent s
 ## Requested Scope
 
 - Atomic death and optional Rebirth settlement persisted to Firebase.
-- Power Coin reward calculated from currency earned during the current run, never lifetime balances.
+- Power Coin reward calculated from linear completion factor, flat stage coins, and rank currency earned during the current run, never lifetime balances.
 - Stage 1 reset of enemy, hearts, temporary buffs/cards, and run-only counters.
 - Preservation of active Rank, Rank Currency, Power Coins, pets, inventory/upgrades, historical analytics, Highest Stage, leaderboard snapshots, and profile state.
 - Reset of partial audit score/count and per-Rank question queue runtime to canonical fresh cycles after either death or Rebirth.
 - Rebirth-only Prestige/Honor increment.
-- Rebirth eligibility at Stage 50 or later from a safe state with no unresolved question.
-- Identical death/Rebirth Legacy ATK formula: additive `+0.1%` per Stage reached.
-- Main Menu Weapon Ascend Level 0–100, Power Coin spending, nonlinear ATK/cost curves, CR/CD milestones, persistent saved upgrades, and clear failure states.
+- Rebirth eligibility at Stage 30 or later from a safe state with no unresolved question.
+- Identical death/Rebirth Legacy ATK formula: additive `+0.25%` per Stage reached (`stage * 25` basis points, granting +50% at Stage 200).
+- Main Menu Weapon Ascend Level 0–100, Power Coin spending, quadratic ATK curve (20 -> 1,500), scaling cost curve, CR/CD milestones, persistent saved upgrades, and clear failure states.
 - Ordered Weapon Ascension ScriptableObject catalog containing tier IDs, display names, icons, unlock levels, appearances, and milestone feedback keys.
 - Rank Currency becomes accumulation/leaderboard-only and is never spent.
 
@@ -54,7 +54,7 @@ Turn death and optional Stage 50+ Rebirth into safe, understandable persistent s
 ## Human Decision Needed
 
 1. Approve the starting Weapon formulas and transformation names in the GDD/design spec.
-2. Approve additive Legacy ATK: both death and Rebirth use `StageReached × 10` basis points (`0.1%` per Stage), with no Rebirth-only ATK grant.
+2. Approve additive Legacy ATK: both death and Rebirth use `StageReached × 25` basis points (`0.25%` per Stage), with no Rebirth-only ATK grant.
 3. Confirm that repeated completed runs may keep adding Legacy ATK, with a cap/diminishing-return rule deferred until playtest data indicates it is needed.
 
 ## Checkpoints

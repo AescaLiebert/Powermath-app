@@ -10,7 +10,9 @@ namespace PowerMath.PlayerData
         public OnboardingData onboarding;
         public TutorialData tutorial;
         public string playerId;
+        public bool isAdmin;
         public long revision;
+        public AdminTuningData adminTuning;
         public ProfileData profile;
         public ProgressionData progression;
         public WalletData wallet;
@@ -26,6 +28,17 @@ namespace PowerMath.PlayerData
         public sealed class PreferencesData
         {
             public string locale;
+        }
+
+        [Serializable]
+        public sealed class AdminTuningData
+        {
+            public bool combatOverrideEnabled;
+            public int attack;
+            public int criticalRateBasisPoints;
+            public int criticalDamageBasisPoints;
+            public bool invincible;
+            public bool bypassVideoQuestion;
         }
 
         [Serializable]
@@ -69,6 +82,9 @@ namespace PowerMath.PlayerData
             public long firstStage200ReachedAtUnixSeconds;
             public long totalDamage;
             public long legacyAtkBonusBasisPoints;
+            public long leaderboardSnapshotAtUnixSeconds;
+            public long lastSnapshotHighestStage;
+            public long lastSnapshotWeightedScore;
         }
 
         [Serializable]

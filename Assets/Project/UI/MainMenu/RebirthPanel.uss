@@ -77,7 +77,7 @@
 }
 .rebirth-title-icon {
     width: 103px; height: 103px; margin-right: 18px; flex-shrink: 0;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=-2324710863503425689&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth_0");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=21300000&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth");
     -unity-background-scale-mode: scale-to-fit;
 }
 .rebirth-title {
@@ -173,7 +173,7 @@
 .rebirth-stat-icon { flex-shrink: 0; -unity-background-scale-mode: scale-to-fit; }
 .rebirth-stat-icon--attack {
     width: 86px; height: 86px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_Icon_ATK.png?fileID=8986973979633021719&guid=861292fb80b3c0445896c23a0ff57e34&type=3#player_Icon_ATK_0");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_Icon_ATK.png?fileID=21300000&guid=861292fb80b3c0445896c23a0ff57e34&type=3#player_Icon_ATK");
 }
 .rebirth-stat-icon--stage {
     width: 86px; height: 86px;
@@ -181,7 +181,7 @@
 }
 .rebirth-stat-icon--coins {
     width: 80px; height: 80px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=-6225944553927798696&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power_1");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=21300000&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power");
 }
 .rebirth-number {
     position: absolute; right: 24px; top: 25px; width: 178px; height: 47px;
@@ -306,7 +306,7 @@
 }
 .rebirth-action-icon {
     width: 80px; height: 80px; flex-shrink: 0;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=-2324710863503425689&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth_0");
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Rebirth.png?fileID=21300000&guid=5ee8c0aa542abd945856158a77392db3&type=3#Icon_Rebirth");
     -unity-background-scale-mode: scale-to-fit;
 }
 .rebirth-action-label-group { width: 198px; height: 39px; overflow: visible; }

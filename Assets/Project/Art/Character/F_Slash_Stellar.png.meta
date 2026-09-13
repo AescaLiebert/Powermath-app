@@ -3,8 +3,8 @@ guid: 7cdc08fcfe9b89e408dadd30e49c08bf
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3389879645713772190
-    second: F_Slash_Stellar_CP_0
+      213: -1572227803745597695
+    second: F_Slash_Stellar_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: F_Slash_Stellar_CP_0
+      name: F_Slash_Stellar_0
       rect:
         serializedVersion: 2
-        x: 71
-        y: 67
-        width: 863
-        height: 953
+        x: 11
+        y: 39
+        width: 1159
+        height: 1436
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 26157ed2c6ab4f0d0800000000000000
-      internalID: -3389879645713772190
+      spriteID: 10740cb74235e2ae0800000000000000
+      internalID: -1572227803745597695
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      F_Slash_Stellar_CP_0: -3389879645713772190
+      F_Slash_Stellar_0: -1572227803745597695
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

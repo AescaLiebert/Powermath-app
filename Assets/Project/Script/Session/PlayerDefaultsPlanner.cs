@@ -51,6 +51,9 @@ namespace PowerMath.Session
             AddInteger(builder, root, gameData, new[] { "progression", "firstStage200ReachedAtUnixSeconds" }, 0);
             AddInteger(builder, root, gameData, new[] { "progression", "totalDamage" }, 0);
             AddInteger(builder, root, gameData, new[] { "progression", "legacyAtkBonusBasisPoints" }, 0);
+            AddInteger(builder, root, gameData, new[] { "progression", "leaderboardSnapshotAtUnixSeconds" }, 0);
+            AddInteger(builder, root, gameData, new[] { "progression", "lastSnapshotHighestStage" }, 0);
+            AddInteger(builder, root, gameData, new[] { "progression", "lastSnapshotWeightedScore" }, 0);
             AddInteger(builder, root, gameData, new[] { "wallet", "silver" }, 0);
             AddInteger(builder, root, gameData, new[] { "wallet", "gold" }, 0);
             AddInteger(builder, root, gameData, new[] { "wallet", "diamond" }, 0);

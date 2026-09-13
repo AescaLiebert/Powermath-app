@@ -1,4 +1,4 @@
-﻿namespace PowerMath.Audio
+namespace PowerMath.Audio
 {
     /// <summary>
     /// Global interface for playing sound effects across Player, Enemy, Question Sequence, Battle, and UI states.
@@ -10,6 +10,8 @@
         void PlayQuestion(QuestionSequenceSfxState state);
         void PlayBattle(BattleSfxState state);
         void PlayCharacterSelection(CharacterSelectionSfxState state);
+        void PlayAuthentication(AuthenticationSfxState state);
+        void PlayReward(RewardSfxState state);
         void PlayUiStyle(string ussClassOrStyleKey, bool isClick = true);
         void PlayCue(SfxCueConfig cue, float volumeMultiplier = 1f);
 

@@ -1,4 +1,16 @@
 mergeInto(LibraryManager.library, {
+  PowerMathTryExitFullscreen: function () {
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) return 1;
+      var exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen;
+      var promise = exitFullscreen ? exitFullscreen.call(document) : null;
+      if (promise && promise.catch) promise.catch(function () {});
+      return 1;
+    } catch (error) {
+      console.warn("PowerMath fullscreen exit failed", error);
+      return 0;
+    }
+  },
   PowerMathNotifyUnityReady: function () {
     window.dispatchEvent(new CustomEvent("powermath-unity-ready"));
   },
@@ -10,6 +22,56 @@ mergeInto(LibraryManager.library, {
   PowerMathHardReload: function () {
     if (typeof window !== "undefined") {
       window.location.reload();
+    }
+  },
+
+  PowerMathTryEnterLandscapeFullscreen: function () {
+    if (typeof window === "undefined" || typeof document === "undefined") return 0;
+
+    var displayModeFullscreen = window.matchMedia &&
+      window.matchMedia("(display-mode: fullscreen)").matches;
+    var displayModeStandalone = window.matchMedia &&
+      window.matchMedia("(display-mode: standalone)").matches;
+    var iosStandalone = window.navigator && window.navigator.standalone === true;
+
+    if (document.fullscreenElement || document.webkitFullscreenElement ||
+        displayModeFullscreen || displayModeStandalone || iosStandalone ||
+        window.__powerMathFullscreenPending) {
+      return 0;
+    }
+
+    var canvas = Module.canvas || document.getElementById("unity-canvas");
+    if (!canvas) return 0;
+
+    // The YouTube question layer is hosted by unity-container. Making that
+    // container fullscreen keeps browser media in the same fullscreen tree.
+    var fullscreenTarget = document.getElementById("unity-container") || canvas;
+    var requestFullscreen = fullscreenTarget.requestFullscreen || fullscreenTarget.webkitRequestFullscreen;
+    if (!requestFullscreen) return 0;
+
+    window.__powerMathFullscreenPending = true;
+
+    var lockLandscape = function () {
+      if (window.screen && screen.orientation && screen.orientation.lock) {
+        var lockResult = screen.orientation.lock("landscape");
+        if (lockResult && lockResult.catch) lockResult.catch(function () {});
+      }
+    };
+
+    try {
+      var requestResult = requestFullscreen.call(fullscreenTarget);
+      if (requestResult && requestResult.then) {
+        requestResult.then(lockLandscape).catch(function () {}).then(function () {
+          window.__powerMathFullscreenPending = false;
+        });
+      } else {
+        lockLandscape();
+        window.__powerMathFullscreenPending = false;
+      }
+      return 1;
+    } catch (error) {
+      window.__powerMathFullscreenPending = false;
+      return 0;
     }
   },
 

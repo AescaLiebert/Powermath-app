@@ -17,6 +17,8 @@ namespace PowerMath.Gameplay.Pets
 
         [Header("Approved Runtime Stats")]
         [Min(0)] [SerializeField] private int attackBonus;
+        [Tooltip("Percentage bonus applied as a multiplier on (WeaponATK + PetFlatATK). E.g. 10 = +10%.")]
+        [Min(0f)] [SerializeField] private float attackMultiplierPercent;
 
         public string PetId => petId?.Trim() ?? string.Empty;
         public string DisplayName => displayName?.Trim() ?? string.Empty;
@@ -24,6 +26,7 @@ namespace PowerMath.Gameplay.Pets
         public Sprite PreviewSprite => previewSprite != null ? previewSprite : icon;
         public string AbilityRichText => abilityRichText ?? string.Empty;
         public int AttackBonus => attackBonus;
+        public float AttackMultiplierPercent => attackMultiplierPercent;
 
         public bool TryBuild(out PetGachaPet pet, out string error)
         {
@@ -33,7 +36,7 @@ namespace PowerMath.Gameplay.Pets
             {
                 if (icon == null)
                     throw new InvalidOperationException("Pet definitions require an icon.");
-                pet = new PetGachaPet(PetId, DisplayName, attackBonus);
+                pet = new PetGachaPet(PetId, DisplayName, attackBonus, attackMultiplierPercent);
                 return true;
             }
             catch (Exception exception) when (

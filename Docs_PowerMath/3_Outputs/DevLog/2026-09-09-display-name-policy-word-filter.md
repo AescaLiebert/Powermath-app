@@ -44,3 +44,93 @@ GDD references: `@tag:player-experience`, `@tag:core-loop`.
      - Tested evasions: `ควย / หี`, `ค ว ย`, `ค-ว-ย`, `ค.ว.ย`, `ห ี`, `ห/ี`, `ไอ่เหี้ย`, `ไอ้ เหี้ย`, `สั ส`, `สัสสส`, `kuy`, `hiea`, `hee`
      - Tested Scunthorpe safe words: `หีบ`, `หีบสมบัติ`, `กูเกิล`, `ผู้กล้า`, `Pass`, `Classic`, `Assistant`, `Butter`, `Grass`, `Titan`, `Hello`, `Ricko`, `Stellar`
    - Verified zero compilation errors in Unity.
+
+## Session 2: Roblox-Grade Privacy Protection, Cross-Language Innuendos & QoL Username Pre-Fill
+
+Date: 2026-09-10
+
+### Summary of Enhancements
+
+1. **QoL Username Pre-Fill in Onboarding (`PlayerPreparationPresenter.cs`)**:
+   - `ShowNameEntry()` now auto-populates `_name` from existing student userdata via `ResolveDefaultDisplayName()`:
+     - Priority 1: Existing `profile.displayName`.
+     - Priority 2: Account username extracted from `playerId` (`{levelId}:{username}`) via `AdminAccountAccessPolicy.TryGetUsername`.
+     - Priority 3: Fallback to raw `playerId`.
+   - Clamped to `DisplayNamePolicy.MaximumDisplayNameLength` (20 text elements).
+   - Students no longer have to think of or type a name if they want to proceed with their account name, but can still customize it freely.
+
+2. **Cross-Language Phonetic & Transliteration Filtering**:
+   - **Thai Vulgarities in Romanized/English Script (Karaoke)**:
+     - Explicit coverage and letter-boundary matching for `Hum`, `Ham`, `Hee`, `Sus`, `Suss`, `Kuy`, `Kuay`, `Yed`, `Hia`, `Dokthong`, `Meung`, `Goo`, `Garee`, `Ted`, `Jim`.
+     - Smart word/letter boundary check (`!char.IsLetter`) ensures names like `Humphrey`, `Sustain`, `Classic`, `Played` remain completely permitted while `Hum99`, `Sus123`, `KuyZa`, `Hee555` are blocked.
+   - **English Vulgarities written in Thai Phonetic Script (คำหยาบอังกฤษเขียนไทย)**:
+     - Explicit coverage for `ฟัค`, `ฟักยู`, `ฟัคยู`, `ฟักกิ้ง`, `ชิท`, `บิทช์`, `พอร์น`, `เซ็กส์`, `นู้ด`, `ดิก`, `ค็อก`, `พุสซี่`, `แอสโฮล`, `เควายเอส`, `ดิลโด้`, `คัม`, `ฮอร์นี่`, `สลัท`, `เรป`.
+     - Scunthorpe allowlisting prevents false positives on innocent Thai words (`ฟักทอง`, `ต้มฟัก`, `แกงฟัก`, `ฟักเขียว`, `ฟักไข่`, `คัมภีร์`, `ดิกชันนารี`, `ค็อกเทล`).
+
+3. **Compound Phrase & Phonetic Innuendo Detection (e.g. "YesMOM")**:
+   - Strict multi-word scanner detecting Thai-English phonetic puns and compound insults:
+     - `"YesMom"`, `"Yes-Mom"`, `"Yes_Mom"`, `"yes.mom"`, `"YesMae"`, `"YesMother"`, `"YesPor"`, `"YesPed"`, `"YesKae"`.
+     - Thai equivalents: `"เยสมัม"`, `"เยส-มัม"`, `"เยสแม่"`, `"เยสพ่อ"`, `"เยสเป็ด"`, `"เยสเข้"`.
+     - English and Karaoke compounds: `"YedMom"`, `"FuckMom"`, `"EatShit"`, `"SuckDick"`, `"พ่อมึงตาย"`, `"แม่มึงตาย"`.
+   - Checked against raw stripped delimiters, collapsed repeats, and leetspeak-normalized strings.
+
+4. **Roblox-Grade Privacy & COPPA PII Protection**:
+   - Upgraded `ContactLinkRegex` and added `SocialHandleRegex`:
+     - Blocks all `@` mentions and handles (`@gmail`, `@twitter`, `@instagram`, `@tiktok`, `@somchai`).
+     - Blocks social platform prefixes (`ig:`, `fb:`, `line:`, `dc:`, `tt:`, `yt:`, `discord:`).
+     - Blocks Discord user tags (`User#1234`) and server invite links.
+     - Blocks URLs and common domain TLDs (`.com`, `.net`, `.org`, `.xyz`, `.th`, `.gg`, etc.).
+     - Blocks Thai phone numbers (`081-234-5678`, `0812345678`) and international numbers.
+   - Updated localization in `Assets/Project/Resources/Localization/UI.json` (`onboarding.nameContactInfo`) for Thai and English.
+
+5. **Test Results**:
+   - Ran `DisplayNamePolicyTests` via Unity MCP test runner in EditMode: **114 / 114 tests passed (0 failures)**.
+   - Ran `PlayerLifecycleTests` via Unity MCP test runner in EditMode: **16 / 16 tests passed (0 failures)**.
+
+## Session 3: Variable-Style Toxic Words, Missing Letters, Leetspeak Symbols & Hate/Threats/Assault (TH & EN)
+
+Date: 2026-09-11
+
+### Summary of Enhancements
+
+1. **Shortened Toxic Variations & Missing-Letter Words**:
+   - Covered missing-letter and slang toxic words in English:
+     - `fuc`, `fck`, `fuk`, `dic`, `dik`, `suc`, `sux`, `bch`, `cnt`, `stfu`, `gtfo`, `wtf`, `kys`.
+   - Differentiated unambiguous acronyms/abbreviations (`fck`, `cnt`, `bch`, `kys`, `stfu`, `gtfo`, `kuy`, `kuay`) which are checked unconditionally across substrings, from short ambiguous stems (`fuc`, `suc`, `dic`, `dik`, `ass`, `azz`) which use strict letter boundary checks (`!char.IsLetter(before)` and `!char.IsLetter(after)`) so normal English words (`fuchsia`, `success`, `dictionary`, `classic`, `assistant`) are never falsely denied.
+
+2. **Special Symbol Leetspeak (`A$$`)**:
+   - Expanded homoglyph canonicalization mapping:
+     - `$` and `§` -> `s`
+     - `¢` and `©` -> `c`
+     - `€` -> `e`
+     - `|` -> `i`
+     - In addition to standard `@` -> `a`, `0` -> `o`, `1` -> `i`, `3` -> `e`, `5` -> `s`, `7` -> `t`.
+   - Now catches evasions like `A$$`, `a$s`, `a$$hole`, `b!tch`, `d!ck`, `fu¢k`, `5h!t`, `p0rn` across both delimiter-stripped and symbol-mapped representations.
+
+3. **Hate Speech, Threats, Violence & Assault (EN & TH)**:
+   - **English Prohibited Terms**:
+     - Threats & Self-harm: `kill yourself`, `go die`, `suicide`, `kys`.
+     - Sexual Violence: `rape`, `molest`.
+     - Slurs & Hate Speech: `nigger`, `faggot`, `retard`.
+   - **Thai Gaming Slang & Threats**:
+     - Shortened Gaming Slang: `คย` (ค.ย., ค-ย, ค_ย), `เห้` (ไอ้เห้), `พมต` (พ่อมึงตาย), `มมต` (แม่มึงตาย), `พ่องตาย`, `แม่งตาย`, `หาพ่อง`.
+     - Death Threats & Violence: `ไปตายซะ`, `กูจะฆ่ามึง`, `ฆ่าตัวตาย`.
+     - Sexual Assault: `ข่มขืน`, `รุมโทรม`, `ลวนลามเด็ก`.
+     - Ableist Slurs / Toxic Insults: `ปัญญาอ่อน`, `ไอ้เอ๋อ`, `เศษสวะ`.
+
+4. **Scunthorpe Problem Safeguards**:
+   - Expanded allowlist with legitimate words containing triggers:
+     - `Grape`, `Grapes`, `Grapefruit`, `Drape`, `Scrape` (contains `rape`).
+     - `Success`, `Succinct`, `Succulent` (contains `suc`).
+     - `Dictionary`, `Predict`, `Addict` (contains `dic`).
+     - `Fuchsia` (contains `fuc`).
+     - `Asset`, `Assemble` (contains `ass`).
+     - `เทคนิค`, `ภาคยานุวัติ` (contains Thai letters `คย`).
+     - `ผู้ฆ่ามังกร` (protects `ฆ่า` when part of benign fantasy titles, while banning `กูจะฆ่ามึง`).
+     - `ปัญญา` (protects wisdom in Thai, while banning `ปัญญาอ่อน`).
+
+5. **Test Results**:
+   - Ran `DisplayNamePolicyTests` via Unity MCP test runner in EditMode: **174 / 174 tests passed (0 failures)**.
+   - Ran `PlayerLifecycleTests` via Unity MCP test runner in EditMode: **16 / 16 tests passed (0 failures)**.
+   - Total test suite coverage across all display name validation scenarios: **190 tests passed, 0 failures, 0 warnings**.
+

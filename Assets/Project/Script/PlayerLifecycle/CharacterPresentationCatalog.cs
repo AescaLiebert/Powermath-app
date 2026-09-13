@@ -35,6 +35,9 @@ namespace PowerMath.PlayerLifecycle
             StreamingVideoPath.TryResolve(selectionVideoUrl, out _);
         public Character[] characters = { new Character { id = "ricko" }, new Character { id = "stellar" } };
         public Character Find(string id) => Array.Find(characters ?? Array.Empty<Character>(), value => value != null && value.id == id);
+        public static CharacterPresentationCatalog Load() =>
+            Resources.Load<CharacterPresentationCatalog>("Character/CharacterPresentationCatalog")
+            ?? Resources.Load<CharacterPresentationCatalog>("CharacterPresentationCatalog");
         private void OnValidate()
         {
             var ids = new System.Collections.Generic.HashSet<string>();
@@ -44,4 +47,3 @@ namespace PowerMath.PlayerLifecycle
         }
     }
 }
-

@@ -3,16 +3,33 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>{{{ PRODUCT_NAME }}}</title>
     <meta name="theme-color" content="{{{ SPLASH_SCREEN_STYLE.toLowerCase() === 'light' ? '#fff' : '#000' }}}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="{{{ PRODUCT_NAME }}}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{{ PRODUCT_NAME }}}">
+    <meta property="og:description" content="Play {{{ PRODUCT_NAME }}} in your browser.">
+    <meta property="og:image" content="TemplateData/icons/mathworld-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{{ PRODUCT_NAME }}}">
+    <meta name="twitter:description" content="Play {{{ PRODUCT_NAME }}} in your browser.">
+    <meta name="twitter:image" content="TemplateData/icons/mathworld-512.png">
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="TemplateData/favicon.ico">
     <link rel="icon" type="image/png" sizes="192x192" href="TemplateData/icons/mathworld-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="TemplateData/icons/mathworld-512.png">
+    <link rel="apple-touch-icon" href="TemplateData/icons/mathworld-180.png">
     <link rel="apple-touch-icon" sizes="180x180" href="TemplateData/icons/mathworld-180.png">
+    <link rel="apple-touch-icon-precomposed" href="TemplateData/icons/mathworld-180.png">
     <link rel="stylesheet" href="TemplateData/style.css">
     <link rel="manifest" href="manifest.webmanifest">
+    <script defer src="TemplateData/pwa-install.js"></script>
 #if SHOW_DIAGNOSTICS
     <link rel="stylesheet" href="<<<TemplateData/diagnostics.css>>>">
     <script src="<<<TemplateData/diagnostics.js>>>"></script>
@@ -22,6 +39,15 @@
 #endif
   </head>
   <body>
+    <aside id="pwa-install-prompt" class="pwa-install-prompt" hidden aria-labelledby="pwa-install-title">
+      <img class="pwa-install-icon" src="TemplateData/icons/mathworld-192.png" alt="">
+      <div class="pwa-install-copy">
+        <strong id="pwa-install-title">Install this app</strong>
+        <span>Add PowerMath to your Android home screen for faster access.</span>
+      </div>
+      <button id="pwa-install-button" class="pwa-install-action" type="button">Install</button>
+      <button id="pwa-install-dismiss" class="pwa-install-dismiss" type="button" aria-label="Not now">&times;</button>
+    </aside>
     <div id="unity-container">
       <canvas id="unity-canvas" width={{{ WIDTH }}} height={{{ HEIGHT }}} tabindex="-1"></canvas>
       <div id="unity-loading-bar">
@@ -77,7 +103,8 @@
         updateBannerVisibility();
       }
 
-      var buildUrl = "Build";
+      var contentBaseUrl = "https://pub-1de297cf85f444a7b4ca56dd0fc5d4e5.r2.dev";
+      var buildUrl = contentBaseUrl + "/Build";
       var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
       var config = {
         arguments: [],
@@ -89,7 +116,7 @@
 #if SYMBOLS_FILENAME
         symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
 #endif
-        streamingAssetsUrl: "StreamingAssets",
+        streamingAssetsUrl: contentBaseUrl + "/StreamingAssets",
         companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
         productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
         productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},

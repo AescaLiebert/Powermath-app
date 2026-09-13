@@ -13,6 +13,7 @@ using PowerMath.PlayerData;
 using PowerMath.PlayerLifecycle;
 using PowerMath.Session;
 using PowerMath.UI.Core;
+using PowerMath.UI.Settings;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
@@ -53,6 +54,10 @@ namespace PowerMath.UI.MainMenu
         [SerializeField] private CombatJuiceProfileDefinition combatJuiceProfile;
         [Tooltip("Optional authored battle clips; safe generated cues fill missing slots.")]
         [SerializeField] private BattleSfxLibraryDefinition battleSfxLibrary;
+
+        [Header("Result Stickers")]
+        [SerializeField] private Sprite stickerCorrect;
+        [SerializeField] private Sprite stickerFail;
 
         [Header("Combat Text Anchoring")]
         [Tooltip("Normalized anchor within enemy RectTransform for FCT spawn (0.5, 0.5 = center).")]
@@ -109,6 +114,7 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
             root.pickingMode = PickingMode.Ignore;
+            PowerMath.Audio.UiSfxAudioBinder.Bind(root);
 
             try
             {
@@ -142,6 +148,12 @@ namespace PowerMath.UI.MainMenu
                     runtimeSettings != null && runtimeSettings.ReducedMotion,
                     GameVersionChecker.IsFeatureAvailable(GameFeature.BiomeMap)
                 );
+                _view.BiomeMapLockedRequested += OnBiomeMapLockedRequested;
+                ResolveResultStickers();
+                _view.SetResultStickers(stickerCorrect, stickerFail);
+                var characterBinding = GetComponent<PowerMath.PlayerLifecycle.CharacterPresentationBinding>() ??
+                    gameObject.AddComponent<PowerMath.PlayerLifecycle.CharacterPresentationBinding>();
+                characterBinding.Bind(root);
             }
             catch (System.InvalidOperationException exception)
             {
@@ -199,6 +211,10 @@ namespace PowerMath.UI.MainMenu
             _interactionShield?.Dispose();
             _interactionShield = null;
             _interactionGate = null;
+            if (_view != null)
+            {
+                _view.BiomeMapLockedRequested -= OnBiomeMapLockedRequested;
+            }
             if (_playerActor != null)
             {
                 _playerActor.Clicked -= OnActorTapped;
@@ -213,6 +229,12 @@ namespace PowerMath.UI.MainMenu
                 _runtimeEnemySprite = null;
             }
             PowerMath.Audio.MusicController.Instance.SetBossBattleActive(false);
+        }
+
+        private void OnBiomeMapLockedRequested()
+        {
+            PowerMath.UI.Core.StatusMessageService.ShowWarning(
+                PowerMath.Localization.LocalizationService.Get("menu.lockedFeatureUpdate"));
         }
 
         public void RunCombatRoutine(IEnumerator routine)
@@ -236,7 +258,8 @@ namespace PowerMath.UI.MainMenu
 
         private void InitializeSimulation(PlayerSnapshot snapshot)
         {
-            if (!TryLoadDevelopmentCatalog(out QuestionCatalog catalog))
+            bool catalogLoaded = TryLoadDevelopmentCatalog(out QuestionCatalog catalog);
+            if (!catalogLoaded)
             {
                 SetUnavailable(
                     "Development question catalog is invalid. See the Unity Console."
@@ -246,14 +269,18 @@ namespace PowerMath.UI.MainMenu
 
             GameApiSettings settings = GetComponent<MainMenuPresenter>()?.ApiSettings;
             FirestoreAcademicProgressionStore progressionStore =
-                settings != null ? TryCreateProgressionStore(settings, snapshot) : null;
+                settings != null
+                    ? TryCreateProgressionStore(settings, snapshot)
+                    : null;
 
             InitializeRuntime(
                 snapshot,
                 catalog,
                 BuildDevelopmentEventQuestions(catalog),
                 new SimulationQuestionPresentation(),
-                progressionStore
+                progressionStore,
+                startupNotice: string.Empty,
+                isolateQuestionFallback: false
             );
         }
 
@@ -296,7 +323,7 @@ namespace PowerMath.UI.MainMenu
                     return;
                 }
 
-                IQuestionPresentation presentation = CreateLiveQuestionPresentation();
+                IQuestionPresentation presentation = CreateLiveQuestionPresentation(snapshot);
                 _eventQuestionRepository = new FirestoreEventQuestionCatalogRepository(this, settings);
                 _eventQuestionRepository.Load(map.EventQuestionDocumentIds, (eventCatalog, eventError) =>
                 {
@@ -382,7 +409,7 @@ namespace PowerMath.UI.MainMenu
                 snapshot,
                 catalog,
                 BuildDevelopmentEventQuestions(catalog, map.EventQuestionDocumentIds),
-                CreateLiveQuestionPresentation(),
+                CreateLiveQuestionPresentation(snapshot),
                 progressionStore,
                 map,
                 string.Empty,
@@ -390,7 +417,7 @@ namespace PowerMath.UI.MainMenu
             );
         }
 
-        private IQuestionPresentation CreateLiveQuestionPresentation()
+        private IQuestionPresentation CreateLiveQuestionPresentation(PlayerSnapshot snapshot)
         {
 #if UNITY_EDITOR
             // Editor cannot host the browser DOM iframe. Catalog and persistence
@@ -401,8 +428,28 @@ namespace PowerMath.UI.MainMenu
                 GetComponent<WebGlYouTubeQuestionPresentation>();
             if (presentation == null)
                 presentation = gameObject.AddComponent<WebGlYouTubeQuestionPresentation>();
-            return presentation;
+
+            return new AdminBypassQuestionPresentation(
+                () => IsAdminQuestionBypassActive(snapshot),
+                presentation,
+                new SimulationQuestionPresentation()
+            );
 #endif
+        }
+
+        private static bool IsAdminQuestionBypassActive(PlayerSnapshot snapshot)
+        {
+            if (!AdminAccountAccessPolicy.IsAuthorized(snapshot))
+            {
+                return false;
+            }
+
+            if (snapshot?.adminTuning != null && snapshot.adminTuning.bypassVideoQuestion)
+            {
+                return true;
+            }
+
+            return PlayerPrefs.GetInt("PowerMath.Admin.BypassVideoQuestion", 0) == 1;
         }
 
         private void InitializeRuntime(
@@ -461,10 +508,31 @@ namespace PowerMath.UI.MainMenu
             double criticalDamage = runtimeSettings == null
                 ? 50d
                 : runtimeSettings.CriticalDamagePercent;
-            int baseAttack = runtimeSettings == null ? 5 : runtimeSettings.BaseAttack;
             int baseWeaponAttack = runtimeSettings == null
                 ? WeaponAscensionPolicy.DefaultBaseWeaponAttack
                 : runtimeSettings.BaseWeaponAttack;
+            bool adminInvincible = false;
+            PlayerSnapshot.AdminTuningData adminTuning = snapshot.adminTuning;
+            if (AdminAccountAccessPolicy.IsAuthorized(snapshot) &&
+                adminTuning != null && adminTuning.combatOverrideEnabled &&
+                adminTuning.attack >= 1 && adminTuning.attack <= 1000000 &&
+                adminTuning.criticalRateBasisPoints >= 0 && adminTuning.criticalRateBasisPoints <= 10000 &&
+                adminTuning.criticalDamageBasisPoints >= 0 && adminTuning.criticalDamageBasisPoints <= 1000000)
+            {
+                baseWeaponAttack = adminTuning.attack;
+                criticalRate = adminTuning.criticalRateBasisPoints / 10000d;
+                criticalDamage = adminTuning.criticalDamageBasisPoints / 100d;
+                adminInvincible = adminTuning.invincible;
+                startupNotice = string.IsNullOrWhiteSpace(startupNotice)
+                    ? "FIREBASE ADMIN COMBAT SETTINGS ACTIVE"
+                    : startupNotice + " · FIREBASE ADMIN COMBAT SETTINGS ACTIVE";
+            }
+            if (IsAdminQuestionBypassActive(snapshot))
+            {
+                startupNotice = string.IsNullOrWhiteSpace(startupNotice)
+                    ? "ADMIN DIRECT QUESTION ACTIVE"
+                    : startupNotice + " · ADMIN DIRECT QUESTION ACTIVE";
+            }
             PetGachaCatalog runtimePetCatalog = null;
             if (petGachaCatalog != null &&
                 !petGachaCatalog.TryBuildCatalog(
@@ -480,7 +548,6 @@ namespace PowerMath.UI.MainMenu
             {
                 combatStats = PlayerCombatStatsFactory.Create(
                     snapshot,
-                    baseAttack,
                     baseWeaponAttack,
                     criticalRate,
                     criticalDamage,
@@ -539,12 +606,13 @@ namespace PowerMath.UI.MainMenu
                         restoredCombat.EventAttemptOrdinal);
                 }
                 engine = new LocalRunEncounterEngine(restoredCombat, runId,
-                    encounterResolver, random, combatStats);
+                    encounterResolver, random, combatStats, adminInvincible);
             }
             else
             {
                 engine = new LocalRunEncounterEngine(new StageId(startingStage),
-                    runId, encounterResolver, random, maximumHearts, combatStats);
+                    runId, encounterResolver, random, maximumHearts, combatStats,
+                    adminInvincible);
             }
 
             if (pendingPresentation != null &&
@@ -646,7 +714,10 @@ namespace PowerMath.UI.MainMenu
             var academicView = new AcademicProgressionView(
                 rootVisualElement
             );
-            var academicPresenter = new AcademicProgressionPresenter(academicView);
+            var academicPresenter = new AcademicProgressionPresenter(
+                academicView,
+                () => IsAdminQuestionBypassActive(snapshot)
+            );
             var rankFeedback = new RankTransitionFeedbackPlayer(
                 academicView,
                 academicAudio
@@ -659,7 +730,9 @@ namespace PowerMath.UI.MainMenu
             );
             _view.ConfigureStageMap(resolvedMap, RenderBiomeOnCanvas,
                 RenderEncounterOnCanvas, CrossfadeBiomeBackground,
-                ResolveLocalizedEnemyName, RequiresBackgroundTransition);
+                ResolveLocalizedEnemyName, RequiresBackgroundTransition,
+                StartBiomeMusic);
+            StartCoroutine(PrewarmBiomePresentationAssets());
 
             _presenter = new CombatLobbyPresenter(
                 _view,
@@ -694,7 +767,6 @@ namespace PowerMath.UI.MainMenu
                     catalog,
                     weaponAscensionCatalog,
                     petGachaCatalog,
-                    baseAttack,
                     baseWeaponAttack,
                     criticalRate,
                     criticalDamage,
@@ -703,7 +775,8 @@ namespace PowerMath.UI.MainMenu
                     _uiContext.MotionDriver,
                     _panelHost,
                     _interactionGate,
-                    _playerActor);
+                    _playerActor,
+                    _rewardMagnet);
                 _presenter.TerminalPresentationCompleted +=
                     _runEconomyController.NotifyTerminalPresentationCompleted;
             }
@@ -1071,9 +1144,32 @@ namespace PowerMath.UI.MainMenu
                 yield break;
             }
 
-            float halfDuration = Mathf.Max(0.1f, duration * 0.5f);
+            float safeDuration = Mathf.Max(0.1f, duration);
             try
             {
+                if (_sceneBackgroundTransition != null)
+                {
+                    _sceneBackgroundTransition.overrideSprite = targetSprite;
+                    _sceneBackgroundTransition.color =
+                        new Color(1f, 1f, 1f, 0f);
+                    _sceneBackgroundTransition.gameObject.SetActive(true);
+
+                    float overlayElapsed = 0f;
+                    while (overlayElapsed < safeDuration)
+                    {
+                        overlayElapsed += Time.unscaledDeltaTime > 0f
+                            ? Time.unscaledDeltaTime : 0.02f;
+                        float alpha = Mathf.SmoothStep(
+                            0f, 1f,
+                            Mathf.Clamp01(overlayElapsed / safeDuration));
+                        _sceneBackgroundTransition.color =
+                            new Color(1f, 1f, 1f, alpha);
+                        yield return null;
+                    }
+                    yield break;
+                }
+
+                float halfDuration = safeDuration * 0.5f;
                 float elapsed = 0f;
                 while (elapsed < halfDuration)
                 {
@@ -1110,7 +1206,71 @@ namespace PowerMath.UI.MainMenu
                 {
                     _sceneBackgroundTransition.color =
                         new Color(1f, 1f, 1f, 0f);
+                    _sceneBackgroundTransition.overrideSprite = null;
                     _sceneBackgroundTransition.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        private static void StartBiomeMusic(CombatSnapshot destination)
+        {
+            if (destination == null) return;
+            PowerMath.Audio.MusicController music = PowerMath.Audio.MusicController.Instance;
+            if (music == null) return;
+
+            bool isStage1 = destination.Stage.Value == 1;
+            bool isDifferentBiome = !string.Equals(music.CurrentBattleBiomeId, destination.BiomeId, System.StringComparison.OrdinalIgnoreCase);
+
+            // Request new biome music if the biome changed or if returning to stage 1
+            if (isDifferentBiome || isStage1)
+            {
+                music.PlayBattleMusic(destination.BiomeId, forceRestart: isStage1);
+            }
+        }
+
+        private IEnumerator PrewarmBiomePresentationAssets()
+        {
+            if (stageMapDefinition == null)
+            {
+                yield break;
+            }
+
+            var textures = new HashSet<Texture>();
+            PowerMath.Audio.MusicController music =
+                PowerMath.Audio.MusicController.Instance;
+            foreach (BiomeDefinition biome in stageMapDefinition.Biomes)
+            {
+                if (biome == null)
+                {
+                    continue;
+                }
+
+                foreach (EnemyDefinition monster in biome.NormalMonsters)
+                {
+                    music.PreloadClip(monster?.BattleMusic?.Clip);
+                }
+                foreach (BiomeDefinition.BossBinding binding in biome.BossBindings)
+                {
+                    music.PreloadClip(binding?.monster?.BattleMusic?.Clip);
+                }
+
+                Sprite[] backgrounds =
+                {
+                    biome.BackgroundSprite,
+                    biome.SecondaryBackgroundSprite
+                };
+                for (int index = 0; index < backgrounds.Length; index++)
+                {
+                    Texture texture = backgrounds[index]?.texture;
+                    if (texture == null || !textures.Add(texture))
+                    {
+                        continue;
+                    }
+
+                    // Force the first GPU upload away from the actual biome
+                    // transition, spreading large backgrounds across frames.
+                    texture.GetNativeTexturePtr();
+                    yield return null;
                 }
             }
         }
@@ -1128,7 +1288,8 @@ namespace PowerMath.UI.MainMenu
                 _sceneBackgroundTransition.color = new Color(1f, 1f, 1f, 0f);
                 _sceneBackgroundTransition.gameObject.SetActive(false);
             }
-            PowerMath.Audio.MusicController.Instance.PlayBattleMusic(snapshot?.BiomeId);
+            bool isStage1 = snapshot != null && snapshot.Stage.Value == 1;
+            PowerMath.Audio.MusicController.Instance.PlayBattleMusic(snapshot?.BiomeId, forceRestart: isStage1);
         }
 
         private bool RequiresBackgroundTransition(CombatSnapshot snapshot)
@@ -1152,13 +1313,15 @@ namespace PowerMath.UI.MainMenu
             EventDefinition eventDefinition = stageMapDefinition?.FindEvent(encounterId);
             if (sprite == null) sprite = eventDefinition?.EventSprite;
             if (sprite == null) sprite = ResolveFallbackEnemySprite();
+            StageEncounterKind kind = monster?.EncounterKind ??
+                StageEncounterKind.ChallengeEvent;
+            bool isBigBoss = kind == StageEncounterKind.BigBoss ||
+                kind == StageEncounterKind.FinalBoss;
+            PowerMath.Audio.MusicController.Instance.SetEncounterMusicOverride(
+                monster?.BattleMusic,
+                isBigBoss);
             if (_sceneEnemy != null && sprite != null)
             {
-                StageEncounterKind kind = monster?.EncounterKind ??
-                    StageEncounterKind.ChallengeEvent;
-                bool isBigBoss = kind == StageEncounterKind.BigBoss ||
-                    kind == StageEncounterKind.FinalBoss;
-                PowerMath.Audio.MusicController.Instance.SetBossBattleActive(isBigBoss);
                 _enemyActor?.ConfigureDeathProfile(isBigBoss);
                 PowerMath.Audio.IEnemySfxProfile customProfile = (PowerMath.Audio.IEnemySfxProfile)monster ?? (PowerMath.Audio.IEnemySfxProfile)eventDefinition;
                 _enemyActor?.ConfigureSfxProfile(customProfile, kind.ToString());
@@ -1258,7 +1421,7 @@ namespace PowerMath.UI.MainMenu
                 playerId.Substring(0, separator),
                 playerId.Substring(separator + 1),
                 snapshot,
-                Object.FindAnyObjectByType<ProfileActivityTracker>()
+                UnityEngine.Object.FindAnyObjectByType<ProfileActivityTracker>()
             );
         }
 
@@ -1397,5 +1560,33 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
+        private void ResolveResultStickers()
+        {
+            if (stickerCorrect == null)
+            {
+#if UNITY_EDITOR
+                stickerCorrect = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/Project/Art/Character/Sticker_Power_Correct.PNG");
+#endif
+                if (stickerCorrect == null)
+                {
+                    stickerCorrect = Resources.Load<Sprite>("Character/Sticker_Power_Correct")
+                        ?? Resources.Load<Sprite>("Sticker_Power_Correct");
+                }
+            }
+
+            if (stickerFail == null)
+            {
+#if UNITY_EDITOR
+                stickerFail = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/Project/Art/Character/Sticker_Power_Fail.PNG");
+#endif
+                if (stickerFail == null)
+                {
+                    stickerFail = Resources.Load<Sprite>("Character/Sticker_Power_Fail")
+                        ?? Resources.Load<Sprite>("Sticker_Power_Fail");
+                }
+            }
+        }
     }
 }

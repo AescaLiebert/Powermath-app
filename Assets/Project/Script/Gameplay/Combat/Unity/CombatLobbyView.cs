@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using PowerMath.Gameplay.Combat.Presentation;
+using PowerMath.UI.Core;
 using PowerMath.UI.MainMenu;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -44,6 +45,11 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly Label _feedbackTitle;
         private readonly Label _feedbackSubtitle;
         private readonly VisualElement _scoreStack;
+        private readonly Image _resultSticker;
+        private readonly Image _correctResultSticker;
+        private readonly Image _failResultSticker;
+        private Sprite _stickerCorrect;
+        private Sprite _stickerFail;
         private readonly Label _damageLabel;
         private readonly Label _criticalLabel;
         private readonly Label _battleBanner;
@@ -58,10 +64,13 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly VisualElement _biomeTransition;
         private readonly Label _biomeTransitionTitle;
         private readonly Label _biomeTransitionKicker;
+        private readonly VisualElement _bossWarning;
+        private readonly Label _bossWarningTitle;
         private readonly Dictionary<string, Label> _mapNodes = new Dictionary<string, Label>();
         private Action<CombatSnapshot> _backgroundRenderer;
         private Action<string> _encounterRenderer;
         private Func<CombatSnapshot, float, IEnumerator> _backgroundCrossfader;
+        private Action<CombatSnapshot> _biomeMusicStarter;
         private Func<CombatSnapshot, bool> _backgroundTransitionRequired;
         private Func<string, string> _enemyNameResolver;
         private string _lastEncounterId;
@@ -72,6 +81,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly UiToolkitLifecycleController _feedbackLifecycle;
         private readonly UiToolkitLifecycleController _bannerLifecycle;
         private readonly UiToolkitLifecycleController _biomeLifecycle;
+        private readonly UiToolkitLifecycleController _bossWarningLifecycle;
 
         public CombatLobbyView(
             VisualElement root,
@@ -115,28 +125,58 @@ namespace PowerMath.Gameplay.Combat.Unity
             _feedbackTitle = Require<Label>("combat-feedback-title");
             _feedbackSubtitle = Require<Label>("combat-feedback-subtitle");
             _scoreStack = Require<VisualElement>("combat-score-stack");
-            Require<Image>("combat-result-sticker-correct");
-            Require<Image>("combat-result-sticker-fail");
+            _resultSticker = _feedbackCard.Q<Image>("combat-result-sticker");
+            _correctResultSticker = _feedbackCard.Q<Image>(
+                "combat-result-sticker-correct");
+            _failResultSticker = _feedbackCard.Q<Image>(
+                "combat-result-sticker-fail");
+            if (_stickerCorrect == null)
+            {
+                _stickerCorrect = Resources.Load<Sprite>("Character/Sticker_Power_Correct")
+                    ?? Resources.Load<Sprite>("Sticker_Power_Correct");
+            }
+            if (_stickerFail == null)
+            {
+                _stickerFail = Resources.Load<Sprite>("Character/Sticker_Power_Fail")
+                    ?? Resources.Load<Sprite>("Sticker_Power_Fail");
+            }
+            if (_correctResultSticker != null && _stickerCorrect != null)
+            {
+                _correctResultSticker.sprite = _stickerCorrect;
+            }
+            if (_failResultSticker != null && _stickerFail != null)
+            {
+                _failResultSticker.sprite = _stickerFail;
+            }
             _damageLabel = Require<Label>("combat-damage-label");
             _criticalLabel = Require<Label>("combat-critical-label");
             _battleBanner = Require<Label>("combat-battle-banner");
             _biomeLabel = Require<Label>("combat-biome-label");
-            _mapButton = Require<Button>("combat-map-button");
-            _mapLock = _mapButton.Q<VisualElement>("combat-map-lock");
-            _mapModal = Require<VisualElement>("combat-map-modal");
-            _mapRoute = Require<VisualElement>("combat-map-route");
-            _mapClose = Require<Button>("combat-map-close");
+            _mapButton = _root.Q<Button>("map") ?? Require<Button>("combat-map-button");
+            _mapLock = _mapButton.Q<VisualElement>("combat-map-lock") ?? _mapButton.Q<VisualElement>("map-lock");
+            _mapModal = _root.Q<VisualElement>("combat-map-modal");
+            _mapRoute = _root.Q<VisualElement>("combat-map-route");
+            _mapClose = _root.Q<Button>("combat-map-close");
             _mapBalance = _root.Q<Label>("combat-map-balance");
             _biomeTransition = Require<VisualElement>("combat-biome-transition");
             _biomeTransitionTitle = Require<Label>("combat-biome-transition-title");
             _biomeTransitionKicker = _root.Q<Label>("combat-biome-transition-kicker");
+            _bossWarning = _root.Q<VisualElement>("combat-boss-warning");
+            _bossWarningTitle = _root.Q<Label>("combat-boss-warning-title");
             _attemptLifecycle = new UiToolkitLifecycleController(_attemptPanel);
             _feedbackLifecycle = new UiToolkitLifecycleController(_feedbackCard);
             _bannerLifecycle = new UiToolkitLifecycleController(_battleBanner);
             _biomeLifecycle = new UiToolkitLifecycleController(
                 _biomeTransition,
-                enterMilliseconds: 420,
-                exitMilliseconds: 320);
+                enterMilliseconds: 600,
+                exitMilliseconds: 520);
+            if (_bossWarning != null)
+            {
+                _bossWarningLifecycle = new UiToolkitLifecycleController(
+                    _bossWarning,
+                    enterMilliseconds: 420,
+                    exitMilliseconds: 360);
+            }
 
             UpdateMapButtonAvailability();
 
@@ -156,6 +196,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public event Action ClearRequested;
         public event Action SubmitRequested;
         public event Action<bool> AttemptVisibilityChanged;
+        public event Action BiomeMapLockedRequested;
 
         public int EnemyMaximumHp { get; private set; }
         public bool CanAttack { get; private set; }
@@ -187,7 +228,10 @@ namespace PowerMath.Gameplay.Combat.Unity
             _backspaceButton.clicked += OnBackspace;
             _clearButton.clicked += OnClear;
             _mapButton.clicked += OnShowMap;
-            _mapClose.clicked += OnHideMap;
+            if (_mapClose != null)
+            {
+                _mapClose.clicked += OnHideMap;
+            }
             for (int digit = 0; digit <= 9; digit++)
             {
                 _digitButtons[digit].clicked += _digitHandlers[digit];
@@ -252,8 +296,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (!_isBiomeMapAvailable)
             {
-                _mapButton.SetEnabled(false);
-                _mapButton.pickingMode = PickingMode.Ignore;
+                _mapButton.SetEnabled(true);
+                _mapButton.pickingMode = PickingMode.Position;
                 _mapButton.tooltip = "Biome Map (Locked in v1.0)";
                 _mapButton.AddToClassList("is-feature-locked");
                 _mapLock?.RemoveFromClassList("is-hidden");
@@ -274,16 +318,22 @@ namespace PowerMath.Gameplay.Combat.Unity
             Action<string> encounterRenderer,
             Func<CombatSnapshot, float, IEnumerator> backgroundCrossfader = null,
             Func<string, string> enemyNameResolver = null,
-            Func<CombatSnapshot, bool> backgroundTransitionRequired = null)
+            Func<CombatSnapshot, bool> backgroundTransitionRequired = null,
+            Action<CombatSnapshot> biomeMusicStarter = null)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
             _backgroundRenderer = backgroundRenderer;
             _encounterRenderer = encounterRenderer;
             _backgroundCrossfader = backgroundCrossfader;
+            _biomeMusicStarter = biomeMusicStarter;
             _backgroundTransitionRequired = backgroundTransitionRequired;
             _enemyNameResolver = enemyNameResolver;
-            _mapRoute.Clear();
+            _mapRoute?.Clear();
             _mapNodes.Clear();
+            if (_mapRoute == null)
+            {
+                return;
+            }
             for (int index = 0; index < map.Biomes.Count; index++)
             {
                 BiomeData biome = map.Biomes[index];
@@ -319,13 +369,14 @@ namespace PowerMath.Gameplay.Combat.Unity
             _biomeTransitionTitle.text = destination.BiomeTitle.ToUpperInvariant();
             if (_biomeTransitionKicker != null)
             {
-                _biomeTransitionKicker.text = string.Empty;
+                _biomeTransitionKicker.text = "ENTERING NEW BIOME";
             }
 
             float crossfadeDuration = _reducedMotion ? 0.40f : 1.40f;
-            float popUpHoldDuration = _reducedMotion ? 0.35f : 0.85f;
+            float popUpHoldDuration = _reducedMotion ? 0.35f : 1.20f;
 
             _biomeLifecycle.Enter();
+            _biomeMusicStarter?.Invoke(destination);
 
             if (_backgroundCrossfader != null)
             {
@@ -348,6 +399,24 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             _biomeLifecycle.Exit();
             while (!_biomeLifecycle.IsStable) yield return null;
+        }
+
+        public IEnumerator PlayBossWarning()
+        {
+            if (_bossWarning == null || _bossWarningLifecycle == null) yield break;
+            if (_bossWarningTitle != null && string.IsNullOrEmpty(_bossWarningTitle.text)) _bossWarningTitle.text = "DANGER!";
+            _bossWarningLifecycle.Enter();
+            yield return new WaitForSecondsRealtime(
+                _reducedMotion ? 0.15f : 0.46f);
+            yield return new WaitForSecondsRealtime(
+                _reducedMotion ? 0.24f : 0.92f);
+            _bossWarningLifecycle.Exit();
+            while (!_bossWarningLifecycle.IsStable) yield return null;
+        }
+
+        public void SkipBossWarning()
+        {
+            _bossWarningLifecycle?.CancelAndApply(UiLifecycleState.Hidden);
         }
 
         public bool RequiresBackgroundTransition(CombatSnapshot destination)
@@ -408,6 +477,80 @@ namespace PowerMath.Gameplay.Combat.Unity
                 : DisplayStyle.None;
         }
 
+        public void SetResultStickers(Sprite correct, Sprite fail)
+        {
+            if (correct != null) _stickerCorrect = correct;
+            if (fail != null) _stickerFail = fail;
+            if (_correctResultSticker != null && _stickerCorrect != null)
+            {
+                _correctResultSticker.sprite = _stickerCorrect;
+            }
+            if (_failResultSticker != null && _stickerFail != null)
+            {
+                _failResultSticker.sprite = _stickerFail;
+            }
+        }
+
+        public void SetResultStickerVisibility(bool? isPositive)
+        {
+            if (isPositive == null)
+            {
+                if (_correctResultSticker != null)
+                {
+                    _correctResultSticker.AddToClassList("is-hidden");
+                    _correctResultSticker.style.display = DisplayStyle.None;
+                }
+                if (_failResultSticker != null)
+                {
+                    _failResultSticker.AddToClassList("is-hidden");
+                    _failResultSticker.style.display = DisplayStyle.None;
+                }
+                if (_resultSticker != null)
+                {
+                    _resultSticker.AddToClassList("is-hidden");
+                    _resultSticker.style.display = DisplayStyle.None;
+                }
+                return;
+            }
+
+            bool positive = isPositive.Value;
+            if (_correctResultSticker != null)
+            {
+                if (_stickerCorrect != null && _correctResultSticker.sprite == null)
+                {
+                    _correctResultSticker.sprite = _stickerCorrect;
+                }
+                _correctResultSticker.EnableInClassList("is-hidden", !positive);
+                _correctResultSticker.style.display = positive ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+
+            if (_failResultSticker != null)
+            {
+                if (_stickerFail != null && _failResultSticker.sprite == null)
+                {
+                    _failResultSticker.sprite = _stickerFail;
+                }
+                _failResultSticker.EnableInClassList("is-hidden", positive);
+                _failResultSticker.style.display = positive ? DisplayStyle.None : DisplayStyle.Flex;
+            }
+
+            if (_resultSticker != null)
+            {
+                Sprite sticker = positive ? _stickerCorrect : _stickerFail;
+                if (sticker != null)
+                {
+                    _resultSticker.sprite = sticker;
+                    _resultSticker.RemoveFromClassList("is-hidden");
+                    _resultSticker.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    _resultSticker.AddToClassList("is-hidden");
+                    _resultSticker.style.display = DisplayStyle.None;
+                }
+            }
+        }
+
         public void ShowAnswerFeedback(
             string icon,
             string title,
@@ -422,6 +565,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _feedbackCard.EnableInClassList(
                 "combat-feedback-card--negative",
                 !isPositive);
+            SetResultStickerVisibility(isPositive);
             _scoreStack.Clear();
             _feedbackLifecycle.Enter();
         }
@@ -457,6 +601,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void HideAnswerFeedback()
         {
             _feedbackLifecycle.Exit();
+            SetResultStickerVisibility(null);
             _feedbackCard.RemoveFromClassList("combat-feedback-card--negative");
             _scoreStack.Clear();
         }
@@ -552,7 +697,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public bool IsEnemyActionQueueStable => _enemyActionQueue.IsStable;
         public bool IsBlockingUiStable => _attemptLifecycle.IsStable &&
             _feedbackLifecycle.IsStable && _bannerLifecycle.IsStable &&
-            _biomeLifecycle.IsStable;
+            _biomeLifecycle.IsStable && (_bossWarningLifecycle == null || _bossWarningLifecycle.IsStable);
 
         public void ArmEnemyAction(string presentationId)
         {
@@ -635,7 +780,10 @@ namespace PowerMath.Gameplay.Combat.Unity
             _backspaceButton.clicked -= OnBackspace;
             _clearButton.clicked -= OnClear;
             _mapButton.clicked -= OnShowMap;
-            _mapClose.clicked -= OnHideMap;
+            if (_mapClose != null)
+            {
+                _mapClose.clicked -= OnHideMap;
+            }
             for (int digit = 0; digit <= 9; digit++)
             {
                 _digitButtons[digit].clicked -= _digitHandlers[digit];
@@ -684,14 +832,15 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             if (!_isBiomeMapAvailable)
             {
-                _mapButton.SetEnabled(false);
-                _mapButton.pickingMode = PickingMode.Ignore;
+                _mapButton.SetEnabled(true);
+                _mapButton.pickingMode = PickingMode.Position;
                 _mapButton.tooltip = "Biome Map (Locked in v1.0)";
                 _mapButton.AddToClassList("is-feature-locked");
                 _mapLock?.RemoveFromClassList("is-hidden");
             }
             else
             {
+                _mapButton.SetEnabled(true);
                 _mapButton.pickingMode = PickingMode.Position;
                 _mapButton.tooltip = "Biome Navigator";
                 _mapButton.RemoveFromClassList("is-feature-locked");
@@ -702,6 +851,12 @@ namespace PowerMath.Gameplay.Combat.Unity
         private void OnShowMap()
         {
             if (!_isBiomeMapAvailable)
+            {
+                BiomeMapLockedRequested?.Invoke();
+                return;
+            }
+
+            if (_mapModal == null)
             {
                 return;
             }

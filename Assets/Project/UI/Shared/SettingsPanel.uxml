@@ -1,0 +1,108 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/Shared/SettingsPanel.uss"/>
+    <ui:VisualElement name="settings-panel-modal" focusable="true" class="social-modal settings-modal is-hidden">
+        <ui:VisualElement class="settings-backdrop settings-backdrop--sun" picking-mode="Ignore"/>
+        <ui:VisualElement class="settings-backdrop settings-backdrop--sky" picking-mode="Ignore"/>
+        <ui:VisualElement class="settings-shell">
+            <ui:VisualElement class="settings-header">
+                <ui:VisualElement class="settings-heading">
+                    <ui:Label text="SETTINGS" class="loc-settings.title settings-title"/>
+                    <ui:Label text="Make the game comfortable for you" class="loc-settings.subtitle settings-subtitle"/>
+                </ui:VisualElement>
+                <ui:Button name="settings-panel-close" tooltip="Close Settings" class="settings-close"><ui:VisualElement picking-mode="Ignore" class="panel-close-icon"/></ui:Button>
+            </ui:VisualElement>
+            <ui:VisualElement class="settings-tabs">
+                <ui:Button name="settings-tab-general" text="GENERAL" class="loc-settings.tabGeneral settings-tab is-selected"/>
+                <ui:Button name="settings-tab-sound" text="SOUND" class="loc-settings.tabSound settings-tab"/>
+                <ui:Button name="settings-tab-admin" text="ADMIN" class="settings-tab settings-admin-only"/>
+            </ui:VisualElement>
+            <ui:ScrollView name="settings-content" class="settings-scroll">
+                <ui:VisualElement name="settings-page-general" class="settings-page">
+                    <ui:VisualElement class="settings-card">
+                        <ui:VisualElement class="settings-card-copy">
+                            <ui:Label text="FULL SCREEN" class="loc-settings.fullscreen settings-card-title"/>
+                            <ui:Label text="Use the whole screen for your adventure." class="loc-settings.fullscreenHelp settings-card-description"/>
+                        </ui:VisualElement>
+                        <ui:Toggle name="settings-fullscreen-toggle" class="settings-toggle"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="settings-card">
+                        <ui:VisualElement class="settings-card-copy">
+                            <ui:Label text="LANGUAGE" class="loc-settings.language settings-card-title"/>
+                            <ui:Label text="Choose the language used by the game." class="loc-settings.languageHelp settings-card-description"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settings-language-row">
+                            <ui:Button name="settings-language-th" text="TH" class="settings-language-button"/>
+                            <ui:Button name="settings-language-en" text="EN" class="settings-language-button"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="settings-card settings-account-card">
+                        <ui:VisualElement class="settings-card-copy">
+                            <ui:Label text="ACCOUNT" class="loc-settings.account settings-card-title"/>
+                            <ui:Label text="Clear this account session and return to Sign In." class="loc-settings.logoutHelp settings-card-description"/>
+                            <ui:Label name="settings-account-status" text="" class="settings-account-status"/>
+                        </ui:VisualElement>
+                        <ui:Button name="settings-account-logout" text="LOG OUT" class="loc-settings.logout mw-button settings-logout-button"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="settings-page-sound" class="settings-page is-hidden">
+                    <ui:VisualElement class="settings-card settings-card--stack">
+                        <ui:VisualElement class="settings-row-heading"><ui:Label text="MUSIC" class="loc-settings.music settings-card-title"/><ui:Label name="settings-music-value" text="100%" class="settings-value"/></ui:VisualElement>
+                        <ui:Slider name="settings-music-slider" low-value="0" high-value="1" value="1" class="settings-slider"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="settings-card settings-card--stack">
+                        <ui:VisualElement class="settings-row-heading"><ui:Label text="SOUND EFFECTS" class="loc-settings.sfx settings-card-title"/><ui:Label name="settings-sfx-value" text="100%" class="settings-value"/></ui:VisualElement>
+                        <ui:Slider name="settings-sfx-slider" low-value="0" high-value="1" value="1" class="settings-slider"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="settings-page-admin" class="settings-page settings-admin-only is-hidden">
+                    <ui:VisualElement class="settings-test-banner"><ui:Label text="TEST ACCOUNT TOOLS" class="settings-test-banner__title"/><ui:Label name="settings-admin-account" text="" class="settings-test-banner__copy"/></ui:VisualElement>
+                    <ui:VisualElement class="settings-admin-grid">
+                        <ui:VisualElement class="settings-card settings-card--stack settings-admin-card">
+                            <ui:Label text="COMBAT" class="settings-card-title"/>
+                            <ui:TextField name="settings-admin-atk" label="Player ATK" value="5" class="settings-field"/>
+                            <ui:TextField name="settings-admin-cr" label="Critical Rate %" value="20" class="settings-field"/>
+                            <ui:TextField name="settings-admin-cd" label="Critical Damage %" value="50" class="settings-field"/>
+                            <ui:Toggle name="settings-admin-invincible" text="Invincibility" class="settings-check"/>
+                            <ui:Toggle name="settings-admin-bypass-video" text="Bypass Video (Direct Question)" class="settings-check"/>
+                            <ui:Button name="settings-admin-apply-combat" text="SAVE COMBAT SETTINGS" class="mw-button mw-button--primary settings-action"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settings-card settings-card--stack settings-admin-card">
+                            <ui:Label text="PLAYER HP" class="settings-card-title"/>
+                            <ui:Button name="settings-admin-restore-hp" text="RESTORE ALL HEARTS" class="mw-button settings-action"/>
+                            <ui:Label text="Restores the current run to its normal maximum." class="settings-card-description"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settings-card settings-card--stack settings-admin-card">
+                            <ui:Label text="STAGE TELEPORT" class="settings-card-title"/>
+                            <ui:TextField name="settings-admin-stage" label="Stage (1-215)" value="1" class="settings-field"/>
+                            <ui:Button name="settings-admin-apply-stage" text="TELEPORT TO STAGE" class="mw-button settings-action"/>
+                            <ui:Label text="Teleports current run to the target stage without resetting your inventory or rank." class="settings-card-description"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settings-card settings-card--stack settings-admin-card">
+                            <ui:Label text="RANK" class="settings-card-title"/>
+                            <ui:VisualElement class="settings-rank-row">
+                                <ui:Button name="settings-rank-silver" text="SILVER" class="settings-rank-button"/>
+                                <ui:Button name="settings-rank-gold" text="GOLD" class="settings-rank-button"/>
+                                <ui:Button name="settings-rank-diamond" text="DIAMOND" class="settings-rank-button"/>
+                            </ui:VisualElement>
+                            <ui:Label text="Changing Rank clears the current audit." class="settings-card-description"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settings-card settings-card--stack settings-admin-card">
+                            <ui:Label text="CURRENCY" class="settings-card-title"/>
+                            <ui:TextField name="settings-admin-silver" label="Silver" value="0" class="settings-field"/>
+                            <ui:TextField name="settings-admin-gold" label="Gold" value="0" class="settings-field"/>
+                            <ui:TextField name="settings-admin-diamond" label="Diamond" value="0" class="settings-field"/>
+                            <ui:TextField name="settings-admin-power" label="Power Coin" value="0" class="settings-field"/>
+                            <ui:Button name="settings-admin-apply-currency" text="SET CURRENCY" class="mw-button settings-action"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="settings-card settings-card--stack settings-admin-card settings-danger-card">
+                            <ui:Label text="RESET USER DATA" class="settings-card-title settings-danger-title"/>
+                            <ui:Label text="Deletes all game progress and Player Prep. Your login stays safe." class="settings-card-description"/>
+                            <ui:Button name="settings-admin-reset" text="RESET USER DATA" class="mw-button settings-action settings-danger-button"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label name="settings-admin-status" text="Ready" class="mw-status settings-admin-status"/>
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

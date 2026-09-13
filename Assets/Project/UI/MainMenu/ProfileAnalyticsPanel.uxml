@@ -1,4 +1,4 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+﻿<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="profile-analytics-modal" enabled="true" focusable="true" class="social-modal profile-analytics-modal is-hidden">
         <ui:VisualElement class="profile-backdrop profile-backdrop--cyan" picking-mode="Ignore"/>
         <ui:VisualElement class="profile-backdrop profile-backdrop--blue" picking-mode="Ignore"/>
@@ -14,12 +14,12 @@
                         <ui:VisualElement class="profile-coin-icon" picking-mode="Ignore"/>
                         <ui:Label name="profile-balance" text="0" class="profile-balance"/>
                     </ui:VisualElement>
-                    <ui:Button name="profile-analytics-close" text="×" tooltip="Close Profile Analytics" class="profile-close"/>
+                    <ui:Button name="profile-analytics-close" text="" tooltip="Close Profile Analytics" class="profile-close"><ui:VisualElement picking-mode="Ignore" class="panel-close-icon"/></ui:Button>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:ScrollView class="profile-scroll">
                 <ui:VisualElement class="profile-identity-row">
-                    <ui:VisualElement class="profile-avatar-placeholder"><ui:Label text="★" class="profile-avatar-mark"/></ui:VisualElement>
+                    <ui:VisualElement class="profile-avatar-placeholder"><ui:VisualElement picking-mode="Ignore" class="profile-avatar-mark profile-star-icon"/></ui:VisualElement>
                     <ui:Label name="profile-summary" text="Student" class="profile-summary"/>
                     <ui:VisualElement class="profile-privacy-card">
                         <ui:Label text="PRIVATE VIEW" class="loc-menu.private profile-privacy-title"/>
@@ -53,7 +53,7 @@
                         <ui:TextField name="profile-display-name-input" max-length="20" class="profile-name-input"/>
                         <ui:Button name="profile-display-name-save" text="SAVE NAME" class="loc-menu.saveName profile-name-save"/>
                     </ui:VisualElement>
-                    <ui:Label name="profile-display-name-status" text="Rename availability is loading." class="social-status profile-name-status"/>
+                    <ui:Label name="profile-display-name-status" text="Rename availability is loading." class="loc-menu.renamePending social-status profile-name-status"/>
                 </ui:VisualElement>
             </ui:ScrollView>
         </ui:VisualElement>

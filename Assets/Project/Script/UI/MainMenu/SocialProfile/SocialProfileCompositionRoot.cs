@@ -1,6 +1,5 @@
 using PowerMath.PlayerData;
 using PowerMath.Session;
-using PowerMath.UI.MainMenu.Admin;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,7 +11,6 @@ namespace PowerMath.UI.MainMenu.SocialProfile
     {
         private LeaderboardPanelController _leaderboard;
         private ProfileAnalyticsPanelController _profile;
-        private AdminPanelController _admin;
 
         private void Start()
         {
@@ -35,17 +33,14 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _profile = new ProfileAnalyticsPanelController(
                 document.rootVisualElement, this, presenter.ApiSettings,
                 session.Snapshot, provider.Host);
-            _admin = new AdminPanelController(
-                document.rootVisualElement, this, presenter.ApiSettings,
-                session.Snapshot, provider.Host);
-            if (!_leaderboard.IsValid || !_profile.IsValid || !_admin.IsValid)
+            if (!_leaderboard.IsValid || !_profile.IsValid)
             {
-                PowerMath.Diagnostics.AppLog.Error("SocialProfile", "Main Menu social/profile/admin UI elements are missing.");
+                PowerMath.Diagnostics.AppLog.Error("SocialProfile", "Main Menu social/profile UI elements are missing.");
                 return;
             }
             _leaderboard.Bind();
             _profile.Bind();
-            _admin.Bind();
+            PowerMath.Audio.UiSfxAudioBinder.Bind(document.rootVisualElement);
             SynchronizeLeaderboardProjection(
                 presenter.ApiSettings,
                 session.Snapshot);
@@ -70,7 +65,6 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         {
             _leaderboard?.Dispose();
             _profile?.Dispose();
-            _admin?.Dispose();
         }
     }
 }

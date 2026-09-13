@@ -19,6 +19,26 @@ MonoBehaviour:
   biomeId: biome-2
   encounterKind: 2
   baseHp: 125
-  maximumCooldown: 2
+  maximumCooldown: 3
   hpMultiplierBasisPoints: 10000
   enemySprite: {fileID: 21300000, guid: 45f8f3feb1bd71742bad6c8fca6cfe52, type: 3}
+  customBattleMusic:
+    clip: {fileID: 8300000, guid: 4d8ba9d081547ad41a7a4fd81abecef5, type: 3}
+    volumeScale: 0.85
+    loop: 1
+  customAppearSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customHurtSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customAttackSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customDieSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}

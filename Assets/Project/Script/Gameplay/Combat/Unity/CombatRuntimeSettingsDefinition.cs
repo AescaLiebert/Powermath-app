@@ -15,8 +15,6 @@ namespace PowerMath.Gameplay.Combat.Unity
         [SerializeField] private float criticalDamagePercent = 50f;
 
         [Header("Player")]
-        [Min(1)]
-        [SerializeField] private int baseAttack = 5;
         [Min(0)]
         [SerializeField] private int baseWeaponAttack = 5;
         [Min(1)]
@@ -37,7 +35,6 @@ namespace PowerMath.Gameplay.Combat.Unity
         public double CriticalRate => criticalRate;
         public double CriticalDamagePercent => criticalDamagePercent;
         public int MaximumHearts => maximumHearts;
-        public int BaseAttack => baseAttack;
         public int BaseWeaponAttack => baseWeaponAttack;
         public int MaximumAnswerLength => maximumAnswerLength;
         public double PreparationSeconds => preparationSeconds;
@@ -51,7 +48,6 @@ namespace PowerMath.Gameplay.Combat.Unity
             criticalRate = 0.2f;
             criticalDamagePercent = 50f;
             maximumHearts = 3;
-            baseAttack = 5;
             baseWeaponAttack = 5;
             maximumAnswerLength = 6;
             preparationSeconds = 1f;

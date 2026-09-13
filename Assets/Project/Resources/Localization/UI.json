@@ -32,8 +32,8 @@
     },
     {
       "key": "auth.enter",
-      "en": "ENTER     →",
-      "th": "เข้าสู่เกม     →"
+      "en": "ENTER",
+      "th": "เข้าสู่เกม"
     },
     {
       "key": "auth.busy",
@@ -263,12 +263,12 @@
     {
       "key": "onboarding.ricko",
       "en": "Ricko",
-      "th": "ริกโก้"
+      "th": "ริกโค้"
     },
     {
       "key": "onboarding.stellar",
       "en": "Stellar",
-      "th": "สเตลลาร์"
+      "th": "สเตลล่าร์"
     },
     {
       "key": "errors.updateRequired",
@@ -566,6 +566,11 @@
       "th": "ตรวจสอบรางวัลถาวรก่อนเริ่มต้นใหม่"
     },
     {
+      "key": "menu.lockedFeatureUpdate",
+      "en": "Wait for 1.2 Update (16/09/26) sorry!",
+      "th": "รออัปเดต 1.2 (16/09/26) ขออภัยด้วยนะ!"
+    },
+    {
       "key": "menu.saveName",
       "en": "SAVE NAME",
       "th": "บันทึกชื่อ"
@@ -857,8 +862,353 @@
     },
     {
       "key": "onboarding.nameContactInfo",
-      "en": "Display names cannot contain phone numbers, URLs, or contact information.",
-      "th": "ชื่อตัวละครต้องไม่มีเบอร์โทรศัพท์ ลิงก์ หรือข้อมูลติดต่อส่วนตัว"
+      "en": "Display names cannot contain phone numbers, social handles (@), emails, URLs, or personal info.",
+      "th": "ชื่อตัวละครต้องไม่มีเบอร์โทรศัพท์ บัญชีโซเชียล (@) อีเมล ลิงก์ หรือข้อมูลติดต่อส่วนตัว"
+    },
+    {
+      "key": "combat.seconds",
+      "en": "SECONDS",
+      "th": "วินาที"
+    },
+    {
+      "key": "combat.lockingIn",
+      "en": "Locking in your answer...",
+      "th": "กำลังยืนยันคำตอบ..."
+    },
+    {
+      "key": "combat.score",
+      "en": "SCORE",
+      "th": "คะแนน"
+    },
+    {
+      "key": "combat.damage",
+      "en": "DAMAGE",
+      "th": "ความเสียหาย"
+    },
+    {
+      "key": "combat.noDamage",
+      "en": "→ NO DAMAGE ←",
+      "th": "→ ไม่มีความเสียหาย ←"
+    },
+    {
+      "key": "combat.enemyAttack",
+      "en": "ENEMY ATTACK",
+      "th": "ศัตรูโจมตี"
+    },
+    {
+      "key": "combat.incorrect",
+      "en": "INCORRECT",
+      "th": "ผิด"
+    },
+    {
+      "key": "settings.title",
+      "en": "SETTINGS",
+      "th": "ตั้งค่า"
+    },
+    {
+      "key": "settings.subtitle",
+      "en": "Make the game comfortable for you",
+      "th": "ปรับแต่งเกมตามความชอบของคุณ"
+    },
+    {
+      "key": "settings.tabGeneral",
+      "en": "GENERAL",
+      "th": "ทั่วไป"
+    },
+    {
+      "key": "settings.tabSound",
+      "en": "SOUND",
+      "th": "เสียง"
+    },
+    {
+      "key": "settings.fullscreen",
+      "en": "FULL SCREEN",
+      "th": "เต็มหน้าจอ"
+    },
+    {
+      "key": "settings.fullscreenHelp",
+      "en": "Use the whole screen for your adventure.",
+      "th": "ใช้หน้าจอเต็มเพื่อการผจญภัย"
+    },
+    {
+      "key": "settings.generalNote",
+      "en": "That's all here — simple and distraction-free.",
+      "th": "แค่นี้เอง — เรียบง่ายและไม่มีสิ่งรบกวน"
+    },
+    {
+      "key": "settings.music",
+      "en": "MUSIC",
+      "th": "เพลง"
+    },
+    {
+      "key": "settings.sfx",
+      "en": "SOUND EFFECTS",
+      "th": "เอฟเฟกต์เสียง"
+    },
+    {
+      "key": "settings.language",
+      "en": "LANGUAGE",
+      "th": "ภาษา"
+    },
+    {
+      "key": "settings.languageHelp",
+      "en": "Choose the language used by the game.",
+      "th": "เลือกภาษาที่ใช้ในเกม"
+    },
+    {
+      "key": "settings.account",
+      "en": "ACCOUNT",
+      "th": "บัญชี"
+    },
+    {
+      "key": "settings.logoutHelp",
+      "en": "Clear this account session and return to Sign In.",
+      "th": "ล้างเซสชันบัญชีนี้และกลับไปหน้าเข้าสู่ระบบ"
+    },
+    {
+      "key": "settings.logout",
+      "en": "LOG OUT",
+      "th": "ออกจากระบบ"
+    },
+    {
+      "key": "settings.signingOut",
+      "en": "Clearing account session...",
+      "th": "กำลังล้างเซสชันบัญชี..."
+    },
+    {
+      "key": "menu.signingOut",
+      "en": "Signing out...",
+      "th": "กำลังออกจากระบบ..."
+    },
+    {
+      "key": "errors.playerDataUnavailable",
+      "en": "Player data unavailable",
+      "th": "ไม่พบข้อมูลผู้เล่น"
+    },
+    {
+      "key": "menu.returnToSignIn",
+      "en": "Return to sign in",
+      "th": "กลับไปเข้าสู่ระบบ"
+    },
+    {
+      "key": "menu.runEnded",
+      "en": "RUN ENDED",
+      "th": "จบรอบ"
+    },
+    {
+      "key": "menu.waitingDefeat",
+      "en": "Waiting for the defeat presentation to finish...",
+      "th": "รอการแสดงผลความพ่ายแพ้..."
+    },
+    {
+      "key": "errors.rebirthOffline",
+      "en": "Rebirth save is not configured in offline mode.",
+      "th": "ไม่สามารถบันทึกการเกิดใหม่ในโหมดออฟไลน์"
+    },
+    {
+      "key": "common.savingFirebase",
+      "en": "Saving to Firebase...",
+      "th": "กำลังบันทึกข้อมูล..."
+    },
+    {
+      "key": "errors.versionMismatch",
+      "en": "This saved run result requires a newer PowerMath version.",
+      "th": "ผลลัพธ์รอบนี้ต้องการ PowerMath เวอร์ชันใหม่กว่า"
+    },
+    {
+      "key": "menu.resultRecovered",
+      "en": "Saved result recovered. Continue to acknowledge it.",
+      "th": "กู้คืนผลลัพธ์ที่บันทึกไว้แล้ว กด Continue เพื่อรับทราบ"
+    },
+    {
+      "key": "menu.acknowledging",
+      "en": "Acknowledging result...",
+      "th": "กำลังยืนยันผลลัพธ์..."
+    },
+    {
+      "key": "menu.maxPower",
+      "en": "MAXIMUM POWER REACHED",
+      "th": "พลังสูงสุดแล้ว"
+    },
+    {
+      "key": "menu.noAscension",
+      "en": "NO FURTHER ASCENSION",
+      "th": "ยกระดับสูงสุดแล้ว"
+    },
+    {
+      "key": "menu.maxLevel",
+      "en": "MAX LEVEL",
+      "th": "เลเวลสูงสุด"
+    },
+    {
+      "key": "menu.powerCoinCost",
+      "en": "{0} POWER COINS",
+      "th": "{0} เหรียญพลัง"
+    },
+    {
+      "key": "menu.ascendCost",
+      "en": "ASCEND  PWR {0}",
+      "th": "ยกระดับ  {0} PWR"
+    },
+    {
+      "key": "menu.savingPull",
+      "en": "Saving this pull to Firebase...",
+      "th": "กำลังบันทึกการสุ่ม..."
+    },
+    {
+      "key": "menu.recoverPull",
+      "en": "RECOVER PULL",
+      "th": "กู้คืนการสุ่ม"
+    },
+    {
+      "key": "menu.leaderboardLoading",
+      "en": "Loading your grade leaderboard…",
+      "th": "กำลังโหลดอันดับห้องเรียน..."
+    },
+    {
+      "key": "menu.refreshing",
+      "en": "Refreshing…",
+      "th": "กำลังรีเฟรช..."
+    },
+    {
+      "key": "errors.leaderboardInvalid",
+      "en": "Leaderboard values are invalid.",
+      "th": "ข้อมูลอันดับไม่ถูกต้อง"
+    },
+    {
+      "key": "menu.savedStandings",
+      "en": "Showing saved standings · {0}",
+      "th": "แสดงอันดับที่บันทึกไว้ · {0}"
+    },
+    {
+      "key": "errors.sameName",
+      "en": "That is already your display name.",
+      "th": "นี่คือชื่อที่แสดงอยู่แล้ว"
+    },
+    {
+      "key": "menu.firstChangeAvailable",
+      "en": "First change is available now.",
+      "th": "สามารถเปลี่ยนชื่อครั้งแรกได้แล้ว"
+    },
+    {
+      "key": "common.ready",
+      "en": "Ready",
+      "th": "พร้อม"
+    },
+    {
+      "key": "admin.resetConfirm",
+      "en": "CONFIRM RESET USER DATA",
+      "th": "ยืนยันการรีเซ็ตข้อมูลผู้ใช้"
+    },
+    {
+      "key": "admin.resetLabel",
+      "en": "RESET USER DATA",
+      "th": "รีเซ็ตข้อมูลผู้ใช้"
+    },
+    {
+      "key": "admin.resetWarning",
+      "en": "Warning: Click again to permanently reset all user data.",
+      "th": "คำเตือน: คลิกอีกครั้งเพื่อรีเซ็ตข้อมูลทั้งหมดอย่างถาวร"
+    },
+    {
+      "key": "admin.resetting",
+      "en": "RESETTING...",
+      "th": "กำลังรีเซ็ต..."
+    },
+    {
+      "key": "admin.resettingDetail",
+      "en": "Resetting player data in Firebase...",
+      "th": "กำลังรีเซ็ตข้อมูลผู้เล่นใน Firebase..."
+    },
+    {
+      "key": "admin.resetSuccess",
+      "en": "User data reset successfully! Reloading session...",
+      "th": "รีเซ็ตข้อมูลสำเร็จ กำลังโหลดเซสชันใหม่..."
+    },
+    {
+      "key": "admin.resetFailed",
+      "en": "Reset failed: {0}",
+      "th": "รีเซ็ตล้มเหลว: {0}"
+    },
+    {
+      "key": "admin.reloadFailed",
+      "en": "Reload failed: {0}",
+      "th": "โหลดใหม่ล้มเหลว: {0}"
+    },
+    {
+      "key": "admin.resetTimeout",
+      "en": "Reset cancelled (timed out).",
+      "th": "ยกเลิกการรีเซ็ต (หมดเวลา)"
+    },
+    {
+      "key": "menu.powerCoinsShort",
+      "en": "PWR {0}",
+      "th": "PWR {0}"
+    },
+    {
+      "key": "menu.renamePending",
+      "en": "Rename availability is loading.",
+      "th": "กำลังตรวจสอบสถานะการเปลี่ยนชื่อ..."
+    },
+    {
+      "key": "menu.navigationPreparing",
+      "en": "Preparing your saved route...",
+      "th": "กำลังเตรียมเส้นทางที่บันทึกไว้..."
+    },
+    {
+      "key": "leaderboard.firstPlace",
+      "en": "FIRST PLACE",
+      "th": "อันดับหนึ่ง"
+    },
+    {
+      "key": "leaderboard.yourStanding",
+      "en": "YOUR STANDING — YOU",
+      "th": "อันดับของคุณ — คุณ"
+    },
+    {
+      "key": "leaderboard.current",
+      "en": "CURRENT",
+      "th": "ปัจจุบัน"
+    },
+    {
+      "key": "leaderboard.best",
+      "en": "BEST",
+      "th": "ดีที่สุด"
+    },
+    {
+      "key": "leaderboard.totalDmg",
+      "en": "TOTAL DMG",
+      "th": "ความเสียหายรวม"
+    },
+    {
+      "key": "leaderboard.jumpToRow",
+      "en": "JUMP TO MY ROW",
+      "th": "ไปที่แถวของฉัน"
+    },
+    {
+      "key": "leaderboard.bestStage",
+      "en": "BEST STAGE",
+      "th": "ด่านสูงสุด"
+    },
+    {
+      "key": "menu.rebirthTitle",
+      "en": "REBIRTH",
+      "th": "เกิดใหม่"
+    },
+    {
+      "key": "combat.warning",
+      "en": "WARNING",
+      "th": "ระวัง"
+    },
+    {
+      "key": "combat.danger",
+      "en": "DANGER!",
+      "th": "อันตราย!"
+    },
+    {
+      "key": "combat.approaching",
+      "en": "APPROACHING",
+      "th": "กำลังใกล้เข้ามา"
     }
   ]
 }
