@@ -57,7 +57,8 @@ namespace PowerMath.Audio
         private ChannelState _bossChannel;
 
         private float _currentDuckMultiplier = 1f;
-        private float _duckProgress = 0f; // 0 = unducked (1.0), 1 = fully ducked (duckVolumeFactor)
+        private float _currentDuckPitchMultiplier = 1f;
+        private float _duckProgress = 0f; // 0 = unducked (1.0), 1 = fully ducked (duckVolumeFactor / duckPitchFactor)
         private MusicTrackConfig _activeEncounterMusic;
         private MusicLibraryDefinition _preloadedLibrary;
         private bool _wasBossDefeated;
@@ -90,6 +91,7 @@ namespace PowerMath.Audio
         public AudioSource BattleSource => _battleSource;
         public AudioSource BossSource => _bossSource;
         public float CurrentDuckMultiplier => _currentDuckMultiplier;
+        public float CurrentDuckPitchMultiplier => _currentDuckPitchMultiplier;
 
         public static MusicController EnsureInstance()
         {
@@ -376,6 +378,13 @@ namespace PowerMath.Audio
             isEncounterOverrideActive = false;
             _activeEncounterMusic = null;
             _wasBossDefeated = false;
+            duckingRequestCount = 0;
+            _duckProgress = 0f;
+            _currentDuckMultiplier = 1f;
+            _currentDuckPitchMultiplier = 1f;
+            if (_themeSource != null) _themeSource.pitch = 1f;
+            if (_battleSource != null) _battleSource.pitch = 1f;
+            if (_bossSource != null) _bossSource.pitch = 1f;
         }
 
         public void ResetBattleState()
@@ -476,6 +485,7 @@ namespace PowerMath.Audio
 
             float smoothedT = Mathf.SmoothStep(0f, 1f, _duckProgress);
             _currentDuckMultiplier = Mathf.Lerp(1f, library.DuckVolumeFactor, smoothedT);
+            _currentDuckPitchMultiplier = Mathf.Lerp(1f, library.DuckPitchFactor, smoothedT);
 
             // 3. Update Channel Volumes
             UpdateChannel(_themeChannel, deltaTime);
@@ -526,6 +536,9 @@ namespace PowerMath.Audio
             {
                 channel.Source.Play();
             }
+
+            // Smooth pitch calculation: slow down combat music when ducked
+            channel.Source.pitch = channel.IsCombat ? _currentDuckPitchMultiplier : 1f;
 
             if (isMuted)
             {

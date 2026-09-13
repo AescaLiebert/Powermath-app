@@ -55,11 +55,11 @@
 }
 
 .auth-border {
-    width: 369px;
-    min-height: 430px;
+    width: 420px;
+    min-height: 480px;
     left: 50%;
-    top: 36%;
-    translate: -184.5px 0;
+    top: 35%;
+    translate: -210px 0;
     padding: 5px 4.5px;
     border-width: 2px;
     border-color: rgba(255, 255, 255, 0.72);
@@ -67,10 +67,10 @@
 }
 
 .auth-card {
-    width: 360px;
-    min-width: 360px;
-    min-height: 420px;
-    padding: 24px 28px 18px 28px;
+    width: 410px;
+    min-width: 410px;
+    min-height: 470px;
+    padding: 26px 30px 20px 30px;
     align-items: center;
     background-color: rgba(255, 251, 240, 0.88);
     border-width: 2px;
@@ -89,13 +89,13 @@
 }
 
 .auth-celestial-divider {
-    width: 180px;
+    width: 200px;
     height: 24px;
     margin-bottom: 8px;
 }
 
 .auth-divider-line {
-    width: 64px;
+    width: 72px;
     height: 1.5px;
     background-color: var(--auth-gold);
 }
@@ -108,26 +108,26 @@
 }
 
 .auth-title {
-    margin: 0 0 12px 0;
+    margin: 0 0 14px 0;
     color: var(--auth-navy);
-    font-size: 34px;
+    font-size: 36px;
     -unity-font-style: bold;
     letter-spacing: 2px;
     -unity-text-align: middle-center;
 }
 
 .auth-input-wrapper {
-    width: 304px;
-    height: 40px;
-    margin-bottom: 10px;
+    width: 350px;
+    height: 46px;
+    margin-bottom: 12px;
 }
 
 .login-input.mw-field {
-    width: 304px;
-    height: 40px;
-    min-height: 40px;
+    width: 350px;
+    height: 46px;
+    min-height: 46px;
     margin: 0;
-    padding: 0 16px;
+    padding: 0 18px;
     flex-direction: row;
     align-items: center;
     background-color: var(--auth-input);
@@ -177,52 +177,52 @@
 }
 
 .remember-toggle {
-    width: 304px;
+    width: 350px;
     margin: 1px 0 0 0;
     color: var(--auth-navy);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .shared-device-warning {
-    width: 304px;
+    width: 350px;
     margin: 2px 0 0 0;
     color: rgba(8, 26, 71, 0.68);
-    font-size: 9px;
+    font-size: 10px;
     -unity-font-style: italic;
     white-space: normal;
 }
 
 .auth-button-wrapper {
-    width: 304px;
-    height: 64px;
+    width: 350px;
+    height: 68px;
 }
 
 .login-button {
-    width: 304px;
-    height: 64px;
-    min-height: 64px;
+    width: 350px;
+    height: 68px;
+    min-height: 68px;
     margin: 0;
     color: rgb(255, 255, 255);
     background-color: var(--auth-orange-middle);
     border-width: 1.5px;
     border-color: rgb(255, 230, 140);
     border-radius: 14px;
-    font-size: 22px;
+    font-size: 24px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
 
 #login-button.mw-button.mw-button--primary {
-    width: 304px;
-    height: 64px;
-    min-height: 64px;
+    width: 350px;
+    height: 68px;
+    min-height: 68px;
     margin: 0;
     color: rgb(255, 255, 255);
     background-color: var(--auth-orange-middle);
     border-width: 1.5px;
     border-color: rgb(255, 230, 140);
     border-radius: 14px;
-    font-size: 22px;
+    font-size: 24px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
@@ -233,13 +233,13 @@
 }
 
 .auth-bottom-divider {
-    width: 171px;
+    width: 195px;
     height: 14px;
     margin-top: 10px;
 }
 
 .auth-bottom-line {
-    width: 76px;
+    width: 88px;
     height: 1px;
     background-color: var(--auth-gold);
 }

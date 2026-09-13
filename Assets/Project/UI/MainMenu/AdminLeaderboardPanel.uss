@@ -1,0 +1,57 @@
+@import url("project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uss?fileID=7433441132597879392&guid=9cb9d7a720d16eb4db4946f3cbb1a86e&type=3#LeaderboardPanel");
+
+.admin-leaderboard-tabs {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(9, 28, 56, 0.85);
+    border-width: 1.5px;
+    border-color: rgba(255, 215, 0, 0.45);
+    border-radius: 20px;
+    padding: 3px 6px;
+    height: 44px;
+}
+
+.admin-leaderboard-tab {
+    height: 36px;
+    padding: 0 16px;
+    margin: 0 3px;
+    border-radius: 16px;
+    border-width: 0;
+    background-color: transparent;
+    color: rgb(180, 205, 230);
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    transition-property: background-color, color, scale;
+    transition-duration: 0.15s;
+}
+
+.admin-leaderboard-tab:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.admin-leaderboard-tab.is-selected {
+    background-color: rgb(240, 185, 45);
+    color: rgb(10, 25, 48);
+    scale: 1.03 1.03;
+}
+
+.admin-badge {
+    background-color: rgb(190, 35, 45);
+    color: white;
+    font-size: 11px;
+    -unity-font-style: bold;
+    border-radius: 6px;
+    padding: 2px 7px;
+    margin-left: 10px;
+    align-self: center;
+}
+
+.leaderboard-row-cohort-tag {
+    font-size: 12px;
+    color: rgb(85, 115, 150);
+    -unity-font-style: bold;
+    margin-left: 8px;
+}

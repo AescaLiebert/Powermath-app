@@ -744,10 +744,14 @@
     font-size: 24px;
     -unity-font-style: bold;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -unity-text-auto-size: best-fit 12px 24px;
 }
 
 .leaderboard-self-identity .leaderboard-player-name {
     font-size: 24px;
+    -unity-text-auto-size: best-fit 12px 24px;
 }
 
 .leaderboard-stages-row {

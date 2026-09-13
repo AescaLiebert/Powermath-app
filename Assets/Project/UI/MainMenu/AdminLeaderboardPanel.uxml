@@ -1,9 +1,10 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uss?fileID=7433441132597879392&amp;guid=9cb9d7a720d16eb4db4946f3cbb1a86e&amp;type=3#LeaderboardPanel"/>
+    <Style src="project://database/Assets/Project/UI/MainMenu/AdminLeaderboardPanel.uss?fileID=7433441132597879392&amp;guid=0cd82efce4261564b869fe4761529a07&amp;type=3#AdminLeaderboardPanel"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
-    <ui:VisualElement name="leaderboard-modal" focusable="true" class="social-modal leaderboard-screen is-hidden" style="-unity-text-auto-size: none;">
+    <ui:VisualElement name="admin-leaderboard-modal" focusable="true" class="social-modal leaderboard-screen admin-leaderboard-screen is-hidden" style="-unity-text-auto-size: none;">
         <pm:FigmaShadowElement name="Leaderboard / Modal Shadow" class="leaderboard-modal-shadow"/>
         <ui:VisualElement name=".leaderboard-screen" class="leaderboard-window">
             <pm:FigmaGradientElement name="Leaderboard / Screen Gradient" class="leaderboard-screen-gradient"/>
@@ -14,26 +15,25 @@
             <ui:VisualElement name="Rectangle 14" picking-mode="Ignore" class="leaderboard-decoration leaderboard-decoration--rectangle-14"/>
             <ui:VisualElement name="Rectangle 15" picking-mode="Ignore" class="leaderboard-decoration leaderboard-decoration--rectangle-15"/>
             <ui:VisualElement name=".leaderboard-header" class="leaderboard-header">
-                <ui:VisualElement name=".header-title-block" class="leaderboard-title-block" style="width: 559px; height: 82px; justify-content: flex-start;">
-                    <ui:Label name=".title-label" text="LEADERBOARD" class="loc-menu.leaderboard leaderboard-title"/>
+                <ui:VisualElement name=".header-title-block" class="leaderboard-title-block" style="width: 460px; height: 82px; justify-content: flex-start; flex-direction: row; align-items: center;">
+                    <ui:Label name=".title-label" text="LEADERBOARD" class="leaderboard-title"/>
+                    <ui:Label text="ADMIN" class="admin-badge"/>
                     <ui:VisualElement name=".title-sparkle" picking-mode="Ignore" class="leaderboard-title-sparkle leaderboard-star-icon"/>
                 </ui:VisualElement>
                 <ui:VisualElement name=".header-center-block" class="leaderboard-header-center" style="display: flex;">
-                    <ui:VisualElement name=".header-cohort-badge" class="leaderboard-cohort-badge">
-                        <pm:LeaderboardLockVector name="Vector / Lock Icon" class="leaderboard-lock-icon"/>
-                        <ui:Label name="leaderboard-cohort" text="GRADE 4 · LEVEL 1" tooltip="Leaderboard cohort is locked to your authenticated grade." class="leaderboard-cohort-text" style="height: 25px;"/>
+                    <ui:VisualElement name="admin-leaderboard-tabs" class="admin-leaderboard-tabs">
+                        <ui:Button name="admin-leaderboard-tab-overall" text="OVERALL" tooltip="All grade levels combined" class="admin-leaderboard-tab is-selected"/>
+                        <ui:Button name="admin-leaderboard-tab-level1" text="LEVEL 1 (G4)" tooltip="Grade 4 cohort" class="admin-leaderboard-tab"/>
+                        <ui:Button name="admin-leaderboard-tab-level2" text="LEVEL 2 (G5)" tooltip="Grade 5 cohort" class="admin-leaderboard-tab"/>
+                        <ui:Button name="admin-leaderboard-tab-level3" text="LEVEL 3 (G6)" tooltip="Grade 6 cohort" class="admin-leaderboard-tab"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name=".header-controls" class="leaderboard-header-controls">
-                    <ui:VisualElement name="leaderboard-power-coin-pill" tooltip="Power Coins" class="leaderboard-power-coin-pill" style="display: none;">
-                        <ui:VisualElement picking-mode="Ignore" class="leaderboard-power-coin-icon"/>
-                        <ui:Label name="leaderboard-power-coins" text="0" class="leaderboard-power-coin-value"/>
-                    </ui:VisualElement>
-                    <ui:Label name="leaderboard-status" text="Updated --:--" class="leaderboard-freshness-label"/>
-                    <ui:Button name="leaderboard-refresh" text="" tooltip="Refresh standings" class="leaderboard-icon-button leaderboard-refresh">
+                    <ui:Label name="admin-leaderboard-status" text="Updated --:--" class="leaderboard-freshness-label"/>
+                    <ui:Button name="admin-leaderboard-refresh" text="" tooltip="Refresh standings from Firebase" class="leaderboard-icon-button leaderboard-refresh">
                         <ui:VisualElement picking-mode="Ignore" class="leaderboard-refresh-icon"/>
                     </ui:Button>
-                    <ui:Button name="leaderboard-close" tooltip="Close Leaderboard" class="leaderboard-icon-button leaderboard-close">
+                    <ui:Button name="admin-leaderboard-close" tooltip="Close Admin Leaderboard" class="leaderboard-icon-button leaderboard-close">
                         <pm:LeaderboardCloseVector name="Vector / Close" class="leaderboard-close-vector"/>
                     </ui:Button>
                 </ui:VisualElement>
@@ -54,23 +54,23 @@
                     <pm:FigmaShadowElement name="Leaderboard / Throne Info Drop Shadow" picking-mode="Ignore" class="leaderboard-throne-info-drop-shadow"/>
                     <ui:VisualElement name=".throne-info-card" class="leaderboard-throne-info-card">
                         <pm:FigmaShadowElement name="Leaderboard / Throne Info Inner Shadow" picking-mode="Ignore" class="leaderboard-throne-info-inner-shadow" style="bottom: -8px;"/>
-                        <ui:Label name="leaderboard-throne" text="No standings yet" class="loc-menu.emptyStandings leaderboard-throne-player-name"/>
+                        <ui:Label name="admin-leaderboard-throne" text="No standings yet" class="loc-menu.emptyStandings leaderboard-throne-player-name"/>
                         <ui:VisualElement name=".throne-stage-pill" class="leaderboard-throne-stage-pill" style="flex-shrink: 0;">
                             <ui:Label name=".pill-text" text="BEST STAGE" class="loc-leaderboard.bestStage leaderboard-throne-pill-text" style="height: 18px; align-content: center; justify-content: center; -unity-text-align: middle-center; width: 102px;"/>
                         </ui:VisualElement>
-                        <ui:Label name="leaderboard-throne-stage" text="--" class="leaderboard-throne-stage-number" style="height: 45px; width: 182px;"/>
+                        <ui:Label name="admin-leaderboard-throne-stage" text="--" class="leaderboard-throne-stage-number" style="height: 45px; width: 182px;"/>
                         <ui:VisualElement name=".throne-currency-bar" class="leaderboard-throne-currency-bar" style="height: 22px; width: 350px;">
                             <ui:VisualElement name=".currency-item-silver" class="leaderboard-throne-currency-item" style="background-color: rgb(255, 255, 255); border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); flex-grow: 0; align-content: flex-start; align-self: auto;">
                                 <ui:VisualElement name="Vector / Silver Icon" class="leaderboard-currency-icon leaderboard-currency-icon--silver" style="width: 40px; height: 40px; flex-grow: 0; opacity: 1; margin-left: -10px; margin-right: 6px;"/>
-                                <ui:Label name="leaderboard-throne-silver" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-right; width: 55px;"/>
+                                <ui:Label name="admin-leaderboard-throne-silver" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-right; width: 55px;"/>
                             </ui:VisualElement>
                             <ui:VisualElement name=".currency-item-gold" class="leaderboard-throne-currency-item">
                                 <ui:VisualElement name="Vector / Gold Icon" class="leaderboard-currency-icon leaderboard-currency-icon--gold" style="margin-left: -10px; height: 40px; width: 40px;"/>
-                                <ui:Label name="leaderboard-throne-gold" text="0" class="leaderboard-currency-value" style="width: 58px; -unity-text-align: middle-right;"/>
+                                <ui:Label name="admin-leaderboard-throne-gold" text="0" class="leaderboard-currency-value" style="width: 58px; -unity-text-align: middle-right;"/>
                             </ui:VisualElement>
                             <ui:VisualElement name=".currency-item-diamond" class="leaderboard-throne-currency-item">
                                 <ui:VisualElement name="Vector / Diamond Icon" class="leaderboard-currency-icon leaderboard-currency-icon--diamond" style="margin-left: -10px; width: 40px; height: 40px;"/>
-                                <ui:Label name="leaderboard-throne-diamond" text="0" class="leaderboard-currency-value" style="width: 58px; -unity-text-align: middle-right;"/>
+                                <ui:Label name="admin-leaderboard-throne-diamond" text="0" class="leaderboard-currency-value" style="width: 58px; -unity-text-align: middle-right;"/>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
@@ -83,43 +83,19 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name=".leaderboard-list-column" class="leaderboard-list-column">
-                    <ui:VisualElement name=".leaderboard-pinned-self" class="leaderboard-pinned-self">
+                    <ui:VisualElement name="admin-leaderboard-pinned-info" class="leaderboard-pinned-self">
                         <pm:FigmaShadowElement name="Leaderboard / Pinned Card Shadow" class="leaderboard-card-shadow"/>
-                        <ui:VisualElement name=".pinned-self-header" class="leaderboard-pinned-header">
-                            <ui:Label name=".header-text" text="YOUR STANDING — YOU" class="loc-leaderboard.yourStanding leaderboard-pinned-header-text"/>
+                        <ui:VisualElement class="leaderboard-pinned-header">
+                            <ui:Label name="admin-leaderboard-cohort-summary" text="OVERALL STANDINGS · LEVEL 1–3" class="leaderboard-pinned-header-text"/>
                         </ui:VisualElement>
-                        <ui:VisualElement name=".pinned-self-row" class="leaderboard-pinned-row">
-                            <ui:VisualElement name=".rank-badge-self" class="leaderboard-row-rank-slot leaderboard-self-rank">
-                                <ui:Label name="leaderboard-self-rank" text="--" class="leaderboard-self-rank-text"/>
-                            </ui:VisualElement>
-                            <ui:VisualElement name=".row-avatar-slot" class="leaderboard-avatar-slot leaderboard-avatar-slot--self">
-                                <ui:Label name="Slot Label" text="ProfilePic Slot" class="leaderboard-slot-label"/>
-                            </ui:VisualElement>
-                            <ui:VisualElement name=".row-identity" class="leaderboard-row-identity leaderboard-self-identity">
-                                <ui:Label name="leaderboard-self" text="Rank updating…" class="leaderboard-player-name" style="-unity-text-auto-size: best-fit 12px 24px;"/>
-                                <ui:VisualElement name=".stages-row" class="leaderboard-stages-row">
-                                    <ui:VisualElement name=".stage-col-current" class="leaderboard-stage-column">
-                                        <ui:Label name="lbl" text="CURRENT" class="loc-leaderboard.current leaderboard-stage-label"/>
-                                        <ui:Label name="leaderboard-self-current" text="--" class="leaderboard-stage-current"/>
-                                    </ui:VisualElement>
-                                    <ui:VisualElement name=".stage-col-best" class="leaderboard-stage-column">
-                                        <ui:Label name="lbl" text="BEST" class="loc-leaderboard.best leaderboard-stage-label"/>
-                                        <ui:Label name="leaderboard-self-best" text="--" class="leaderboard-stage-best"/>
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                            <ui:VisualElement name="leaderboard-self-currencies" class="leaderboard-row-currencies"/>
-                            <ui:VisualElement name="leaderboard-self-loadout" class="leaderboard-row-loadout"/>
-                            <ui:VisualElement name=".row-action-block" class="leaderboard-self-action">
-                                <ui:Label name=".dmg-label" text="TOTAL DMG" class="loc-leaderboard.totalDmg leaderboard-damage-label"/>
-                                <ui:Label name="leaderboard-self-damage" text="0" class="leaderboard-damage-value"/>
-                                <ui:Button name="leaderboard-jump-to-self" text="JUMP TO MY ROW" class="loc-leaderboard.jumpToRow leaderboard-jump-button"/>
-                            </ui:VisualElement>
+                        <ui:VisualElement class="leaderboard-pinned-row" style="justify-content: space-between; padding-left: 20px; padding-right: 20px;">
+                            <ui:Label name="admin-leaderboard-count" text="Loading explorers..." class="leaderboard-player-name" style="font-size: 18px; color: rgb(18, 57, 107);"/>
+                            <ui:Label text="ADMIN AUDIT VIEW" class="leaderboard-damage-label" style="font-size: 13px; color: rgb(180, 45, 45); -unity-font-style: bold;"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name=".leaderboard-scroll-view" class="leaderboard-scroll-card">
+                    <ui:VisualElement class="leaderboard-scroll-card">
                         <pm:FigmaShadowElement name="Leaderboard / List Card Shadow" class="leaderboard-card-shadow" style="flex-shrink: 0;"/>
-                        <ui:ScrollView name="leaderboard-list" mode="Vertical" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="AlwaysVisible" mouse-wheel-scroll-size="120" touch-scroll-type="Clamped" class="leaderboard-list"/>
+                        <ui:ScrollView name="admin-leaderboard-list" mode="Vertical" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="AlwaysVisible" mouse-wheel-scroll-size="120" touch-scroll-type="Clamped" class="leaderboard-list"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>

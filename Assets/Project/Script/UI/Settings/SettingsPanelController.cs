@@ -60,6 +60,8 @@ namespace PowerMath.UI.Settings
         private readonly Button _rankDiamond;
         private readonly Button _applyCurrency;
         private readonly Button _resetButton;
+        private readonly Button _openAdminLeaderboard;
+        private readonly PowerMath.UI.MainMenu.SocialProfile.AdminLeaderboardPanelController _adminLeaderboard;
         private bool _bound;
         private bool _busy;
         private bool _confirmingReset;
@@ -110,6 +112,9 @@ namespace PowerMath.UI.Settings
             _rankDiamond = root.Q<Button>("settings-rank-diamond");
             _applyCurrency = root.Q<Button>("settings-admin-apply-currency");
             _resetButton = root.Q<Button>("settings-admin-reset");
+            _openAdminLeaderboard = root.Q<Button>("settings-admin-open-leaderboard");
+            _adminLeaderboard = new PowerMath.UI.MainMenu.SocialProfile.AdminLeaderboardPanelController(
+                root, host, apiSettings, player);
             _tuning = player == null ? null : new FirestoreAdminTuningService(apiSettings, player);
 #if UNITY_EDITOR
             _authenticationService = apiSettings == null
@@ -190,6 +195,7 @@ namespace PowerMath.UI.Settings
         {
             if (_busy) return;
             CancelConfirm();
+            _adminLeaderboard?.Close();
             if (_panelHost != null) _panelHost.TryClose(MainMenuPanelId.Settings, _open);
             else
             {
@@ -373,6 +379,8 @@ namespace PowerMath.UI.Settings
 
         private void BindAdmin()
         {
+            if (_openAdminLeaderboard != null) _openAdminLeaderboard.clicked += OpenAdminLeaderboard;
+            _adminLeaderboard?.Bind();
             if (_applyCombat == null) return;
             _applyCombat.clicked += ApplyCombat;
             _restoreHearts.clicked += RestoreHearts;
@@ -387,6 +395,8 @@ namespace PowerMath.UI.Settings
 
         private void UnbindAdmin()
         {
+            if (_openAdminLeaderboard != null) _openAdminLeaderboard.clicked -= OpenAdminLeaderboard;
+            _adminLeaderboard?.Dispose();
             if (_applyCombat == null) return;
             _applyCombat.clicked -= ApplyCombat;
             _restoreHearts.clicked -= RestoreHearts;
@@ -397,6 +407,22 @@ namespace PowerMath.UI.Settings
             _applyCurrency.clicked -= ApplyCurrency;
             _resetButton.clicked -= ResetClicked;
             _bypassVideo?.UnregisterValueChangedCallback(OnBypassVideoChanged);
+        }
+
+        private void OpenAdminLeaderboard()
+        {
+            if (_adminLeaderboard == null || !_adminLeaderboard.IsValid) return;
+            _modal.style.display = DisplayStyle.None;
+            _modal.AddToClassList("is-hidden");
+            _adminLeaderboard.Open(() =>
+            {
+                if (_modal != null && (_panelHost?.OpenPanel == MainMenuPanelId.Settings || _panelHost == null))
+                {
+                    _modal.style.display = DisplayStyle.Flex;
+                    _modal.RemoveFromClassList("is-hidden");
+                    _modal.Focus();
+                }
+            });
         }
 
         private void OnBypassVideoChanged(ChangeEvent<bool> evt)

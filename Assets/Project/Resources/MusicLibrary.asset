@@ -53,4 +53,5 @@ MonoBehaviour:
   defaultCrossfadeDuration: 1.2
   bossInterruptDuration: 0.8
   duckVolumeFactor: 0.05
+  duckPitchFactor: 0.05
   duckFadeDuration: 0.75

@@ -16,7 +16,7 @@ using UnityEngine.UIElements;
 
 namespace PowerMath.UI.MainMenu.SocialProfile
 {
-    internal sealed class LeaderboardEntry
+    public sealed class LeaderboardEntry
     {
         public string PlayerId;
         public string DisplayName;
@@ -34,9 +34,11 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         public string WeaponId;
         public int WeaponLevel;
         public long SnapshotAtUnixSeconds;
+        public string LevelId;
+        public string GradeBand;
     }
 
-    internal sealed class RankedLeaderboardEntry
+    public sealed class RankedLeaderboardEntry
     {
         public LeaderboardEntry Entry;
         public int Rank;
@@ -44,7 +46,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         public bool IsTied;
     }
 
-    internal static class LeaderboardRanking
+    public static class LeaderboardRanking
     {
         public static long Score(long silver, long gold, long diamond)
         {
@@ -90,7 +92,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         }
     }
 
-    internal sealed class FirestoreLeaderboardRepository
+    public sealed class FirestoreLeaderboardRepository
     {
         private readonly MonoBehaviour _host;
         private readonly GameApiSettings _settings;
@@ -144,7 +146,61 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             }
         }
 
-        internal static bool TryMap(string json, out List<LeaderboardEntry> entries)
+        public void LoadAll(Action<Dictionary<string, List<LeaderboardEntry>>> completed, Action<string> failed)
+        {
+            if (_operation != null) return;
+            _operation = _host.StartCoroutine(LoadAllRoutine(completed, failed));
+        }
+
+        private IEnumerator LoadAllRoutine(
+            Action<Dictionary<string, List<LeaderboardEntry>>> completed,
+            Action<string> failed)
+        {
+            if (_settings == null || _settings.LevelDocumentCount <= 0)
+            {
+                _operation = null;
+                failed?.Invoke("Leaderboard configuration is missing.");
+                yield break;
+            }
+
+            var result = new Dictionary<string, List<LeaderboardEntry>>(StringComparer.OrdinalIgnoreCase);
+            int total = _settings.LevelDocumentCount;
+            for (int i = 0; i < total; i++)
+            {
+                if (!_settings.TryGetLevelDocument(i, out string docId, out string grade, out _))
+                    continue;
+
+                if (!_settings.TryGetLeaderboardDocument(docId, out string url))
+                    continue;
+
+                using (UnityWebRequest request = UnityWebRequest.Get(url))
+                {
+                    request.timeout = _settings.RequestTimeoutSeconds;
+                    yield return request.SendWebRequest();
+
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        PowerMath.Diagnostics.AppLog.Warning("Leaderboard", "Failed to fetch leaderboard document for: " + docId);
+                        result[docId] = new List<LeaderboardEntry>();
+                        continue;
+                    }
+
+                    if (TryMap(request.downloadHandler.text, out List<LeaderboardEntry> entries, docId, grade))
+                    {
+                        result[docId] = entries;
+                    }
+                    else
+                    {
+                        result[docId] = new List<LeaderboardEntry>();
+                    }
+                }
+            }
+
+            _operation = null;
+            completed?.Invoke(result);
+        }
+
+        internal static bool TryMap(string json, out List<LeaderboardEntry> entries, string levelId = null, string gradeBand = null)
         {
             entries = new List<LeaderboardEntry>();
             if (!FirestoreJsonNavigator.TryParse(json, out JsonValue document, out _))
@@ -210,7 +266,9 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                     PetId = ReadString(value, "petId"),
                     WeaponId = ReadString(value, "weaponId"),
                     WeaponLevel = (int)Math.Max(0, ReadOptionalLong(value, "weaponLevel")),
-                    SnapshotAtUnixSeconds = snapshotAt
+                    SnapshotAtUnixSeconds = snapshotAt,
+                    LevelId = levelId ?? string.Empty,
+                    GradeBand = gradeBand ?? string.Empty
                 });
             }
             return true;
@@ -335,7 +393,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _panelHost = panelHost ?? throw new ArgumentNullException(nameof(panelHost));
             _characterVideo = host.GetComponent<LeaderboardCharacterVideoPresenter>() ??
                 host.gameObject.AddComponent<LeaderboardCharacterVideoPresenter>();
-            _characterVideo.Bind(root);
+            _characterVideo.Bind(_modal);
         }
 
         public bool IsValid => _open != null && _modal != null && _close != null &&
@@ -767,7 +825,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             return row;
         }
 
-        private static VisualElement CreateAuthoredRow(RankedLeaderboardEntry ranked)
+        internal static VisualElement CreateAuthoredRow(RankedLeaderboardEntry ranked, bool showCohortBadge = false)
         {
             if (s_leaderboardRowTemplate == null)
                 s_leaderboardRowTemplate = Resources.Load<VisualTreeAsset>("LeaderboardListRow");
@@ -801,7 +859,13 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 RenderAvatar(avatar, ranked.Entry);
             }
 
-            SetText(row, "leaderboard-row-player-name", ranked.Entry.DisplayName);
+            string displayName = ranked.Entry.DisplayName;
+            if (showCohortBadge && !string.IsNullOrEmpty(ranked.Entry.GradeBand))
+            {
+                displayName = $"{displayName}  ({ranked.Entry.GradeBand})";
+            }
+
+            SetText(row, "leaderboard-row-player-name", displayName);
             SetText(row, "leaderboard-row-current", ranked.Entry.CurrentStage.ToString(CultureInfo.CurrentCulture));
             SetText(row, "leaderboard-row-best", ranked.Entry.HighestStage.ToString(CultureInfo.CurrentCulture));
             SetText(row, "leaderboard-row-silver", FormatNumber(ranked.Entry.Silver));
@@ -1092,10 +1156,10 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private static string DisplayWeapon(LeaderboardEntry entry) =>
             DisplayItem(entry.WeaponId) + (entry.WeaponLevel > 0 ? " Lv." + entry.WeaponLevel : string.Empty);
 
-        private static string FormatNumber(long value) =>
+        internal static string FormatNumber(long value) =>
             Math.Max(0, value).ToString("N0", CultureInfo.CurrentCulture);
 
-        private static string FormatCompact(long value)
+        internal static string FormatCompact(long value)
         {
             value = Math.Max(0, value);
             if (value >= 1_000_000) return (value / 1_000_000d).ToString("0.#", CultureInfo.CurrentCulture) + "M";

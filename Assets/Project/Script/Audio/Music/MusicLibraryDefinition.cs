@@ -31,6 +31,10 @@ namespace PowerMath.Audio
         [Tooltip("Target volume multiplier when ducked by Question Sequence / YouTube (-70% reduction = 0.30).")]
         [SerializeField] private float duckVolumeFactor = 0.30f;
 
+        [Range(0.01f, 1f)]
+        [Tooltip("Target pitch/playback speed multiplier when ducked by Question Sequence (0.05 = slowed down by 95%).")]
+        [SerializeField] private float duckPitchFactor = 0.05f;
+
         [Range(0.1f, 3f)]
         [Tooltip("Duration in seconds to smoothly lerp volume in and out of ducking.")]
         [SerializeField] private float duckFadeDuration = 0.75f;
@@ -48,6 +52,7 @@ namespace PowerMath.Audio
         public float DefaultCrossfadeDuration => Mathf.Max(0.05f, defaultCrossfadeDuration);
         public float BossInterruptDuration => Mathf.Max(0.05f, bossInterruptDuration);
         public float DuckVolumeFactor => Mathf.Clamp(duckVolumeFactor, 0.05f, 0.5f);
+        public float DuckPitchFactor => Mathf.Clamp(duckPitchFactor, 0.01f, 1f);
         public float DuckFadeDuration => Mathf.Max(0.05f, duckFadeDuration);
 
         public IEnumerable<AudioClip> ConfiguredClips

@@ -184,7 +184,7 @@ namespace PowerMath.Tests.EditMode.Audio
 
             _controller.Tick(_library.DuckFadeDuration + 0.1f);
 
-            // Volume should be ducked by -70% (0.30 of normalVolume)
+            // Volume should be ducked by duckVolumeFactor
             float expectedDucked = normalVolume * _library.DuckVolumeFactor;
             Assert.That(_controller.BattleSource.volume, Is.EqualTo(expectedDucked).Within(0.02f));
             Assert.That(_controller.CurrentDuckMultiplier, Is.EqualTo(_library.DuckVolumeFactor).Within(0.01f));
@@ -198,6 +198,31 @@ namespace PowerMath.Tests.EditMode.Audio
             // Volume restored
             Assert.That(_controller.BattleSource.volume, Is.EqualTo(normalVolume).Within(0.02f));
             Assert.That(_controller.CurrentDuckMultiplier, Is.EqualTo(1f).Within(0.01f));
+        }
+
+        [Test]
+        public void MusicController_SetDucking_SlowsDownCombatMusicPitchToDuckPitchFactor()
+        {
+            _controller.PlayBattleMusic();
+            _controller.Tick(_library.DefaultCrossfadeDuration + 0.1f);
+            Assert.That(_controller.BattleSource.pitch, Is.EqualTo(1f));
+            Assert.That(_controller.ThemeSource.pitch, Is.EqualTo(1f));
+
+            // Question sequence begins -> music ducks and slows down by 95%
+            _controller.SetDucking(true);
+            _controller.Tick(_library.DuckFadeDuration + 0.1f);
+
+            Assert.That(_controller.BattleSource.pitch, Is.EqualTo(_library.DuckPitchFactor).Within(0.01f));
+            Assert.That(_controller.CurrentDuckPitchMultiplier, Is.EqualTo(_library.DuckPitchFactor).Within(0.01f));
+            // Non-combat theme music channel remains unaffected at normal pitch (1.0)
+            Assert.That(_controller.ThemeSource.pitch, Is.EqualTo(1f));
+
+            // Question sequence ends -> pitch smoothly restores to 1.0
+            _controller.SetDucking(false);
+            _controller.Tick(_library.DuckFadeDuration + 0.1f);
+
+            Assert.That(_controller.BattleSource.pitch, Is.EqualTo(1f).Within(0.01f));
+            Assert.That(_controller.CurrentDuckPitchMultiplier, Is.EqualTo(1f).Within(0.01f));
         }
 
         [Test]

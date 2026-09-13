@@ -94,6 +94,11 @@
                             <ui:TextField name="settings-admin-power" label="Power Coin" value="0" class="settings-field"/>
                             <ui:Button name="settings-admin-apply-currency" text="SET CURRENCY" class="mw-button settings-action"/>
                         </ui:VisualElement>
+                        <ui:VisualElement class="settings-card settings-card--stack settings-admin-card">
+                            <ui:Label text="ADMIN LEADERBOARD" class="settings-card-title"/>
+                            <ui:Label text="View public leaderboard standings across all Grade levels (Level 1–3) with administrative controls." class="settings-card-description"/>
+                            <ui:Button name="settings-admin-open-leaderboard" text="OPEN ADMIN LEADERBOARD" class="mw-button mw-button--primary settings-action"/>
+                        </ui:VisualElement>
                         <ui:VisualElement class="settings-card settings-card--stack settings-admin-card settings-danger-card">
                             <ui:Label text="RESET USER DATA" class="settings-card-title settings-danger-title"/>
                             <ui:Label text="Deletes all game progress and Player Prep. Your login stays safe." class="settings-card-description"/>

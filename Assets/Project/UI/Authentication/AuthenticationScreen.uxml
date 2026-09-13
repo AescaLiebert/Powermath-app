@@ -9,7 +9,7 @@
         <ui:VisualElement name="safe-area" class="mw-safe-area auth-safe-area">
             <ui:VisualElement name="Logo" picking-mode="Ignore" class="auth-logo"/>
             <ui:VisualElement name="Authentication border" picking-mode="Ignore" class="auth-border" style="padding-left: 3px; padding-right: 3px; padding-bottom: 3px; padding-top: 3px; border-top-left-radius: 30px; border-top-right-radius: 30px; border-bottom-right-radius: 30px; border-bottom-left-radius: 30px;">
-                <ui:VisualElement name="Authentication Card" class="mw-card auth-card" style="padding-bottom: 17px; height: 421px;">
+                <ui:VisualElement name="Authentication Card" class="mw-card auth-card" style="padding-bottom: 17px;">
                     <ui:VisualElement name="Ornament / Celestial Divider" class="auth-celestial-divider" style="flex-grow: 1;">
                         <ui:VisualElement name="Divider / Left" class="auth-divider-line"/>
                         <PowerMath.UI.Core.StageInfoVectorPath name="Vector" class="generic-star" style="height: 20px; width: 20px;"/>
@@ -46,7 +46,7 @@
             <ui:Button name="Utility / Settings" class="auth-utility auth-settings">
                 <ui:VisualElement picking-mode="Ignore" class="auth-settings-icon"/>
             </ui:Button>
-            <ui:Label name="Version" text="1.02" class="auth-version"/>
+            <ui:Label name="Version" text="1.1" class="auth-version"/>
         </ui:VisualElement>
         <ui:Instance template="SettingsPanel" picking-mode="Ignore" class="mw-template-fill"/>
     </ui:VisualElement>

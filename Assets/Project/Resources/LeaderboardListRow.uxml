@@ -8,7 +8,7 @@
             <ui:Label name="Slot Label" text="ProfilePic Slot" class="leaderboard-slot-label"/>
         </ui:VisualElement>
         <ui:VisualElement name="leaderboard-row-identity" class="leaderboard-row-identity">
-            <ui:Label name="leaderboard-row-player-name" text="PLAYER NAME" class="leaderboard-player-name"/>
+            <ui:Label name="leaderboard-row-player-name" text="PLAYER NAME" class="leaderboard-player-name" style="-unity-text-auto-size: best-fit 12px 24px;"/>
             <ui:VisualElement name="leaderboard-row-stages" class="leaderboard-stages-row">
                 <ui:VisualElement name="leaderboard-row-current-column" class="leaderboard-stage-column">
                     <ui:Label text="CURRENT" class="loc-leaderboard.current leaderboard-stage-label"/>
@@ -20,19 +20,19 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="leaderboard-row-currencies" class="leaderboard-row-currencies" style="padding-left: 10px; padding-top: 13px; padding-bottom: 3px;">
+        <ui:VisualElement name="leaderboard-row-currencies" class="leaderboard-row-currencies" style="padding-left: 10px;">
             <ui:VisualElement name="leaderboard-row-currency-silver" class="leaderboard-currency-row">
                 <ui:VisualElement name="leaderboard-row-silver-icon" class="leaderboard-currency-icon leaderboard-currency-icon--silver"/>
-                <ui:Label name="leaderboard-row-silver" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left; -unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+                <ui:Label name="leaderboard-row-silver" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left;"/>
             </ui:VisualElement>
             <ui:VisualElement name="leaderboard-row-currency-gold" class="leaderboard-currency-row">
                 <!-- Contract requirement: #coin_gold_1 -->
                 <ui:VisualElement name="leaderboard-row-gold-icon" tooltip="Gold currency icon #coin_gold_1" class="leaderboard-currency-icon leaderboard-currency-icon--gold"/>
-                <ui:Label name="leaderboard-row-gold" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left; -unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+                <ui:Label name="leaderboard-row-gold" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left;"/>
             </ui:VisualElement>
             <ui:VisualElement name="leaderboard-row-currency-diamond" class="leaderboard-currency-row">
                 <ui:VisualElement name="leaderboard-row-diamond-icon" class="leaderboard-currency-icon leaderboard-currency-icon--diamond"/>
-                <ui:Label name="leaderboard-row-diamond" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left; -unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+                <ui:Label name="leaderboard-row-diamond" text="0" class="leaderboard-currency-value" style="-unity-text-align: middle-left;"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="leaderboard-row-loadout" class="leaderboard-row-loadout"/>

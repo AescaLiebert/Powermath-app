@@ -5,10 +5,12 @@
     <ui:Template name="LeaderboardPanel" src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uxml"/>
     <ui:Template name="ProfileAnalyticsPanel" src="project://database/Assets/Project/UI/MainMenu/ProfileAnalyticsPanel.uxml"/>
     <ui:Template name="SettingsPanel" src="project://database/Assets/Project/UI/Shared/SettingsPanel.uxml"/>
+    <ui:Template name="AdminLeaderboardPanel" src="project://database/Assets/Project/UI/MainMenu/AdminLeaderboardPanel.uxml"/>
     <ui:Instance template="RebirthPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="PlayerHubPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="PetGachaPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="LeaderboardPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="ProfileAnalyticsPanel" picking-mode="Ignore" class="mw-template-fill"/>
     <ui:Instance template="SettingsPanel" picking-mode="Ignore" class="mw-template-fill"/>
+    <ui:Instance template="AdminLeaderboardPanel" picking-mode="Ignore" class="mw-template-fill"/>
 </ui:UXML>
