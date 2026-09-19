@@ -54,7 +54,7 @@ namespace PowerMath.Session
                 yield break;
             }
 
-            if (!_settings.TryGetLevelDocumentById(levelId, out string levelUrl))
+            if (!_settings.TryGetPlayerDocument(levelId, username, out string levelUrl))
             {
                 onFailure?.Invoke("Level document is not configured for this player.");
                 yield break;
@@ -185,8 +185,7 @@ namespace PowerMath.Session
         private static bool TryReadRevision(JsonValue document, string username, out long revision)
         {
             revision = 0;
-            return FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue documentFields) &&
-                documentFields.TryGet(username, out JsonValue student) &&
+            return FirestoreRestClient.TryGetStudent(document, username, out JsonValue student) &&
                 FirestoreJsonNavigator.TryGetMapFields(student, out JsonValue studentFields) &&
                 studentFields.TryGet("gamedata", out JsonValue gameDataValue) &&
                 FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData) &&
@@ -224,6 +223,7 @@ namespace PowerMath.Session
                 version = 1,
                 checkpointId = string.Empty
             };
+            _player.tutorialEntries = Array.Empty<PlayerSnapshot.TutorialEntryData>();
             if (_player.profile != null)
             {
                 _player.profile.publicPlayerId = Guid.NewGuid().ToString("N");
@@ -260,18 +260,23 @@ namespace PowerMath.Session
             }
             if (_player.activeRun != null)
             {
-                _player.activeRun.runId = Guid.NewGuid().ToString("N");
-                _player.activeRun.currentStage = 1;
-                _player.activeRun.committedAttemptId = string.Empty;
-                _player.activeRun.phase = "EnemyReady";
-                _player.activeRun.silverEarned = 0;
-                _player.activeRun.goldEarned = 0;
-                _player.activeRun.diamondEarned = 0;
+                _player.activeRun = new PlayerSnapshot.ActiveRunData
+                {
+                    runId = Guid.NewGuid().ToString("N"),
+                    currentStage = 1,
+                    encounterKind = "NormalMonster",
+                    phase = "EnemyReady",
+                    bonusMultiplierBasisPoints = 10000,
+                    petEventMultiplierBasisPoints = 10000,
+                    eventScheduleStages = Array.Empty<int>(),
+                    challengeQuestions = new PlayerSnapshot.ChallengeQuestionSequenceData()
+                };
             }
             if (_player.academic != null)
             {
                 _player.academic.auditScore = 0;
                 _player.academic.auditResolvedCount = 0;
+                _player.academic.auditCorrectCount = 0;
             }
             if (_player.analytics != null)
             {

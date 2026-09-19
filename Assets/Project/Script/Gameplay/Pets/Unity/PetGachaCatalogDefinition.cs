@@ -13,6 +13,13 @@ namespace PowerMath.Gameplay.Pets
             public string rarityId;
             public string displayName;
             [Min(1)] public int rateBasisPoints;
+            [Tooltip("This rarity satisfies the guaranteed SR-or-better slot in a 10x pull.")]
+            public bool countsForTenPullGuarantee;
+            [Tooltip("Obtaining this rarity resets the 90-pull SSR pity counter.")]
+            public bool resetsSsrPity;
+            [Range(1, 5)]
+            [Tooltip("Number of stars shown by the post-pull showcase UI.")]
+            public int showcaseStarCount = 3;
             public Color displayColor = Color.white;
             public PetDefinition[] pets = Array.Empty<PetDefinition>();
         }
@@ -82,7 +89,9 @@ namespace PowerMath.Gameplay.Pets
                         rarity.rarityId,
                         rarity.displayName,
                         rarity.rateBasisPoints,
-                        mappedPets));
+                        mappedPets,
+                        rarity.countsForTenPullGuarantee,
+                        rarity.resetsSsrPity));
                 }
                 catalog = new PetGachaCatalog(catalogVersion, mappedRarities);
                 return true;
@@ -102,6 +111,13 @@ namespace PowerMath.Gameplay.Pets
             out PetDefinition pet,
             out RarityContent rarity)
         {
+            if (string.IsNullOrWhiteSpace(petId))
+            {
+                pet = null;
+                rarity = null;
+                return false;
+            }
+
             foreach (RarityContent candidateRarity in rarities ?? Array.Empty<RarityContent>())
             {
                 if (candidateRarity == null) continue;
@@ -109,7 +125,7 @@ namespace PowerMath.Gameplay.Pets
                     candidateRarity.pets ?? Array.Empty<PetDefinition>())
                 {
                     if (candidatePet != null &&
-                        string.Equals(candidatePet.PetId, petId, StringComparison.Ordinal))
+                        string.Equals(candidatePet.PetId, petId, StringComparison.OrdinalIgnoreCase))
                     {
                         pet = candidatePet;
                         rarity = candidateRarity;

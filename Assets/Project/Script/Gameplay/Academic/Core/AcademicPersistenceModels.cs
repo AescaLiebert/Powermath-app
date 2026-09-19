@@ -11,11 +11,13 @@ namespace PowerMath.Gameplay.Academic
             RankCurrencyBalances balances,
             RankQuestionInventorySnapshot silver,
             RankQuestionInventorySnapshot gold,
-            RankQuestionInventorySnapshot diamond)
+            RankQuestionInventorySnapshot diamond,
+            int auditCorrectCount = 0)
         {
             ActiveRank = activeRank;
             AuditResolvedCount = auditResolvedCount;
             AuditScore = auditScore;
+            AuditCorrectCount = auditCorrectCount;
             Balances = balances;
             Silver = silver ?? throw new ArgumentNullException(nameof(silver));
             Gold = gold ?? throw new ArgumentNullException(nameof(gold));
@@ -25,6 +27,7 @@ namespace PowerMath.Gameplay.Academic
         public AcademicRank ActiveRank { get; }
         public int AuditResolvedCount { get; }
         public int AuditScore { get; }
+        public int AuditCorrectCount { get; }
         public RankCurrencyBalances Balances { get; }
         public RankQuestionInventorySnapshot Silver { get; }
         public RankQuestionInventorySnapshot Gold { get; }

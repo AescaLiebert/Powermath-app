@@ -39,9 +39,10 @@ values come from the approved architecture and remain tuning inputs, not final b
 
 Create Event assets through `Assets > Create > PowerMath > Stage Map > Event Definition`.
 Bind Events only to ordinary Stages; protected boss Stages and Stage 200 reject Events.
-`questionDocumentId` identifies the Event document in Question Firebase. If Question
-Firebase is unavailable, the explicit development-question fallback serves the Event
-while player progression continues to save to the player Firebase project.
+Challenge content is resolved centrally by `GameApiSettings` from the active Rank
+document in Question Firebase. If Question Firebase is unavailable, the explicit
+development-question fallback serves the Event while player progression continues to
+save to the player Firebase project.
 
 ## Validation
 

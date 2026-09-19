@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using PowerMath.Gameplay.Combat.Presentation;
 using PowerMath.UI.Core;
 using PowerMath.UI.MainMenu;
@@ -28,6 +29,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly EnemyActionQueuePresenter _enemyActionQueue;
         private readonly Label _heartsLabel;
         private readonly List<VisualElement> _heartIcons = new List<VisualElement>();
+        private int _displayedHearts = -1;
         private readonly Button _attackButton;
         private readonly VisualElement _attemptPanel;
         private readonly VisualElement _answerContent;
@@ -67,6 +69,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly VisualElement _bossWarning;
         private readonly Label _bossWarningTitle;
         private readonly Dictionary<string, Label> _mapNodes = new Dictionary<string, Label>();
+        private StageMapData _stageMap;
         private Action<CombatSnapshot> _backgroundRenderer;
         private Action<string> _encounterRenderer;
         private Func<CombatSnapshot, float, IEnumerator> _backgroundCrossfader;
@@ -203,7 +206,13 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public void RequestAttack()
         {
-            if (!CanAttack) return;
+            if (!CanAttack)
+            {
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Combat",
+                    "[CombatLobbyView] RequestAttack dropped: CanAttack is false.");
+                return;
+            }
             OnAttack();
         }
 
@@ -275,11 +284,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (snapshot.Phase == CombatPhase.EnemyReady ||
                 snapshot.Phase == CombatPhase.EventReady)
                 _enemyActionQueue.Synchronize(snapshot, _enemyActions.childCount == 0);
-            _heartsLabel.text = BuildHearts(
-                snapshot.PlayerCurrentHearts,
-                snapshot.PlayerMaximumHearts
-            );
-            UpdateHeartIcons(
+            SetPlayerHearts(
                 snapshot.PlayerCurrentHearts,
                 snapshot.PlayerMaximumHearts
             );
@@ -322,6 +327,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             Action<CombatSnapshot> biomeMusicStarter = null)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
+            _stageMap = map;
             _backgroundRenderer = backgroundRenderer;
             _encounterRenderer = encounterRenderer;
             _backgroundCrossfader = backgroundCrossfader;
@@ -369,7 +375,11 @@ namespace PowerMath.Gameplay.Combat.Unity
             _biomeTransitionTitle.text = destination.BiomeTitle.ToUpperInvariant();
             if (_biomeTransitionKicker != null)
             {
-                _biomeTransitionKicker.text = "ENTERING NEW BIOME";
+                BiomeData currentBiome = _stageMap?.Biomes?.FirstOrDefault(value =>
+                    value != null && value.Contains(destination.Stage));
+                bool isMidpoint = currentBiome != null &&
+                    currentBiome.MidpointStage == destination.Stage.Value;
+                _biomeTransitionKicker.text = isMidpoint ? "ENTERING NEW AREA" : "ENTERING NEW BIOME";
             }
 
             float crossfadeDuration = _reducedMotion ? 0.40f : 1.40f;
@@ -763,6 +773,38 @@ namespace PowerMath.Gameplay.Combat.Unity
             _attackButton?.SetEnabled(false);
             _resultLabel.text = playerMessage;
             _resultLabel.AddToClassList("combat-result--negative");
+        }
+
+        public void SetPlayerHearts(int current, int maximum)
+        {
+            if (_heartsLabel != null)
+                _heartsLabel.text = BuildHearts(current, maximum);
+            UpdateHeartIcons(current, maximum);
+            _displayedHearts = current;
+        }
+
+        public void PlayPlayerDamageHearts(int current, int maximum)
+        {
+            int previousHearts = _displayedHearts;
+            SetPlayerHearts(current, maximum);
+            if (_reducedMotion || _heartIcons.Count == 0 || maximum <= 0 ||
+                previousHearts < 0 || current >= previousHearts)
+                return;
+
+            int lostHeartIndex = Mathf.Clamp(
+                current,
+                0,
+                Mathf.Min(maximum, _heartIcons.Count) - 1);
+            VisualElement lostHeart = _heartIcons[lostHeartIndex];
+            lostHeart.RemoveFromClassList("is-damaged");
+            lostHeart.schedule.Execute(() =>
+            {
+                lostHeart.AddToClassList("is-damaged");
+            }).ExecuteLater(1);
+            lostHeart.schedule.Execute(() =>
+            {
+                lostHeart.RemoveFromClassList("is-damaged");
+            }).ExecuteLater(90);
         }
 
         public void Dispose()

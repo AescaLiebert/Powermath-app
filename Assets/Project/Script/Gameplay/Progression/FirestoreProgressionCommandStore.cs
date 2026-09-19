@@ -6,6 +6,7 @@ using System.Text;
 using PowerMath.Gameplay.Academic;
 using PowerMath.PlayerData;
 using PowerMath.Session;
+using PowerMath.Gameplay.Pets;
 using UnityEngine.Networking;
 
 namespace PowerMath.Gameplay.Progression
@@ -16,15 +17,18 @@ namespace PowerMath.Gameplay.Progression
         private readonly PlayerSnapshot _player;
         private readonly QuestionCatalog _catalog;
         private readonly int _baseWeaponAttack;
+        private readonly int _maxWeaponLevel;
         private readonly string _username;
         private readonly string _url;
+        private readonly PetGachaCatalog _petCatalog;
 
         public FirestoreProgressionCommandStore(
             GameApiSettings settings,
             PlayerSnapshot player,
             QuestionCatalog catalog)
             : this(settings, player, catalog,
-                WeaponAscensionPolicy.DefaultBaseWeaponAttack)
+                WeaponAscensionPolicy.DefaultBaseWeaponAttack,
+                WeaponAscensionPolicy.DefaultMaximumLevel)
         {
         }
 
@@ -33,18 +37,36 @@ namespace PowerMath.Gameplay.Progression
             PlayerSnapshot player,
             QuestionCatalog catalog,
             int baseWeaponAttack)
+            : this(settings, player, catalog, baseWeaponAttack,
+                WeaponAscensionPolicy.DefaultMaximumLevel)
+        {
+        }
+
+        public FirestoreProgressionCommandStore(
+            GameApiSettings settings,
+            PlayerSnapshot player,
+            QuestionCatalog catalog,
+            int baseWeaponAttack,
+            int maxWeaponLevel,
+            PetGachaCatalog petCatalog = null)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _player = player ?? throw new ArgumentNullException(nameof(player));
             _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
             if (baseWeaponAttack < 0)
                 throw new ArgumentOutOfRangeException(nameof(baseWeaponAttack));
+            if (maxWeaponLevel <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxWeaponLevel));
             _baseWeaponAttack = baseWeaponAttack;
+            _maxWeaponLevel = maxWeaponLevel;
+            _petCatalog = petCatalog;
             int separator = (player.playerId ?? string.Empty).IndexOf(':');
-            if (separator <= 0 || separator >= player.playerId.Length - 1 ||
-                !_settings.TryGetLevelDocumentById(player.playerId.Substring(0, separator), out _url))
+            if (separator <= 0 || separator >= player.playerId.Length - 1)
                 throw new ArgumentException("Player ID cannot resolve its Firestore document.", nameof(player));
+            string levelId = player.playerId.Substring(0, separator);
             _username = player.playerId.Substring(separator + 1);
+            if (!_settings.TryGetPlayerDocument(levelId, _username, out _url))
+                throw new ArgumentException("Player ID cannot resolve its Firestore document.", nameof(player));
         }
 
         public IEnumerator Settle(
@@ -83,7 +105,8 @@ namespace PowerMath.Gameplay.Progression
                 yield break;
             }
 
-            RunSettlementAward award = RunSettlementPolicy.Calculate(_player, type);
+            RunSettlementAward award = RunSettlementPolicy.Calculate(
+                _player, type, _petCatalog);
             AcademicPersistenceSnapshot reset;
             try
             {
@@ -109,7 +132,7 @@ namespace PowerMath.Gameplay.Progression
             long sourceLegacy = _player.progression?.legacyAtkBonusBasisPoints ?? 0;
             int sourcePrestige = _player.progression?.prestige ?? 0;
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { _username, "gamedata" };
+            string[] root = { "gamedata" };
             builder.AddInteger(Join(root, "revision"), nextRevision);
             builder.AddInteger(Join(root, "wallet", "powerCoins"), nextCoins);
             builder.AddInteger(Join(root, "progression", "currentStage"), 1);
@@ -117,6 +140,7 @@ namespace PowerMath.Gameplay.Progression
             builder.AddInteger(Join(root, "progression", "prestige"), nextPrestige);
             builder.AddInteger(Join(root, "academic", "auditScore"), 0);
             builder.AddInteger(Join(root, "academic", "auditResolvedCount"), 0);
+            builder.AddInteger(Join(root, "academic", "auditCorrectCount"), 0);
             builder.AddNull(Join(root, "academic", "activeAttempt"));
             AddAcademicInventory(builder, root, "silver", reset.Silver);
             AddAcademicInventory(builder, root, "gold", reset.Gold);
@@ -124,12 +148,19 @@ namespace PowerMath.Gameplay.Progression
             builder.AddString(Join(root, "activeRun", "runId"), nextRunId);
             builder.AddInteger(Join(root, "activeRun", "currentStage"), 1);
             builder.AddString(Join(root, "activeRun", "committedAttemptId"), string.Empty);
-            foreach (string field in new[] { "biomeId", "biomeTitle", "encounterKind", "encounterId", "questionContentKind", "questionDocumentId" })
+            foreach (string field in new[] { "biomeId", "biomeTitle", "encounterKind", "encounterId", "questionContentKind", "questionDocumentId", "questionContentId", "eventScheduleCatalogVersion", "eventScheduleEventId", "lastChallengeRewardAttemptId" })
                 builder.AddString(Join(root, "activeRun", field), string.Empty);
             builder.AddString(Join(root, "activeRun", "enemyId"), string.Empty);
-            foreach (string field in new[] { "questionId", "eventAttemptOrdinal", "enemyCurrentHp", "enemyMaximumHp", "enemyRemainingCooldown", "enemyMaximumCooldown", "playerCurrentHearts", "playerMaximumHearts", "silverEarned", "goldEarned", "diamondEarned" })
+            foreach (string field in new[] { "questionId", "eventAttemptOrdinal", "eventScheduleVersion", "eventChanceBasisPoints", "lastChallengeRewardPowerCoins", "lastChallengeRewardResultingPowerCoins", "enemyCurrentHp", "enemyMaximumHp", "enemyRemainingCooldown", "enemyMaximumCooldown", "playerCurrentHearts", "playerMaximumHearts", "silverEarned", "goldEarned", "diamondEarned" })
                 builder.AddInteger(Join(root, "activeRun", field), 0);
+            builder.AddIntegerArray(Join(root, "activeRun", "eventScheduleStages"), Array.Empty<long>());
+            builder.AddInteger(Join(root, "activeRun", "petEventMultiplierBasisPoints"), 10000);
+            foreach (string field in new[] { "silverCursor", "goldCursor", "diamondCursor" })
+                builder.AddInteger(Join(root, "activeRun", "challengeQuestions", field), 0);
+            builder.AddString(Join(root, "activeRun", "challengeQuestions", "reservedDocumentId"), string.Empty);
+            builder.AddString(Join(root, "activeRun", "challengeQuestions", "reservedQuestionId"), string.Empty);
             builder.AddInteger(Join(root, "activeRun", "bonusMultiplierBasisPoints"), 10000);
+            builder.AddBoolean(Join(root, "activeRun", "wasTeleported"), false);
             builder.AddString(Join(root, "activeRun", "phase"), "EnemyReady");
             builder.AddNull(Join(root, "activeRun", "pendingPresentation"));
             builder.AddString(Join(root, "lastRunSettlement", "runId"), runId);
@@ -208,7 +239,7 @@ namespace PowerMath.Gameplay.Progression
             long nextRevision = checked(_player.revision + 1);
             long acknowledgedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { _username, "gamedata" };
+            string[] root = { "gamedata" };
             builder.AddInteger(Join(root, "revision"), nextRevision);
             builder.AddString(Join(root, "lastRunSettlement", "presentationStatus"),
                 "Acknowledged");
@@ -242,7 +273,8 @@ namespace PowerMath.Gameplay.Progression
             {
                 completed?.Invoke(WeaponAscensionPolicy.GetStats(
                     _player.economy.lastWeaponAscendLevel,
-                    _baseWeaponAttack), _player.economy.lastWeaponAscendCost);
+                    _baseWeaponAttack,
+                    _maxWeaponLevel), _player.economy.lastWeaponAscendCost);
                 yield break;
             }
             if (!string.IsNullOrEmpty(_player.activeRun?.committedAttemptId) ||
@@ -269,18 +301,19 @@ namespace PowerMath.Gameplay.Progression
                 {
                     itemId = WeaponAscensionPolicy.CanonicalItemId,
                     upgradeLevel = 0,
+                    count = 1,
                     owned = true
                 };
                 inventory.Add(weapon);
             }
             else weapon = matches[0];
 
-            if (weapon.upgradeLevel >= WeaponAscensionPolicy.MaximumLevel)
+            if (weapon.upgradeLevel >= _maxWeaponLevel)
             {
-                failed?.Invoke("Your weapon has reached Level 100.");
+                failed?.Invoke($"Your weapon has reached Level {_maxWeaponLevel}.");
                 yield break;
             }
-            long cost = WeaponAscensionPolicy.GetNextCost(weapon.upgradeLevel);
+            long cost = WeaponAscensionPolicy.GetNextCost(weapon.upgradeLevel, _maxWeaponLevel);
             if ((_player.wallet?.powerCoins ?? 0) < cost)
             {
                 failed?.Invoke($"You need {cost} Power Coins to ascend.");
@@ -290,7 +323,7 @@ namespace PowerMath.Gameplay.Progression
             long nextCoins = checked(_player.wallet.powerCoins - cost);
             long nextRevision = checked(_player.revision + 1);
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { _username, "gamedata" };
+            string[] root = { "gamedata" };
             builder.AddInteger(Join(root, "revision"), nextRevision);
             builder.AddInteger(Join(root, "wallet", "powerCoins"), nextCoins);
             builder.AddInventoryArray(Join(root, "inventory"), inventory);
@@ -317,7 +350,8 @@ namespace PowerMath.Gameplay.Progression
             _player.economy.lastWeaponAscendCost = cost;
             completed?.Invoke(WeaponAscensionPolicy.GetStats(
                 weapon.upgradeLevel,
-                _baseWeaponAttack), cost);
+                _baseWeaponAttack,
+                _maxWeaponLevel), cost);
         }
 
         private AcademicPersistenceSnapshot CreateResetAcademic()
@@ -378,11 +412,19 @@ namespace PowerMath.Gameplay.Progression
         private bool TryReadAuthoritativeRevision(JsonValue document, out long revision)
         {
             revision = 0;
-            return FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) &&
-                fields.TryGet(_username, out JsonValue studentValue) &&
-                FirestoreJsonNavigator.TryGetMapFields(studentValue, out JsonValue student) &&
-                student.TryGet("gamedata", out JsonValue gameDataValue) &&
-                FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData) &&
+            if (!FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields))
+                return false;
+
+            JsonValue gameDataValue;
+            if (!fields.TryGet("gamedata", out gameDataValue))
+            {
+                if (!fields.TryGet(_username, out JsonValue studentValue) ||
+                    !FirestoreJsonNavigator.TryGetMapFields(studentValue, out JsonValue student) ||
+                    !student.TryGet("gamedata", out gameDataValue))
+                    return false;
+            }
+
+            return FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData) &&
                 gameData.TryGet("revision", out JsonValue revisionValue) &&
                 FirestoreJsonNavigator.TryReadInteger(revisionValue, out revision);
         }
@@ -402,11 +444,18 @@ namespace PowerMath.Gameplay.Progression
             _player.progression.prestige = nextPrestige;
             _player.activeRun = new PlayerSnapshot.ActiveRunData
             {
-                runId = nextRunId, currentStage = 1, phase = "EnemyReady", bonusMultiplierBasisPoints = 10000
+                runId = nextRunId,
+                currentStage = 1,
+                phase = "EnemyReady",
+                bonusMultiplierBasisPoints = 10000,
+                wasTeleported = false,
+                petEventMultiplierBasisPoints = 10000,
+                eventScheduleStages = Array.Empty<int>(),
+                challengeQuestions = new PlayerSnapshot.ChallengeQuestionSequenceData()
             };
             _player.academic = new PlayerSnapshot.AcademicData
             {
-                auditScore = 0, auditResolvedCount = 0,
+                auditScore = 0, auditResolvedCount = 0, auditCorrectCount = 0,
                 silver = ToPlayer(reset.Silver), gold = ToPlayer(reset.Gold), diamond = ToPlayer(reset.Diamond)
             };
             _player.lastRunSettlement = new PlayerSnapshot.RunSettlementData
@@ -431,7 +480,13 @@ namespace PowerMath.Gameplay.Progression
         }
 
         private static PlayerSnapshot.InventoryItemData Clone(PlayerSnapshot.InventoryItemData item) =>
-            new PlayerSnapshot.InventoryItemData { itemId = item.itemId, upgradeLevel = item.upgradeLevel, owned = item.owned };
+            new PlayerSnapshot.InventoryItemData
+            {
+                itemId = item.itemId,
+                upgradeLevel = item.upgradeLevel,
+                count = Math.Max(1, item.count),
+                owned = item.owned
+            };
 
         private static PlayerSnapshot.RankInventoryData ToPlayer(RankQuestionInventorySnapshot value) =>
             new PlayerSnapshot.RankInventoryData

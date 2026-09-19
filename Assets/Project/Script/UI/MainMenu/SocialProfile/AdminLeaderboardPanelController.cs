@@ -19,7 +19,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
     public sealed class AdminLeaderboardPanelController : IDisposable
     {
-        private const int BatchSize = 50;
+        private const int BatchSize = 20;
+        private bool _batchLoading;
 
         private readonly VisualElement _modal;
         private readonly Button _close;
@@ -335,7 +336,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private void OnScrollChanged(float value)
         {
-            if (_cachedRanked == null || _renderedCount >= _cachedRanked.Count || _list == null) return;
+            if (_batchLoading || _cachedRanked == null || _renderedCount >= _cachedRanked.Count || _list == null) return;
             float max = _list.verticalScroller != null ? _list.verticalScroller.highValue : 0;
             if (max > 0 && (value >= max - 200f || value >= max * 0.8f))
             {
@@ -345,28 +346,36 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private void LoadNextBatch()
         {
-            if (_cachedRanked == null || _renderedCount >= _cachedRanked.Count)
+            if (_batchLoading || _cachedRanked == null || _renderedCount >= _cachedRanked.Count)
             {
                 UpdateLoadMoreIndicator();
                 return;
             }
 
-            if (_loadMoreIndicator != null && _loadMoreIndicator.parent == _list)
-                _loadMoreIndicator.RemoveFromHierarchy();
-
-            bool showCohort = _currentFilter == AdminLeaderboardFilter.Overall;
-            int target = Math.Min(_renderedCount + BatchSize, _cachedRanked.Count);
-            for (int i = _renderedCount; i < target; i++)
+            _batchLoading = true;
+            try
             {
-                VisualElement row = LeaderboardPanelController.CreateAuthoredRow(_cachedRanked[i], showCohort);
-                if (row != null)
-                {
-                    _list.Add(row);
-                }
-            }
-            _renderedCount = target;
+                if (_loadMoreIndicator != null && _loadMoreIndicator.parent == _list)
+                    _loadMoreIndicator.RemoveFromHierarchy();
 
-            UpdateLoadMoreIndicator();
+                bool showCohort = _currentFilter == AdminLeaderboardFilter.Overall;
+                int target = Math.Min(_renderedCount + BatchSize, _cachedRanked.Count);
+                for (int i = _renderedCount; i < target; i++)
+                {
+                    VisualElement row = LeaderboardPanelController.CreateAuthoredRow(_cachedRanked[i], showCohort);
+                    if (row != null)
+                    {
+                        _list.Add(row);
+                    }
+                }
+                _renderedCount = target;
+
+                UpdateLoadMoreIndicator();
+            }
+            finally
+            {
+                _batchLoading = false;
+            }
         }
 
         private void UpdateLoadMoreIndicator()

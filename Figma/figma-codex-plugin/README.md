@@ -72,6 +72,7 @@ and selection count.
 - `restyle-player-hub-wireframe`
 - `recompose-player-hub-reference-v16`
 - `build-rebirth-wireframe`
+- `build-gacha-session-wireframe`
 - `finalize-player-hub-interactions`
 
 Example frame command:

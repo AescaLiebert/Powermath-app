@@ -1,0 +1,16 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/MainMenu/TutorialOverlay.uss?fileID=7433441132597879392&amp;guid=ca2e4959b50f466a921974b4fec4c0a9&amp;type=3#TutorialOverlay"/>
+    <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
+    <ui:VisualElement name="tutorial-overlay" class="tutorial-overlay" style="overflow: hidden; opacity: 1; display: flex;">
+        <ui:VisualElement name="tutorial-scrim" picking-mode="Ignore" class="tutorial-scrim" style="background-color: rgba(4, 10, 24, 0.78);"/>
+        <ui:Button name="tutorial-focus-target" text="" class="tutorial-focus-target"/>
+        <ui:VisualElement name="tutorial-dialogue" class="tutorial-dialogue" style="left: 36px; height: 374px; bottom: 34px; right: 49px; min-height: 168px;">
+            <ui:Image name="tutorial-power" picking-mode="Ignore" class="tutorial-power" style="position: absolute; width: 650px; height: 650px; left: 250px; top: -450px;"/>
+            <ui:VisualElement name="tutorial-copy" class="tutorial-copy" style="height: 205px; border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;">
+                <ui:Label name="tutorial-speaker" text="Power" picking-mode="Ignore" class="tutorial-speaker" style="margin-left: 50px; font-size: 36px;"/>
+                <ui:Label name="tutorial-body" text="Hello" picking-mode="Ignore" class="tutorial-body" style="margin-left: 100px; margin-top: 15px;"/>
+                <ui:Label name="tutorial-status" text="" picking-mode="Ignore" class="tutorial-status"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

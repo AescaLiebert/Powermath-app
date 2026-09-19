@@ -960,20 +960,6 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.leaderboard-row-rank-slot--1st,
-.leaderboard-row--diamond .leaderboard-row-rank-slot {
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Leaderboard_badge_1st.png?fileID=21300000&guid=503baac8f29dcd548b1f22d6a2b2899d&type=3#Icon_Leaderboard_badge_1st");
-}
-
-.leaderboard-row-rank-slot--2nd,
-.leaderboard-row--gold .leaderboard-row-rank-slot {
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Leaderboard_badge_2nd.png?fileID=21300000&guid=4a19f3d061f627b4bb76bc30dc891373&type=3#Icon_Leaderboard_badge_2nd");
-}
-
-.leaderboard-row-rank-slot--3rd,
-.leaderboard-row--silver .leaderboard-row-rank-slot {
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Leaderboard_badge_3rd.png?fileID=21300000&guid=7b61673e3037730499edc7325493be3a&type=3#Icon_Leaderboard_badge_3rd");
-}
 
 .leaderboard-row-rank-number {
     color: var(--color-navy);

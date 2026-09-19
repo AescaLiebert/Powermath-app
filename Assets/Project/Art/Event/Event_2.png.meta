@@ -8,6 +8,9 @@ TextureImporter:
   - first:
       213: 1077887188827969209
     second: Event_2_1
+  - first:
+      213: 4224854726809337144
+    second: Event_2_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -119,10 +122,10 @@ TextureImporter:
       name: Event_2_0
       rect:
         serializedVersion: 2
-        x: 161
-        y: 375
-        width: 21
-        height: 9
+        x: 243
+        y: 606
+        width: 9
+        height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,10 +144,10 @@ TextureImporter:
       name: Event_2_1
       rect:
         serializedVersion: 2
-        x: 180
-        y: 12
-        width: 393
-        height: 496
+        x: 253
+        y: 17
+        width: 522
+        height: 671
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -155,6 +158,28 @@ TextureImporter:
       bones: []
       spriteID: 9b61906ffac65fe00800000000000000
       internalID: 1077887188827969209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Event_2_2
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 509
+        width: 27
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83db9136df2b1aa30800000000000000
+      internalID: 4224854726809337144
       vertices: []
       indices: 
       edges: []
@@ -175,6 +200,7 @@ TextureImporter:
     nameFileIdTable:
       Event_2_0: -7225378666752819213
       Event_2_1: 1077887188827969209
+      Event_2_2: 4224854726809337144
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -34,12 +34,18 @@ namespace PowerMath.Session
             Add(segments, PatchValue.BooleanValue(value));
         public void AddEmptyArray(IReadOnlyList<string> segments) =>
             Add(segments, PatchValue.EmptyArray());
+        public void AddEmptyMap(IReadOnlyList<string> segments) =>
+            Add(segments, PatchValue.EmptyMap());
         public void AddIntegerArray(IReadOnlyList<string> segments, IReadOnlyList<long> values) =>
             Add(segments, PatchValue.IntegerArray(values));
         public void AddInventoryArray(
             IReadOnlyList<string> segments,
             IReadOnlyList<PlayerSnapshot.InventoryItemData> values) =>
             Add(segments, PatchValue.InventoryArray(values));
+        public void AddPetGachaResultArray(
+            IReadOnlyList<string> segments,
+            IReadOnlyList<PlayerSnapshot.PetGachaResultData> values) =>
+            Add(segments, PatchValue.PetGachaResultArray(values));
         public void AddNull(IReadOnlyList<string> segments) =>
             Add(segments, PatchValue.Null());
 
@@ -117,6 +123,9 @@ namespace PowerMath.Session
                 case PatchValueKind.EmptyArray:
                     builder.Append("{\"arrayValue\":{\"values\":[]}}");
                     break;
+                case PatchValueKind.EmptyMap:
+                    builder.Append("{\"mapValue\":{\"fields\":{}}}");
+                    break;
                 case PatchValueKind.IntegerArray:
                     builder.Append("{\"arrayValue\":{\"values\":[");
                     for (int index = 0; index < value.Integers.Count; index++)
@@ -141,7 +150,30 @@ namespace PowerMath.Session
                             .Append(item.upgradeLevel.ToString(CultureInfo.InvariantCulture))
                             .Append("\"},\"owned\":{\"booleanValue\":")
                             .Append(item.owned ? "true" : "false")
-                            .Append("}}}}");
+                            .Append("},\"count\":{\"integerValue\":\"")
+                            .Append(Math.Max(1, item.count).ToString(CultureInfo.InvariantCulture))
+                            .Append("\"}}}}");
+                    }
+                    builder.Append("]}}");
+                    break;
+                case PatchValueKind.PetGachaResultArray:
+                    builder.Append("{\"arrayValue\":{\"values\":[");
+                    for (int index = 0; index < value.GachaResults.Count; index++)
+                    {
+                        if (index > 0) builder.Append(',');
+                        PlayerSnapshot.PetGachaResultData item = value.GachaResults[index];
+                        builder.Append("{\"mapValue\":{\"fields\":{")
+                            .Append("\"petId\":{\"stringValue\":");
+                        WriteJsonString(builder, item.petId ?? string.Empty);
+                        builder.Append("},\"rarityId\":{\"stringValue\":");
+                        WriteJsonString(builder, item.rarityId ?? string.Empty);
+                        builder.Append("},\"wasNew\":{\"booleanValue\":")
+                            .Append(item.wasNew ? "true" : "false")
+                            .Append("},\"previousCount\":{\"integerValue\":\"")
+                            .Append(item.previousCount.ToString(CultureInfo.InvariantCulture))
+                            .Append("\"},\"resultingCount\":{\"integerValue\":\"")
+                            .Append(item.resultingCount.ToString(CultureInfo.InvariantCulture))
+                            .Append("\"}}}}");
                     }
                     builder.Append("]}}");
                     break;
@@ -219,7 +251,7 @@ namespace PowerMath.Session
         }
     }
 
-    internal enum PatchValueKind { Map, String, Integer, Boolean, EmptyArray, IntegerArray, InventoryArray, Null }
+    internal enum PatchValueKind { Map, String, Integer, Boolean, EmptyArray, EmptyMap, IntegerArray, InventoryArray, PetGachaResultArray, Null }
 
     internal sealed class PatchValue
     {
@@ -231,11 +263,13 @@ namespace PowerMath.Session
         public bool Boolean { get; private set; }
         public IReadOnlyList<long> Integers { get; private set; }
         public IReadOnlyList<PlayerSnapshot.InventoryItemData> Inventory { get; private set; }
+        public IReadOnlyList<PlayerSnapshot.PetGachaResultData> GachaResults { get; private set; }
         public static PatchValue MapValue(PatchMap map) => new PatchValue(PatchValueKind.Map) { Map = map };
         public static PatchValue String(string value) => new PatchValue(PatchValueKind.String) { Text = value };
         public static PatchValue FromInteger(long value) => new PatchValue(PatchValueKind.Integer) { Integer = value };
         public static PatchValue BooleanValue(bool value) => new PatchValue(PatchValueKind.Boolean) { Boolean = value };
         public static PatchValue EmptyArray() => new PatchValue(PatchValueKind.EmptyArray);
+        public static PatchValue EmptyMap() => new PatchValue(PatchValueKind.EmptyMap);
         public static PatchValue IntegerArray(IReadOnlyList<long> values) =>
             new PatchValue(PatchValueKind.IntegerArray)
             {
@@ -246,6 +280,14 @@ namespace PowerMath.Session
             {
                 Inventory = values == null
                     ? Array.Empty<PlayerSnapshot.InventoryItemData>()
+                    : values.Where(value => value != null).ToArray()
+            };
+        public static PatchValue PetGachaResultArray(
+            IReadOnlyList<PlayerSnapshot.PetGachaResultData> values) =>
+            new PatchValue(PatchValueKind.PetGachaResultArray)
+            {
+                GachaResults = values == null
+                    ? Array.Empty<PlayerSnapshot.PetGachaResultData>()
                     : values.Where(value => value != null).ToArray()
             };
         public static PatchValue Null() => new PatchValue(PatchValueKind.Null);

@@ -16,6 +16,7 @@ MonoBehaviour:
   normalHpBaseline: 30
   worldLevelGrowthBasisPoints: 1500
   hpVariationBasisPoints: 700
+  eventEncounterLuckPercentage: 0
   biomes:
   - {fileID: 11400000, guid: 0f03b5c6c46564a42bbb2548ebceab64, type: 2}
   - {fileID: 11400000, guid: b0000000000000000000000000000002, type: 2}
@@ -24,4 +25,24 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b0000000000000000000000000000005, type: 2}
   - {fileID: 11400000, guid: b0000000000000000000000000000006, type: 2}
   - {fileID: 11400000, guid: b0000000000000000000000000000007, type: 2}
-  fixedEvents: []
+  eventDefinitions:
+  - {fileID: 11400000, guid: 3c863e18786e25e4dbe8372ce29848a1, type: 2}
+  - {fileID: 11400000, guid: 71b436bbfab76e44086e963677466554, type: 2}
+  - {fileID: 11400000, guid: 1113ac262367cd542bfaa2acf76ac42e, type: 2}
+  - {fileID: 11400000, guid: 45fb2f5453103194abfd83e629dd8938, type: 2}
+  - {fileID: 11400000, guid: c8f3957d8d0474b48a43783038267179, type: 2}
+  - {fileID: 11400000, guid: 68d164fe9b971f140bb15ab9fb87ceb6, type: 2}
+  - {fileID: 11400000, guid: a39c33cb87fc18f4086d520aa91f5941, type: 2}
+  - {fileID: 11400000, guid: abf85328529ab2542a877834c2fd48ee, type: 2}
+  - {fileID: 11400000, guid: 4eb0a970b5c0f2740b10bbd4413f91f9, type: 2}
+  - {fileID: 11400000, guid: 84fc27c19d0eacf429251d21c1b1be13, type: 2}
+  - {fileID: 11400000, guid: c962d85cb1ae02d47b40f995c5180d8a, type: 2}
+  - {fileID: 11400000, guid: 8d8001752d92e8645becb19c0a754bfe, type: 2}
+  - {fileID: 11400000, guid: e58970047e982864f85114887922b07a, type: 2}
+  - {fileID: 11400000, guid: f00d686caccbb624e8c7d1bd6630d48c, type: 2}
+  - {fileID: 11400000, guid: a27b02fd12260d549b04fa68c9ce24e5, type: 2}
+  - {fileID: 11400000, guid: de2d2a2cea5a19644a2e12915adae811, type: 2}
+  - {fileID: 11400000, guid: dde43716bf968394791d2408e99093f2, type: 2}
+  fixedEvents:
+  - stage: 67
+    eventDefinition: {fileID: 11400000, guid: af5b33a67ac6a0c4e999242fff4ddf18, type: 2}

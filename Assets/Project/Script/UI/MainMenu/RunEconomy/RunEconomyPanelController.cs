@@ -18,6 +18,8 @@ namespace PowerMath.UI.MainMenu
         private readonly PlayerHubPanelController _playerHub;
         private readonly PetGachaPanelController _petGacha;
         private readonly CryptoPetGachaRandomSource _petGachaRandom;
+        private readonly IMainMenuPanelHost _panelHost;
+        private readonly Action _refreshCombatPresentation;
 
         public RunEconomyPanelController(
             MonoBehaviour host,
@@ -36,12 +38,16 @@ namespace PowerMath.UI.MainMenu
             IMainMenuPanelHost panelHost,
             IMainMenuInteractionGate interactionGate = null,
             ActorPresentationController playerActor = null,
-            RewardMagnetFeedbackPlayer rewardMagnet = null)
+            RewardMagnetFeedbackPlayer rewardMagnet = null,
+            FloatingRewardTextService floatingRewardText = null,
+            Action refreshCombatPresentation = null)
         {
             if (host == null) throw new ArgumentNullException(nameof(host));
             if (root == null) throw new ArgumentNullException(nameof(root));
             if (player == null) throw new ArgumentNullException(nameof(player));
             if (panelHost == null) throw new ArgumentNullException(nameof(panelHost));
+            _panelHost = panelHost;
+            _refreshCombatPresentation = refreshCombatPresentation;
 
             PetGachaCatalog petCatalog = null;
             IPetGachaCommandStore petStore = null;
@@ -88,11 +94,16 @@ namespace PowerMath.UI.MainMenu
             {
                 try
                 {
+                    int maxWeaponLevel = catalog != null && catalog.MaximumLevel > 0
+                        ? catalog.MaximumLevel
+                        : WeaponAscensionPolicy.DefaultMaximumLevel;
                     store = new FirestoreProgressionCommandStore(
                         settings,
                         player,
                         questions,
-                        baseWeaponAttack);
+                        baseWeaponAttack,
+                        maxWeaponLevel,
+                        petCatalog);
                 }
                 catch (Exception exception)
                 {
@@ -122,7 +133,8 @@ namespace PowerMath.UI.MainMenu
                 interactionGate,
                 playerActor,
                 reducedMotion,
-                rewardMagnet);
+                rewardMagnet,
+                floatingRewardText);
             _playerHub = new PlayerHubPanelController(
                 host,
                 root,
@@ -153,14 +165,23 @@ namespace PowerMath.UI.MainMenu
                 reducedMotion,
                 unavailableReason,
                 panelHost);
+            _panelHost.PanelClosed += OnPanelClosed;
         }
 
         public void Dispose()
         {
+            _panelHost.PanelClosed -= OnPanelClosed;
             _settlement.Dispose();
             _playerHub.Dispose();
             _petGacha.Dispose();
             _petGachaRandom?.Dispose();
+        }
+
+        private void OnPanelClosed(MainMenuPanelId panelId)
+        {
+            if (panelId == MainMenuPanelId.PetGacha ||
+                panelId == MainMenuPanelId.PlayerHub)
+                _refreshCombatPresentation?.Invoke();
         }
 
         public void NotifyTerminalPresentationCompleted(CombatPhase phase)

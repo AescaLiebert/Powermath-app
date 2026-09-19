@@ -57,6 +57,7 @@ namespace PowerMath.UI.Core
 
             Root.EnableInClassList("is-hidden", false);
             Root.style.display = DisplayStyle.Flex;
+            Root.style.visibility = Visibility.Visible;
             Root.pickingMode = PickingMode.Ignore;
             State = UiMotionState.Entering;
             ApplyCurrent();
@@ -181,6 +182,7 @@ namespace PowerMath.UI.Core
             _offsetY = 0f;
             Root.EnableInClassList("is-hidden", false);
             Root.style.display = DisplayStyle.Flex;
+            Root.style.visibility = Visibility.Visible;
             Root.pickingMode = PickingMode.Position;
             State = UiMotionState.Idle;
             ApplyCurrent();
@@ -193,6 +195,7 @@ namespace PowerMath.UI.Core
             _offsetY = 0f;
             Root.EnableInClassList("is-hidden", true);
             Root.style.display = DisplayStyle.None;
+            Root.style.visibility = Visibility.Hidden;
             Root.pickingMode = PickingMode.Ignore;
             State = UiMotionState.Hidden;
             ApplyCurrent();

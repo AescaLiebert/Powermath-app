@@ -24,7 +24,7 @@ namespace PowerMath.Session
             }
             for (int index = 0; index < _settings.LevelDocumentCount; index++)
             {
-                if (!_settings.TryGetLevelDocument(index, out string level, out string grade, out string url) ||
+                if (!_settings.TryGetPlayerDocument(index, credentials.Username, out string level, out string grade, out string url) ||
                     level != account.Value.LevelDocumentId) continue;
                 JsonValue document = null;
                 using (var get = CreateGetRequest(url))

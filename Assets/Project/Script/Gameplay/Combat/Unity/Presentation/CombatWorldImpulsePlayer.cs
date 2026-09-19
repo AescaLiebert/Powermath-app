@@ -26,9 +26,31 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void PlayCritical()
         {
             if (_worldRoot == null || _reducedMotion) return;
-            if (_routine != null) StopCoroutine(_routine);
-            _worldRoot.anchoredPosition = _authoredOrigin;
-            _routine = StartCoroutine(ImpulseRoutine());
+            PlayImpulse(
+                _profile == null ? 0.18f : _profile.CriticalImpulseSeconds,
+                _profile == null ? 14f : _profile.CriticalImpulseAmplitude,
+                _profile == null ? 2 : _profile.CriticalImpulseOscillations,
+                1f);
+        }
+
+        public void PlayNormal()
+        {
+            if (_worldRoot == null || _reducedMotion) return;
+            PlayImpulse(
+                _profile == null ? 0.12f : _profile.NormalImpulseSeconds,
+                _profile == null ? 6f : _profile.NormalImpulseAmplitude,
+                _profile == null ? 1 : _profile.NormalImpulseOscillations,
+                1f);
+        }
+
+        public void PlayPlayerDamage()
+        {
+            if (_worldRoot == null || _reducedMotion) return;
+            PlayImpulse(
+                _profile == null ? 0.14f : _profile.PlayerDamageImpulseSeconds,
+                _profile == null ? 8f : _profile.PlayerDamageImpulseAmplitude,
+                _profile == null ? 1 : _profile.PlayerDamageImpulseOscillations,
+                -1f);
         }
 
         public void CancelAndRestore()
@@ -38,11 +60,27 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (_worldRoot != null) _worldRoot.anchoredPosition = _authoredOrigin;
         }
 
-        private IEnumerator ImpulseRoutine()
+        private void PlayImpulse(
+            float duration,
+            float amplitude,
+            int oscillations,
+            float direction)
         {
-            float duration = _profile == null ? 0.18f : _profile.CriticalImpulseSeconds;
-            float amplitude = _profile == null ? 14f : _profile.CriticalImpulseAmplitude;
-            int oscillations = _profile == null ? 2 : _profile.CriticalImpulseOscillations;
+            if (_routine != null) StopCoroutine(_routine);
+            _worldRoot.anchoredPosition = _authoredOrigin;
+            _routine = StartCoroutine(ImpulseRoutine(
+                duration,
+                amplitude,
+                Mathf.Max(1, oscillations),
+                Mathf.Sign(direction)));
+        }
+
+        private IEnumerator ImpulseRoutine(
+            float duration,
+            float amplitude,
+            int oscillations,
+            float direction)
+        {
             if (duration <= 0f)
             {
                 _routine = null;
@@ -54,7 +92,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                 elapsed += Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
                 float envelope = 1f - t;
-                float x = Mathf.Sin(t * Mathf.PI * 2f * oscillations) * amplitude * envelope;
+                float x = Mathf.Sin(t * Mathf.PI * 2f * oscillations) *
+                    amplitude * envelope * direction;
                 _worldRoot.anchoredPosition = _authoredOrigin + Vector2.right * x;
                 yield return null;
             }

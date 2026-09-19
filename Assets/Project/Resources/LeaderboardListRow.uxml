@@ -1,5 +1,4 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Project/UI/MainMenu/LeaderboardPanel.uss?fileID=7433441132597879392&amp;guid=9cb9d7a720d16eb4db4946f3cbb1a86e&amp;type=3#LeaderboardPanel"/>
     <ui:VisualElement name="leaderboard-row-root" class="leaderboard-row">
         <ui:VisualElement name="leaderboard-row-rank-slot" class="leaderboard-row-rank-slot">
             <ui:Label name="leaderboard-row-rank-number" text="4" class="leaderboard-row-rank-number"/>

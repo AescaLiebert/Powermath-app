@@ -34,7 +34,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (snapshot.IsEvent)
             {
-                AddToken(EnemyActionTokenKind.EventRisk, entering, false, true);
+                AddToken(EnemyActionTokenKind.Flee, entering, false, true);
                 return;
             }
 
@@ -158,6 +158,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                 ? "ATTACK"
                 : kind == EnemyActionTokenKind.EventRisk
                     ? "RISK"
+                    : kind == EnemyActionTokenKind.Flee
+                        ? "FLEE"
                     : "MOVE";
             var token = new Label(text)
             {

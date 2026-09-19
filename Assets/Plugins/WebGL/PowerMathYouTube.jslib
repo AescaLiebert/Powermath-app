@@ -18,6 +18,7 @@ mergeInto(LibraryManager.library, {
     state.awaitingGesture = false;
 
     var resumeUnityAudio = function () {
+      if (state.request && !state.request.completed && !state.answerMode) return;
       try {
         var contexts = [];
         if (typeof WEBAudio !== 'undefined' && WEBAudio.audioContext) contexts.push(WEBAudio.audioContext);
@@ -66,6 +67,7 @@ mergeInto(LibraryManager.library, {
       }
       resumeUnityAudio();
     };
+    state.focusUnityCanvas = focusUnityCanvas;
 
     var sendToUnity = function (targetRequest, method, payload) {
       if (typeof SendMessage !== 'function') return false;
@@ -185,6 +187,10 @@ mergeInto(LibraryManager.library, {
       if (state.iframe) state.iframe.style.pointerEvents = enabled ? 'auto' : 'none';
     };
 
+    var isMobile = typeof navigator !== 'undefined' &&
+      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    var preferredQuality = isMobile ? 'large' : 'hd720';
+
     var createOrLoad = function () {
       if (state.request !== request) return;
       state.player = new YT.Player('powermath-youtube-player', {
@@ -194,14 +200,14 @@ mergeInto(LibraryManager.library, {
         playerVars: {
           autoplay: 1, controls: 1, disablekb: 1, fs: 0,
           rel: 0, playsinline: 1, mute: 0, origin: window.location.origin,
-          vq: 'hd720'
+          vq: preferredQuality
         },
         events: {
           onReady: function (event) {
             if (state.request !== request || request.completed) return;
             if (event.target.setPlaybackQuality) {
               try {
-                event.target.setPlaybackQuality('hd720');
+                event.target.setPlaybackQuality(preferredQuality);
               } catch (e) {}
             }
             var iframe = event.target.getIframe ? event.target.getIframe() : null;
@@ -235,6 +241,7 @@ mergeInto(LibraryManager.library, {
               state.startupTimer = null;
             }
             if (event.data === YT.PlayerState.PLAYING) {
+              state.pauseAttempts = 0;
               try {
                 if (event.target.isMuted && event.target.isMuted()) {
                   event.target.unMute();
@@ -265,8 +272,14 @@ mergeInto(LibraryManager.library, {
               state.startupTimer = window.setTimeout(function () {
                 completeWithError('playback-stalled');
               }, 12000);
+              state.pauseAttempts = (state.pauseAttempts || 0) + 1;
               var pausedPlayer = event.target || state.player;
-              if (pausedPlayer && pausedPlayer.playVideo) pausedPlayer.playVideo();
+              if (state.pauseAttempts <= 2) {
+                if (pausedPlayer && pausedPlayer.playVideo) pausedPlayer.playVideo();
+              } else {
+                state.awaitingGesture = true;
+                setPlayerInteraction(true);
+              }
             }
           },
           onError: function (event) {
@@ -337,7 +350,9 @@ mergeInto(LibraryManager.library, {
         if (state.player.stopVideo) state.player.stopVideo();
       } catch (e) {}
     }
-    if (state.resumeUnityAudio) {
+    if (state.focusUnityCanvas) {
+      state.focusUnityCanvas();
+    } else if (state.resumeUnityAudio) {
       state.resumeUnityAudio();
     }
   },
@@ -352,7 +367,9 @@ mergeInto(LibraryManager.library, {
           if (state.player.stopVideo) state.player.stopVideo();
         } catch (e) {}
       }
-      if (state.resumeUnityAudio) {
+      if (state.focusUnityCanvas) {
+        state.focusUnityCanvas();
+      } else if (state.resumeUnityAudio) {
         state.resumeUnityAudio();
       }
       state.request = null;
@@ -370,6 +387,9 @@ mergeInto(LibraryManager.library, {
       state.startupTimer = null;
       if (state.previousAlign) window.removeEventListener('resize', state.previousAlign);
       state.previousAlign = null;
+      if (state.focusUnityCanvas) {
+        state.focusUnityCanvas();
+      }
     }
     if (overlay) {
       overlay.style.display = 'none';

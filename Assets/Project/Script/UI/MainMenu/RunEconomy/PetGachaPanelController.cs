@@ -16,7 +16,7 @@ namespace PowerMath.UI.MainMenu
         private const int ResultReadableHoldMilliseconds = 600;
 
         private readonly MonoBehaviour _host;
-        private readonly PlayerSnapshot _player;
+        private PlayerSnapshot _player;
         private readonly PetGachaCatalogDefinition _definition;
         private readonly PetGachaCatalog _catalog;
         private readonly IPetGachaCommandStore _store;
@@ -39,13 +39,31 @@ namespace PowerMath.UI.MainMenu
         private readonly ScrollView _oddsList;
         private readonly Label _warning;
         private readonly Label _status;
+        private readonly Button _detailsButton;
+        private readonly Button _detailsClose;
+        private readonly Button _historyButton;
+        private readonly VisualElement _detailsDrawer;
+        private readonly Button _pull1;
+        private readonly Button _pull10;
+        private readonly Label _singlePullLabel;
+        private readonly Label _singlePullCost;
+        private readonly Label _multiPullLabel;
+        private readonly Label _multiPullCost;
+        private readonly bool _multiPullAvailable;
         private readonly Button _pull;
         private readonly VisualElement _confirmation;
+        private readonly Label _confirmationTitle;
         private readonly Label _confirmationSummary;
         private readonly Button _cancel;
         private readonly Button _confirm;
         private readonly VisualElement _result;
-        private readonly VisualElement _resultIcon;
+        private readonly VisualElement _resultSingle;
+        private readonly VisualElement _resultMulti;
+        private readonly Label _multiBalance;
+        private readonly VisualElement _multiGrid;
+        private readonly Button _multiContinue;
+        private readonly Image _resultIcon;
+        private readonly List<VisualElement> _resultStars;
         private readonly Label _resultRarity;
         private readonly Label _resultName;
         private readonly Label _resultState;
@@ -54,6 +72,7 @@ namespace PowerMath.UI.MainMenu
 
         private string _pendingTransactionId;
         private long _previewRevision;
+        private int _selectedPullCount = 1;
         private bool _busy;
         private bool _committed;
 
@@ -92,29 +111,63 @@ namespace PowerMath.UI.MainMenu
             _oddsList = Require<ScrollView>(root, "pet-gacha-odds-list");
             _warning = Require<Label>(root, "pet-gacha-warning");
             _status = Require<Label>(root, "pet-gacha-status");
-            _pull = Require<Button>(root, "pet-gacha-pull");
+            _detailsButton = root.Q<Button>("pet-gacha-details");
+            _detailsClose = root.Q<Button>("pet-gacha-details-close");
+            _historyButton = root.Q<Button>("pet-gacha-history");
+            _detailsDrawer = root.Q<VisualElement>("pet-gacha-details-drawer");
+            _pull1 = root.Q<Button>("pet-gacha-pull-1") ?? root.Q<Button>("pet-gacha-pull");
+            _pull10 = root.Q<Button>("pet-gacha-pull-10");
+            _singlePullLabel = root.Q<Label>("pet-gacha-single-label");
+            _singlePullCost = root.Q<Label>("pet-gacha-single-cost");
+            _multiPullLabel = root.Q<Label>("pet-gacha-multi-label");
+            _multiPullCost = root.Q<Label>("pet-gacha-multi-cost");
+            _multiPullAvailable = _pull10 != null && !_pull10.ClassListContains("hub-lock");
+            _pull = _pull1;
             _confirmation = Require<VisualElement>(root, "pet-gacha-confirmation");
+            _confirmationTitle = root.Q<Label>("pet-gacha-confirmation-title");
             _confirmationSummary = Require<Label>(root, "pet-gacha-confirmation-summary");
             _cancel = Require<Button>(root, "pet-gacha-cancel");
             _confirm = Require<Button>(root, "pet-gacha-confirm");
             _result = Require<VisualElement>(root, "pet-gacha-result");
-            _resultIcon = Require<VisualElement>(root, "pet-gacha-result-icon");
-            _resultRarity = Require<Label>(root, "pet-gacha-result-rarity");
-            _resultName = Require<Label>(root, "pet-gacha-result-name");
-            _resultState = Require<Label>(root, "pet-gacha-result-state");
-            _resultBalance = Require<Label>(root, "pet-gacha-result-balance");
+            _resultSingle = root.Q<VisualElement>("pet-gacha-result-single");
+            _resultMulti = root.Q<VisualElement>("pet-gacha-result-multi");
+            _multiBalance = root.Q<Label>("pet-gacha-result-multi-balance");
+            _multiGrid = root.Q<VisualElement>("pet-gacha-multi-grid");
+            _multiContinue = root.Q<Button>("pet-gacha-multi-continue");
+            _resultIcon = root.Q<Image>("pet-gacha-result-icon");
+            if (_resultIcon != null)
+                _resultIcon.scaleMode = ScaleMode.ScaleToFit;
+            _resultStars = root.Query<VisualElement>(
+                className: "pet-gacha-result-star").ToList();
+            _resultRarity = root.Q<Label>("pet-gacha-result-rarity");
+            _resultName = root.Q<Label>("pet-gacha-result-name");
+            _resultState = root.Q<Label>("pet-gacha-result-state");
+            _resultBalance = root.Q<Label>("pet-gacha-result-balance");
             _continue = Require<Button>(root, "pet-gacha-continue");
 
             _open.clicked += Open;
             _close.clicked += Close;
-            _pull.clicked += BeginConfirmation;
+            if (_detailsButton != null) _detailsButton.clicked += ShowDetails;
+            if (_detailsClose != null) _detailsClose.clicked += HideDetails;
+            if (_historyButton != null) _historyButton.clicked += ShowHistoryUnavailable;
+            if (_pull1 != null) _pull1.clicked += OnPull1Clicked;
+            if (_multiPullAvailable) _pull10.clicked += OnPull10Clicked;
             _cancel.clicked += CancelConfirmation;
             _confirm.clicked += Confirm;
             _continue.clicked += Continue;
+            if (_multiContinue != null) _multiContinue.clicked += Continue;
+            _panelHost.PanelClosed += OnPanelClosed;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
 
             _open.tooltip = "Pet Gacha";
+            if (_historyButton != null)
+                _historyButton.tooltip = "Summon history is coming soon.";
+            if (_pull10 != null && !_multiPullAvailable)
+            {
+                _pull10.SetEnabled(false);
+                _pull10.tooltip = "10x summon is locked in this hub release.";
+            }
             _modal.EnableInClassList("is-reduced-motion", _reducedMotion);
             CloseImmediate();
             RefreshAvailability();
@@ -124,24 +177,45 @@ namespace PowerMath.UI.MainMenu
         {
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
+            _panelHost.PanelClosed -= OnPanelClosed;
             _open.clicked -= Open;
             _close.clicked -= Close;
-            _pull.clicked -= BeginConfirmation;
+            if (_detailsButton != null) _detailsButton.clicked -= ShowDetails;
+            if (_detailsClose != null) _detailsClose.clicked -= HideDetails;
+            if (_historyButton != null) _historyButton.clicked -= ShowHistoryUnavailable;
+            if (_pull1 != null) _pull1.clicked -= OnPull1Clicked;
+            if (_multiPullAvailable) _pull10.clicked -= OnPull10Clicked;
             _cancel.clicked -= CancelConfirmation;
             _confirm.clicked -= Confirm;
             _continue.clicked -= Continue;
+            if (_multiContinue != null) _multiContinue.clicked -= Continue;
             if (_panelHost.OpenPanel == MainMenuPanelId.PetGacha)
                 _panelHost.TryClose(MainMenuPanelId.PetGacha, _open);
         }
 
         private bool IsConfigured => _definition != null && _catalog != null && _store != null;
 
+        private bool IsFirstGachaPull =>
+            _player?.economy == null ||
+            (!_player.economy.firstGachaPullCompleted &&
+             string.IsNullOrEmpty(_player.economy.lastPetGachaTransactionId));
+
         private void OnPlayerChanged(PlayerSnapshot player)
         {
             if (player == null || _busy) return;
+            _player = player;
             RefreshAvailability();
             if (_modal.resolvedStyle.display != DisplayStyle.None && !_committed)
                 RenderPreview();
+        }
+
+        private void OnPanelClosed(MainMenuPanelId panelId)
+        {
+            if (panelId != MainMenuPanelId.PetGacha) return;
+            _modal.style.display = DisplayStyle.None;
+            _modal.style.visibility = Visibility.Hidden;
+            _modal.EnableInClassList("is-hidden", true);
+            HideDetails();
         }
 
         private void RefreshAvailability()
@@ -166,7 +240,7 @@ namespace PowerMath.UI.MainMenu
             _open.SetEnabled(IsConfigured && safe && !_busy);
             _open.tooltip = IsConfigured
                 ? safe
-                    ? "Spend Power Coins on one transparent pet pull."
+                    ? "Spend Power Coins on transparent 1x or 10x pet pulls."
                     : "Finish the current question or run settlement first."
                 : string.IsNullOrEmpty(_unavailableReason)
                     ? "Pet Gacha content is not configured."
@@ -188,6 +262,7 @@ namespace PowerMath.UI.MainMenu
                     _open)) return;
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
+            HideDetails();
             _status.text = string.Empty;
             _committed = false;
             _pendingTransactionId = string.Empty;
@@ -212,6 +287,7 @@ namespace PowerMath.UI.MainMenu
             }
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
+            HideDetails();
             _pendingTransactionId = string.Empty;
             _committed = false;
             SetSemanticState();
@@ -222,38 +298,67 @@ namespace PowerMath.UI.MainMenu
             if (!IsConfigured)
             {
                 _status.text = _unavailableReason;
-                _pull.SetEnabled(false);
+                _pull1?.SetEnabled(false);
+                _pull10?.SetEnabled(false);
                 return;
             }
 
             _previewRevision = Math.Max(0, _player.revision);
             long coins = Math.Max(0, _player.wallet?.powerCoins ?? 0);
             _balance.text = coins.ToString("N0");
-            _cost.text = $"ONE PULL: {PetGachaTransactionPolicy.PullCost:N0} POWER COINS";
-            _projectedBalance.text = coins >= PetGachaTransactionPolicy.PullCost
-                ? $"AFTER PULL: {coins - PetGachaTransactionPolicy.PullCost:N0}"
-                : $"NEED {PetGachaTransactionPolicy.PullCost - coins:N0} MORE";
+            long singleCost = PetGachaTransactionPolicy.SinglePullCost;
+            long multiCost = PetGachaTransactionPolicy.MultiPullCost;
+            if (_singlePullLabel != null) _singlePullLabel.text = "x1";
+            if (_singlePullCost != null) _singlePullCost.text = singleCost.ToString("N0");
+            if (_multiPullLabel != null)
+                _multiPullLabel.text = $"x{PetGachaTransactionPolicy.MultiPullCount}";
+            if (_multiPullCost != null) _multiPullCost.text = multiCost.ToString("N0");
+            _cost.text = $"1x: {singleCost:N0} PC  |  10x: {multiCost:N0} PC";
+            _projectedBalance.text = coins >= singleCost
+                ? $"AFTER PULL: {coins - singleCost:N0} PC"
+                : $"NEED {singleCost - coins:N0} MORE";
+
             _catalogStatus.text = $"CURRENT ODDS - CATALOG {_catalog.Version}";
-            _warning.text =
-                "Owned pets can be pulled again. A duplicate grants no levels, items, or compensation.";
+            bool isFirst = IsFirstGachaPull;
+            _warning.text = isFirst
+                ? "FIRST PULL GUARANTEE: SSR Sapphire! " +
+                  "10x guarantees SR or better. SSR hard pity: " +
+                  $"{Math.Max(0, _player.economy?.petGachaPullsSinceSsr ?? 0)}/90. " +
+                  "Duplicate pets stack by count."
+                : "10x guarantees SR or better. SSR hard pity: " +
+                  $"{Math.Max(0, _player.economy?.petGachaPullsSinceSsr ?? 0)}/90. " +
+                  "Duplicate pets stack by count.";
             RenderOdds(GetOwnedPetIds());
 
-            if (!CanPull(out string reason))
+            bool canPull = CanPull(out string reason);
+            if (!canPull)
             {
-                _pull.SetEnabled(false);
+                _pull1?.SetEnabled(false);
+                _pull10?.SetEnabled(false);
                 _status.text = reason;
                 return;
             }
-            if (coins < PetGachaTransactionPolicy.PullCost)
+
+            bool canAfford1 = coins >= singleCost;
+            if (_pull1 != null)
             {
-                _pull.SetEnabled(false);
-                _status.text =
-                    $"You need {PetGachaTransactionPolicy.PullCost - coins:N0} more Power Coins.";
-                return;
+                if (_singlePullLabel == null) _pull1.text = $"1x PULL ({singleCost:N0})";
+                _pull1.SetEnabled(canAfford1);
             }
-            _pull.text = $"PULL FOR {PetGachaTransactionPolicy.PullCost}";
-            _pull.SetEnabled(true);
-            _status.text = string.Empty;
+            if (_pull10 != null)
+            {
+                if (_multiPullLabel == null) _pull10.text = $"10x PULL ({multiCost:N0})";
+                _pull10.SetEnabled(_multiPullAvailable && coins >= multiCost);
+            }
+
+            if (!canAfford1)
+            {
+                _status.text = $"You need {singleCost - coins:N0} more Power Coins.";
+            }
+            else
+            {
+                _status.text = string.Empty;
+            }
         }
 
         private void RenderOdds(IReadOnlyCollection<string> ownedPetIds)
@@ -288,25 +393,72 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
-        private void BeginConfirmation()
+        private void OnPull1Clicked() => BeginConfirmation(1);
+        private void OnPull10Clicked()
         {
+            if (!_multiPullAvailable)
+            {
+                _status.text = "10x summon is locked in this hub release.";
+                Play(_definition?.ErrorClip);
+                return;
+            }
+            BeginConfirmation(PetGachaTransactionPolicy.MultiPullCount);
+        }
+
+        private void ShowDetails()
+        {
+            if (_detailsDrawer == null || _busy || _committed) return;
+            _detailsDrawer.RemoveFromClassList("is-hidden");
+            _detailsDrawer.style.display = DisplayStyle.Flex;
+            _detailsDrawer.Focus();
+        }
+
+        private void HideDetails()
+        {
+            if (_detailsDrawer == null) return;
+            _detailsDrawer.AddToClassList("is-hidden");
+            _detailsDrawer.style.display = DisplayStyle.None;
+        }
+
+        private void ShowHistoryUnavailable()
+        {
+            _status.text = "Summon history is coming soon.";
+        }
+
+        private void BeginConfirmation(int pullCount = 1)
+        {
+            _selectedPullCount = pullCount;
             if (!CanPull(out string reason))
             {
                 _status.text = reason;
                 Play(_definition?.ErrorClip);
                 return;
             }
+            long totalCost = PetGachaTransactionPolicy.GetCost(_selectedPullCount);
             long coins = Math.Max(0, _player.wallet?.powerCoins ?? 0);
-            if (coins < PetGachaTransactionPolicy.PullCost)
+            if (coins < totalCost)
             {
                 RenderPreview();
                 Play(_definition?.ErrorClip);
                 return;
             }
+            if (_confirmationTitle != null)
+            {
+                _confirmationTitle.text = _selectedPullCount > 1
+                    ? $"CONFIRM {_selectedPullCount}x PULL"
+                    : "CONFIRM 1x PULL";
+            }
+            bool isFirst = IsFirstGachaPull;
             _confirmationSummary.text =
-                $"Spend {PetGachaTransactionPolicy.PullCost} Power Coins?\n" +
-                $"Balance: {coins:N0} -> {coins - PetGachaTransactionPolicy.PullCost:N0}\n" +
-                "Duplicates grant no pet changes or compensation.";
+                $"Spend {totalCost:N0} Power Coins for {_selectedPullCount} pull{(_selectedPullCount > 1 ? "s" : "")}?\n" +
+                $"Balance: {coins:N0} -> {coins - totalCost:N0}\n" +
+                (isFirst
+                    ? "★ FIRST PULL BONUS: Guaranteed SSR Sapphire!\n"
+                    : string.Empty) +
+                (_selectedPullCount == PetGachaTransactionPolicy.MultiPullCount
+                    ? "Guarantees at least one SR or SSR. SSR is guaranteed by pull 90.\n"
+                    : string.Empty) +
+                "Duplicates will stack by count in your pet inventory.";
             _confirmation.style.display = DisplayStyle.Flex;
             _result.style.display = DisplayStyle.None;
             _confirmation.Focus();
@@ -375,6 +527,8 @@ namespace PowerMath.UI.MainMenu
             _close.SetEnabled(false);
             _cancel.SetEnabled(false);
             _confirm.SetEnabled(false);
+            _pull1?.SetEnabled(false);
+            _pull10?.SetEnabled(false);
             _status.text = PowerMath.Localization.LocalizationService.Get("menu.savingPull");
             _confirmationSummary.text =
                 "Saving this pull…\nYour result will appear after the transaction is accepted.";
@@ -387,7 +541,8 @@ namespace PowerMath.UI.MainMenu
             var command = new PetGachaCommand(
                 _pendingTransactionId,
                 _catalog.Version,
-                _previewRevision);
+                _previewRevision,
+                _selectedPullCount);
             yield return _store.Pull(
                 command,
                 value =>
@@ -461,33 +616,22 @@ namespace PowerMath.UI.MainMenu
             _result.EnableInClassList("pet-gacha-result--new", receipt.WasNew);
             _result.EnableInClassList("pet-gacha-result--duplicate", !receipt.WasNew);
             _continue.SetEnabled(false);
+            if (_multiContinue != null) _multiContinue.SetEnabled(false);
             _close.SetEnabled(false);
-            _resultBalance.text = $"POWER COINS: {receipt.ResultingPowerCoins:N0}";
 
-            if (_definition != null &&
-                _definition.TryResolvePet(
-                    receipt.PetId,
-                    out PetDefinition pet,
-                    out PetGachaCatalogDefinition.RarityContent rarity))
+            if (receipt.Results.Count > 1)
             {
-                _resultName.text = pet.DisplayName.ToUpperInvariant();
-                _resultRarity.text = rarity.displayName.ToUpperInvariant();
-                _resultRarity.style.color = rarity.displayColor;
-                _resultIcon.style.backgroundImage = new StyleBackground(pet.Icon);
+                if (_resultSingle != null) _resultSingle.style.display = DisplayStyle.None;
+                if (_resultMulti != null) _resultMulti.style.display = DisplayStyle.Flex;
+                RenderMultiResults(receipt);
             }
             else
             {
-                _resultName.text = receipt.PetId.ToUpperInvariant();
-                _resultRarity.text = PowerMath.Localization.LocalizationService.Get("menu.pet");
-                _resultIcon.style.backgroundImage = StyleKeyword.None;
+                if (_resultMulti != null) _resultMulti.style.display = DisplayStyle.None;
+                if (_resultSingle != null) _resultSingle.style.display = DisplayStyle.Flex;
+                RenderSingleResult(receipt);
             }
 
-            _resultState.text = receipt.WasNew
-                ? "NEW PET - OWNERSHIP SAVED"
-                : "DUPLICATE - NO PET CHANGES";
-            _status.text = receipt.WasNew
-                ? "Your new pet is now part of your permanent collection."
-                : "This was an empty duplicate. No level, item, or compensation was granted.";
             Play(receipt.WasNew ? _definition?.NewPetClip : _definition?.DuplicateClip);
 
             if (!_reducedMotion)
@@ -500,9 +644,133 @@ namespace PowerMath.UI.MainMenu
             _continue.schedule.Execute(() =>
                 {
                     _continue.SetEnabled(true);
+                    if (_multiContinue != null) _multiContinue.SetEnabled(true);
                     _close.SetEnabled(true);
                 })
                 .StartingIn(ResultReadableHoldMilliseconds);
+        }
+
+        private void RenderSingleResult(PetGachaReceipt receipt)
+        {
+            if (_resultBalance != null)
+                _resultBalance.text = $"POWER COINS: {receipt.ResultingPowerCoins:N0}";
+
+            if (_definition != null &&
+                _definition.TryResolvePet(
+                    receipt.PetId,
+                    out PetDefinition pet,
+                    out PetGachaCatalogDefinition.RarityContent rarity))
+            {
+                if (_resultName != null) _resultName.text = pet.DisplayName.ToUpperInvariant();
+                if (_resultRarity != null)
+                {
+                    _resultRarity.text = rarity.displayName.ToUpperInvariant();
+                    _resultRarity.style.color = rarity.displayColor;
+                }
+                RenderShowcaseStars(rarity.showcaseStarCount);
+                if (_resultIcon != null)
+                    _resultIcon.sprite = pet.PreviewSprite;
+            }
+            else
+            {
+                if (_resultName != null) _resultName.text = receipt.PetId.ToUpperInvariant();
+                if (_resultRarity != null) _resultRarity.text = PowerMath.Localization.LocalizationService.Get("menu.pet");
+                RenderShowcaseStars(_resultStars.Count);
+                if (_resultIcon != null) _resultIcon.sprite = null;
+            }
+
+            if (_resultState != null)
+            {
+                _resultState.text = receipt.WasNew
+                    ? "NEW ✦"
+                    : "DUPLICATE";
+            }
+            _status.text = receipt.WasNew
+                ? "Your new pet is now part of your permanent collection."
+                : "This pet was already owned. Inventory count incremented.";
+        }
+
+        private void RenderShowcaseStars(int requestedCount)
+        {
+            int visibleCount = Mathf.Clamp(requestedCount, 0, _resultStars.Count);
+            for (int i = 0; i < _resultStars.Count; i++)
+            {
+                _resultStars[i].style.display = i < visibleCount
+                    ? DisplayStyle.Flex
+                    : DisplayStyle.None;
+            }
+        }
+
+        private void RenderMultiResults(PetGachaReceipt receipt)
+        {
+            if (_multiBalance != null)
+                _multiBalance.text = $"POWER COINS: {receipt.ResultingPowerCoins:N0}";
+
+            if (_multiGrid == null) return;
+            _multiGrid.Clear();
+
+            int newCount = 0;
+            foreach (PetGachaResult roll in receipt.Results)
+            {
+                if (roll.WasNew) newCount++;
+
+                var card = new VisualElement();
+                card.AddToClassList("pet-gacha-multi-card");
+
+                var badge = new Label();
+                badge.AddToClassList("pet-gacha-multi-card-badge");
+                if (roll.WasNew)
+                {
+                    badge.text = "NEW!";
+                    badge.AddToClassList("pet-gacha-badge--new");
+                }
+                else
+                {
+                    badge.text = "DUPE";
+                    badge.AddToClassList("pet-gacha-badge--duplicate");
+                }
+
+                var icon = new VisualElement();
+                icon.AddToClassList("pet-gacha-multi-card-icon");
+
+                var rarityLabel = new Label();
+                rarityLabel.AddToClassList("pet-gacha-multi-card-rarity");
+
+                var name = new Label();
+                name.AddToClassList("pet-gacha-multi-card-name");
+
+                if (_definition != null &&
+                    _definition.TryResolvePet(
+                        roll.PetId,
+                        out PetDefinition pet,
+                        out PetGachaCatalogDefinition.RarityContent rarity))
+                {
+                    name.text = pet.DisplayName;
+                    rarityLabel.text = rarity.displayName.ToUpperInvariant();
+                    rarityLabel.style.color = rarity.displayColor;
+                    card.style.borderTopColor = rarity.displayColor;
+                    card.style.borderBottomColor = rarity.displayColor;
+                    card.style.borderLeftColor = rarity.displayColor;
+                    card.style.borderRightColor = rarity.displayColor;
+                    if (pet.Icon != null && pet.Icon.texture != null)
+                        icon.style.backgroundImage = new StyleBackground(pet.Icon.texture);
+                }
+                else
+                {
+                    name.text = roll.PetId;
+                    rarityLabel.text = roll.RarityId.ToUpperInvariant();
+                }
+
+                card.Add(badge);
+                card.Add(icon);
+                card.Add(rarityLabel);
+                card.Add(name);
+                _multiGrid.Add(card);
+            }
+
+            _status.text = newCount > 0
+                ? $"Acquired {newCount} new pet(s)! All items stacked to inventory."
+                : "All duplicate pets stacked to inventory.";
         }
 
         private void Continue()

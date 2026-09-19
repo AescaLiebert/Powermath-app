@@ -5,7 +5,10 @@ namespace PowerMath.Session
 {
     public static class PlayerDefaultsPlanner
     {
-        public static FirestorePatchPlan Plan(JsonValue studentValue, string username)
+        public static FirestorePatchPlan Plan(JsonValue studentValue, string username) =>
+            Plan(studentValue, username, customRoot: null);
+
+        public static FirestorePatchPlan Plan(JsonValue studentValue, string username, string[] customRoot)
         {
             if (!FirestoreJsonNavigator.TryGetMapFields(studentValue, out JsonValue studentFields))
             {
@@ -14,7 +17,7 @@ namespace PowerMath.Session
 
             int storedVersion = PlayerSaveContract.Inspect(studentValue, out bool isNewPlayer);
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { username, "gamedata" };
+            string[] root = customRoot ?? new[] { "gamedata" };
             studentFields.TryGet("gamedata", out JsonValue gameDataValue);
             FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData);
 
@@ -38,6 +41,7 @@ namespace PowerMath.Session
             AddString(builder, root, gameData, new[] { "onboarding", "completionOperationId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "tutorial", "version" }, 1);
             AddString(builder, root, gameData, new[] { "tutorial", "checkpointId" }, string.Empty);
+            AddEmptyMap(builder, root, gameData, "tutorialMap");
             AddInteger(builder, root, gameData, "revision", 0);
             AddString(builder, root, gameData, new[] { "profile", "displayName" }, username);
             AddString(builder, root, gameData, new[] { "profile", "iconId" }, "avatar-default");
@@ -72,6 +76,7 @@ namespace PowerMath.Session
             AddString(builder, root, gameData, new[] { "activeRun", "questionContentKind" }, string.Empty);
             AddString(builder, root, gameData, new[] { "activeRun", "questionDocumentId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "activeRun", "questionId" }, 0);
+            AddString(builder, root, gameData, new[] { "activeRun", "questionContentId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "activeRun", "eventAttemptOrdinal" }, 0);
             AddString(builder, root, gameData, new[] { "activeRun", "enemyId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "activeRun", "enemyCurrentHp" }, 0);
@@ -85,6 +90,7 @@ namespace PowerMath.Session
             AddInteger(builder, root, gameData, new[] { "activeRun", "goldEarned" }, 0);
             AddInteger(builder, root, gameData, new[] { "activeRun", "diamondEarned" }, 0);
             AddInteger(builder, root, gameData, new[] { "activeRun", "bonusMultiplierBasisPoints" }, 10000);
+            AddBoolean(builder, root, gameData, new[] { "activeRun", "wasTeleported" }, false);
             AddString(builder, root, gameData, new[] { "economy", "lastWeaponAscendTransactionId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "economy", "lastWeaponAscendLevel" }, 0);
             AddInteger(builder, root, gameData, new[] { "economy", "lastWeaponAscendCost" }, 0);
@@ -94,8 +100,13 @@ namespace PowerMath.Session
             AddBoolean(builder, root, gameData, new[] { "economy", "lastPetGachaWasNew" }, false);
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaCost" }, 0);
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaResultingPowerCoins" }, 0);
+            AddInteger(builder, root, gameData, new[] { "economy", "petGachaPullsSinceSsr" }, 0);
+            AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaPreviousPityCount" }, 0);
+            AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaResultingPityCount" }, 0);
+            AddEmptyArray(builder, root, gameData, new[] { "economy", "lastPetGachaResults" });
             AddString(builder, root, gameData, new[] { "economy", "lastPetEquipTransactionId" }, string.Empty);
             AddString(builder, root, gameData, new[] { "economy", "lastPetEquipPetId" }, string.Empty);
+            AddBoolean(builder, root, gameData, new[] { "economy", "firstGachaPullCompleted" }, false);
             AddString(builder, root, gameData, new[] { "lastRunSettlement", "runId" }, string.Empty);
             AddString(builder, root, gameData, new[] { "lastRunSettlement", "type" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "lastRunSettlement", "stageReached" }, 0);
@@ -105,6 +116,7 @@ namespace PowerMath.Session
             AddInteger(builder, root, gameData, new[] { "lastRunSettlement", "resultingPowerCoins" }, 0);
             AddInteger(builder, root, gameData, new[] { "academic", "auditScore" }, 0);
             AddInteger(builder, root, gameData, new[] { "academic", "auditResolvedCount" }, 0);
+            AddInteger(builder, root, gameData, new[] { "academic", "auditCorrectCount" }, 0);
             AddNull(builder, root, gameData, new[] { "academic", "activeAttempt" });
             foreach (string rank in new[] { "silver", "gold", "diamond" })
             {
@@ -165,6 +177,14 @@ namespace PowerMath.Session
             if (!HasPath(fields, path)) builder.AddEmptyArray(Combine(root, path));
             else if (!FirestoreJsonNavigator.TryGetArrayValues(ReadLeaf(fields, path), out _))
                 throw new FormatException("Invalid array in player data: " + string.Join(".", path));
+        }
+        private static void AddEmptyMap(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string name) =>
+            AddEmptyMap(builder, root, fields, new[] { name });
+        private static void AddEmptyMap(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path)
+        {
+            if (!HasPath(fields, path)) builder.AddEmptyMap(Combine(root, path));
+            else if (!FirestoreJsonNavigator.TryGetMapFields(ReadLeaf(fields, path), out _))
+                throw new FormatException("Invalid map in player data: " + string.Join(".", path));
         }
         private static void AddNull(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path)
         {

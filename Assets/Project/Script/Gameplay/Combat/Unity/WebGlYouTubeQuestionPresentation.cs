@@ -14,6 +14,7 @@ namespace PowerMath.Gameplay.Combat.Unity
     {
         private Action<QuestionPresentationResult> _completed;
         private int _generation;
+        private int _savedTargetFrameRate = -1;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
@@ -28,6 +29,24 @@ namespace PowerMath.Gameplay.Combat.Unity
         [DllImport("__Internal")]
         private static extern void PowerMathYouTubeSetAnswerMode();
 #endif
+
+        private void ThrottleFrameRateForVideo()
+        {
+            if (_savedTargetFrameRate < 0)
+            {
+                _savedTargetFrameRate = Application.targetFrameRate;
+                Application.targetFrameRate = 15;
+            }
+        }
+
+        private void RestoreFrameRateAfterVideo()
+        {
+            if (_savedTargetFrameRate >= 0)
+            {
+                Application.targetFrameRate = _savedTargetFrameRate;
+                _savedTargetFrameRate = -1;
+            }
+        }
 
         public void Begin(
             QuestionPresentationDescriptor question,
@@ -44,6 +63,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
+            ThrottleFrameRateForVideo();
             PowerMathYouTubeShow(gameObject.name, question.YouTubeVideoId, generation);
 #else
             CompleteUnavailable(generation, "Embedded YouTube playback requires a WebGL build.");
@@ -59,6 +79,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public void Dismiss()
         {
+            RestoreFrameRateAfterVideo();
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathYouTubeHide();
 #endif
@@ -68,12 +89,14 @@ namespace PowerMath.Gameplay.Combat.Unity
         private void OnDisable()
         {
             Cancel();
+            RestoreFrameRateAfterVideo();
         }
 
         // Invoked by Assets/Plugins/WebGL/PowerMathYouTube.jslib.
         public void OnYouTubeEnded(string generationText)
         {
             if (!TryMatchGeneration(generationText, out int generation)) return;
+            RestoreFrameRateAfterVideo();
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathYouTubeSetAnswerMode();
 #endif
@@ -111,6 +134,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private void CompleteUnavailable(int generation, string message)
         {
             if (generation != _generation) return;
+            RestoreFrameRateAfterVideo();
 #if UNITY_WEBGL && !UNITY_EDITOR
             PowerMathYouTubeHide();
 #endif

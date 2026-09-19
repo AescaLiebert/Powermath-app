@@ -33,7 +33,7 @@ namespace PowerMath.Gameplay.Academic
         {
             return new AcademicProgressionState(
                 ActiveRank,
-                new AuditWindow(Audit.ResolvedCount, Audit.Score),
+                new AuditWindow(Audit.ResolvedCount, Audit.Score, Audit.CorrectCount),
                 Balances,
                 Inventories.Clone()
             );
@@ -48,7 +48,8 @@ namespace PowerMath.Gameplay.Academic
                 Balances,
                 Inventories.Get(AcademicRank.Silver).Export(),
                 Inventories.Get(AcademicRank.Gold).Export(),
-                Inventories.Get(AcademicRank.Diamond).Export()
+                Inventories.Get(AcademicRank.Diamond).Export(),
+                Audit.CorrectCount
             );
         }
 

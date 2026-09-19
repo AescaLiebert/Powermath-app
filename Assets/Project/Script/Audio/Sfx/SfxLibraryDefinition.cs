@@ -195,12 +195,16 @@ namespace PowerMath.Audio
         public UiAnimationSfxStyle FindUiStyle(string styleClass)
         {
             if (string.IsNullOrEmpty(styleClass) || uiStyles == null) return null;
+            string target = styleClass.Trim().TrimStart('.');
             for (int i = 0; i < uiStyles.Length; i++)
             {
-                if (uiStyles[i] != null &&
-                    string.Equals(uiStyles[i].StyleClass, styleClass, StringComparison.OrdinalIgnoreCase))
+                if (uiStyles[i] != null)
                 {
-                    return uiStyles[i];
+                    string candidate = uiStyles[i].StyleClass?.Trim().TrimStart('.');
+                    if (string.Equals(candidate, target, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return uiStyles[i];
+                    }
                 }
             }
             return null;

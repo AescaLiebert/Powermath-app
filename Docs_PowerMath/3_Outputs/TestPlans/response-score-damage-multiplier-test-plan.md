@@ -5,17 +5,17 @@
 GDD references: `@tag:combat-attempt` and `@tag:combat-stats`.
 
 ```text
-ResponseDamageMultiplier = ResponseScore × 0.20
+ResponseDamageMultiplier = ResponseDamagePolicy.GetMultiplier(ResponseScore)
 FinalDamage = round(ComposedCombatDamage × ResponseDamageMultiplier)
 ```
 
-Incorrect and timeout outcomes remain zero damage.
+Incorrect and timeout outcomes remain zero damage. Correct answers never deal below 100% Effective ATK.
 
 ## Automated cases
 
-- Verify scores 1 through 10 map to 20% through 200% in 20-point steps.
-- With composed damage 50, verify resulting damage is 10, 20, 30, 40, 50, 60, 70, 80, 90, and 100.
-- Verify score 5 preserves the previous midpoint-rounding test at 100%.
+- Verify scores 1 through 10 map to 100%, 110%, 120%, 130%, 140%, 150%, 160%, 170%, 180%, and 200%.
+- With composed damage 50, verify resulting damage is 50, 55, 60, 65, 70, 75, 80, 85, 90, and 100.
+- Verify score 1 preserves the previous midpoint-rounding test at 100%.
 - Verify a preparation-period score 10 applies 200% after the Rank multiplier.
 - Verify incorrect and timeout outcomes still produce zero damage and can trigger the enemy counterattack.
 - Verify response score outside 1-10 is rejected for a correct result.

@@ -126,7 +126,7 @@ namespace PowerMath.Gameplay.Academic
             string developmentPrompt,
             string youtubeVideoId = "")
             : this(id, rank, videoUri, developmentPrompt, youtubeVideoId,
-                QuestionContentKind.RankQuestion, string.Empty)
+                QuestionContentKind.RankQuestion, string.Empty, id.ToString())
         {
         }
 
@@ -137,7 +137,8 @@ namespace PowerMath.Gameplay.Academic
             string developmentPrompt,
             string youtubeVideoId,
             QuestionContentKind contentKind,
-            string sourceId)
+            string sourceId,
+            string contentId = "")
         {
             Id = id;
             Rank = rank;
@@ -146,6 +147,7 @@ namespace PowerMath.Gameplay.Academic
             YouTubeVideoId = youtubeVideoId ?? string.Empty;
             ContentKind = contentKind;
             SourceId = sourceId ?? string.Empty;
+            ContentId = string.IsNullOrWhiteSpace(contentId) ? id.ToString() : contentId.Trim();
         }
 
         public QuestionId Id { get; }
@@ -155,5 +157,6 @@ namespace PowerMath.Gameplay.Academic
         public string YouTubeVideoId { get; }
         public QuestionContentKind ContentKind { get; }
         public string SourceId { get; }
+        public string ContentId { get; }
     }
 }

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4f5a6b7c8d9e0f1a2b3c4d5e6f70801, type: 3}
+  m_Name: FloatingRewardTextStyle
+  m_EditorClassIdentifier: 
+  poolCapacity: 8
+  fontAsset: {fileID: 11400000, guid: 0c66c71c8499efd40bcd6fe005f778b4, type: 2}
+  fontMaterial: {fileID: 0}
+  fontSize: 90
+  silverColor: {r: 0.76, g: 0.82, b: 0.89, a: 1}
+  goldColor: {r: 1, g: 0.78, b: 0.25, a: 1}
+  diamondColor: {r: 0.41, g: 0.87, b: 0.95, a: 1}
+  powerCoinColor: {r: 1, g: 0.55, b: 0.05, a: 1}
+  silverIcon: {fileID: 21300000, guid: ac63900fe97682a4bac070effc08d269, type: 3}
+  goldIcon: {fileID: 21300000, guid: 7ac6778b768ae6b4792baa5619425848, type: 3}
+  diamondIcon: {fileID: 21300000, guid: 5452206884f11c442b7cedd0f4e9962d, type: 3}
+  powerCoinIcon: {fileID: 21300000, guid: 0293b2c42305b784eb70f1ca658d2b92, type: 3}
+  popSeconds: 0.26
+  startScale: 0.5
+  overlapOffset: 28
+  burstHeight: 150
+  fallHorizontalDistance: 300
+  dropDistance: 104
+  dropSeconds: 0.82
+  popHoldSeconds: 0.26
+  offscreenPadding: 72
+  rotationalKick: 5
+  flashSeconds: 0.08
+  squashStretchFactor: 0.5
+  spawnJitterX: 28
+  spawnJitterY: 18

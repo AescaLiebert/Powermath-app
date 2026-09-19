@@ -8,16 +8,19 @@ namespace PowerMath.Gameplay.Combat
         private readonly IRandomSource _random;
         private readonly StageProgressionCalculator _stageCalculator;
         private readonly DamageCalculator _damageCalculator;
-        private readonly int _maximumHearts;
-        private readonly double _criticalRate;
-        private readonly double _criticalDamagePercent;
-        private readonly int _effectiveAttack;
+        private readonly int _baseMaximumHearts;
+        private int _maximumHearts;
+        private double _criticalRate;
+        private double _criticalDamagePercent;
+        private int _effectiveAttack;
 
         private StageId _stage;
         private EnemyState _enemy;
         private int _currentHearts;
         private bool _attemptCommitted;
         private CombatPhase _phase;
+
+        public event Action<HeartChangeArgs> HeartChanged;
 
         public LocalCombatEngine(
             StageId startingStage,
@@ -46,6 +49,7 @@ namespace PowerMath.Gameplay.Combat
                 throw new ArgumentOutOfRangeException(nameof(criticalDamagePercent));
             }
 
+            _baseMaximumHearts = maximumHearts;
             _maximumHearts = maximumHearts;
             _currentHearts = maximumHearts;
             _criticalRate = criticalRate;
@@ -88,6 +92,7 @@ namespace PowerMath.Gameplay.Combat
             if (criticalDamagePercent < 0d)
                 throw new ArgumentOutOfRangeException(nameof(criticalDamagePercent));
 
+            _baseMaximumHearts = restored.PlayerMaximumHearts;
             _maximumHearts = restored.PlayerMaximumHearts;
             _currentHearts = restored.PlayerCurrentHearts;
             _criticalRate = criticalRate;
@@ -124,7 +129,6 @@ namespace PowerMath.Gameplay.Combat
                 throw new InvalidOperationException("Combat is not ready for another attempt.");
             }
 
-            _enemy.ConsumeCooldown();
             _attemptCommitted = true;
             _phase = CombatPhase.Committed;
             return CreateSnapshot();
@@ -133,7 +137,6 @@ namespace PowerMath.Gameplay.Combat
         public CombatSnapshot VoidContentFailure()
         {
             EnsureCommittedAttempt();
-            _enemy.RestoreCommittedCooldown();
             _attemptCommitted = false;
             _phase = CombatPhase.EnemyReady;
             return CreateSnapshot();
@@ -219,19 +222,32 @@ namespace PowerMath.Gameplay.Combat
                     _phase = CombatPhase.RunComplete;
                 }
             }
-            else if (_enemy.RemainingCooldown == 0)
-            {
-                enemyAttacked = true;
-                _currentHearts = Math.Max(0, _currentHearts - 1);
-                playerDefeated = _currentHearts == 0;
-                _enemy.ResetCooldown();
-                _phase = playerDefeated
-                    ? CombatPhase.RunDefeat
-                    : CombatPhase.PresentingResult;
-            }
             else
             {
-                _phase = CombatPhase.PresentingResult;
+                // Enemy action ownership starts only after the player's result has
+                // resolved and this exact enemy is known to be alive. A lethal
+                // player turn must never consume an action from the next spawn.
+                _enemy.ConsumeCooldown();
+                if (_enemy.RemainingCooldown == 0)
+                {
+                    enemyAttacked = true;
+                    int prevHearts = _currentHearts;
+                    _currentHearts = Math.Max(0, _currentHearts - 1);
+                    if (_currentHearts != prevHearts)
+                    {
+                        HeartChanged?.Invoke(new HeartChangeArgs(
+                            prevHearts, _currentHearts, _maximumHearts, -1, HeartChangeReason.DamageTaken));
+                    }
+                    playerDefeated = _currentHearts == 0;
+                    _enemy.ResetCooldown();
+                    _phase = playerDefeated
+                        ? CombatPhase.RunDefeat
+                        : CombatPhase.PresentingResult;
+                }
+                else
+                {
+                    _phase = CombatPhase.PresentingResult;
+                }
             }
 
             _attemptCommitted = false;
@@ -263,6 +279,26 @@ namespace PowerMath.Gameplay.Combat
             }
 
             return CreateSnapshot();
+        }
+
+        public void RefreshPlayerStats(PlayerCombatStats stats)
+        {
+            _effectiveAttack = stats.EffectiveAttack;
+            _criticalRate = stats.CriticalRate;
+            _criticalDamagePercent = stats.CriticalDamagePercent;
+            int previousMaximum = _maximumHearts;
+            _maximumHearts = checked(_baseMaximumHearts + stats.BonusMaxHearts);
+            if (_maximumHearts > previousMaximum)
+                _currentHearts = Math.Min(
+                    _maximumHearts,
+                    checked(_currentHearts + _maximumHearts - previousMaximum));
+            else
+                _currentHearts = Math.Min(_currentHearts, _maximumHearts);
+        }
+
+        public void RefreshEventSchedule(EventScheduleSnapshot schedule)
+        {
+            // This single-enemy simulation engine has no Stage Map schedule.
         }
 
         private EnemyState SpawnEnemy()

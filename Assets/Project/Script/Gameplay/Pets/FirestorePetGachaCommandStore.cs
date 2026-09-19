@@ -30,14 +30,20 @@ namespace PowerMath.Gameplay.Pets
             _random = random ?? throw new ArgumentNullException(nameof(random));
 
             int separator = (player.playerId ?? string.Empty).IndexOf(':');
-            if (separator <= 0 || separator >= player.playerId.Length - 1 ||
-                !_settings.TryGetLevelDocumentById(player.playerId.Substring(0, separator), out _url))
+            if (separator <= 0 || separator >= player.playerId.Length - 1)
             {
                 throw new ArgumentException(
                     "Player ID cannot resolve its Firestore document.",
                     nameof(player));
             }
+            string levelId = player.playerId.Substring(0, separator);
             _username = player.playerId.Substring(separator + 1);
+            if (!_settings.TryGetPlayerDocument(levelId, _username, out _url))
+            {
+                throw new ArgumentException(
+                    "Player ID cannot resolve its Firestore document.",
+                    nameof(player));
+            }
         }
 
         public IEnumerator Pull(
@@ -95,15 +101,31 @@ namespace PowerMath.Gameplay.Pets
                     "Finish the current question or run settlement before using Pet Gacha."));
                 yield break;
             }
-            if (state.PowerCoins < PetGachaTransactionPolicy.PullCost)
+            long totalCost;
+            try
+            {
+                totalCost = PetGachaTransactionPolicy.GetCost(command.PullCount);
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                failed?.Invoke(new PetGachaFailure(
+                    PetGachaFailureCode.InvalidSavedState,
+                    exception.Message));
+                yield break;
+            }
+            if (state.PowerCoins < totalCost)
             {
                 ApplyRefreshedState(state);
                 failed?.Invoke(new PetGachaFailure(
                     PetGachaFailureCode.InsufficientFunds,
-                    $"You need {PetGachaTransactionPolicy.PullCost - state.PowerCoins:N0} more Power Coins."));
+                    $"You need {totalCost - state.PowerCoins:N0} more Power Coins."));
                 yield break;
             }
-            if (!TryGetOwnedPets(state.Inventory, out HashSet<string> ownedPetIds, out string inventoryError))
+            if (!TryCanonicalizeInventory(
+                    state.Inventory,
+                    out List<PlayerSnapshot.InventoryItemData> nextInventory,
+                    out Dictionary<string, int> ownedPetCounts,
+                    out string inventoryError))
             {
                 failed?.Invoke(new PetGachaFailure(
                     PetGachaFailureCode.InvalidSavedState,
@@ -111,6 +133,7 @@ namespace PowerMath.Gameplay.Pets
                 yield break;
             }
 
+            bool isFirstPull = !state.FirstGachaPullCompleted;
             PetGachaReceipt receipt;
             try
             {
@@ -118,8 +141,10 @@ namespace PowerMath.Gameplay.Pets
                     command,
                     state.PowerCoins,
                     _catalog,
-                    ownedPetIds,
-                    _random);
+                    ownedPetCounts,
+                    state.PullsSinceSsr,
+                    _random,
+                    isFirstPull);
             }
             catch (Exception exception) when (
                 exception is ArgumentException ||
@@ -132,17 +157,46 @@ namespace PowerMath.Gameplay.Pets
                 yield break;
             }
 
-            List<PlayerSnapshot.InventoryItemData> nextInventory = state.Inventory
-                .Select(Clone).ToList();
-            if (receipt.WasNew)
+            foreach (PetGachaResult roll in receipt.Results)
             {
-                nextInventory.Add(new PlayerSnapshot.InventoryItemData
+                var existingItem = nextInventory.FirstOrDefault(item =>
+                    string.Equals(item.itemId, roll.PetId, StringComparison.OrdinalIgnoreCase));
+                if (existingItem != null)
                 {
-                    itemId = receipt.PetId,
-                    upgradeLevel = 0,
-                    owned = true
-                });
+                    if (existingItem.count != roll.PreviousCount)
+                    {
+                        failed?.Invoke(new PetGachaFailure(
+                            PetGachaFailureCode.InvalidSavedState,
+                            "Gacha receipt count does not match canonical inventory state."));
+                        yield break;
+                    }
+                    existingItem.count = roll.ResultingCount;
+                }
+                else
+                {
+                    if (roll.PreviousCount != 0 || roll.ResultingCount != 1)
+                    {
+                        failed?.Invoke(new PetGachaFailure(
+                            PetGachaFailureCode.InvalidSavedState,
+                            "Gacha receipt count does not match a new inventory entry."));
+                        yield break;
+                    }
+                    nextInventory.Add(new PlayerSnapshot.InventoryItemData
+                    {
+                        itemId = roll.PetId,
+                        upgradeLevel = 0,
+                        owned = true,
+                        count = roll.ResultingCount
+                    });
+                }
             }
+
+            // The first-pull policy owns the guaranteed pet identity. Auto-equip
+            // its first result without duplicating a Sapphire-specific rule here.
+            string nextEquippedPetId = state.EquippedPetId;
+            if (isFirstPull && string.IsNullOrWhiteSpace(nextEquippedPetId) &&
+                receipt.Results.Count > 0)
+                nextEquippedPetId = receipt.Results[0].PetId;
 
             long nextRevision;
             try
@@ -158,11 +212,15 @@ namespace PowerMath.Gameplay.Pets
             }
 
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { _username, "gamedata" };
+            string[] root = { "gamedata" };
             builder.AddInteger(Join(root, "revision"), nextRevision);
             builder.AddInteger(Join(root, "wallet", "powerCoins"), receipt.ResultingPowerCoins);
-            if (receipt.WasNew)
-                builder.AddInventoryArray(Join(root, "inventory"), nextInventory);
+            builder.AddInventoryArray(Join(root, "inventory"), nextInventory);
+            if (!string.Equals(
+                    nextEquippedPetId,
+                    state.EquippedPetId,
+                    StringComparison.OrdinalIgnoreCase))
+                builder.AddString(Join(root, "loadout", "petId"), nextEquippedPetId);
             builder.AddString(Join(root, "economy", "lastPetGachaTransactionId"), receipt.TransactionId);
             builder.AddString(Join(root, "economy", "lastPetGachaCatalogVersion"), receipt.CatalogVersion);
             builder.AddString(Join(root, "economy", "lastPetGachaPetId"), receipt.PetId);
@@ -171,6 +229,21 @@ namespace PowerMath.Gameplay.Pets
             builder.AddInteger(
                 Join(root, "economy", "lastPetGachaResultingPowerCoins"),
                 receipt.ResultingPowerCoins);
+            builder.AddInteger(
+                Join(root, "economy", "petGachaPullsSinceSsr"),
+                receipt.ResultingPityCount);
+            builder.AddInteger(
+                Join(root, "economy", "lastPetGachaPreviousPityCount"),
+                receipt.PreviousPityCount);
+            builder.AddInteger(
+                Join(root, "economy", "lastPetGachaResultingPityCount"),
+                receipt.ResultingPityCount);
+            builder.AddPetGachaResultArray(
+                Join(root, "economy", "lastPetGachaResults"),
+                ToResultData(receipt.Results));
+            builder.AddBoolean(
+                Join(root, "economy", "firstGachaPullCompleted"),
+                true);
 
             bool saved = false;
             PetGachaFailure saveFailure = default;
@@ -188,7 +261,10 @@ namespace PowerMath.Gameplay.Pets
             state.Revision = nextRevision;
             state.PowerCoins = receipt.ResultingPowerCoins;
             state.Inventory = nextInventory.ToArray();
+            state.EquippedPetId = nextEquippedPetId;
+            state.PullsSinceSsr = receipt.ResultingPityCount;
             state.LastReceipt = receipt;
+            state.FirstGachaPullCompleted = true;
             Apply(state, receipt);
             completed?.Invoke(receipt);
         }
@@ -283,12 +359,30 @@ namespace PowerMath.Gameplay.Pets
         {
             state = null;
             error = string.Empty;
-            if (!FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) ||
-                !fields.TryGet(_username, out JsonValue studentValue) ||
-                !FirestoreJsonNavigator.TryGetMapFields(studentValue, out JsonValue student) ||
-                !student.TryGet("gamedata", out JsonValue gameDataValue) ||
-                !FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData) ||
-                !TryReadInteger(gameData, "revision", out long revision) || revision < 0 ||
+            if (!FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields))
+            {
+                if (string.IsNullOrEmpty(error)) error = "Required wallet, inventory, or revision data is invalid.";
+                return false;
+            }
+
+            JsonValue gameData;
+            if (fields.TryGet("gamedata", out JsonValue directGameData) &&
+                FirestoreJsonNavigator.TryGetMapFields(directGameData, out gameData))
+            {
+            }
+            else if (fields.TryGet(_username, out JsonValue studentValue) &&
+                     FirestoreJsonNavigator.TryGetMapFields(studentValue, out JsonValue student) &&
+                     student.TryGet("gamedata", out JsonValue nestedGameData) &&
+                     FirestoreJsonNavigator.TryGetMapFields(nestedGameData, out gameData))
+            {
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(error)) error = "Required wallet, inventory, or revision data is invalid.";
+                return false;
+            }
+
+            if (!TryReadInteger(gameData, "revision", out long revision) || revision < 0 ||
                 !TryGetMap(gameData, "wallet", out JsonValue wallet) ||
                 !TryReadInteger(wallet, "powerCoins", out long powerCoins) || powerCoins < 0 ||
                 !TryMapInventory(gameData, out PlayerSnapshot.InventoryItemData[] inventory, out error))
@@ -299,59 +393,128 @@ namespace PowerMath.Gameplay.Pets
 
             TryGetMap(gameData, "activeRun", out JsonValue activeRun);
             TryGetMap(gameData, "economy", out JsonValue economy);
+            TryGetMap(gameData, "loadout", out JsonValue loadout);
             string transactionId = ReadString(economy, "lastPetGachaTransactionId");
             string catalogVersion = ReadString(economy, "lastPetGachaCatalogVersion");
             string petId = ReadString(economy, "lastPetGachaPetId");
             bool wasNew = ReadBoolean(economy, "lastPetGachaWasNew");
             long cost = ReadInteger(economy, "lastPetGachaCost");
             long resulting = ReadInteger(economy, "lastPetGachaResultingPowerCoins");
+            long pityValue = ReadInteger(economy, "petGachaPullsSinceSsr");
+            if (pityValue < 0 || pityValue >= PetGachaTransactionPolicy.SsrHardPityPulls)
+            {
+                error = "Saved SSR pity progress is invalid.";
+                return false;
+            }
+            long previousPityValue = ReadInteger(economy, "lastPetGachaPreviousPityCount");
+            long resultingPityValue = ReadInteger(economy, "lastPetGachaResultingPityCount");
+            if (previousPityValue < 0 || previousPityValue >= PetGachaTransactionPolicy.SsrHardPityPulls ||
+                resultingPityValue < 0 || resultingPityValue >= PetGachaTransactionPolicy.SsrHardPityPulls)
+            {
+                error = "Saved gacha receipt pity values are invalid.";
+                return false;
+            }
+            int previousPity = (int)previousPityValue;
+            int resultingPity = (int)resultingPityValue;
 
             PetGachaReceipt receipt = default;
-            if (!string.IsNullOrEmpty(transactionId))
+            if (!string.IsNullOrEmpty(transactionId) &&
+                !string.IsNullOrEmpty(catalogVersion) &&
+                !string.IsNullOrEmpty(petId) &&
+                cost > 0 &&
+                resulting >= 0)
             {
-                if (string.IsNullOrEmpty(catalogVersion) || string.IsNullOrEmpty(petId) ||
-                    cost != PetGachaTransactionPolicy.PullCost || resulting < 0 ||
-                    !_catalog.ContainsPet(petId))
+                bool hasFullResults = TryMapGachaResults(
+                    economy,
+                    out PetGachaResult[] results);
+                if (cost == PetGachaTransactionPolicy.MultiPullCost &&
+                    (!hasFullResults || results.Length != PetGachaTransactionPolicy.MultiPullCount))
                 {
-                    error = "The saved Pet Gacha receipt is invalid and requires data repair.";
+                    error = "Saved 10x gacha receipt is incomplete.";
                     return false;
                 }
-                receipt = new PetGachaReceipt(
-                    transactionId,
-                    catalogVersion,
-                    petId,
-                    wasNew,
-                    cost,
-                    resulting);
+                if (hasFullResults && results.Length > 0)
+                {
+                    receipt = new PetGachaReceipt(
+                        transactionId, catalogVersion, results, cost, resulting,
+                        previousPity, resultingPity);
+                }
+                else
+                {
+                    receipt = new PetGachaReceipt(
+                        transactionId, catalogVersion, petId, wasNew, cost, resulting);
+                }
             }
+
+            bool firstGachaPullCompleted = ReadBoolean(economy, "firstGachaPullCompleted") ||
+                !string.IsNullOrEmpty(transactionId);
 
             state = new AuthoritativeState
             {
                 Revision = revision,
                 PowerCoins = powerCoins,
                 Inventory = inventory,
+                EquippedPetId = ReadString(loadout, "petId"),
+                PullsSinceSsr = (int)pityValue,
                 CommittedAttemptId = ReadString(activeRun, "committedAttemptId"),
                 RunPhase = ReadString(activeRun, "phase"),
-                LastReceipt = receipt
+                LastReceipt = receipt,
+                FirstGachaPullCompleted = firstGachaPullCompleted
             };
             return true;
         }
 
-        private bool TryGetOwnedPets(
+        private bool TryCanonicalizeInventory(
             IReadOnlyList<PlayerSnapshot.InventoryItemData> inventory,
-            out HashSet<string> owned,
+            out List<PlayerSnapshot.InventoryItemData> canonicalInventory,
+            out Dictionary<string, int> owned,
             out string error)
         {
-            owned = new HashSet<string>(StringComparer.Ordinal);
+            canonicalInventory = new List<PlayerSnapshot.InventoryItemData>(inventory.Count);
+            owned = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             error = string.Empty;
+            var petsById = new Dictionary<string, PlayerSnapshot.InventoryItemData>(
+                StringComparer.OrdinalIgnoreCase);
             foreach (PlayerSnapshot.InventoryItemData item in inventory)
             {
-                if (item == null || !_catalog.ContainsPet(item.itemId)) continue;
-                if (!item.owned || item.upgradeLevel != 0 || !owned.Add(item.itemId))
+                if (item == null) continue;
+                if (!_catalog.TryGetPet(item.itemId, out PetGachaPet pet))
+                {
+                    canonicalInventory.Add(Clone(item));
+                    continue;
+                }
+                if (!item.owned || item.upgradeLevel != 0)
                 {
                     error = "Saved pet ownership is inconsistent and requires data repair.";
                     return false;
                 }
+                int count = Math.Max(1, item.count);
+
+                if (petsById.TryGetValue(pet.Id, out PlayerSnapshot.InventoryItemData existing))
+                {
+                    try
+                    {
+                        existing.count = checked(existing.count + count);
+                    }
+                    catch (OverflowException)
+                    {
+                        error = "Saved pet copy count exceeds the supported range.";
+                        return false;
+                    }
+                }
+                else
+                {
+                    var canonical = new PlayerSnapshot.InventoryItemData
+                    {
+                        itemId = pet.Id,
+                        upgradeLevel = 0,
+                        owned = true,
+                        count = count
+                    };
+                    petsById.Add(pet.Id, canonical);
+                    canonicalInventory.Add(canonical);
+                }
+                owned[pet.Id] = petsById[pet.Id].count;
             }
             return true;
         }
@@ -385,11 +548,23 @@ namespace PowerMath.Gameplay.Pets
                     error = "Inventory contains an invalid item record.";
                     return false;
                 }
+                int count = 1;
+                if (fields.TryGet("count", out JsonValue countLeaf))
+                {
+                    if (!FirestoreJsonNavigator.TryReadInteger(countLeaf, out long c) ||
+                        c > int.MaxValue)
+                    {
+                        error = "Inventory contains an invalid copy count.";
+                        return false;
+                    }
+                    count = c <= 0 ? 1 : (int)c;
+                }
                 result.Add(new PlayerSnapshot.InventoryItemData
                 {
                     itemId = itemId,
                     owned = owned,
-                    upgradeLevel = (int)level
+                    upgradeLevel = (int)level,
+                    count = count
                 });
             }
             inventory = result.ToArray();
@@ -406,6 +581,11 @@ namespace PowerMath.Gameplay.Pets
             _player.economy.lastPetGachaWasNew = receipt.WasNew;
             _player.economy.lastPetGachaCost = receipt.Cost;
             _player.economy.lastPetGachaResultingPowerCoins = receipt.ResultingPowerCoins;
+            _player.economy.petGachaPullsSinceSsr = receipt.ResultingPityCount;
+            _player.economy.lastPetGachaPreviousPityCount = receipt.PreviousPityCount;
+            _player.economy.lastPetGachaResultingPityCount = receipt.ResultingPityCount;
+            _player.economy.lastPetGachaResults = ToResultData(receipt.Results);
+            _player.economy.firstGachaPullCompleted = true;
         }
 
         private void ApplyRefreshedState(AuthoritativeState state)
@@ -414,6 +594,10 @@ namespace PowerMath.Gameplay.Pets
             _player.wallet = _player.wallet ?? new PlayerSnapshot.WalletData();
             _player.wallet.powerCoins = state.PowerCoins;
             _player.inventory = state.Inventory.Select(Clone).ToArray();
+            _player.loadout = _player.loadout ?? new PlayerSnapshot.LoadoutData();
+            _player.loadout.petId = state.EquippedPetId;
+            _player.economy = _player.economy ?? new PlayerSnapshot.EconomyData();
+            _player.economy.petGachaPullsSinceSsr = state.PullsSinceSsr;
         }
 
         private static PlayerSnapshot.InventoryItemData Clone(PlayerSnapshot.InventoryItemData item) =>
@@ -421,7 +605,8 @@ namespace PowerMath.Gameplay.Pets
             {
                 itemId = item.itemId,
                 upgradeLevel = item.upgradeLevel,
-                owned = item.owned
+                owned = item.owned,
+                count = Math.Max(1, item.count)
             };
 
         private static bool TryGetMap(JsonValue fields, string name, out JsonValue map)
@@ -461,6 +646,52 @@ namespace PowerMath.Gameplay.Pets
         private static bool ReadBoolean(JsonValue fields, string name) =>
             TryReadBoolean(fields, name, out bool value) && value;
 
+        private static PlayerSnapshot.PetGachaResultData[] ToResultData(
+            IReadOnlyList<PetGachaResult> results)
+        {
+            var mapped = new PlayerSnapshot.PetGachaResultData[results?.Count ?? 0];
+            for (int index = 0; index < mapped.Length; index++)
+            {
+                PetGachaResult result = results[index];
+                mapped[index] = new PlayerSnapshot.PetGachaResultData
+                {
+                    petId = result.PetId,
+                    rarityId = result.RarityId,
+                    wasNew = result.WasNew,
+                    previousCount = result.PreviousCount,
+                    resultingCount = result.ResultingCount
+                };
+            }
+            return mapped;
+        }
+
+        private static bool TryMapGachaResults(
+            JsonValue economy,
+            out PetGachaResult[] results)
+        {
+            results = Array.Empty<PetGachaResult>();
+            if (economy == null || !economy.TryGet("lastPetGachaResults", out JsonValue value) ||
+                !FirestoreJsonNavigator.TryGetArrayValues(value, out IReadOnlyList<JsonValue> rows))
+                return false;
+            var mapped = new List<PetGachaResult>(rows.Count);
+            foreach (JsonValue row in rows)
+            {
+                if (!FirestoreJsonNavigator.TryGetMapFields(row, out JsonValue fields) ||
+                    !TryReadString(fields, "petId", out string resultPetId) ||
+                    !TryReadString(fields, "rarityId", out string rarityId) ||
+                    !TryReadBoolean(fields, "wasNew", out bool resultWasNew) ||
+                    !TryReadInteger(fields, "previousCount", out long previous) ||
+                    !TryReadInteger(fields, "resultingCount", out long current) ||
+                    previous < 0 || previous > int.MaxValue ||
+                    current <= 0 || current > int.MaxValue)
+                    return false;
+                mapped.Add(new PetGachaResult(
+                    resultPetId, rarityId, resultWasNew, (int)previous, (int)current));
+            }
+            results = mapped.ToArray();
+            return true;
+        }
+
         private static string[] Join(IReadOnlyList<string> left, params string[] right)
         {
             var result = new string[left.Count + right.Length];
@@ -474,9 +705,12 @@ namespace PowerMath.Gameplay.Pets
             public long Revision;
             public long PowerCoins;
             public PlayerSnapshot.InventoryItemData[] Inventory;
+            public string EquippedPetId;
+            public int PullsSinceSsr;
             public string CommittedAttemptId;
             public string RunPhase;
             public PetGachaReceipt LastReceipt;
+            public bool FirstGachaPullCompleted;
         }
     }
 }

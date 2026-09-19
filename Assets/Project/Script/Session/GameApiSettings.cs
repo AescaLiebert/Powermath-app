@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace PowerMath.Session
 {
@@ -22,13 +23,14 @@ namespace PowerMath.Session
         [SerializeField] private string apiKey = string.Empty;
 
         [Header("Competition Data Layout")]
-        [SerializeField] private string competitionCollection = "competition";
         [SerializeField] private string leaderboardPublicCollection = "leaderboard-public";
-        [SerializeField] private string[] levelDocumentIds =
+        [Tooltip("The collection name for each level (e.g. level-1, level-2, level-3).")]
+        [FormerlySerializedAs("levelDocumentIds")]
+        [SerializeField] private string[] levelCollections =
         {
-            "level1",
-            "level2",
-            "level3"
+            "level-1",
+            "level-2",
+            "level-3"
         };
 
         [Header("Shared Question Firebase Firestore REST")]
@@ -44,6 +46,10 @@ namespace PowerMath.Session
         [SerializeField] private string silverQuestionDocument = "silver";
         [SerializeField] private string goldQuestionDocument = "gold";
         [SerializeField] private string diamondQuestionDocument = "diamond";
+        [Header("Shared Challenge Content")]
+        [SerializeField] private string silverChallengeDocument = "challenge-silver";
+        [SerializeField] private string goldChallengeDocument = "challenge-gold";
+        [SerializeField] private string diamondChallengeDocument = "challenge-diamond";
         [SerializeField] private string[] gradeBands =
         {
             "Grade 4",
@@ -85,9 +91,82 @@ namespace PowerMath.Session
         public bool UseEditorSampleStudent => useEditorSampleStudent;
 #endif
 
-        public int LevelDocumentCount => levelDocumentIds == null
+        public int LevelCollectionCount => levelCollections == null
             ? 0
-            : levelDocumentIds.Length;
+            : levelCollections.Length;
+
+        public int LevelDocumentCount => LevelCollectionCount;
+
+        public bool TryGetLevel(
+            int index,
+            out string levelId,
+            out string gradeBand)
+        {
+            levelId = string.Empty;
+            gradeBand = string.Empty;
+            if (index < 0 || levelCollections == null || gradeBands == null ||
+                index >= levelCollections.Length || index >= gradeBands.Length)
+            {
+                return false;
+            }
+
+            levelId = levelCollections[index]?.Trim();
+            gradeBand = gradeBands[index]?.Trim();
+            return !string.IsNullOrWhiteSpace(levelId) && !string.IsNullOrWhiteSpace(gradeBand);
+        }
+
+        public bool TryGetPlayerDocument(
+            string levelId,
+            string username,
+            out string url)
+        {
+            url = string.Empty;
+            levelId = levelId?.Trim();
+            username = username?.Trim();
+            if (!TryGetRoot(out string root) ||
+                string.IsNullOrWhiteSpace(levelId) ||
+                string.IsNullOrWhiteSpace(username))
+            {
+                return false;
+            }
+
+            url = AppendApiKey(
+                root + "/" + Encode(levelId) + "/" + Encode(username),
+                apiKey
+            );
+            return true;
+        }
+
+        public bool TryGetPlayerDocument(
+            int index,
+            string username,
+            out string levelId,
+            out string gradeBand,
+            out string url)
+        {
+            url = string.Empty;
+            if (!TryGetLevel(index, out levelId, out gradeBand))
+            {
+                return false;
+            }
+
+            return TryGetPlayerDocument(levelId, username, out url);
+        }
+
+        public bool TryGetPlayerDocumentByPlayerId(
+            string playerId,
+            out string url)
+        {
+            url = string.Empty;
+            if (string.IsNullOrWhiteSpace(playerId)) return false;
+            int separator = playerId.IndexOf(':');
+            if (separator <= 0 || separator >= playerId.Length - 1) return false;
+            return TryGetPlayerDocument(
+                playerId.Substring(0, separator),
+                playerId.Substring(separator + 1),
+                out url
+            );
+        }
 
         public bool TryGetLevelDocument(
             int index,
@@ -95,27 +174,19 @@ namespace PowerMath.Session
             out string gradeBand,
             out string url)
         {
-            documentId = string.Empty;
-            gradeBand = string.Empty;
             url = string.Empty;
-            if (index < 0 || levelDocumentIds == null || gradeBands == null ||
-                index >= levelDocumentIds.Length || index >= gradeBands.Length)
+            if (!TryGetLevel(index, out documentId, out gradeBand))
             {
                 return false;
             }
 
-            documentId = levelDocumentIds[index]?.Trim();
-            gradeBand = gradeBands[index]?.Trim();
-            if (!TryGetRoot(out string root) ||
-                string.IsNullOrWhiteSpace(competitionCollection) ||
-                string.IsNullOrWhiteSpace(documentId) ||
-                string.IsNullOrWhiteSpace(gradeBand))
+            if (!TryGetRoot(out string root))
             {
                 return false;
             }
 
             url = AppendApiKey(
-                root + "/" + Encode(competitionCollection) + "/" + Encode(documentId),
+                root + "/" + Encode(documentId),
                 apiKey
             );
             return true;
@@ -157,6 +228,34 @@ namespace PowerMath.Session
                 string.IsNullOrWhiteSpace(questionCollection) ||
                 string.IsNullOrWhiteSpace(documentId))
                 return false;
+            url = AppendApiKey(
+                root + "/" + Encode(questionCollection) + "/" + Encode(documentId),
+                questionApiKey);
+            return true;
+        }
+
+        public bool TryGetChallengeQuestionDocument(
+            string rankName,
+            out string documentId,
+            out string url)
+        {
+            documentId = string.Empty;
+            url = string.Empty;
+            if (string.Equals(rankName, "Silver", StringComparison.OrdinalIgnoreCase))
+                documentId = silverChallengeDocument;
+            else if (string.Equals(rankName, "Gold", StringComparison.OrdinalIgnoreCase))
+                documentId = goldChallengeDocument;
+            else if (string.Equals(rankName, "Diamond", StringComparison.OrdinalIgnoreCase))
+                documentId = diamondChallengeDocument;
+            else
+                return false;
+
+            documentId = documentId?.Trim();
+            if (!TryGetQuestionRoot(out string root) ||
+                string.IsNullOrWhiteSpace(questionCollection) ||
+                string.IsNullOrWhiteSpace(documentId))
+                return false;
+
             url = AppendApiKey(
                 root + "/" + Encode(questionCollection) + "/" + Encode(documentId),
                 questionApiKey);
@@ -250,12 +349,12 @@ namespace PowerMath.Session
         {
             requestTimeoutSeconds = Mathf.Max(1, requestTimeoutSeconds);
 
-            if (levelDocumentIds == null || gradeBands == null ||
-                levelDocumentIds.Length != gradeBands.Length)
+            if (levelCollections == null || gradeBands == null ||
+                levelCollections.Length != gradeBands.Length)
             {
                 PowerMath.Diagnostics.AppLog.Warning(
                     "Session",
-                    "GameApiSettings needs one grade band for each level document."
+                    "GameApiSettings needs one grade band for each level collection."
                 );
             }
         }

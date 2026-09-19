@@ -142,6 +142,10 @@
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
+
+        // Cap mobile devicePixelRatio to prevent massive 2732x2048 framebuffers on Retina iPads
+        // which exhaust WebKit GPU / Jetsam memory limits and crash WKWebView.
+        config.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 1.3);
       }
 
 #if SHOW_DIAGNOSTICS
@@ -167,7 +171,21 @@
           progressBarEmpty.setAttribute("aria-valuenow", percent);
           loadingText.textContent = "Loading " + percent + "%";
         }).then((unityInstance) => {
+          window.unityInstance = unityInstance;
           loadingBar.style.display = "none";
+          var resumeAudio = function () {
+            try {
+              var ctx = (typeof Module !== 'undefined' && Module.WEBAudio && Module.WEBAudio.audioContext) ||
+                        (typeof WEBAudio !== 'undefined' && WEBAudio.audioContext) ||
+                        window.unityAudioContext;
+              if (ctx && ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+                ctx.resume();
+              }
+            } catch (e) {}
+          };
+          ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'click'].forEach(function (evt) {
+            window.addEventListener(evt, resumeAudio, { capture: true, passive: true });
+          });
 #if SHOW_DIAGNOSTICS
           document.getElementById("diagnostics-icon").onclick = () => {
               unityDiagnostics.openDiagnosticsDiv(unityInstance.GetMetricsInfo);

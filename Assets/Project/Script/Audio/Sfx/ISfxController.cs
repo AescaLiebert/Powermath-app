@@ -13,6 +13,8 @@ namespace PowerMath.Audio
         void PlayAuthentication(AuthenticationSfxState state);
         void PlayReward(RewardSfxState state);
         void PlayUiStyle(string ussClassOrStyleKey, bool isClick = true);
+        void PlayPanelOpen();
+        void PlayPanelClose();
         void PlayCue(SfxCueConfig cue, float volumeMultiplier = 1f);
 
         float MasterVolume { get; set; }

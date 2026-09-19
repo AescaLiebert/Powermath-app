@@ -101,8 +101,7 @@ EventDefinition
   eventId / eventKind
   localized title/instructions + fallbacks
   sprite / presentationKey
-  questionDocumentId
-  failurePolicy / auditPolicy / rewardPolicyId / handlerKey
+  audio overrides
 
 FixedEventStageBinding
   stage / eventDefinition
@@ -121,7 +120,7 @@ Editor `OnValidate` gives immediate author feedback; runtime mapping repeats val
 - unique IDs, valid presentation references, and a non-empty normal pool per biome;
 - every boss Stage has exactly one binding in its containing biome;
 - normal monsters use `10000` HP basis points; bosses use positive approved modifiers;
-- each fixed Event has a handler and question document;
+- each fixed Event has a typed Event stage definition; Challenge content mapping is centralized in `GameApiSettings`;
 - normalized map positions and legal Stage limits.
 
 Architecture recommends unique Big-Boss/Final-Boss sprites. Biome Mini-Boss definitions may recur at multiple fixed Mini-Boss Stages, avoiding a requirement for 33 separate assets.

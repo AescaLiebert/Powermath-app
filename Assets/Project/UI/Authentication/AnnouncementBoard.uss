@@ -1,0 +1,301 @@
+.announcement-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.announcement-shield {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(4, 13, 36, 0.72);
+}
+
+.announcement-modal {
+    width: 82%;
+    height: 82%;
+    min-width: 920px;
+    min-height: 560px;
+    max-width: 1380px;
+    max-height: 820px;
+    padding: 0;
+    overflow: hidden;
+    background-color: rgba(255, 251, 240, 0.98);
+    border-width: 3px;
+    border-color: rgba(214, 163, 59, 0.92);
+    border-radius: 30px;
+}
+
+.announcement-header {
+    height: 106px;
+    min-height: 106px;
+    padding: 20px 26px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgb(8, 26, 71);
+    border-bottom-width: 2px;
+    border-bottom-color: rgb(214, 163, 59);
+}
+
+.announcement-header-copy {
+    flex-grow: 1;
+}
+
+.announcement-board-title {
+    color: rgb(255, 251, 240);
+    font-size: 32px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.announcement-kicker {
+    margin-top: 3px;
+    color: rgb(241, 193, 94);
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+.announcement-close-button {
+    min-width: 118px;
+    height: 48px;
+    margin: 0;
+    color: rgb(8, 26, 71);
+    background-color: rgb(255, 251, 240);
+    border-width: 2px;
+    border-color: rgb(214, 163, 59);
+    border-radius: 14px;
+    -unity-font-style: bold;
+}
+
+.announcement-body {
+    flex-grow: 1;
+    min-height: 0;
+    flex-direction: row;
+}
+
+.announcement-patch-column {
+    width: 31%;
+    min-width: 270px;
+    padding: 22px 18px;
+    background-color: rgba(8, 26, 71, 0.06);
+    border-right-width: 2px;
+    border-right-color: rgba(214, 163, 59, 0.42);
+}
+
+.announcement-content-column {
+    width: 69%;
+    min-width: 0;
+    padding: 22px 28px 12px 28px;
+}
+
+.announcement-column-title {
+    margin: 0 0 12px 6px;
+    color: rgba(8, 26, 71, 0.62);
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 1.5px;
+}
+
+.announcement-patch-scroll,
+.announcement-content-scroll {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.announcement-patch-tab {
+    min-height: 76px;
+    margin: 0 0 10px 0;
+    padding: 12px 14px;
+    white-space: normal;
+    color: rgb(8, 26, 71);
+    background-color: rgba(255, 255, 255, 0.88);
+    border-width: 1.5px;
+    border-color: rgba(8, 26, 71, 0.16);
+    border-radius: 13px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+}
+
+.announcement-patch-tab:hover,
+.announcement-patch-tab:focus {
+    background-color: rgb(255, 247, 224);
+    border-color: rgb(214, 163, 59);
+}
+
+.announcement-patch-tab.is-selected {
+    color: rgb(255, 255, 255);
+    background-color: rgb(255, 158, 46);
+    border-color: rgb(255, 209, 71);
+}
+
+.announcement-content-header {
+    min-height: 74px;
+    padding-bottom: 15px;
+    border-bottom-width: 1.5px;
+    border-bottom-color: rgba(214, 163, 59, 0.48);
+}
+
+.announcement-patch-title {
+    color: rgb(8, 26, 71);
+    font-size: 28px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.announcement-patch-meta {
+    margin-top: 5px;
+    color: rgba(8, 26, 71, 0.58);
+    font-size: 14px;
+}
+
+.announcement-content-scroll {
+    margin-top: 14px;
+}
+
+.announcement-content-root {
+    padding: 2px 14px 28px 0;
+}
+
+.announcement-heading,
+.announcement-paragraph,
+.announcement-list-item,
+.announcement-callout,
+.announcement-media-fallback {
+    white-space: normal;
+}
+
+.announcement-heading {
+    margin: 12px 0 6px 0;
+    color: rgb(8, 26, 71);
+    -unity-font-style: bold;
+}
+
+.announcement-heading--1 {
+    font-size: 27px;
+}
+
+.announcement-heading--2 {
+    font-size: 23px;
+}
+
+.announcement-heading--3 {
+    font-size: 19px;
+}
+
+.announcement-paragraph,
+.announcement-list-item {
+    margin: 5px 0;
+    color: rgb(35, 47, 76);
+    font-size: 17px;
+}
+
+.announcement-list-item {
+    margin-left: 12px;
+}
+
+.announcement-callout {
+    margin: 12px 0;
+    padding: 14px 16px;
+    color: rgb(83, 57, 16);
+    background-color: rgba(255, 209, 71, 0.20);
+    border-left-width: 4px;
+    border-left-color: rgb(214, 163, 59);
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.announcement-divider {
+    height: 1.5px;
+    margin: 18px 0;
+    background-color: rgba(214, 163, 59, 0.56);
+}
+
+.announcement-media {
+    width: 100%;
+    height: 300px;
+    margin: 14px 0;
+    background-color: rgba(8, 26, 71, 0.08);
+    border-radius: 14px;
+}
+
+.announcement-media-fallback {
+    margin: 12px 0;
+    padding: 18px;
+    color: rgba(8, 26, 71, 0.64);
+    background-color: rgba(8, 26, 71, 0.05);
+    border-radius: 10px;
+    -unity-text-align: middle-center;
+}
+
+.announcement-footer {
+    min-height: 76px;
+    padding: 12px 26px;
+    align-items: flex-end;
+    justify-content: center;
+    border-top-width: 1.5px;
+    border-top-color: rgba(214, 163, 59, 0.48);
+}
+
+.announcement-suppress-button {
+    min-width: 260px;
+    height: 48px;
+    margin: 0;
+    color: rgb(8, 26, 71);
+    background-color: rgba(255, 255, 255, 0.94);
+    border-width: 1.5px;
+    border-color: rgba(8, 26, 71, 0.25);
+    border-radius: 13px;
+    -unity-font-style: bold;
+}
+
+.announcement-confirmation {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(4, 13, 36, 0.62);
+}
+
+.announcement-confirm-card {
+    width: 540px;
+    padding: 28px;
+    background-color: rgb(255, 251, 240);
+    border-width: 2px;
+    border-color: rgb(214, 163, 59);
+    border-radius: 20px;
+}
+
+.announcement-confirm-text {
+    color: rgb(8, 26, 71);
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.announcement-confirm-actions {
+    margin-top: 22px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.announcement-confirm-cancel,
+.announcement-confirm-button {
+    min-width: 150px;
+    height: 50px;
+    margin: 0 7px;
+    border-radius: 13px;
+    -unity-font-style: bold;
+}

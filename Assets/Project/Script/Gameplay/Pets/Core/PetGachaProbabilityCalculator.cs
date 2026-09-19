@@ -19,7 +19,7 @@ namespace PowerMath.Gameplay.Pets
             if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             var owned = new HashSet<string>(
                 ownedPetIds ?? Array.Empty<string>(),
-                StringComparer.Ordinal);
+                StringComparer.OrdinalIgnoreCase);
             var result = new List<PetChance>();
 
             foreach (PetGachaRarity rarity in catalog.Rarities)

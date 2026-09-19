@@ -2,6 +2,7 @@
     <ui:Template name="CombatSurface" src="project://database/Assets/Project/UI/MainMenu/CombatSurface.uxml?fileID=9197481963319205126&amp;guid=d4ed21dcae3742648a830e100cb14187&amp;type=3#CombatSurface"/>
     <ui:Template name="LegacyFeaturePanels" src="project://database/Assets/Project/UI/MainMenu/LegacyFeaturePanels.uxml?fileID=9197481963319205126&amp;guid=103f3110e42504747956c1b845dd65a2&amp;type=3#LegacyFeaturePanels"/>
     <ui:Template name="MainMenuShell" src="project://database/Assets/Project/UI/MainMenu/MainMenuShell.uxml?fileID=9197481963319205126&amp;guid=a627e06624973a54693ce44339524e61&amp;type=3#MainMenuShell"/>
+    <ui:Template name="TutorialOverlay" src="project://database/Assets/Project/UI/MainMenu/TutorialOverlay.uxml?fileID=9197481963319205126&amp;guid=c9b368e3f21e45a6be473e8eb13ab341&amp;type=3#TutorialOverlay"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldPalette.uss?fileID=7433441132597879392&amp;guid=f8dd33f41939e1e43b3ab6ab818ae6ae&amp;type=3#MathWorldPalette"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
@@ -19,6 +20,7 @@
             <ui:Instance template="MainMenuShell" picking-mode="Ignore" class="mw-template-fill"/>
             <ui:Instance template="CombatSurface" picking-mode="Ignore" class="mw-template-fill"/>
             <ui:Instance template="LegacyFeaturePanels" picking-mode="Ignore" class="mw-template-fill"/>
+            <ui:Instance template="TutorialOverlay" picking-mode="Ignore" class="mw-template-fill"/>
         </ui:VisualElement>
         <ui:VisualElement name="main-menu-notification" picking-mode="Ignore" class="main-menu-notification" style="flex-direction: column; bottom: auto; top: 50px;">
             <ui:Label name="main-menu-notification-text" text="" picking-mode="Ignore" class="main-menu-notification__text"/>

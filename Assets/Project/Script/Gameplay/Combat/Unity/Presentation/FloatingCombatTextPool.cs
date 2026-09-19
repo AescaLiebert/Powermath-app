@@ -15,6 +15,9 @@ namespace PowerMath.Gameplay.Combat.Unity
             new HashSet<FloatingCombatTextView>();
         private readonly int _capacity;
 
+        public int ActiveCount => _active.Count;
+        public int AvailableCount => _available.Count;
+
         public FloatingCombatTextPool(
             RectTransform root,
             FloatingCombatTextView prefab,
@@ -75,6 +78,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                 text.raycastTarget = false;
                 text.fontStyle = FontStyles.Bold;
                 text.textWrappingMode = TextWrappingModes.NoWrap;
+                text.richText = true;
+                text.extraPadding = true;
                 view = instance.GetComponent<FloatingCombatTextView>();
                 view.ConfigureRuntimeComponents(text, instance.GetComponent<CanvasGroup>());
             }

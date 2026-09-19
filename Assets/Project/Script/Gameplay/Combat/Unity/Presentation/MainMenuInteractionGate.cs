@@ -41,6 +41,7 @@ namespace PowerMath.UI.MainMenu
         InteractionGateSnapshot Snapshot { get; }
         bool IsAllowed(InteractionScope scope);
         IInteractionLock Acquire(string ownerId, InteractionScope blockedScopes);
+        string ActiveLeasesSummary { get; }
     }
 
     public sealed class MainMenuInteractionGate : IMainMenuInteractionGate
@@ -49,6 +50,20 @@ namespace PowerMath.UI.MainMenu
         private int _nextLeaseId;
 
         public event Action<InteractionGateSnapshot> Changed;
+
+        public string ActiveLeasesSummary
+        {
+            get
+            {
+                if (_leases.Count == 0) return "None";
+                var items = new List<string>(_leases.Count);
+                foreach (KeyValuePair<int, Lease> pair in _leases)
+                {
+                    items.Add($"[#{pair.Key}:{pair.Value.OwnerId}|{pair.Value.BlockedScopes}]");
+                }
+                return string.Join(", ", items);
+            }
+        }
 
         public InteractionGateSnapshot Snapshot
         {
@@ -76,13 +91,20 @@ namespace PowerMath.UI.MainMenu
             int leaseId = ++_nextLeaseId;
             var lease = new Lease(this, leaseId, ownerId, blockedScopes);
             _leases.Add(leaseId, lease);
+            PowerMath.Diagnostics.AppLog.Warning(
+                "Gate",
+                $"[Gate.Acquire] id={leaseId}, owner='{ownerId}', blocked={blockedScopes}. Active: {ActiveLeasesSummary}");
             PublishChanged();
             return lease;
         }
 
         private void Release(int leaseId)
         {
-            if (!_leases.Remove(leaseId)) return;
+            if (!_leases.TryGetValue(leaseId, out Lease lease)) return;
+            _leases.Remove(leaseId);
+            PowerMath.Diagnostics.AppLog.Warning(
+                "Gate",
+                $"[Gate.Release] id={leaseId}, owner='{lease?.OwnerId}'. Remaining: {ActiveLeasesSummary}");
             PublishChanged();
         }
 

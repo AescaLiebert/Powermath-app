@@ -1,0 +1,22 @@
+{
+  "name": "PowerMath.Gameplay.Tutorial.EditModeTests",
+  "rootNamespace": "PowerMath.Gameplay.Tutorial.Tests",
+  "references": [
+    "PowerMath.Gameplay.Tutorial.Core"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

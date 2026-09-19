@@ -48,6 +48,8 @@ namespace PowerMath.Gameplay.Combat.Presentation
                         PresentationActionKind.PlayImpactImpulse, receipt.Source.EncounterId,
                         new PresentationPayload(receipt.FinalDamage, isCritical: true));
                 }
+                if (receipt.PetFollowUp != null && !receipt.PetFollowUp.Carried)
+                    AddPetFollowUp(steps, receipt, ref ordinal);
             }
             else
             {
@@ -63,6 +65,59 @@ namespace PowerMath.Gameplay.Combat.Presentation
                 Add(steps, receipt, ref ordinal, PresentationActor.Enemy,
                     PresentationActionKind.EnemyDie, receipt.Source.EncounterId);
 
+                if (receipt.StageAdvanced)
+                {
+                    if (receipt.BiomeChanged)
+                    {
+                        Add(steps, receipt, ref ordinal, PresentationActor.Ui,
+                            PresentationActionKind.PlayBiomeTransition,
+                            receipt.Destination.BiomeId);
+                    }
+                    Add(steps, receipt, ref ordinal, PresentationActor.Ui,
+                        PresentationActionKind.ShowStageResult,
+                        receipt.Destination.Stage.Value.ToString());
+                    Add(steps, receipt, ref ordinal, PresentationActor.Ui,
+                        PresentationActionKind.InitiateEnemyActions,
+                        receipt.PetFollowUp?.Carried == true
+                            ? receipt.PetFollowUp.Target.EncounterId
+                            : receipt.Destination.EncounterId,
+                        new PresentationPayload(receipt.PetFollowUp?.Carried == true
+                            ? receipt.PetFollowUp.Target.EnemyRemainingCooldown
+                            : receipt.Destination.EnemyRemainingCooldown));
+                    Add(steps, receipt, ref ordinal, PresentationActor.Enemy,
+                        PresentationActionKind.EnemyAppear,
+                        receipt.PetFollowUp?.Carried == true
+                            ? receipt.PetFollowUp.Target.EncounterId
+                            : receipt.Destination.EncounterId);
+                    if (receipt.PetFollowUp?.Carried == true)
+                    {
+                        AddPetFollowUp(steps, receipt, ref ordinal);
+                        if (receipt.PetFollowUp.EnemyDefeated)
+                        {
+                            Add(steps, receipt, ref ordinal, PresentationActor.Enemy,
+                                PresentationActionKind.EnemyDie,
+                                receipt.PetFollowUp.Target.EncounterId);
+                            if (receipt.PetFollowUp.StageAdvanced)
+                            {
+                                Add(steps, receipt, ref ordinal, PresentationActor.Ui,
+                                    PresentationActionKind.ShowStageResult,
+                                    receipt.Destination.Stage.Value.ToString());
+                                Add(steps, receipt, ref ordinal, PresentationActor.Enemy,
+                                    PresentationActionKind.EnemyAppear,
+                                    receipt.Destination.EncounterId);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (receipt.EnemyFled)
+            {
+                Add(steps, receipt, ref ordinal, PresentationActor.Ui,
+                    PresentationActionKind.ConsumeEnemyAction,
+                    receipt.Source.EncounterId,
+                    new PresentationPayload(semantic: EnemyActionTokenKind.Flee.ToString()));
+                Add(steps, receipt, ref ordinal, PresentationActor.Enemy,
+                    PresentationActionKind.EnemyFlee, receipt.Source.EncounterId);
                 if (receipt.StageAdvanced)
                 {
                     if (receipt.BiomeChanged)
@@ -177,10 +232,44 @@ namespace PowerMath.Gameplay.Combat.Presentation
                 payload, kind.ToString(), PresentationBarrier.Blocking));
         }
 
+        private static void AddPetFollowUp(
+            ICollection<CombatPresentationStep> steps,
+            AttemptPresentationReceipt receipt,
+            ref int ordinal)
+        {
+            PetFollowUpPresentationReceipt pet = receipt.PetFollowUp;
+            if (pet == null) return;
+            Add(steps, receipt, ref ordinal, PresentationActor.Pet,
+                PresentationActionKind.PetFollowUpAttack,
+                pet.Target.EncounterId,
+                new PresentationPayload(
+                    pet.Damage,
+                    isCritical: pet.IsCritical,
+                    semantic: pet.Carried ? "CarriedFollowUp" : "FollowUp"));
+            Add(steps, receipt, ref ordinal, PresentationActor.Enemy,
+                PresentationActionKind.EnemyTakeDamage,
+                pet.Target.EncounterId,
+                new PresentationPayload(pet.Damage, isCritical: pet.IsCritical));
+            Add(steps, receipt, ref ordinal, PresentationActor.Ui,
+                PresentationActionKind.InterpolateEnemyHp,
+                pet.Target.EncounterId,
+                new PresentationPayload(
+                    pet.EnemyHpAfter,
+                    pet.Target.EnemyCurrentHp,
+                    pet.Target.EnemyMaximumHp));
+            Add(steps, receipt, ref ordinal, PresentationActor.Ui,
+                PresentationActionKind.SpawnFloatingText,
+                pet.Target.EncounterId,
+                new PresentationPayload(
+                    pet.Damage,
+                    isCritical: pet.IsCritical,
+                    semantic: "PetDamage"));
+        }
+
         private static EnemyActionTokenKind ResolveToken(AttemptPresentationReceipt receipt)
         {
             if (receipt.Source.EncounterKind == StageEncounterKind.ChallengeEvent)
-                return EnemyActionTokenKind.EventRisk;
+                return EnemyActionTokenKind.Flee;
             return receipt.EnemyAttacked
                 ? EnemyActionTokenKind.Attack
                 : EnemyActionTokenKind.Walk;

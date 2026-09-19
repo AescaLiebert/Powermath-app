@@ -87,6 +87,8 @@ async function executeCommand(command: BridgeCommand): Promise<unknown> {
       return buildLeaderboardWireframe(command);
     case 'build-question-sequence-wireframe':
       return buildQuestionSequenceWireframe(command);
+    case 'build-gacha-session-wireframe':
+      return buildGachaSessionWireframe(command);
     default:
       throw new Error(`Unsupported command: ${command.type}`);
   }
@@ -4663,6 +4665,547 @@ async function buildQuestionSequenceWireframe(command: BridgeCommand) {
     variableIds,
     styleIds,
     createdNodeIds: created,
+  };
+}
+
+async function buildGachaSessionWireframe(command: BridgeCommand) {
+  const availableFonts = await figma.listAvailableFontsAsync();
+  const productFonts = availableFonts.filter((item) => /HYWenHei/i.test(item.fontName.family));
+  const interFonts = availableFonts.filter((item) => item.fontName.family === 'Inter');
+  const fallback = (stylePattern: RegExp): FontName =>
+    productFonts.find((item) => stylePattern.test(item.fontName.style))?.fontName
+    ?? productFonts[0]?.fontName
+    ?? interFonts.find((item) => stylePattern.test(item.fontName.style))?.fontName
+    ?? interFonts[0]?.fontName
+    ?? { family: 'Inter', style: 'Regular' };
+  const fonts = {
+    regular: fallback(/Regular|Book|Normal/i),
+    bold: fallback(/Bold|Semibold|Semi Bold/i),
+    display: fallback(/Extra Bold|Black|Heavy|Bold/i),
+  };
+  const uniqueFonts = new Map<string, FontName>();
+  for (const font of Object.values(fonts)) uniqueFonts.set(`${font.family}\u0000${font.style}`, font);
+  await Promise.all([...uniqueFonts.values()].map((font) => figma.loadFontAsync(font)));
+
+  const existing = figma.currentPage.children.find(
+    (node) => node.type === 'SECTION' && node.name === 'Generated / Gacha Session Wireframe',
+  );
+  if (existing && existing.type === 'SECTION') {
+    if (command.replace === true) {
+      existing.remove();
+    } else {
+    figma.currentPage.selection = [existing];
+    figma.viewport.scrollAndZoomIntoView([existing]);
+    return { reused: true, sectionNodeId: existing.id, createdNodeIds: [] };
+    }
+  }
+
+  const createdNodeIds: string[] = [];
+  const variableIds: string[] = [];
+  const styleIds: string[] = [];
+  const componentIds: string[] = [];
+  const screenIds: string[] = [];
+  const track = <T extends SceneNode>(node: T): T => {
+    createdNodeIds.push(node.id);
+    return node;
+  };
+  const rgb = (hex: string): RGB => parseColor(hex);
+  const rgba = (hex: string, a: number): RGBA => ({ ...parseColor(hex), a });
+  const solid = (hex: string, opacity = 1): SolidPaint => ({
+    type: 'SOLID', color: rgb(hex), opacity,
+  });
+  const gradient = (a: string, b: string): GradientPaint => ({
+    type: 'GRADIENT_LINEAR',
+    gradientTransform: [[0, 1, 0], [-1, 0, 1]],
+    gradientStops: [
+      { position: 0, color: rgba(a, 1) },
+      { position: 1, color: rgba(b, 1) },
+    ],
+  });
+
+  const colors = {
+    navy: '#0B2C64',
+    cobalt: '#0B55C8',
+    blue: '#287FE6',
+    cyan: '#6EDCE4',
+    cyanSoft: '#DDF7F5',
+    cream: '#FFF7E7',
+    creamDeep: '#E8D5B4',
+    coral: '#FF735C',
+    gold: '#FFB63F',
+    goldDeep: '#D97A22',
+    white: '#FFFFFF',
+    muted: '#55708E',
+    stage: '#E7F4F6',
+  };
+
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+  let collection = collections.find((item) => item.name === 'Gacha / USS Tokens');
+  if (!collection) {
+    collection = figma.variables.createVariableCollection('Gacha / USS Tokens');
+    collection.renameMode(collection.defaultModeId, 'Default');
+  }
+  const modeId = collection.defaultModeId;
+  const localVariables = await figma.variables.getLocalVariablesAsync();
+  const codeName = (name: string) => `var(--${name.replace(/[\s/]+/g, '-').toLowerCase()})`;
+  function colorVar(name: string, value: string, scopes: VariableScope[]) {
+    let variable = localVariables.find(
+      (item) => item.name === name && item.variableCollectionId === collection!.id,
+    );
+    if (!variable) variable = figma.variables.createVariable(name, collection!, 'COLOR');
+    variable.scopes = scopes;
+    variable.setValueForMode(modeId, rgb(value));
+    variable.setVariableCodeSyntax('WEB', codeName(`gacha-${name}`));
+    variableIds.push(variable.id);
+    return variable;
+  }
+  function numberVar(name: string, value: number, scopes: VariableScope[]) {
+    let variable = localVariables.find(
+      (item) => item.name === name && item.variableCollectionId === collection!.id,
+    );
+    if (!variable) variable = figma.variables.createVariable(name, collection!, 'FLOAT');
+    variable.scopes = scopes;
+    variable.setValueForMode(modeId, value);
+    variable.setVariableCodeSyntax('WEB', codeName(`gacha-${name}`));
+    variableIds.push(variable.id);
+    return variable;
+  }
+  const vars = {
+    navy: colorVar('color/text/navy', colors.navy, ['TEXT_FILL', 'FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR']),
+    cobalt: colorVar('color/action/cobalt', colors.cobalt, ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR']),
+    cyan: colorVar('color/accent/cyan', colors.cyan, ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR']),
+    cream: colorVar('color/surface/cream', colors.cream, ['FRAME_FILL', 'SHAPE_FILL']),
+    coral: colorVar('color/status/new', colors.coral, ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR']),
+    gold: colorVar('color/action/gold', colors.gold, ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR']),
+    border: colorVar('color/border/cream-deep', colors.creamDeep, ['STROKE_COLOR']),
+    space16: numberVar('spacing/md', 16, ['GAP']),
+    radius18: numberVar('radius/control', 18, ['CORNER_RADIUS']),
+    radius28: numberVar('radius/panel', 28, ['CORNER_RADIUS']),
+  };
+  const bound = (variable: Variable, fallback: string): SolidPaint =>
+    figma.variables.setBoundVariableForPaint(solid(fallback), 'color', variable);
+
+  const localEffects = await figma.getLocalEffectStylesAsync();
+  function effectStyle(name: string, effects: Effect[]) {
+    let style = localEffects.find((item) => item.name === name);
+    if (!style) {
+      style = figma.createEffectStyle();
+      style.name = name;
+    }
+    style.effects = effects;
+    styleIds.push(style.id);
+    return style;
+  }
+  const panelShadow = effectStyle('Gacha / Panel Shadow', [
+    { type: 'DROP_SHADOW', color: rgba(colors.navy, 0.18), offset: { x: 0, y: 12 }, radius: 22, spread: 0, visible: true, blendMode: 'NORMAL' },
+  ]);
+  const controlShadow = effectStyle('Gacha / Control Shadow', [
+    { type: 'DROP_SHADOW', color: rgba(colors.navy, 0.2), offset: { x: 0, y: 5 }, radius: 8, spread: 0, visible: true, blendMode: 'NORMAL' },
+  ]);
+
+  function frame(
+    parent: ChildrenMixin,
+    name: string,
+    width: number,
+    height: number,
+    direction: 'HORIZONTAL' | 'VERTICAL',
+    gap = 0,
+    padding: number | [number, number] | [number, number, number, number] = 0,
+    fills: Paint[] = [],
+    radius = 0,
+    stroke?: Paint,
+    strokeWeight = 0,
+  ): FrameNode {
+    const node = track(figma.createFrame());
+    node.name = name;
+    node.resize(width, height);
+    node.layoutMode = direction;
+    node.primaryAxisSizingMode = 'FIXED';
+    node.counterAxisSizingMode = 'FIXED';
+    node.itemSpacing = gap;
+    if (typeof padding === 'number') {
+      node.paddingTop = node.paddingRight = node.paddingBottom = node.paddingLeft = padding;
+    } else if (padding.length === 2) {
+      node.paddingTop = node.paddingBottom = padding[0];
+      node.paddingLeft = node.paddingRight = padding[1];
+    } else {
+      [node.paddingTop, node.paddingRight, node.paddingBottom, node.paddingLeft] = padding;
+    }
+    node.fills = fills;
+    node.cornerRadius = radius;
+    node.cornerSmoothing = 0.55;
+    node.strokes = stroke ? [stroke] : [];
+    node.strokeWeight = stroke ? strokeWeight : 0;
+    parent.appendChild(node);
+    return node;
+  }
+  function label(
+    parent: ChildrenMixin,
+    name: string,
+    value: string,
+    size: number,
+    font: FontName,
+    color: string,
+    width?: number,
+    align: 'LEFT' | 'CENTER' | 'RIGHT' = 'LEFT',
+  ): TextNode {
+    const node = track(figma.createText());
+    node.name = name;
+    node.fontName = font;
+    node.fontSize = size;
+    node.characters = value;
+    node.fills = [solid(color)];
+    node.textAlignHorizontal = align;
+    node.lineHeight = { unit: 'AUTO' };
+    if (width) {
+      node.textAutoResize = 'HEIGHT';
+      node.resize(width, Math.max(20, size * 1.35));
+    } else {
+      node.textAutoResize = 'WIDTH_AND_HEIGHT';
+    }
+    parent.appendChild(node);
+    return node;
+  }
+  function absolute(node: SceneNode, x: number, y: number) {
+    const parent = node.parent;
+    if (
+      'layoutPositioning' in node
+      && parent
+      && 'layoutMode' in parent
+      && parent.layoutMode !== 'NONE'
+    ) {
+      node.layoutPositioning = 'ABSOLUTE';
+    }
+    node.x = x;
+    node.y = y;
+  }
+  function placeholder(parent: ChildrenMixin, name: string, width: number, height: number, copy: string) {
+    const node = frame(parent, name, width, height, 'VERTICAL', 8, 16, [solid(colors.cyanSoft, 0.52)], 28, solid(colors.cyan), 3);
+    node.primaryAxisAlignItems = 'CENTER';
+    node.counterAxisAlignItems = 'CENTER';
+    label(node, '.placeholder-symbol', '◇', 64, fonts.display, colors.cobalt, undefined, 'CENTER');
+    label(node, '.placeholder-label', copy, 20, fonts.bold, colors.muted, width - 32, 'CENTER');
+    return node;
+  }
+  function screenBase(section: SectionNode, modifier: string, x: number) {
+    const screen = frame(section, `.gacha-screen.${modifier}`, 1920, 1080, 'VERTICAL', 24, [36, 48, 42, 48], [gradient(colors.cyanSoft, colors.cyan)], 32, solid(colors.cobalt), 3);
+    screen.x = x;
+    screen.y = 150;
+    screen.clipsContent = true;
+    screen.setEffectStyleIdAsync(panelShadow.id);
+    screenIds.push(screen.id);
+    const blueField = frame(screen, '[BG] .gacha-bg-field--blue', 1040, 1320, 'VERTICAL', 0, 0, [gradient(colors.cobalt, colors.blue)], 520);
+    absolute(blueField, 1040, -140);
+    const coralRibbon = frame(screen, '[BG] .gacha-bg-ribbon--coral', 1220, 74, 'HORIZONTAL', 0, 0, [solid(colors.coral)], 37);
+    coralRibbon.rotation = -22;
+    absolute(coralRibbon, 940, 850);
+    return screen;
+  }
+  function topbar(screen: FrameNode, titleText: string, showBalance: boolean, showSkip: boolean) {
+    const bar = frame(screen, '[UI] .gacha-topbar', 1824, 76, 'HORIZONTAL', 18, 0, [], 0);
+    bar.layoutAlign = 'STRETCH';
+    bar.primaryAxisAlignItems = 'SPACE_BETWEEN';
+    bar.counterAxisAlignItems = 'CENTER';
+    label(bar, '.gacha-state-label', titleText, 18, fonts.bold, colors.navy);
+    const actions = frame(bar, '.gacha-topbar-actions', 390, 72, 'HORIZONTAL', 14, 0, [], 0);
+    actions.primaryAxisAlignItems = 'MAX';
+    actions.counterAxisAlignItems = 'CENTER';
+    if (showBalance) {
+      const wallet = frame(actions, '#gacha-balance.gacha-balance-pill', 220, 60, 'HORIZONTAL', 12, [0, 20], [bound(vars.cream, colors.cream)], 30, bound(vars.border, colors.creamDeep), 3);
+      wallet.counterAxisAlignItems = 'CENTER';
+      label(wallet, '.coin-icon', '◆', 24, fonts.display, colors.goldDeep);
+      label(wallet, '.balance-value', '2,350', 24, fonts.bold, colors.navy);
+    }
+    if (showSkip) buttonInstance(actions, components.secondary, 'SKIP', 150);
+    buttonInstance(actions, components.icon, '×', 60);
+    return bar;
+  }
+
+  // Reusable component shelf. These names intentionally mirror UXML/USS class boundaries.
+  let maxX = 0;
+  for (const child of figma.currentPage.children) maxX = Math.max(maxX, child.x + child.width);
+  const section = figma.createSection();
+  section.name = 'Generated / Gacha Session Wireframe';
+  section.resizeWithoutConstraints(8160, 1840);
+  section.x = maxX + 200;
+  section.y = 0;
+  section.fills = [solid('#D7E4EC')];
+  figma.currentPage.appendChild(section);
+  createdNodeIds.push(section.id);
+
+  const sectionTitle = label(section, 'Section Title', 'ANIMO GACHA SESSION — UNITY USS READY', 30, fonts.display, colors.navy);
+  sectionTitle.x = 48;
+  sectionTitle.y = 38;
+  const sectionNote = label(
+    section,
+    'Section Note',
+    '1920×1080 states • Auto Layout = Unity flex containers • [BG]/[FX]/[PET]/[UI] layers remain independently animatable • Pet artwork intentionally left as placeholders',
+    15,
+    fonts.regular,
+    colors.navy,
+    1600,
+  );
+  sectionNote.x = 48;
+  sectionNote.y = 82;
+
+  function makeButtonComponent(name: string, width: number, fillVar: Variable, fallback: string, textColor: string) {
+    const component = track(figma.createComponent());
+    componentIds.push(component.id);
+    component.name = name;
+    component.resize(width, 72);
+    component.layoutMode = 'HORIZONTAL';
+    component.primaryAxisSizingMode = 'FIXED';
+    component.counterAxisSizingMode = 'FIXED';
+    component.primaryAxisAlignItems = 'CENTER';
+    component.counterAxisAlignItems = 'CENTER';
+    component.itemSpacing = 12;
+    component.paddingLeft = component.paddingRight = 24;
+    component.fills = [bound(fillVar, fallback)];
+    component.strokes = [bound(vars.border, colors.creamDeep)];
+    component.strokeWeight = 3;
+    component.cornerRadius = 18;
+    component.setBoundVariable('paddingLeft', vars.space16);
+    component.setBoundVariable('paddingRight', vars.space16);
+    component.setBoundVariable('cornerRadius', vars.radius18);
+    component.setEffectStyleIdAsync(controlShadow.id);
+    label(component, '#button-label', 'ACTION', 22, fonts.bold, textColor, undefined, 'CENTER');
+    section.appendChild(component);
+    return component;
+  }
+  const primaryButton = makeButtonComponent('Gacha/Button/Primary', 300, vars.gold, colors.gold, colors.navy);
+  const secondaryButton = makeButtonComponent('Gacha/Button/Secondary', 220, vars.cream, colors.cream, colors.navy);
+  const iconButton = makeButtonComponent('Gacha/Button/Icon', 60, vars.cream, colors.cream, colors.navy);
+
+  const orbitToken = track(figma.createComponent());
+  componentIds.push(orbitToken.id);
+  orbitToken.name = 'Gacha/OrbitToken';
+  orbitToken.resize(78, 78);
+  orbitToken.layoutMode = 'VERTICAL';
+  orbitToken.primaryAxisSizingMode = 'FIXED';
+  orbitToken.counterAxisSizingMode = 'FIXED';
+  orbitToken.primaryAxisAlignItems = 'CENTER';
+  orbitToken.counterAxisAlignItems = 'CENTER';
+  orbitToken.fills = [bound(vars.cyan, colors.cyan)];
+  orbitToken.strokes = [bound(vars.cream, colors.cream)];
+  orbitToken.strokeWeight = 5;
+  orbitToken.cornerRadius = 22;
+  label(orbitToken, '.orbit-token-symbol', '✦', 34, fonts.display, colors.cream, undefined, 'CENTER');
+  section.appendChild(orbitToken);
+
+  const resultCard = track(figma.createComponent());
+  componentIds.push(resultCard.id);
+  resultCard.name = 'Gacha/ResultCard';
+  resultCard.resize(300, 330);
+  resultCard.layoutMode = 'VERTICAL';
+  resultCard.primaryAxisSizingMode = 'FIXED';
+  resultCard.counterAxisSizingMode = 'FIXED';
+  resultCard.itemSpacing = 10;
+  resultCard.paddingTop = resultCard.paddingRight = resultCard.paddingBottom = resultCard.paddingLeft = 16;
+  resultCard.fills = [bound(vars.cream, colors.cream)];
+  resultCard.strokes = [solid(colors.cobalt)];
+  resultCard.strokeWeight = 3;
+  resultCard.cornerRadius = 24;
+  resultCard.setBoundVariable('cornerRadius', vars.radius28);
+  const cardHeader = frame(resultCard, '.result-card-header', 268, 34, 'HORIZONTAL', 8, 0, [], 0);
+  cardHeader.layoutAlign = 'STRETCH';
+  cardHeader.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  label(cardHeader, '#element-chip', 'WATER', 13, fonts.bold, colors.cobalt);
+  const newBadge = frame(cardHeader, '#new-badge', 68, 30, 'HORIZONTAL', 0, 0, [bound(vars.coral, colors.coral)], 15);
+  newBadge.primaryAxisAlignItems = 'CENTER';
+  newBadge.counterAxisAlignItems = 'CENTER';
+  label(newBadge, '.new-label', 'NEW', 13, fonts.bold, colors.white);
+  placeholder(resultCard, '.pet-sprite-placeholder', 268, 210, 'PET SPRITE');
+  const rarity = frame(resultCard, '.rarity-row', 268, 28, 'HORIZONTAL', 8, 0, [], 0);
+  rarity.primaryAxisAlignItems = 'CENTER';
+  for (let i = 0; i < 4; i += 1) label(rarity, `.rarity-star-${i + 1}`, '◆', 20, fonts.display, colors.goldDeep);
+  section.appendChild(resultCard);
+
+  const components = {
+    primary: primaryButton,
+    secondary: secondaryButton,
+    icon: iconButton,
+    orbitToken,
+    resultCard,
+  };
+  function buttonInstance(parent: ChildrenMixin, source: ComponentNode, copy: string, width: number) {
+    const instance = track(source.createInstance());
+    parent.appendChild(instance);
+    instance.resize(width, source.height);
+    const textNode = instance.findOne((node) => node.type === 'TEXT' && node.name === '#button-label');
+    if (textNode && textNode.type === 'TEXT') textNode.characters = copy;
+    return instance;
+  }
+  function orbitInstance(parent: ChildrenMixin, x: number, y: number, rare: boolean) {
+    const instance = track(orbitToken.createInstance());
+    parent.appendChild(instance);
+    absolute(instance, x, y);
+    if (rare) {
+      instance.fills = [bound(vars.gold, colors.gold)];
+      instance.strokes = [solid(colors.cream)];
+    }
+    return instance;
+  }
+  function resultInstance(parent: ChildrenMixin, index: number) {
+    const instance = track(resultCard.createInstance());
+    parent.appendChild(instance);
+    const element = instance.findOne((node) => node.type === 'TEXT' && node.name === '#element-chip');
+    if (element && element.type === 'TEXT') element.characters = ['WATER', 'FIRE', 'WIND', 'LIGHT', 'EARTH'][index % 5];
+    const badge = instance.findOne((node) => node.name === '#new-badge');
+    if (badge && 'visible' in badge) badge.visible = index === 0;
+    if (index === 0) {
+      instance.strokes = [bound(vars.gold, colors.gold)];
+      instance.strokeWeight = 5;
+    }
+    return instance;
+  }
+
+  // Component shelf position after all mains exist.
+  const shelf = frame(section, 'Components / Gacha Session', 1450, 420, 'HORIZONTAL', 32, 32, [solid(colors.white, 0.75)], 28, solid(colors.creamDeep), 2);
+  shelf.x = 48;
+  shelf.y = 1345;
+  shelf.counterAxisAlignItems = 'CENTER';
+  shelf.appendChild(primaryButton);
+  shelf.appendChild(secondaryButton);
+  shelf.appendChild(iconButton);
+  shelf.appendChild(orbitToken);
+  shelf.appendChild(resultCard);
+
+  const mapping = frame(section, 'USS Mapping Notes', 1600, 420, 'VERTICAL', 12, 28, [solid(colors.cream)], 28, solid(colors.cobalt), 2);
+  mapping.x = 1540;
+  mapping.y = 1345;
+  label(mapping, '.mapping-title', 'UNITY UI TOOLKIT HANDOFF', 24, fonts.display, colors.navy);
+  label(mapping, '.mapping-copy', 'Figma Auto Layout → flex-direction / gap / padding\nFrame modifiers → USS classes (.gacha-screen--banner, --transition, --showcase, --result)\n[BG] [FX] [PET] [UI] → separate VisualElements for independent translate / scale / rotate / opacity animation\nFixed 1920×1080 roots → PanelSettings reference resolution; inner rows and columns remain flex-based\nPet placeholders → background-image targets populated by runtime pet definition assets', 17, fonts.regular, colors.muted, 1500);
+
+  // SCREEN 01 — BANNER
+  const banner = screenBase(section, 'gacha-screen--banner', 48);
+  topbar(banner, '01 / BANNER', true, false);
+  const bannerMain = frame(banner, '[UI] .gacha-banner-main', 1824, 758, 'HORIZONTAL', 42, 0, [], 0);
+  bannerMain.layoutAlign = 'STRETCH';
+  bannerMain.layoutGrow = 1;
+  const bannerCopy = frame(bannerMain, '.gacha-banner-copy', 700, 758, 'VERTICAL', 18, [70, 30], [], 0);
+  label(bannerCopy, '.gacha-eyebrow', 'FEATURED SESSION', 18, fonts.bold, colors.cobalt);
+  label(bannerCopy, '.gacha-title', 'ANIMO CALL', 84, fonts.display, colors.navy);
+  const rule = frame(bannerCopy, '.gacha-title-rule', 610, 5, 'HORIZONTAL', 0, 0, [solid(colors.cobalt)], 3);
+  rule.layoutAlign = 'STRETCH';
+  label(bannerCopy, '.gacha-guarantee', '3◆+ WITHIN 10', 30, fonts.bold, colors.navy);
+  label(bannerCopy, '.gacha-helper', 'Review details or history before summoning.', 18, fonts.regular, colors.muted, 600);
+  const bannerStage = frame(bannerMain, '[PET] .gacha-featured-stage', 1082, 758, 'HORIZONTAL', 24, 20, [], 0);
+  bannerStage.primaryAxisAlignItems = 'CENTER';
+  bannerStage.counterAxisAlignItems = 'CENTER';
+  placeholder(bannerStage, '.pet-slot.pet-slot--featured', 420, 560, 'FEATURED PET\nSPRITE PLACEHOLDER');
+  const sidePets = frame(bannerStage, '.featured-side-pets', 360, 580, 'VERTICAL', 24, 0, [], 0);
+  sidePets.primaryAxisAlignItems = 'CENTER';
+  placeholder(sidePets, '.pet-slot.pet-slot--support-a', 300, 260, 'SUPPORT PET A');
+  placeholder(sidePets, '.pet-slot.pet-slot--support-b', 300, 260, 'SUPPORT PET B');
+  const bannerFooter = frame(banner, '[UI] .gacha-banner-footer', 1824, 126, 'HORIZONTAL', 20, 0, [], 0);
+  bannerFooter.layoutAlign = 'STRETCH';
+  bannerFooter.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  bannerFooter.counterAxisAlignItems = 'CENTER';
+  const footerSecondary = frame(bannerFooter, '.gacha-secondary-actions', 520, 86, 'HORIZONTAL', 16, 0, [], 0);
+  buttonInstance(footerSecondary, secondaryButton, 'DETAILS', 240);
+  buttonInstance(footerSecondary, secondaryButton, 'HISTORY', 240);
+  const footerSummon = frame(bannerFooter, '.gacha-summon-actions', 770, 86, 'HORIZONTAL', 18, 0, [], 0);
+  buttonInstance(footerSummon, secondaryButton, '◆ ×1   |   25', 330);
+  buttonInstance(footerSummon, primaryButton, '◆ ×10   |   250', 410);
+
+  // SCREEN 02 — SUMMON TRANSITION
+  const transition = screenBase(section, 'gacha-screen--transition', 2048);
+  topbar(transition, '02 / SUMMONING', false, true);
+  const transitionBody = frame(transition, '.gacha-transition-body', 1824, 900, 'VERTICAL', 20, 0, [], 0);
+  transitionBody.layoutAlign = 'STRETCH';
+  transitionBody.primaryAxisAlignItems = 'CENTER';
+  transitionBody.counterAxisAlignItems = 'CENTER';
+  label(transitionBody, '.gacha-transition-title', 'CALLING 10 ANIMO', 52, fonts.display, colors.navy, undefined, 'CENTER');
+  const motionStage = frame(transitionBody, '[FX] .gacha-orbit-stage', 1120, 700, 'VERTICAL', 0, 0, [solid(colors.white, 0.08)], 350, solid(colors.cream, 0.6), 4);
+  motionStage.layoutMode = 'NONE';
+  const ring = track(figma.createEllipse());
+  ring.name = '[FX] .orbit-ring';
+  ring.resize(560, 560);
+  ring.fills = [];
+  ring.strokes = [solid(colors.cream, 0.82)];
+  ring.strokeWeight = 6;
+  motionStage.appendChild(ring);
+  ring.x = 280;
+  ring.y = 70;
+  const core = frame(motionStage, '[FX] .summon-core', 310, 310, 'VERTICAL', 8, 20, [bound(vars.cream, colors.cream)], 155, solid(colors.cyan), 10);
+  core.layoutMode = 'VERTICAL';
+  core.primaryAxisAlignItems = 'CENTER';
+  core.counterAxisAlignItems = 'CENTER';
+  absolute(core, 405, 195);
+  label(core, '.summon-core-mark', '✦', 140, fonts.display, colors.cobalt, undefined, 'CENTER');
+  const orbitPositions = [[521,20],[700,75],[815,220],[815,410],[700,555],[521,602],[340,555],[225,410],[225,220],[340,75]];
+  orbitPositions.forEach(([x, y], i) => orbitInstance(motionStage, x, y, i === 2));
+  label(transitionBody, '.gacha-transition-hint', 'Gold token foreshadows a rare result • SKIP preserves resolved rewards', 17, fonts.regular, colors.navy, 900, 'CENTER');
+
+  // SCREEN 03 — INDIVIDUAL SHOWCASE
+  const showcase = screenBase(section, 'gacha-screen--showcase', 4048);
+  topbar(showcase, '03 / INDIVIDUAL SHOWCASE', false, true);
+  const showcaseMain = frame(showcase, '.gacha-showcase-main', 1824, 900, 'HORIZONTAL', 40, 0, [], 0);
+  showcaseMain.layoutAlign = 'STRETCH';
+  const revealCopy = frame(showcaseMain, '[UI] .gacha-showcase-copy', 690, 900, 'VERTICAL', 16, [160, 24, 120, 24], [], 0);
+  const badge = frame(revealCopy, '.gacha-new-badge', 150, 54, 'HORIZONTAL', 0, 0, [bound(vars.coral, colors.coral)], 27);
+  badge.primaryAxisAlignItems = 'CENTER';
+  badge.counterAxisAlignItems = 'CENTER';
+  label(badge, '.gacha-new-label', 'NEW ✦', 24, fonts.bold, colors.white);
+  label(revealCopy, '.gacha-showcase-kicker', 'FEATURED ANIMO', 22, fonts.bold, colors.cobalt);
+  label(revealCopy, '#gacha-pet-name', 'ANIMO NAME', 66, fonts.display, colors.navy, 620);
+  const stars = frame(revealCopy, '.gacha-rarity', 420, 60, 'HORIZONTAL', 18, 0, [], 0);
+  for (let i = 0; i < 4; i += 1) label(stars, `.rarity-${i + 1}`, '◆', 42, fonts.display, colors.goldDeep);
+  label(revealCopy, '.gacha-showcase-instruction', 'Tap the arrow or safe screen area to continue.', 18, fonts.regular, colors.muted, 570);
+  const revealStage = frame(showcaseMain, '[PET] .gacha-showcase-stage', 1094, 900, 'VERTICAL', 0, 0, [], 0);
+  revealStage.layoutMode = 'NONE';
+  const haloOuter = track(figma.createEllipse());
+  haloOuter.name = '[FX] .showcase-halo--outer';
+  haloOuter.resize(760, 760);
+  haloOuter.fills = [solid(colors.cream, 0.22)];
+  haloOuter.strokes = [solid(colors.gold, 0.8)];
+  haloOuter.strokeWeight = 10;
+  revealStage.appendChild(haloOuter);
+  haloOuter.x = 170;
+  haloOuter.y = 70;
+  const petReveal = placeholder(revealStage, '.pet-sprite-placeholder.pet-sprite-placeholder--hero', 520, 600, 'HERO PET SPRITE\nANIMATION TARGET');
+  absolute(petReveal, 290, 140);
+  const continueWrap = frame(revealStage, '[UI] .gacha-continue-wrap', 140, 100, 'HORIZONTAL', 0, 0, [], 0);
+  absolute(continueWrap, 900, 760);
+  buttonInstance(continueWrap, primaryButton, '→', 120);
+
+  // SCREEN 04 — RESULTS
+  const result = screenBase(section, 'gacha-screen--result', 6048);
+  topbar(result, '04 / RESULT', true, false);
+  const resultHeader = frame(result, '.gacha-result-header', 1824, 90, 'HORIZONTAL', 0, 0, [], 0);
+  resultHeader.layoutAlign = 'STRETCH';
+  resultHeader.primaryAxisAlignItems = 'CENTER';
+  resultHeader.counterAxisAlignItems = 'CENTER';
+  label(resultHeader, '.gacha-result-title', 'RESULT', 62, fonts.display, colors.navy, undefined, 'CENTER');
+  const grid = frame(result, '[UI] .gacha-result-grid', 1640, 700, 'VERTICAL', 24, 0, [], 0);
+  grid.layoutAlign = 'CENTER';
+  grid.primaryAxisAlignItems = 'CENTER';
+  for (let rowIndex = 0; rowIndex < 2; rowIndex += 1) {
+    const row = frame(grid, `.gacha-result-row-${rowIndex + 1}`, 1640, 330, 'HORIZONTAL', 24, 0, [], 0);
+    row.primaryAxisAlignItems = 'CENTER';
+    row.counterAxisAlignItems = 'CENTER';
+    for (let col = 0; col < 5; col += 1) resultInstance(row, rowIndex * 5 + col);
+  }
+  const resultFooter = frame(result, '.gacha-result-footer', 1824, 110, 'HORIZONTAL', 20, 0, [], 0);
+  resultFooter.layoutAlign = 'STRETCH';
+  resultFooter.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  resultFooter.counterAxisAlignItems = 'CENTER';
+  buttonInstance(resultFooter, secondaryButton, 'SHARE', 220);
+  buttonInstance(resultFooter, primaryButton, 'SUMMON ×10   |   250', 520);
+
+  figma.currentPage.selection = [banner, transition, showcase, result];
+  figma.viewport.scrollAndZoomIntoView([banner, transition, showcase, result]);
+  return {
+    reused: false,
+    command: command.type,
+    sectionNodeId: section.id,
+    screenIds,
+    componentIds,
+    variableCollectionId: collection.id,
+    variableIds,
+    styleIds,
+    createdNodeIds,
+    fontFamily: fonts.regular.family,
   };
 }
 

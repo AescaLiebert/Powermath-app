@@ -39,67 +39,161 @@ namespace PowerMath.Gameplay.Academic
         private IEnumerator LoadRoutine(int generation, IEnumerable<string> documentIds,
             Action<EventQuestionCatalog, string> completed)
         {
-            var documents = new Dictionary<string, IReadOnlyList<QuestionDefinition>>(StringComparer.Ordinal);
+            var documents = new Dictionary<string, IReadOnlyList<ChallengeQuestionDefinition>>(StringComparer.Ordinal);
+            var catalogIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (string rawId in documentIds ?? Array.Empty<string>())
             {
-                string id = rawId?.Trim();
-                if (string.IsNullOrEmpty(id) || documents.ContainsKey(id)) continue;
-                if (!_settings.TryGetQuestionDocumentById(id, out string url))
+                string catalogId = rawId?.Trim();
+                if (!string.IsNullOrEmpty(catalogId)) catalogIds.Add(catalogId);
+            }
+
+            var questions = new List<ChallengeQuestionDefinition>();
+            foreach (AcademicRank rank in new[]
+            {
+                AcademicRank.Silver,
+                AcademicRank.Gold,
+                AcademicRank.Diamond
+            })
+            {
+                if (!_settings.TryGetChallengeQuestionDocument(
+                        rank.ToString(), out string documentId, out string url))
                 {
-                    Complete(generation, completed, null, $"Event question document '{id}' is not configured.");
+                    Complete(generation, completed, null,
+                        $"Challenge question document for {rank} is not configured.");
                     yield break;
                 }
+
                 using (UnityWebRequest request = UnityWebRequest.Get(url))
                 {
                     _activeRequest = request;
-                    request.timeout = Mathf.Min(3, _settings.RequestTimeoutSeconds > 0 ? _settings.RequestTimeoutSeconds : 3);
+                    request.timeout = Mathf.Min(3,
+                        _settings.RequestTimeoutSeconds > 0
+                            ? _settings.RequestTimeoutSeconds
+                            : 3);
                     request.SetRequestHeader("Accept", "application/json");
                     yield return request.SendWebRequest();
                     _activeRequest = null;
                     if (generation != _generation) yield break;
                     string error = string.Empty;
                     if (request.result != UnityWebRequest.Result.Success ||
-                        !TryMapItems(request.downloadHandler.text, out IReadOnlyList<QuestionDefinition> questions,
+                        request.responseCode < 200 || request.responseCode >= 300 ||
+                        !TryMapItems(request.downloadHandler.text, rank,
+                            out IReadOnlyList<ChallengeQuestionDefinition> rankQuestions,
                             out error))
                     {
                         Complete(generation, completed, null,
-                            string.IsNullOrEmpty(error) ? $"Could not load event question document '{id}'." : error);
+                            string.IsNullOrEmpty(error)
+                                ? $"Could not load Challenge question document '{documentId}'."
+                                : error);
                         yield break;
                     }
-                    documents.Add(id, questions);
+                    questions.AddRange(rankQuestions);
                 }
             }
+
+            foreach (string catalogId in catalogIds)
+                documents.Add(catalogId, questions);
             try { Complete(generation, completed, new EventQuestionCatalog(documents), string.Empty); }
             catch (Exception exception) { Complete(generation, completed, null, exception.Message); }
         }
 
+        private static readonly string[] IdFieldCandidates =
+            { "id", "Id", "question_id", "questionId", "ID" };
+        private static readonly string[] VideoLinkFieldCandidates =
+            { "video_link", "videoLink", "video-url", "url", "link", "video_url", "videoUrl" };
+        private static readonly string[] AnswerFieldCandidates =
+            { "answer", "Answer", "correct_answer", "correctAnswer", "value" };
+
         private static bool TryMapItems(string json,
-            out IReadOnlyList<QuestionDefinition> questions, out string error)
+            AcademicRank expectedRank,
+            out IReadOnlyList<ChallengeQuestionDefinition> questions, out string error)
         {
-            var result = new List<QuestionDefinition>();
+            var result = new List<ChallengeQuestionDefinition>();
             questions = result; error = string.Empty;
             if (!FirestoreJsonNavigator.TryParse(json, out JsonValue root, out string parseError) ||
-                !FirestoreJsonNavigator.TryGetDocumentFields(root, out JsonValue fields) ||
-                !fields.TryGet("items", out JsonValue items) ||
-                !FirestoreJsonNavigator.TryGetArrayValues(items, out IReadOnlyList<JsonValue> values))
+                !FirestoreJsonNavigator.TryGetDocumentFields(root, out JsonValue fields))
             {
-                error = $"Event question document has an invalid items array. {parseError}".Trim();
+                error = $"The shared {expectedRank} Challenge document has an invalid document structure. {parseError}".Trim();
                 return false;
             }
-            var mapper = new QuestionDocumentMapper();
-            foreach (JsonValue value in values)
+
+            if (fields.TryGet("items", out JsonValue items) ||
+                fields.TryGet("Items", out items) ||
+                fields.TryGet("questions", out items) ||
+                fields.TryGet("Questions", out items))
             {
-                if (!FirestoreJsonNavigator.TryGetMapFields(value, out JsonValue item) ||
-                    !TryReadInteger(item, "id", out long id) ||
-                    !TryReadString(item, "video_link", out string link) ||
-                    !TryReadInteger(item, "answer", out long answer) ||
-                    !mapper.TryMap(new QuestionDocumentDto { id = id, video_link = link, answer = answer },
-                        AcademicRank.Diamond, out QuestionDefinition definition, out error))
+                if (!FirestoreJsonNavigator.TryGetArrayValues(items,
+                        out IReadOnlyList<JsonValue> values))
+                {
+                    error = $"The shared {expectedRank} Challenge document has an invalid items array.";
                     return false;
-                result.Add(definition);
+                }
+                foreach (JsonValue value in values)
+                    if (!TryMapQuestion(value, null, expectedRank, result, out error))
+                        return false;
             }
-            if (result.Count == 0) { error = "Event question document is empty."; return false; }
+            else
+            {
+                var keyedQuestions = new List<KeyValuePair<int, JsonValue>>();
+                foreach (KeyValuePair<string, JsonValue> pair in
+                         fields.Object ?? new Dictionary<string, JsonValue>())
+                {
+                    if (string.Equals(pair.Key, "_meta", StringComparison.Ordinal))
+                        continue;
+                    if (!TryReadQuestionFieldOrdinal(pair.Key, out int ordinal))
+                    {
+                        error = $"The shared {expectedRank} Challenge document contains an unsupported field '{pair.Key}'.";
+                        return false;
+                    }
+                    keyedQuestions.Add(new KeyValuePair<int, JsonValue>(ordinal, pair.Value));
+                }
+                keyedQuestions.Sort((left, right) => left.Key.CompareTo(right.Key));
+                foreach (KeyValuePair<int, JsonValue> question in keyedQuestions)
+                    if (!TryMapQuestion(question.Value, question.Key, expectedRank,
+                            result, out error))
+                        return false;
+            }
+
+            if (result.Count == 0)
+            {
+                error = $"The shared {expectedRank} Challenge document is empty.";
+                return false;
+            }
             return true;
+        }
+
+        private static bool TryMapQuestion(JsonValue value, int? fieldOrdinal,
+            AcademicRank expectedRank, ICollection<ChallengeQuestionDefinition> destination,
+            out string error)
+        {
+            error = string.Empty;
+            string rawId = "<unknown>";
+            if (!FirestoreJsonNavigator.TryGetMapFields(value, out JsonValue item) ||
+                !TryReadAnyString(item, IdFieldCandidates, out rawId) ||
+                !TryReadAnyString(item, VideoLinkFieldCandidates, out string link) ||
+                !TryReadAnyInteger(item, AnswerFieldCandidates, out long answer) ||
+                !ChallengeQuestionId.TryParse(rawId, out ChallengeQuestionId id) ||
+                id.Rank != expectedRank ||
+                (fieldOrdinal.HasValue && id.Ordinal != fieldOrdinal.Value) ||
+                answer < 0 || answer > int.MaxValue ||
+                !YouTubeVideoAddress.TryParse(link, out Uri uri, out string videoId))
+            {
+                error = $"Challenge question '{rawId}' is malformed or does not match Rank {expectedRank}.";
+                return false;
+            }
+            destination.Add(new ChallengeQuestionDefinition(id, uri, (int)answer, videoId));
+            return true;
+        }
+
+        private static bool TryReadQuestionFieldOrdinal(string fieldName, out int ordinal)
+        {
+            ordinal = 0;
+            return !string.IsNullOrEmpty(fieldName) && fieldName.Length > 1 &&
+                (fieldName[0] == 'q' || fieldName[0] == 'Q') &&
+                int.TryParse(fieldName.Substring(1),
+                    System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out ordinal) && ordinal > 0;
         }
 
         private static bool TryReadString(JsonValue fields, string name, out string value)
@@ -114,6 +208,25 @@ namespace PowerMath.Gameplay.Academic
             value = 0;
             return fields.TryGet(name, out JsonValue leaf) &&
                 FirestoreJsonNavigator.TryReadInteger(leaf, out value);
+        }
+
+        private static bool TryReadAnyString(JsonValue fields, string[] names,
+            out string value)
+        {
+            value = string.Empty;
+            for (int index = 0; index < names.Length; index++)
+                if (TryReadString(fields, names[index], out value) &&
+                    !string.IsNullOrEmpty(value)) return true;
+            return false;
+        }
+
+        private static bool TryReadAnyInteger(JsonValue fields, string[] names,
+            out long value)
+        {
+            value = 0;
+            for (int index = 0; index < names.Length; index++)
+                if (TryReadInteger(fields, names[index], out value)) return true;
+            return false;
         }
 
         private void Complete(int generation,

@@ -2,7 +2,8 @@
   "name": "PowerMath.Gameplay.Combat.Core",
   "rootNamespace": "PowerMath.Gameplay.Combat",
   "references": [
-    "PowerMath.Gameplay.Academic.Core"
+    "PowerMath.Gameplay.Academic.Core",
+    "PowerMath.Gameplay.Pets.Core"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

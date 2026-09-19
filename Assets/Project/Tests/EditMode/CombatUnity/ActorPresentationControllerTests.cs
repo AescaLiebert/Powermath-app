@@ -93,6 +93,23 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             var profile = ScriptableObject.CreateInstance<CombatJuiceProfileDefinition>();
             try
             {
+                Assert.That(profile.PlayerAttackImpactNormalized, Is.EqualTo(0.40f).Within(0.01f));
+                Assert.That(profile.EnemyAttackImpactNormalized, Is.EqualTo(0.47f).Within(0.01f));
+                Assert.That(profile.PlayerDamageImpulseSeconds, Is.EqualTo(0.14f).Within(0.01f));
+                Assert.That(profile.PlayerDamageImpulseAmplitude, Is.EqualTo(8f).Within(0.01f));
+                Assert.That(profile.PlayerDamageImpulseOscillations, Is.EqualTo(1));
+                Assert.That(profile.NormalImpulseSeconds, Is.EqualTo(0.12f).Within(0.01f));
+                Assert.That(profile.NormalImpulseAmplitude, Is.EqualTo(6f).Within(0.01f));
+                Assert.That(profile.NormalImpulseOscillations, Is.EqualTo(1));
+                Assert.That(profile.NormalHitStopSeconds, Is.EqualTo(0.060f).Within(0.001f));
+                Assert.That(profile.CriticalHitStopSeconds, Is.EqualTo(0.075f).Within(0.001f));
+                Assert.That(profile.PlayerDamageHitStopSeconds, Is.EqualTo(0.060f).Within(0.001f));
+                Assert.That(profile.DamageReactionTravel, Is.EqualTo(24f).Within(0.01f));
+                Assert.That(profile.CriticalDamageReactionTravel, Is.EqualTo(30f).Within(0.01f));
+                Assert.That(profile.PlayerDamageReactionTravel, Is.EqualTo(20f).Within(0.01f));
+                Assert.That(profile.NormalPostHitHoldSeconds, Is.EqualTo(0.20f).Within(0.01f));
+                Assert.That(profile.CriticalPostHitHoldSeconds, Is.EqualTo(0.35f).Within(0.01f));
+                Assert.That(profile.HitFlashCycles, Is.EqualTo(1));
                 Assert.That(profile.HitFlashRed.r, Is.GreaterThan(0.5f));
                 Assert.That(profile.HitFlashWhite, Is.EqualTo(Color.white));
                 Assert.That(profile.HitFlashCycles, Is.GreaterThanOrEqualTo(1));
@@ -111,6 +128,181 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             finally
             {
                 Object.DestroyImmediate(profile);
+            }
+        }
+
+        [TestCase(PresentationActor.Player, PresentationActionKind.PlayerPrimaryAttack)]
+        [TestCase(PresentationActor.Enemy, PresentationActionKind.EnemyAttack)]
+        public void Attack_InvokesImpactCallbackBeforeReturningToIdle(
+            PresentationActor actor,
+            PresentationActionKind action)
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(actor, false);
+
+                int impactCount = 0;
+                ActorVisualState stateAtImpact = ActorVisualState.Hidden;
+                var routine = controller.Play(action, () =>
+                {
+                    impactCount++;
+                    stateAtImpact = controller.State;
+                });
+
+                bool impactObservedBeforeCompletion = false;
+                while (routine.MoveNext())
+                {
+                    if (impactCount > 0)
+                    {
+                        impactObservedBeforeCompletion = true;
+                        break;
+                    }
+                }
+
+                Assert.That(impactObservedBeforeCompletion, Is.True);
+                Assert.That(impactCount, Is.EqualTo(1));
+                Assert.That(stateAtImpact, Is.EqualTo(ActorVisualState.Attacking));
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Attacking));
+
+                while (routine.MoveNext()) { }
+
+                Assert.That(impactCount, Is.EqualTo(1));
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Idle));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void PlayerAttack_UsesPositionalAnticipationWithoutDeformingSilhouette()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                RectTransform rect = go.GetComponent<RectTransform>();
+                rect.anchoredPosition = new Vector2(30f, 20f);
+                Vector3 authoredScale = new Vector3(1.2f, 0.9f, 1f);
+                rect.localScale = authoredScale;
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, false);
+
+                var routine = controller.Play(PresentationActionKind.PlayerPrimaryAttack);
+                Assert.That(routine.MoveNext(), Is.True);
+                Assert.That(rect.anchoredPosition.x, Is.LessThan(30f));
+                Assert.That(rect.localScale, Is.EqualTo(authoredScale));
+
+                while (routine.MoveNext())
+                {
+                    Assert.That(rect.localScale, Is.EqualTo(authoredScale));
+                }
+
+                Assert.That(rect.anchoredPosition, Is.EqualTo(new Vector2(30f, 20f)));
+                Assert.That(rect.localScale, Is.EqualTo(authoredScale));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void PlayerTakeDamage_UsesDirectionalKnockbackAndSmallOvershoot()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                RectTransform rect = go.GetComponent<RectTransform>();
+                Vector3 authoredScale = new Vector3(0.85f, 1.1f, 1f);
+                rect.localScale = authoredScale;
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, false);
+
+                float minimumX = 0f;
+                float maximumX = 0f;
+                var routine = controller.Play(PresentationActionKind.PlayerTakeDamage);
+                while (routine.MoveNext())
+                {
+                    minimumX = Mathf.Min(minimumX, rect.anchoredPosition.x);
+                    maximumX = Mathf.Max(maximumX, rect.anchoredPosition.x);
+                    Assert.That(rect.localScale, Is.EqualTo(authoredScale));
+                }
+
+                Assert.That(minimumX, Is.LessThanOrEqualTo(-18f));
+                Assert.That(maximumX, Is.GreaterThan(0f).And.LessThanOrEqualTo(3f));
+                Assert.That(rect.anchoredPosition, Is.EqualTo(Vector2.zero));
+                Assert.That(rect.localScale, Is.EqualTo(authoredScale));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void Attack_LocalPoseHoldPausesMotionWithoutChangingState()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                RectTransform rect = go.GetComponent<RectTransform>();
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, false);
+
+                bool impactReached = false;
+                Vector2 heldPosition = Vector2.zero;
+                var routine = controller.Play(
+                    PresentationActionKind.PlayerPrimaryAttack,
+                    () =>
+                    {
+                        impactReached = true;
+                        heldPosition = rect.anchoredPosition;
+                        controller.HoldCurrentPose(0.10f);
+                    });
+                while (!impactReached && routine.MoveNext()) { }
+
+                Assert.That(impactReached, Is.True);
+                Assert.That(routine.MoveNext(), Is.True);
+                Assert.That(rect.anchoredPosition, Is.EqualTo(heldPosition));
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Attacking));
+                Assert.That(routine.MoveNext(), Is.True);
+                Assert.That(rect.anchoredPosition, Is.EqualTo(heldPosition));
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Attacking));
+
+                while (routine.MoveNext()) { }
+                Assert.That(controller.State, Is.EqualTo(ActorVisualState.Idle));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void ReducedMotion_PlayerTakeDamageDoesNotTranslateActor()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                RectTransform rect = go.GetComponent<RectTransform>();
+                rect.anchoredPosition = new Vector2(24f, -10f);
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, true);
+
+                var routine = controller.Play(PresentationActionKind.PlayerTakeDamage);
+                while (routine.MoveNext())
+                    Assert.That(
+                        rect.anchoredPosition,
+                        Is.EqualTo(new Vector2(24f, -10f)));
+
+                Assert.That(rect.anchoredPosition, Is.EqualTo(new Vector2(24f, -10f)));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
             }
         }
 

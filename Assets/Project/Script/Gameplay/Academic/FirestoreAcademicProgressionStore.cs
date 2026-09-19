@@ -52,13 +52,18 @@ namespace PowerMath.Gameplay.Academic
             Action<string> failed)
         {
             if (request.Academic == null) throw new ArgumentException("Academic state is required.", nameof(request));
+            if (!TryValidatePowerCoinChange(request, out string economyError))
+            {
+                failed?.Invoke(economyError);
+                yield break;
+            }
             long expectedRevision = _player.revision;
             if (expectedRevision < 0 || nextRevision <= 0 || expectedRevision != nextRevision - 1)
             {
                 failed?.Invoke("Player progression changed before saving; reload before continuing.");
                 yield break;
             }
-            if (!_settings.TryGetLevelDocumentById(_levelDocumentId, out string url))
+            if (!_settings.TryGetPlayerDocument(_levelDocumentId, _username, out string url))
             {
                 failed?.Invoke("Player progression document is not configured.");
                 yield break;
@@ -142,6 +147,30 @@ namespace PowerMath.Gameplay.Academic
             completed?.Invoke();
         }
 
+        private bool TryValidatePowerCoinChange(
+            GameplaySaveRequest request,
+            out string error)
+        {
+            long current = _player.wallet?.powerCoins ?? 0;
+            long expected = current;
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution != null && !request.Resolution.IsAcademic)
+            {
+                if (string.Equals(_player.activeRun.lastChallengeRewardAttemptId,
+                    request.TransactionId, StringComparison.Ordinal))
+                    expected = _player.activeRun.lastChallengeRewardResultingPowerCoins;
+                else
+                    expected = checked(current + request.Resolution.Event.PowerCoinsGranted);
+            }
+            if (request.Snapshot.PowerCoins != expected)
+            {
+                error = "Challenge reward balance does not match the accepted attempt.";
+                return false;
+            }
+            error = string.Empty;
+            return true;
+        }
+
         public long LastTotalPlaySeconds { get; private set; }
 
         // A fresh document updateTime only protects writes after this GET. Check the
@@ -154,8 +183,7 @@ namespace PowerMath.Gameplay.Academic
         {
             error = "Player data could not be read safely. Reload before continuing.";
             if (expectedRevision < 0 ||
-                !FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) ||
-                !fields.TryGet(username, out JsonValue student)) return false;
+                !FirestoreRestClient.TryGetStudent(document, username, out JsonValue student)) return false;
             try
             {
                 int schema = PlayerSaveContract.Inspect(student, out bool isNewPlayer);
@@ -208,7 +236,7 @@ namespace PowerMath.Gameplay.Academic
             AcademicPersistenceSnapshot snapshot = request.Academic;
             CombatSnapshot combat = request.Snapshot.Combat;
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { _username, "gamedata" };
+            string[] root = { "gamedata" };
             builder.AddInteger(Join(root, "revision"), revision);
             builder.AddString(Join(root, "progression", "activeRank"), snapshot.ActiveRank.ToString());
             builder.AddInteger(Join(root, "progression", "currentStage"), combat.Stage.Value);
@@ -226,8 +254,10 @@ namespace PowerMath.Gameplay.Academic
             builder.AddInteger(Join(root, "wallet", "silver"), snapshot.Balances.Silver);
             builder.AddInteger(Join(root, "wallet", "gold"), snapshot.Balances.Gold);
             builder.AddInteger(Join(root, "wallet", "diamond"), snapshot.Balances.Diamond);
+            builder.AddInteger(Join(root, "wallet", "powerCoins"), request.Snapshot.PowerCoins);
             builder.AddInteger(Join(root, "academic", "auditScore"), snapshot.AuditScore);
             builder.AddInteger(Join(root, "academic", "auditResolvedCount"), snapshot.AuditResolvedCount);
+            builder.AddInteger(Join(root, "academic", "auditCorrectCount"), snapshot.AuditCorrectCount);
             AddInventory(builder, root, "silver", snapshot.Silver);
             AddInventory(builder, root, "gold", snapshot.Gold);
             AddInventory(builder, root, "diamond", snapshot.Diamond);
@@ -238,6 +268,8 @@ namespace PowerMath.Gameplay.Academic
             builder.AddString(Join(root, "activeRun", "encounterKind"), combat.EncounterKind.ToString());
             builder.AddString(Join(root, "activeRun", "encounterId"), combat.EnemyId);
             builder.AddInteger(Join(root, "activeRun", "eventAttemptOrdinal"), combat.EventAttemptOrdinal);
+            AddEventSchedule(builder, root, combat.EventSchedule);
+            AddChallengeQuestions(builder, root, request.ChallengeQuestions);
             builder.AddString(Join(root, "activeRun", "enemyId"), combat.EnemyId);
             builder.AddInteger(Join(root, "activeRun", "enemyCurrentHp"), combat.EnemyCurrentHp);
             builder.AddInteger(Join(root, "activeRun", "enemyMaximumHp"), combat.EnemyMaximumHp);
@@ -265,6 +297,9 @@ namespace PowerMath.Gameplay.Academic
             builder.AddInteger(Join(root, "activeRun", "diamondEarned"), diamondEarned);
             builder.AddInteger(Join(root, "activeRun", "bonusMultiplierBasisPoints"),
                 Math.Max(10000, _player.activeRun.bonusMultiplierBasisPoints));
+            builder.AddInteger(Join(root, "activeRun", "stageAttackCount"), combat.StageAttackCount);
+            builder.AddInteger(Join(root, "activeRun", "bigBossesDefeated"), combat.BigBossesDefeated);
+            builder.AddInteger(Join(root, "activeRun", "pendingPetFollowUpDamage"), combat.PendingPetFollowUpDamage);
 
             bool hasActiveAttempt = request.ActiveQuestion != null &&
                 (request.SavePoint == GameplaySavePoint.AttemptCommitted ||
@@ -276,7 +311,11 @@ namespace PowerMath.Gameplay.Academic
                     request.ActiveQuestion.ContentKind.ToString());
                 builder.AddString(Join(root, "activeRun", "questionDocumentId"),
                     request.ActiveQuestion.SourceId);
-                builder.AddInteger(Join(root, "activeRun", "questionId"), request.ActiveQuestion.Id.Value);
+                builder.AddInteger(Join(root, "activeRun", "questionId"),
+                    request.ActiveQuestion.ContentKind == QuestionContentKind.RankQuestion
+                        ? request.ActiveQuestion.Id.Value : 0);
+                builder.AddString(Join(root, "activeRun", "questionContentId"),
+                    request.ActiveQuestion.ContentId);
                 if (request.ActiveQuestion.ContentKind == QuestionContentKind.RankQuestion)
                 {
                     builder.AddString(Join(root, "academic", "activeAttempt", "transactionId"), request.TransactionId);
@@ -292,8 +331,10 @@ namespace PowerMath.Gameplay.Academic
                 builder.AddString(Join(root, "activeRun", "questionContentKind"), string.Empty);
                 builder.AddString(Join(root, "activeRun", "questionDocumentId"), string.Empty);
                 builder.AddInteger(Join(root, "activeRun", "questionId"), 0);
+                builder.AddString(Join(root, "activeRun", "questionContentId"), string.Empty);
                 builder.AddNull(Join(root, "academic", "activeAttempt"));
             }
+            AddChallengeRewardReceipt(builder, root, request);
             if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
                 request.Resolution?.Presentation != null)
             {
@@ -309,6 +350,57 @@ namespace PowerMath.Gameplay.Academic
             return builder.Build();
         }
 
+        private static void AddEventSchedule(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            EventScheduleSnapshot schedule)
+        {
+            if (schedule == null) return;
+            builder.AddInteger(Join(root, "activeRun", "eventScheduleVersion"), schedule.Version);
+            builder.AddString(Join(root, "activeRun", "eventScheduleCatalogVersion"), schedule.CatalogVersion);
+            builder.AddString(Join(root, "activeRun", "eventScheduleEventId"), schedule.EventId);
+            builder.AddIntegerArray(Join(root, "activeRun", "eventScheduleStages"),
+                schedule.GeneratedStages.Select(value => (long)value).ToArray());
+            builder.AddInteger(Join(root, "activeRun", "eventChanceBasisPoints"),
+                schedule.BaseChanceBasisPoints);
+            builder.AddInteger(Join(root, "activeRun", "petEventMultiplierBasisPoints"),
+                schedule.PetMultiplierBasisPoints);
+        }
+
+        private static void AddChallengeQuestions(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            ChallengeQuestionSequenceSnapshot snapshot)
+        {
+            string[] prefix = Join(root, "activeRun", "challengeQuestions");
+            builder.AddInteger(Join(prefix, "silverCursor"), snapshot.SilverCursor);
+            builder.AddInteger(Join(prefix, "goldCursor"), snapshot.GoldCursor);
+            builder.AddInteger(Join(prefix, "diamondCursor"), snapshot.DiamondCursor);
+            builder.AddString(Join(prefix, "reservedDocumentId"), snapshot.ReservedDocumentId);
+            builder.AddString(Join(prefix, "reservedQuestionId"), snapshot.ReservedQuestionId);
+        }
+
+        private void AddChallengeRewardReceipt(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            GameplaySaveRequest request)
+        {
+            string attemptId = _player.activeRun.lastChallengeRewardAttemptId ?? string.Empty;
+            int granted = _player.activeRun.lastChallengeRewardPowerCoins;
+            long resulting = _player.activeRun.lastChallengeRewardResultingPowerCoins;
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution != null && !request.Resolution.IsAcademic &&
+                !string.Equals(attemptId, request.TransactionId, StringComparison.Ordinal))
+            {
+                attemptId = request.TransactionId;
+                granted = request.Resolution.Event.PowerCoinsGranted;
+                resulting = request.Snapshot.PowerCoins;
+            }
+            builder.AddString(Join(root, "activeRun", "lastChallengeRewardAttemptId"), attemptId);
+            builder.AddInteger(Join(root, "activeRun", "lastChallengeRewardPowerCoins"), granted);
+            builder.AddInteger(Join(root, "activeRun", "lastChallengeRewardResultingPowerCoins"), resulting);
+        }
+
         private static void AddPendingPresentation(
             FirestorePatchDocumentBuilder builder,
             string[] root,
@@ -321,6 +413,9 @@ namespace PowerMath.Gameplay.Academic
             builder.AddString(Join(receiptRoot, "outcome"), receipt.Outcome.ToString());
             builder.AddInteger(Join(receiptRoot, "responseScore"), receipt.ResponseScore);
             builder.AddInteger(Join(receiptRoot, "finalDamage"), receipt.FinalDamage);
+            builder.AddInteger(Join(receiptRoot, "playerDamage"), receipt.PlayerDamage);
+            builder.AddInteger(Join(receiptRoot, "playerEnemyHpAfter"),
+                receipt.PlayerEnemyHpAfter);
             builder.AddBoolean(Join(receiptRoot, "isCritical"), receipt.IsCritical);
             builder.AddInteger(Join(receiptRoot, "resolvedEnemyHpAfter"),
                 receipt.ResolvedEnemyHpAfter);
@@ -329,6 +424,9 @@ namespace PowerMath.Gameplay.Academic
             builder.AddBoolean(Join(receiptRoot, "playerDefeated"), receipt.PlayerDefeated);
             builder.AddBoolean(Join(receiptRoot, "stageAdvanced"), receipt.StageAdvanced);
             builder.AddBoolean(Join(receiptRoot, "biomeChanged"), receipt.BiomeChanged);
+            builder.AddBoolean(Join(receiptRoot, "enemyFled"), receipt.EnemyFled);
+            builder.AddInteger(Join(receiptRoot, "powerCoinsGranted"), receipt.PowerCoinsGranted);
+            builder.AddInteger(Join(receiptRoot, "resultingPowerCoins"), receipt.ResultingPowerCoins);
             builder.AddString(Join(receiptRoot, "previousRank"),
                 receipt.RankTransition.Previous.ToString());
             builder.AddString(Join(receiptRoot, "currentRank"),
@@ -336,6 +434,28 @@ namespace PowerMath.Gameplay.Academic
             AddPresentationSnapshot(builder, Join(receiptRoot, "source"), receipt.Source);
             AddPresentationSnapshot(builder, Join(receiptRoot, "destination"),
                 receipt.Destination);
+            if (receipt.PetFollowUp != null)
+            {
+                string[] petRoot = Join(receiptRoot, "petFollowUp");
+                builder.AddInteger(Join(petRoot, "damage"), receipt.PetFollowUp.Damage);
+                builder.AddBoolean(Join(petRoot, "isCritical"),
+                    receipt.PetFollowUp.IsCritical);
+                builder.AddInteger(Join(petRoot, "enemyHpAfter"),
+                    receipt.PetFollowUp.EnemyHpAfter);
+                builder.AddBoolean(Join(petRoot, "enemyDefeated"),
+                    receipt.PetFollowUp.EnemyDefeated);
+                builder.AddBoolean(Join(petRoot, "stageAdvanced"),
+                    receipt.PetFollowUp.StageAdvanced);
+                builder.AddBoolean(Join(petRoot, "carried"), receipt.PetFollowUp.Carried);
+                AddPresentationSnapshot(
+                    builder,
+                    Join(petRoot, "target"),
+                    receipt.PetFollowUp.Target);
+            }
+            else
+            {
+                builder.AddNull(Join(receiptRoot, "petFollowUp"));
+            }
         }
 
         private static void AddPresentationSnapshot(

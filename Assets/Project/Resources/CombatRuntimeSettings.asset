@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CombatRuntimeSettings
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.CombatRuntimeSettingsDefinition
   randomSeed: 1337
-  criticalRate: 0.2
+  criticalRate: 0
   criticalDamagePercent: 50
   baseWeaponAttack: 20
   maximumHearts: 3

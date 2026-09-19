@@ -42,7 +42,7 @@ MonoBehaviour:
       loop: 1
   - biomeId: biome-5
     track:
-      clip: {fileID: 8300000, guid: d9a6fe953f7a2a04a9336e9fe6a23361, type: 3}
+      clip: {fileID: 8300000, guid: 9c49b8dbdcfd1b24f807c0393f007a2e, type: 3}
       volumeScale: 0.6
       loop: 1
   - biomeId: biome-6

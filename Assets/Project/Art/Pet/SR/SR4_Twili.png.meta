@@ -1,0 +1,624 @@
+fileFormatVersion: 2
+guid: d620d546b81d88f4b822326c2554960e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3932322526971357422
+    second: SR4_Twili_0
+  - first:
+      213: 755786407106694974
+    second: SR4_Twili_1
+  - first:
+      213: -185295387374425067
+    second: SR4_Twili_2
+  - first:
+      213: 8019001959619408036
+    second: SR4_Twili_3
+  - first:
+      213: 4172161184676181895
+    second: SR4_Twili_4
+  - first:
+      213: -3087926761302691106
+    second: SR4_Twili_5
+  - first:
+      213: -4988417494904321911
+    second: SR4_Twili_6
+  - first:
+      213: -4690516032525403248
+    second: SR4_Twili_7
+  - first:
+      213: -68286453341937065
+    second: SR4_Twili_8
+  - first:
+      213: 2106667583744948603
+    second: SR4_Twili_9
+  - first:
+      213: -4448268900017048426
+    second: SR4_Twili_10
+  - first:
+      213: 2384190788318805719
+    second: SR4_Twili_11
+  - first:
+      213: 6244495480015752352
+    second: SR4_Twili_12
+  - first:
+      213: -8516231845440639740
+    second: SR4_Twili_13
+  - first:
+      213: 6963578557437376717
+    second: SR4_Twili_14
+  - first:
+      213: -2506378352355582004
+    second: SR4_Twili_15
+  - first:
+      213: 9176557186738332860
+    second: SR4_Twili_16
+  - first:
+      213: -1948010310749319219
+    second: SR4_Twili_17
+  - first:
+      213: -8396840401953370622
+    second: SR4_Twili_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 7
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 512
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SR4_Twili_0
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 165
+        width: 686
+        height: 673
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2171b9dfe759d69c0800000000000000
+      internalID: -3932322526971357422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_1
+      rect:
+        serializedVersion: 2
+        x: 679
+        y: 820
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3fc9a1abb71d7a00800000000000000
+      internalID: 755786407106694974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_2
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 179
+        width: 60
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51c6701b3d2bd6df0800000000000000
+      internalID: -185295387374425067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_3
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 184
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a0b648bbc7394f60800000000000000
+      internalID: 8019001959619408036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_4
+      rect:
+        serializedVersion: 2
+        x: 353
+        y: 164
+        width: 36
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 787fb4e0e7e76e930800000000000000
+      internalID: 4172161184676181895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_5
+      rect:
+        serializedVersion: 2
+        x: 390
+        y: 187
+        width: 32
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed2712c98fa7525d0800000000000000
+      internalID: -3087926761302691106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_6
+      rect:
+        serializedVersion: 2
+        x: 429
+        y: 193
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98842e8d7b495cab0800000000000000
+      internalID: -4988417494904321911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_7
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 192
+        width: 29
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09b7c041580f7eeb0800000000000000
+      internalID: -4690516032525403248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_8
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 194
+        width: 42
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 752259d15d56d0ff0800000000000000
+      internalID: -68286453341937065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_9
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 194
+        width: 18
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b79b2fc71036c3d10800000000000000
+      internalID: 2106667583744948603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_10
+      rect:
+        serializedVersion: 2
+        x: 562
+        y: 192
+        width: 32
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 694f01dd0039442c0800000000000000
+      internalID: -4448268900017048426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_11
+      rect:
+        serializedVersion: 2
+        x: 622
+        y: 195
+        width: 53
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7de3086d3e8561120800000000000000
+      internalID: 2384190788318805719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_12
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 178
+        width: 16
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ac0fd7ed87e8a650800000000000000
+      internalID: 6244495480015752352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_13
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 173
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40d24abe14440d980800000000000000
+      internalID: -8516231845440639740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_14
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 166
+        width: 21
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc8f499adc993a060800000000000000
+      internalID: 6963578557437376717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_15
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 181
+        width: 17
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccfdd1bfa2e873dd0800000000000000
+      internalID: -2506378352355582004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_16
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 171
+        width: 20
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb4a890542ea95f70800000000000000
+      internalID: 9176557186738332860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_17
+      rect:
+        serializedVersion: 2
+        x: 333
+        y: 166
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcf0df081f647f4e0800000000000000
+      internalID: -1948010310749319219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SR4_Twili_18
+      rect:
+        serializedVersion: 2
+        x: 430
+        y: 167
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20ecbed842e687b80800000000000000
+      internalID: -8396840401953370622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SR4_Twili_0: -3932322526971357422
+      SR4_Twili_1: 755786407106694974
+      SR4_Twili_10: -4448268900017048426
+      SR4_Twili_11: 2384190788318805719
+      SR4_Twili_12: 6244495480015752352
+      SR4_Twili_13: -8516231845440639740
+      SR4_Twili_14: 6963578557437376717
+      SR4_Twili_15: -2506378352355582004
+      SR4_Twili_16: 9176557186738332860
+      SR4_Twili_17: -1948010310749319219
+      SR4_Twili_18: -8396840401953370622
+      SR4_Twili_2: -185295387374425067
+      SR4_Twili_3: 8019001959619408036
+      SR4_Twili_4: 4172161184676181895
+      SR4_Twili_5: -3087926761302691106
+      SR4_Twili_6: -4988417494904321911
+      SR4_Twili_7: -4690516032525403248
+      SR4_Twili_8: -68286453341937065
+      SR4_Twili_9: 2106667583744948603
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

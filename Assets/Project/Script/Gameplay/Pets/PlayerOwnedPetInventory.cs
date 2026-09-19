@@ -12,13 +12,15 @@ namespace PowerMath.Gameplay.Pets
             string rarityId,
             string rarityName,
             Color rarityColor,
-            bool isEquipped)
+            bool isEquipped,
+            int count = 1)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
             RarityId = rarityId ?? string.Empty;
             RarityName = rarityName ?? string.Empty;
             RarityColor = rarityColor;
             IsEquipped = isEquipped;
+            Count = count > 0 ? count : 1;
         }
 
         public PetDefinition Definition { get; }
@@ -26,6 +28,7 @@ namespace PowerMath.Gameplay.Pets
         public string RarityName { get; }
         public Color RarityColor { get; }
         public bool IsEquipped { get; }
+        public int Count { get; }
     }
 
     public sealed class PlayerOwnedPetInventory
@@ -75,43 +78,53 @@ namespace PowerMath.Gameplay.Pets
                 return false;
             }
 
-            var savedById = new Dictionary<string, PlayerSnapshot.InventoryItemData>(
-                StringComparer.Ordinal);
+            var countById = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (PlayerSnapshot.InventoryItemData item in
                 player.inventory ?? Array.Empty<PlayerSnapshot.InventoryItemData>())
             {
-                if (item == null || !catalog.TryResolvePet(item.itemId, out _, out _))
+                if (item == null || !item.owned || !catalog.TryResolvePet(item.itemId, out PetDefinition petDef, out _))
                     continue;
-                if (!item.owned || item.upgradeLevel != 0 ||
-                    !savedById.TryAdd(item.itemId, item))
+
+                if (item.count < 0)
                 {
-                    error = "Saved pet ownership is inconsistent and requires data repair.";
+                    error = "Saved pet copy count is invalid and requires data repair.";
                     return false;
                 }
+                // Zero is the pre-count schema's representation of one owned copy.
+                int itemCount = item.count == 0 ? 1 : item.count;
+                string key = petDef.PetId;
+                if (countById.TryGetValue(key, out int existing))
+                    countById[key] = checked(existing + itemCount);
+                else
+                    countById[key] = itemCount;
             }
 
             string equippedId = player.loadout?.petId?.Trim() ?? string.Empty;
-            if (!string.IsNullOrEmpty(equippedId) && !savedById.ContainsKey(equippedId))
+            if (!string.IsNullOrEmpty(equippedId) && !countById.ContainsKey(equippedId))
             {
                 error = "The equipped pet is not owned or no longer exists in the catalog.";
                 return false;
             }
 
-            var entries = new List<OwnedPetEntry>(savedById.Count);
-            var byId = new Dictionary<string, OwnedPetEntry>(StringComparer.Ordinal);
+            var entries = new List<OwnedPetEntry>(countById.Count);
+            var byId = new Dictionary<string, OwnedPetEntry>(StringComparer.OrdinalIgnoreCase);
             foreach (PetGachaCatalogDefinition.RarityContent rarity in catalog.Rarities)
             {
                 if (rarity == null) continue;
                 foreach (PetDefinition definition in rarity.pets ?? Array.Empty<PetDefinition>())
                 {
-                    if (definition == null || !savedById.ContainsKey(definition.PetId))
+                    if (definition == null || !countById.TryGetValue(definition.PetId, out int stackCount))
                         continue;
+                    if (byId.ContainsKey(definition.PetId))
+                        continue;
+
                     var entry = new OwnedPetEntry(
                         definition,
                         rarity.rarityId,
                         rarity.displayName,
                         rarity.displayColor,
-                        string.Equals(equippedId, definition.PetId, StringComparison.Ordinal));
+                        string.Equals(equippedId, definition.PetId, StringComparison.OrdinalIgnoreCase),
+                        stackCount);
                     entries.Add(entry);
                     byId.Add(definition.PetId, entry);
                 }

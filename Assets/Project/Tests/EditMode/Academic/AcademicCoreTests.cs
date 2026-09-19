@@ -27,20 +27,27 @@ namespace PowerMath.Gameplay.Academic.Tests
             Assert.That(AcademicRank.TryParseExact(value, out _), Is.False);
         }
 
-        [TestCase(AcademicRankTier.Gold, 25, AcademicRankTier.Silver)]
-        [TestCase(AcademicRankTier.Gold, 26, AcademicRankTier.Gold)]
-        [TestCase(AcademicRankTier.Gold, 39, AcademicRankTier.Gold)]
-        [TestCase(AcademicRankTier.Gold, 40, AcademicRankTier.Diamond)]
-        [TestCase(AcademicRankTier.Silver, 0, AcademicRankTier.Silver)]
-        [TestCase(AcademicRankTier.Diamond, 50, AcademicRankTier.Diamond)]
+        [TestCase(AcademicRankTier.Gold, 4, 40, AcademicRankTier.Diamond)]
+        [TestCase(AcademicRankTier.Gold, 5, 50, AcademicRankTier.Diamond)]
+        [TestCase(AcademicRankTier.Diamond, 4, 40, AcademicRankTier.Diamond)]
+        [TestCase(AcademicRankTier.Gold, 4, 39, AcademicRankTier.Gold)]
+        [TestCase(AcademicRankTier.Gold, 5, 35, AcademicRankTier.Gold)]
+        [TestCase(AcademicRankTier.Gold, 3, 30, AcademicRankTier.Gold)]
+        [TestCase(AcademicRankTier.Gold, 3, 15, AcademicRankTier.Gold)]
+        [TestCase(AcademicRankTier.Gold, 2, 20, AcademicRankTier.Silver)]
+        [TestCase(AcademicRankTier.Gold, 1, 10, AcademicRankTier.Silver)]
+        [TestCase(AcademicRankTier.Gold, 0, 0, AcademicRankTier.Silver)]
+        [TestCase(AcademicRankTier.Silver, 0, 0, AcademicRankTier.Silver)]
         public void RankPolicy_UsesGddThresholdsAndBounds(
             AcademicRankTier current,
+            int correctCount,
             int score,
             AcademicRankTier expected)
         {
             RankTransition transition = RankProgressionPolicy.Evaluate(
                 new AcademicRank(current),
-                score
+                score,
+                correctCount
             );
             Assert.That(transition.Current.Tier, Is.EqualTo(expected));
         }
@@ -52,14 +59,16 @@ namespace PowerMath.Gameplay.Academic.Tests
             AuditRecordResult result = default;
             for (int index = 0; index < 5; index++)
             {
-                result = audit.Record(20);
+                result = audit.Record(true, 10);
                 audit = result.NextWindow;
             }
 
             Assert.That(result.Completed, Is.True);
             Assert.That(result.CompletedScore, Is.EqualTo(50));
+            Assert.That(result.CompletedCorrectCount, Is.EqualTo(5));
             Assert.That(audit.ResolvedCount, Is.Zero);
             Assert.That(audit.Score, Is.Zero);
+            Assert.That(audit.CorrectCount, Is.Zero);
         }
 
         [Test]
@@ -344,6 +353,7 @@ namespace PowerMath.Gameplay.Academic.Tests
 
             Assert.That(restored.Audit.ResolvedCount, Is.EqualTo(1));
             Assert.That(restored.Audit.Score, Is.Zero);
+            Assert.That(restored.Audit.CorrectCount, Is.Zero);
             Assert.That(
                 restored.Inventories.Get(AcademicRank.Silver).FailedCount,
                 Is.EqualTo(1)
@@ -352,6 +362,94 @@ namespace PowerMath.Gameplay.Academic.Tests
                 restored.Inventories.Get(AcademicRank.Silver).PendingQuestions,
                 Is.EqualTo(state.Inventories.Get(AcademicRank.Silver).PendingQuestions)
             );
+        }
+
+        [Test]
+        public void Progression_FourCorrectUnderFortyPointsMaintainsRank()
+        {
+            QuestionCatalog catalog = LoadCatalog();
+            var engine = new AcademicProgressionEngine(catalog);
+            AcademicProgressionState state = engine.CreateInitialState(
+                AcademicRank.Silver,
+                new RankCurrencyBalances(0, 0, 0)
+            );
+            AcademicAttemptResult fifth = null;
+
+            // 4 correct at 9 points each (=36 points), 1 incorrect at 0 points
+            for (int index = 0; index < 4; index++)
+            {
+                QuestionReservationResult reservation = engine.TryReserve(state);
+                Assert.That(reservation.Success, Is.True);
+                AcademicMutationResult mutation = engine.Resolve(
+                    reservation.State,
+                    reservation.Reservation,
+                    QuestionOutcome.Correct,
+                    9
+                );
+                state = mutation.State;
+            }
+
+            QuestionReservationResult lastReservation = engine.TryReserve(state);
+            Assert.That(lastReservation.Success, Is.True);
+            AcademicMutationResult lastMutation = engine.Resolve(
+                lastReservation.State,
+                lastReservation.Reservation,
+                QuestionOutcome.Incorrect,
+                0
+            );
+            state = lastMutation.State;
+            fifth = lastMutation.Attempt;
+
+            // CorrectCount = 4, AuditScore = 36 (< 40) -> Maintain Silver
+            Assert.That(fifth.RankAtCommit, Is.EqualTo(AcademicRank.Silver));
+            Assert.That(fifth.RankTransition.Changed, Is.False);
+            Assert.That(state.ActiveRank, Is.EqualTo(AcademicRank.Silver));
+            Assert.That(state.Audit.ResolvedCount, Is.Zero);
+            Assert.That(state.Audit.CorrectCount, Is.Zero);
+        }
+
+        [Test]
+        public void Progression_TwoCorrectDemotesRank()
+        {
+            QuestionCatalog catalog = LoadCatalog();
+            var engine = new AcademicProgressionEngine(catalog);
+            AcademicProgressionState state = engine.CreateInitialState(
+                AcademicRank.Gold,
+                new RankCurrencyBalances(0, 0, 0)
+            );
+            AcademicAttemptResult fifth = null;
+
+            // 2 correct (10 each = 20 pts), 3 incorrect
+            for (int index = 0; index < 2; index++)
+            {
+                QuestionReservationResult reservation = engine.TryReserve(state);
+                AcademicMutationResult mutation = engine.Resolve(
+                    reservation.State,
+                    reservation.Reservation,
+                    QuestionOutcome.Correct,
+                    10
+                );
+                state = mutation.State;
+            }
+            for (int index = 0; index < 3; index++)
+            {
+                QuestionReservationResult reservation = engine.TryReserve(state);
+                AcademicMutationResult mutation = engine.Resolve(
+                    reservation.State,
+                    reservation.Reservation,
+                    QuestionOutcome.Incorrect,
+                    0
+                );
+                state = mutation.State;
+                fifth = mutation.Attempt;
+            }
+
+            // CorrectCount = 2 -> Demote to Silver
+            Assert.That(fifth.RankAtCommit, Is.EqualTo(AcademicRank.Gold));
+            Assert.That(fifth.RankTransition.IsDemotion, Is.True);
+            Assert.That(state.ActiveRank, Is.EqualTo(AcademicRank.Silver));
+            Assert.That(state.Audit.ResolvedCount, Is.Zero);
+            Assert.That(state.Audit.CorrectCount, Is.Zero);
         }
 
         private static QuestionCatalog LoadCatalog()

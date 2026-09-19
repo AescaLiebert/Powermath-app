@@ -6,18 +6,31 @@ namespace PowerMath.Gameplay.Combat
     {
         public const int MinimumScore = 1;
         public const int MaximumScore = 10;
-        public const int PercentPerPoint = 20;
+
+        private static readonly int[] PercentByScore =
+        {
+            100, // Score 1: Base hit (1.0x)
+            110, // Score 2: +10%
+            120, // Score 3: +20%
+            130, // Score 4: +30%
+            140, // Score 5: +40%
+            150, // Score 6: +50%
+            160, // Score 7: +60%
+            170, // Score 8: +70%
+            180, // Score 9: +80%
+            200  // Score 10: Max speed / Grace (+100%, 2.0x)
+        };
 
         public static double GetMultiplier(int responseScore)
         {
             Validate(responseScore);
-            return responseScore * PercentPerPoint / 100d;
+            return GetPercent(responseScore) / 100d;
         }
 
         public static int GetPercent(int responseScore)
         {
             Validate(responseScore);
-            return checked(responseScore * PercentPerPoint);
+            return PercentByScore[responseScore - MinimumScore];
         }
 
         private static void Validate(int responseScore)

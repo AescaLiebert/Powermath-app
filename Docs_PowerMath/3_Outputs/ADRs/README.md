@@ -22,6 +22,9 @@ graph TD
     ADR016["ADR-016: Player Lifecycle and Live Service Boundaries"]
     ADR017["ADR-017: Shared Settings and Scoped Admin Test Authority"]
     ADR018["ADR-018: Firebase-Backed Admin and Mobile Media Recovery"]
+    ADR019["ADR-019: Event Stage Scheduling and Challenge Resolution"]
+    ADR020["ADR-020: Generic Tutorial Map, Pure Reducer, and Semantic UI Adapters"]
+    ADR021["ADR-021: Data-Driven Pet Collection and Passive Runtime"]
     ADR002 -- "supersedes" --> ADR001
     ADR003 -- "supersedes" --> ADR002
     ADR004 -- "extends prototype composition" --> ADR003
@@ -58,6 +61,18 @@ graph TD
     ADR017 -. "future trusted command boundary" .-> ADR016
     ADR018 -- "supersedes temporary admin runtime" --> ADR017
     ADR018 -- "hardens embedded media lifecycle" --> ADR006
+    ADR019 -- "extends Event scheduling and resolution" --> ADR009
+    ADR019 -- "extends content identity and atomic reward" --> ADR006
+    ADR019 -- "adds replay-safe flee/reward receipts" --> ADR012
+    ADR020 -- "extends direct player persistence" --> ADR006
+    ADR020 -- "requires schema V5 migration" --> ADR011
+    ADR020 -- "observes persisted combat checkpoints" --> ADR012
+    ADR020 -- "uses scene-scoped overlay and gate" --> ADR014
+    ADR020 -- "extends lifecycle command boundary" --> ADR016
+    ADR021 -. "proposed generic pet runtime" .-> ADR010
+    ADR021 -. "receipt-driven presentation" .-> ADR012
+    ADR021 -. "canonical collection/equip" .-> ADR013
+    ADR021 -. "trusted command migration" .-> ADR016
 ```
 
 Update this diagram as ADRs are added. Show which decisions depend on others.
@@ -83,6 +98,9 @@ Update this diagram as ADRs are added. Show which decisions depend on others.
 | [015](015-isolated-question-fallback-practice-session.md) | Isolated Question Fallback Practice Session | **Accepted** | Question fallback resilience | Bundled fallback is local-only and preserves Firebase artifacts |
 | [017](017-shared-settings-and-admin-test-authority.md) | Shared Settings and Scoped Admin Test Authority | **Partially superseded by ADR-018** | Settings/admin test infrastructure | Shared Settings and revision-checked commands retained |
 | [018](018-firebase-backed-admin-and-mobile-media-recovery.md) | Firebase-Backed Admin and Mobile Media Recovery | **Accepted** | Mobile WebGL/admin stabilization | Implemented 2026-09-11; awaiting deployed mobile QA |
+| [019](019-event-stage-scheduling-and-challenge-resolution.md) | Event Stage Scheduling and Challenge Resolution | **Accepted** | Event migration | Implemented; awaiting implementation review and manual Editor/WebGL playtest |
+| [020](020-generic-tutorial-map-pure-reducer-and-semantic-ui-adapters.md) | Generic Tutorial Map, Pure Reducer, and Semantic UI Adapters | **Accepted** | Tutorial infrastructure | `OnFirstCreate` implemented; awaiting implementation review and manual Editor/WebGL playtest |
+| [021](021-data-driven-pet-collection-passive-runtime.md) | Data-Driven Pet Collection and Passive Runtime | **Accepted** | Pet collection/combat/persistence | Approved 2026-09-17; local implementation in progress, trusted backend and final presentation still gated |
 
 ## Phase Mapping
 

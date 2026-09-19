@@ -343,7 +343,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private List<RankedLeaderboardEntry> _cached;
         private bool _bound;
         private bool _loading;
-        internal const int BatchSize = 50;
+        internal const int BatchSize = 20;
+        private bool _batchLoading;
         private int _renderedCount;
         private VisualElement _loadMoreIndicator;
         private Label _loadMoreLabel;
@@ -435,12 +436,16 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private void Open()
         {
+            TryOpenFromTutorial();
+        }
+
+        public bool TryOpenFromTutorial()
+        {
             if (_attemptPanel != null && _attemptPanel.resolvedStyle.display != DisplayStyle.None)
-                return;
+                return false;
             if (!_panelHost.TryOpen(
                     MainMenuPanelId.Leaderboard,
-                    _modal,
-                    _open)) return;
+                    _modal, _open)) return false;
             UpdatePowerCoins(_player ?? PlayerSessionStore.Instance?.Snapshot);
             _cohort.text = (_player?.profile?.gradeBand ?? "Your Grade") + " · " + _levelId.ToUpperInvariant();
             if (_cached != null) Render(_cached, "Showing saved standings · refreshing…");
@@ -457,6 +462,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                     error => PowerMath.Diagnostics.AppLog.Warning("Leaderboard", error)));
             }
             Load();
+            return true;
         }
 
         private void OnPlayerChanged(PlayerSnapshot player)
@@ -656,7 +662,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private void OnScrollChanged(float value)
         {
-            if (_cached == null || _renderedCount >= _cached.Count || _list == null) return;
+            if (_batchLoading || _cached == null || _renderedCount >= _cached.Count || _list == null) return;
             float max = _list.verticalScroller != null ? _list.verticalScroller.highValue : 0;
             if (max > 0 && (value >= max - 200f || value >= max * 0.8f))
             {
@@ -666,23 +672,31 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         internal void LoadNextBatch()
         {
-            if (_cached == null || _renderedCount >= _cached.Count)
+            if (_batchLoading || _cached == null || _renderedCount >= _cached.Count)
             {
                 UpdateLoadMoreIndicator();
                 return;
             }
 
-            if (_loadMoreIndicator != null && _loadMoreIndicator.parent == _list)
-                _loadMoreIndicator.RemoveFromHierarchy();
-
-            int target = Math.Min(_renderedCount + BatchSize, _cached.Count);
-            for (int i = _renderedCount; i < target; i++)
+            _batchLoading = true;
+            try
             {
-                _list.Add(CreateRow(_cached[i]));
-            }
-            _renderedCount = target;
+                if (_loadMoreIndicator != null && _loadMoreIndicator.parent == _list)
+                    _loadMoreIndicator.RemoveFromHierarchy();
 
-            UpdateLoadMoreIndicator();
+                int target = Math.Min(_renderedCount + BatchSize, _cached.Count);
+                for (int i = _renderedCount; i < target; i++)
+                {
+                    _list.Add(CreateRow(_cached[i]));
+                }
+                _renderedCount = target;
+
+                UpdateLoadMoreIndicator();
+            }
+            finally
+            {
+                _batchLoading = false;
+            }
         }
 
         private void UpdateLoadMoreIndicator()
@@ -825,6 +839,90 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             return row;
         }
 
+        private static readonly Dictionary<string, Sprite> s_profileIconCache = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, Sprite> s_petIconCache = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
+
+        internal sealed class RowViewHolder
+        {
+            public readonly VisualElement Root;
+            public readonly VisualElement RankSlot;
+            public readonly Label RankNumber;
+            public readonly VisualElement Avatar;
+            public readonly Label PlayerName;
+            public readonly Label CurrentStage;
+            public readonly Label BestStage;
+            public readonly Label Silver;
+            public readonly Label Gold;
+            public readonly Label Diamond;
+            public readonly Label DamageValue;
+            public readonly VisualElement Loadout;
+
+            public RowViewHolder(VisualElement root)
+            {
+                Root = root;
+                RankSlot = root.Q<VisualElement>("leaderboard-row-rank-slot");
+                RankNumber = root.Q<Label>("leaderboard-row-rank-number");
+                Avatar = root.Q<VisualElement>("leaderboard-row-avatar");
+                PlayerName = root.Q<Label>("leaderboard-row-player-name");
+                CurrentStage = root.Q<Label>("leaderboard-row-current");
+                BestStage = root.Q<Label>("leaderboard-row-best");
+                Silver = root.Q<Label>("leaderboard-row-silver");
+                Gold = root.Q<Label>("leaderboard-row-gold");
+                Diamond = root.Q<Label>("leaderboard-row-diamond");
+                DamageValue = root.Q<Label>("leaderboard-row-damage-value");
+                Loadout = root.Q<VisualElement>("leaderboard-row-loadout");
+                root.userData = this;
+            }
+
+            public void Bind(RankedLeaderboardEntry ranked, bool showCohortBadge)
+            {
+                Root.RemoveFromClassList("leaderboard-row--diamond");
+                Root.RemoveFromClassList("leaderboard-row--gold");
+                Root.RemoveFromClassList("leaderboard-row--silver");
+                Root.RemoveFromClassList("leaderboard-row--self");
+
+                if (ranked.Rank == 1) Root.AddToClassList("leaderboard-row--diamond");
+                else if (ranked.Rank == 2) Root.AddToClassList("leaderboard-row--gold");
+                else if (ranked.Rank == 3) Root.AddToClassList("leaderboard-row--silver");
+                if (ranked.IsSelf) Root.AddToClassList("leaderboard-row--self");
+                Root.name = ".leaderboard-row--rank-" + ranked.Rank;
+
+                if (RankNumber != null)
+                {
+                    RankNumber.text = ranked.Rank.ToString(CultureInfo.CurrentCulture);
+                }
+                ApplyRankSlotVisuals(RankSlot, RankNumber, ranked.Rank);
+                if (RankSlot != null)
+                    RankSlot.tooltip = ranked.IsTied ? "Tied rank" : "Rank " + ranked.Rank;
+
+                if (Avatar != null)
+                {
+                    Avatar.tooltip = DisplayItem(ranked.Entry.AvatarId);
+                    RenderAvatar(Avatar, ranked.Entry);
+                }
+
+                string displayName = ranked.Entry.DisplayName;
+                if (showCohortBadge && !string.IsNullOrEmpty(ranked.Entry.GradeBand))
+                {
+                    displayName = $"{displayName}  ({ranked.Entry.GradeBand})";
+                }
+
+                if (PlayerName != null) PlayerName.text = displayName;
+                if (CurrentStage != null) CurrentStage.text = ranked.Entry.CurrentStage.ToString(CultureInfo.CurrentCulture);
+                if (BestStage != null) BestStage.text = ranked.Entry.HighestStage.ToString(CultureInfo.CurrentCulture);
+                if (Silver != null) Silver.text = FormatNumber(ranked.Entry.Silver);
+                if (Gold != null) Gold.text = FormatNumber(ranked.Entry.Gold);
+                if (Diamond != null) Diamond.text = FormatNumber(ranked.Entry.Diamond);
+                if (DamageValue != null) DamageValue.text = FormatCompact(ranked.Entry.TotalDamage);
+
+                if (Loadout != null)
+                {
+                    Loadout.Clear();
+                    AddLoadoutSlots(Loadout, ranked.Entry);
+                }
+            }
+        }
+
         internal static VisualElement CreateAuthoredRow(RankedLeaderboardEntry ranked, bool showCohortBadge = false)
         {
             if (s_leaderboardRowTemplate == null)
@@ -836,49 +934,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             if (row == null) return null;
             row.RemoveFromHierarchy();
 
-            if (ranked.Rank == 1) row.AddToClassList("leaderboard-row--diamond");
-            else if (ranked.Rank == 2) row.AddToClassList("leaderboard-row--gold");
-            else if (ranked.Rank == 3) row.AddToClassList("leaderboard-row--silver");
-            if (ranked.IsSelf) row.AddToClassList("leaderboard-row--self");
-            row.name = ".leaderboard-row--rank-" + ranked.Rank;
-
-            VisualElement rankSlot = row.Q<VisualElement>("leaderboard-row-rank-slot");
-            Label rankNumber = row.Q<Label>("leaderboard-row-rank-number");
-            if (rankNumber != null)
-            {
-                rankNumber.text = ranked.Rank.ToString(CultureInfo.CurrentCulture);
-            }
-            ApplyRankSlotVisuals(rankSlot, rankNumber, ranked.Rank);
-            if (rankSlot != null)
-                rankSlot.tooltip = ranked.IsTied ? "Tied rank" : "Rank " + ranked.Rank;
-
-            VisualElement avatar = row.Q<VisualElement>("leaderboard-row-avatar");
-            if (avatar != null)
-            {
-                avatar.tooltip = DisplayItem(ranked.Entry.AvatarId);
-                RenderAvatar(avatar, ranked.Entry);
-            }
-
-            string displayName = ranked.Entry.DisplayName;
-            if (showCohortBadge && !string.IsNullOrEmpty(ranked.Entry.GradeBand))
-            {
-                displayName = $"{displayName}  ({ranked.Entry.GradeBand})";
-            }
-
-            SetText(row, "leaderboard-row-player-name", displayName);
-            SetText(row, "leaderboard-row-current", ranked.Entry.CurrentStage.ToString(CultureInfo.CurrentCulture));
-            SetText(row, "leaderboard-row-best", ranked.Entry.HighestStage.ToString(CultureInfo.CurrentCulture));
-            SetText(row, "leaderboard-row-silver", FormatNumber(ranked.Entry.Silver));
-            SetText(row, "leaderboard-row-gold", FormatNumber(ranked.Entry.Gold));
-            SetText(row, "leaderboard-row-diamond", FormatNumber(ranked.Entry.Diamond));
-            SetText(row, "leaderboard-row-damage-value", FormatCompact(ranked.Entry.TotalDamage));
-
-            VisualElement loadout = row.Q<VisualElement>("leaderboard-row-loadout");
-            if (loadout != null)
-            {
-                loadout.Clear();
-                AddLoadoutSlots(loadout, ranked.Entry);
-            }
+            var holder = new RowViewHolder(row);
+            holder.Bind(ranked, showCohortBadge);
             return row;
         }
 
@@ -916,11 +973,17 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             string charId = !string.IsNullOrWhiteSpace(entry.CharacterId)
                 ? entry.CharacterId
                 : (!string.IsNullOrWhiteSpace(entry.AvatarId) ? entry.AvatarId : "ricko");
+
+            if (s_profileIconCache.TryGetValue(charId, out Sprite cached))
+                return cached;
+
             if (s_characterCatalog == null)
                 s_characterCatalog = CharacterPresentationCatalog.Load();
             CharacterPresentationCatalog.Character def = s_characterCatalog?.Find(charId);
             Sprite authored = def?.profileIcon != null ? def.profileIcon : def?.selectionArt;
-            return CharacterPlaceholderSprites.Resolve(authored, charId);
+            Sprite resolved = CharacterPlaceholderSprites.Resolve(authored, charId);
+            s_profileIconCache[charId] = resolved;
+            return resolved;
         }
 
         internal static Sprite ResolveWeaponIcon(LeaderboardEntry entry)
@@ -937,6 +1000,10 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         {
             if (string.IsNullOrWhiteSpace(petId) || string.Equals(petId, "none", StringComparison.OrdinalIgnoreCase))
                 return null;
+
+            if (s_petIconCache.TryGetValue(petId, out Sprite cached))
+                return cached;
+
             if (s_petCatalog == null)
             {
                 s_petCatalog = Resources.Load<PetGachaCatalogDefinition>("Pets/PetGachaCatalog") ??
@@ -949,9 +1016,13 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 foreach (PetDefinition pet in rarity.pets)
                 {
                     if (pet != null && string.Equals(pet.PetId, petId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        s_petIconCache[petId] = pet.Icon;
                         return pet.Icon;
+                    }
                 }
             }
+            s_petIconCache[petId] = null;
             return null;
         }
 
@@ -996,23 +1067,11 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             rankSlot.RemoveFromClassList("leaderboard-row-rank-slot--1st");
             rankSlot.RemoveFromClassList("leaderboard-row-rank-slot--2nd");
             rankSlot.RemoveFromClassList("leaderboard-row-rank-slot--3rd");
-            Sprite badge = rank > 0 && rank <= 3 ? ResolveBadgeIcon(rank) : null;
-            if (rank == 1) rankSlot.AddToClassList("leaderboard-row-rank-slot--1st");
-            else if (rank == 2) rankSlot.AddToClassList("leaderboard-row-rank-slot--2nd");
-            else if (rank == 3) rankSlot.AddToClassList("leaderboard-row-rank-slot--3rd");
-
-            if (badge != null)
-            {
-                rankSlot.style.backgroundImage = new StyleBackground(badge);
-            }
-            else if (rank > 3 || rank <= 0)
-            {
-                rankSlot.style.backgroundImage = StyleKeyword.Null;
-            }
+            rankSlot.style.backgroundImage = StyleKeyword.Null;
 
             if (rankLabel != null)
             {
-                rankLabel.style.display = rank > 3 || rank <= 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                rankLabel.style.display = DisplayStyle.Flex;
             }
         }
 

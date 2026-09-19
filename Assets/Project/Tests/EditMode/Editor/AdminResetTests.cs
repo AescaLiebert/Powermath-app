@@ -21,7 +21,7 @@ namespace PowerMath.Tests.EditMode
 
             Assert.That(plan, Is.Not.Null);
             Assert.That(plan.IsEmpty, Is.False);
-            Assert.That(plan.FieldPaths, Is.EqualTo(new[] { "student_alpha.gamedata" }),
+            Assert.That(plan.FieldPaths, Is.EqualTo(new[] { "gamedata" }),
                 "Reset must replace the complete gamedata map so stale fields cannot survive.");
 
             string json = plan.ToJson();

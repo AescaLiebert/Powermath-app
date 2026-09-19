@@ -73,8 +73,18 @@ namespace PowerMath.Session
         public static bool TryGetMapFields(JsonValue value, out JsonValue fields)
         {
             fields = null;
-            return TryGetObject(value, "mapValue", out JsonValue map) &&
-                TryGetObject(map, "fields", out fields);
+            if (!TryGetObject(value, "mapValue", out JsonValue map))
+            {
+                return false;
+            }
+
+            if (!map.TryGet("fields", out fields))
+            {
+                fields = JsonValue.FromObject(new Dictionary<string, JsonValue>());
+                return true;
+            }
+
+            return fields.Kind == JsonValueKind.Object;
         }
 
         public static bool TryGetArrayValues(

@@ -279,7 +279,7 @@ namespace PowerMath.Tests.EditMode.Audio
         }
 
         [Test]
-        public void MusicController_PlayBattleMusic_BossToNewBiome_DifferentMusic_KicksInSuddenly()
+        public void MusicController_PlayBattleMusic_BossToNewBiome_DifferentMusic_FadesUpSmoothly()
         {
             // Configure a second biome with a distinct clip
             AudioClip distinctClip = AudioClip.Create("DistinctBiomeClip", 44100, 1, 22050, false);
@@ -297,13 +297,14 @@ namespace PowerMath.Tests.EditMode.Audio
             _controller.Tick(1.1f);
             Assert.That(_controller.BossSource.volume, Is.EqualTo(0f));
 
-            // Entering new biome with DIFFERENT music -> sudden kick-in at full volume immediately!
+            // Entering new biome with DIFFERENT music -> starts silent at 0 and smoothly fades up
             _controller.PlayBattleMusic("crystal-caverns");
 
             Assert.That(_controller.BattleSource.clip, Is.SameAs(distinctClip));
-            Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.5f), "Different track after boss must kick in at full volume immediately");
+            Assert.That(_controller.BattleSource.volume, Is.EqualTo(0f), "Different track after boss must start silently from volume 0");
             Assert.That(_controller.BattleSource.time, Is.EqualTo(0f), "Different track must start at 0");
-            Assert.That(_controller.BossSource.isPlaying, Is.False, "Boss channel should be stopped immediately");
+            _controller.Tick(_library.DefaultCrossfadeDuration * 0.6f);
+            Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.4f), "Different track fades up smoothly during transition");
         }
 
         [Test]
@@ -348,6 +349,44 @@ namespace PowerMath.Tests.EditMode.Audio
             _controller.PlayBattleMusic();
 
             Assert.That(_controller.BattleSource.time, Is.EqualTo(0.8f).Within(0.001f), "Same music track must not restart itself");
+        }
+
+        [Test]
+        public void MusicController_FadeOutBossMusic_LeavesBattleChannelSilentUntilBiomeTransition()
+        {
+            _controller.PlayBattleMusic("verdant-grove");
+            _controller.Tick(_library.DefaultCrossfadeDuration + 0.1f);
+            Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.5f));
+
+            // Encounter override / boss activates -> battle channel fades to 0
+            var enemyClip = AudioClip.Create("CustomEnemyClip", 1000, 1, 22050, false);
+            _controller.SetEncounterMusicOverride(new MusicTrackConfig(enemyClip, 0.8f, true));
+            _controller.Tick(_library.BossInterruptDuration + 0.1f);
+
+            Assert.That(_controller.BossSource.volume, Is.EqualTo(0.8f).Within(0.02f));
+            Assert.That(_controller.BattleSource.volume, Is.EqualTo(0f));
+
+            // Question sequence ducks volume during playback
+            _controller.SetDucking(true);
+            _controller.Tick(_library.DuckFadeDuration + 0.1f);
+            Assert.That(_controller.BossSource.volume, Is.LessThan(0.8f));
+
+            // Question resolved, enemy defeated -> ducking ends and boss music fades out
+            _controller.SetDucking(false);
+            _controller.FadeOutBossMusic(0.8f);
+            _controller.Tick(0.8f + 0.1f);
+
+            // Boss music must be faded to 0, and underlying battle music remains silent (must NOT play old biome music)
+            Assert.That(_controller.BossSource.volume, Is.EqualTo(0f));
+            Assert.That(_controller.BattleSource.volume, Is.EqualTo(0f), "Underlying battle channel must remain silent after boss defeat until biome transition");
+
+            // Biome transition triggers new biome music: should start from 0 and smoothly fade up
+            _controller.PlayBattleMusic("azure-depths");
+            Assert.That(_controller.BattleSource.volume, Is.EqualTo(0f), "New biome music must start silently from volume 0");
+            _controller.Tick(_library.DefaultCrossfadeDuration * 0.5f);
+            Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.1f).And.LessThan(0.9f), "New biome music must smoothly fade up during biome transition");
+            _controller.Tick(_library.DefaultCrossfadeDuration * 0.6f);
+            Assert.That(_controller.BattleSource.volume, Is.GreaterThan(0.5f), "New biome music reaches full volume after crossfade");
         }
     }
 }

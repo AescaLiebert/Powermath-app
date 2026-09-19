@@ -1209,6 +1209,141 @@
       "key": "combat.approaching",
       "en": "APPROACHING",
       "th": "กำลังใกล้เข้ามา"
+    },
+    {
+      "key": "tutorial.speaker.power",
+      "en": "Power",
+      "th": "พาวเวอร์"
+    },
+    {
+      "key": "tutorial.advance",
+      "en": "Continue",
+      "th": "ต่อไป"
+    },
+    {
+      "key": "tutorial.updateRequired",
+      "en": "This tutorial requires a newer game version.",
+      "th": "บทสอนนี้ต้องใช้เกมเวอร์ชันใหม่กว่า"
+    },
+    {
+      "key": "tutorial.actionUnavailable",
+      "en": "The challenge is not ready yet. Please try again.",
+      "th": "การท้าทายยังไม่พร้อม กรุณาลองอีกครั้ง"
+    },
+    {
+      "key": "tutorial.targetUnavailable",
+      "en": "The guided target is unavailable. Reload to continue.",
+      "th": "ไม่พบเป้าหมายของบทสอน กรุณาโหลดใหม่เพื่อเล่นต่อ"
+    },
+    {
+      "key": "tutorial.presentationUnavailable",
+      "en": "The tutorial could not be displayed. Gameplay has been unlocked; please reload and try again.",
+      "th": "ไม่สามารถแสดงบทแนะนำได้ ระบบได้ปลดล็อกการเล่นแล้ว กรุณาโหลดเกมใหม่แล้วลองอีกครั้ง"
+    },
+    {
+      "key": "tutorial.onFirstCreate.welcomeNew",
+      "en": "Hi, {0}! Thank you for coming. I'm Power—and I'm really glad you're here!",
+      "th": "สวัสดี {0}! ขอบคุณที่มานะ เราชื่อพาวเวอร์—ดีใจจริง ๆ ที่ได้เจอกัน!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.welcomeReturning",
+      "en": "Welcome back, {0}! I'm Power. Let me show you how your math becomes battle power!",
+      "th": "ยินดีต้อนรับกลับนะ {0}! เราชื่อพาวเวอร์ มาดูกันว่าคณิตศาสตร์จะกลายเป็นพลังต่อสู้ได้อย่างไร!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.mathWorld",
+      "en": "This is Math:World. Every problem you solve turns your thinking into real power!",
+      "th": "ที่นี่คือ Math:World ทุกโจทย์ที่เธอแก้ได้ จะเปลี่ยนความคิดของเธอให้เป็นพลังจริง ๆ!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.threatComfront",
+      "en": "Oh my! There a monster ahead, Tap to start your first math challenge!",
+      "th": "โอ๊ะ!? มีมอนเตอร์ขว้างทางอยู่ เเตะมันเพื่อเริ่มการท้าท้ายครั้งเเรกของเธอเลย!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.attackPrompt",
+      "en": "A monster is in our way. Tap it to begin your first challenge!",
+      "th": "มีมอนสเตอร์ขวางทางอยู่ แตะมันเพื่อเริ่มการท้าทายครั้งแรกของเธอเลย!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.firstTryCorrect",
+      "en": "Amazing first try! Your math became a real attack!",
+      "th": "ครั้งแรกก็เยี่ยมมาก! คณิตศาสตร์ของเธอกลายเป็นการโจมตีจริง ๆ แล้ว!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.firstTryIncorrect",
+      "en": "Great first try! Trying is how your power grows. Let's keep going!",
+      "th": "การลองครั้งแรกยอดเยี่ยมมาก! ทุกครั้งที่ลอง พลังของเธอก็เติบโต ไปต่อกันเลย!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.firstTryTimeout",
+      "en": "Great first try! Taking time to think is okay. Let's try again!",
+      "th": "การลองครั้งแรกยอดเยี่ยมมาก! ค่อย ๆ คิดได้เลย แล้วเรามาลองอีกครั้งนะ!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.firstTryAbandoned",
+      "en": "Welcome back! Your first try still counts—and I'm here with you. Let's keep going!",
+      "th": "กลับมาแล้ว! การลองครั้งแรกของเธอยังมีความหมาย—เราจะอยู่ข้าง ๆ เอง ไปต่อกันนะ!"
+    },
+    {
+      "key": "tutorial.onFirstCreate.threatHandoff",
+      "en": "Whoa—a new monster! It looks scary... but you're ready. This battle is yours!",
+      "th": "ว้าว—มอนสเตอร์ตัวใหม่! ดูน่ากลัวจัง... แต่เธอพร้อมแล้ว การต่อสู้นี้เป็นของเธอ!"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.promotion",
+      "en": "You reached a new learning milestone, {0}! Every challenge is helping your Rank grow.",
+      "th": "{0} ก้าวถึงเป้าหมายการเรียนรู้ใหม่แล้ว! ทุกความท้าทายกำลังช่วยให้แรงก์ของเธอเติบโต"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.demotion",
+      "en": "This Rank changed, but your learning is not lost, {0}. Let's look at everything you've earned.",
+      "th": "แรงก์เปลี่ยนไป แต่สิ่งที่ {0} เรียนรู้ไม่ได้หายไปนะ มาดูสิ่งที่เธอสะสมไว้กัน"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.openProfile",
+      "en": "Open Profile Analytics so I can show you your learning history.",
+      "th": "เปิดสถิติโปรไฟล์ แล้วเราจะพาไปดูประวัติการเรียนรู้ของเธอ"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.rankCurrency",
+      "en": "This is Rank Currency. You never spend it—it stays as a forever record of your honor and learning experience.",
+      "th": "นี่คือสกุลเงินแรงก์ เธอไม่ต้องใช้มัน เพราะมันจะอยู่เป็นบันทึกเกียรติยศและประสบการณ์การเรียนรู้ตลอดไป"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.closeProfile",
+      "en": "Close Profile Analytics. Next, I'll show you where your learning record can shine.",
+      "th": "ปิดสถิติโปรไฟล์ก่อน ต่อไปเราจะพาไปดูว่าบันทึกการเรียนรู้ของเธอเปล่งประกายตรงไหน"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.openLeaderboard",
+      "en": "Now open the Leaderboard.",
+      "th": "ตอนนี้เปิดกระดานอันดับได้เลย"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.leaderboardCurrency",
+      "en": "Your accumulated Rank Currency helps show your progress among other learners.",
+      "th": "สกุลเงินแรงก์ที่สะสมไว้ช่วยแสดงความก้าวหน้าของเธอท่ามกลางผู้เรียนคนอื่น"
+    },
+    {
+      "key": "tutorial.onFirstRankChange.final",
+      "en": "Keep learning—your story and your record will keep growing!",
+      "th": "เรียนรู้ต่อไปนะ เรื่องราวและบันทึกของเธอยังเติบโตได้อีก!"
+    },
+    {
+      "key": "tutorial.onFirstEnemySurvive.warning",
+      "en": "That monster survived! Be careful—strong monsters move closer to attacking every time you commit an action.",
+      "th": "มอนสเตอร์ยังไม่ล้ม! ระวังนะ มอนสเตอร์ที่แข็งแกร่งจะขยับเข้าใกล้การโจมตีทุกครั้งที่เธอลงมือ"
+    },
+    {
+      "key": "tutorial.onFirstEnemySurvive.actions",
+      "en": "These boxes are the monster's actions. Each MOVE is one step closer. When the red ATTACK box reaches the front, a surviving monster attacks!",
+      "th": "ช่องเหล่านี้คือแอ็กชันของมอนสเตอร์ MOVE แต่ละช่องคือการขยับเข้าใกล้อีกหนึ่งก้าว เมื่อช่อง ATTACK สีแดงมาถึงด้านหน้า มอนสเตอร์ที่ยังอยู่จะโจมตี!"
+    },
+    {
+      "key": "tutorial.onFirstEnemySurvive.encouragement",
+      "en": "Don't give up, adventurer! With the power of mathematics, you can overcome any monster.",
+      "th": "อย่ายอมแพ้นะ นักผจญภัย! ด้วยพลังแห่งคณิตศาสตร์ เธอเอาชนะมอนสเตอร์ทุกตัวได้แน่นอน"
     }
   ]
 }

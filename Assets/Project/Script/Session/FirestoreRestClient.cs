@@ -72,11 +72,11 @@ namespace PowerMath.Session
                 yield break;
             }
 
-            bool foundAnyLevelDocument = false;
             for (int index = 0; index < _settings.LevelDocumentCount; index++)
             {
-                if (!_settings.TryGetLevelDocument(
+                if (!_settings.TryGetPlayerDocument(
                     index,
+                    normalizedUsername,
                     out string levelDocumentId,
                     out string gradeBand,
                     out string url))
@@ -91,7 +91,6 @@ namespace PowerMath.Session
                     yield return request.SendWebRequest();
                     if (request.responseCode == 404) continue;
                     if (!TryHandleTransport(request, onFailure)) yield break;
-                    foundAnyLevelDocument = true;
                     if (!TryParseDocument(request.downloadHandler.text, out document))
                     {
                         onFailure?.Invoke(InvalidResponseFailure());
@@ -185,12 +184,7 @@ namespace PowerMath.Session
                 yield break;
             }
 
-            onFailure?.Invoke(foundAnyLevelDocument
-                ? InvalidCredentialsFailure()
-                : new Failure(
-                    FailureKind.InvalidResponse,
-                    "The Grade 4-6 competition data could not be found."
-                ));
+            onFailure?.Invoke(InvalidCredentialsFailure());
         }
 
         public IEnumerator CreateBootstrap(
@@ -261,24 +255,44 @@ namespace PowerMath.Session
                 document.Kind == JsonValueKind.Object;
         }
 
-        private static bool TryGetStudent(JsonValue document, string username, out JsonValue student)
+        public static bool TryGetStudent(JsonValue document, string username, out JsonValue student)
         {
             student = null;
-            return FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) &&
-                fields.TryGet(username, out student) &&
+            if (!FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields))
+                return false;
+
+            if (fields.TryGet("userdata", out _) || fields.TryGet("gamedata", out _))
+            {
+                var mapObj = new Dictionary<string, JsonValue> { ["fields"] = fields };
+                var studentObj = new Dictionary<string, JsonValue> { ["mapValue"] = JsonValue.FromObject(mapObj) };
+                student = JsonValue.FromObject(studentObj);
+                return true;
+            }
+
+            return fields.TryGet(username, out student) &&
                 FirestoreJsonNavigator.TryGetMapFields(student, out _);
         }
 
         private static bool CredentialsMatch(JsonValue student, string username, string password)
         {
-            return TryGetMap(student, "userdata", out JsonValue userData) &&
-                TryReadString(userData, "username", out string storedUsername) &&
-                TryReadString(userData, "password", out string storedPassword) &&
-                string.Equals(
+            if (!TryGetMap(student, "userdata", out JsonValue userData) ||
+                !TryReadString(userData, "password", out string storedPassword))
+            {
+                return false;
+            }
+
+            if (TryReadString(userData, "username", out string storedUsername))
+            {
+                if (!string.Equals(
                     DirectFirestoreCredentialStore.NormalizeUsername(storedUsername),
                     username,
-                    StringComparison.Ordinal) &&
-                string.Equals(storedPassword, password, StringComparison.Ordinal);
+                    StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return string.Equals(storedPassword, password, StringComparison.Ordinal);
         }
 
         public static bool TryMapPlayer(
@@ -331,6 +345,7 @@ namespace PowerMath.Session
                     legacyPlayer = ReadBool(onboarding, "legacyPlayer")
                 },
                 tutorial = new PlayerSnapshot.TutorialData { version = ReadInt(tutorial, "version"), checkpointId = ReadString(tutorial, "checkpointId") },
+                tutorialEntries = MapTutorialEntries(gameData),
                 playerId = levelDocumentId + ":" + username,
                 isAdmin = isAdmin,
                 revision = ReadLong(gameData, "revision"),
@@ -398,6 +413,7 @@ namespace PowerMath.Session
                     goldEarned = ReadLong(activeRun, "goldEarned"),
                     diamondEarned = ReadLong(activeRun, "diamondEarned"),
                     bonusMultiplierBasisPoints = Math.Max(10000, ReadInt(activeRun, "bonusMultiplierBasisPoints")),
+                    wasTeleported = ReadBool(activeRun, "wasTeleported"),
                     pendingPresentation = MapAttemptPresentation(activeRun)
                 },
                 academic = MapAcademic(gameData),
@@ -413,8 +429,12 @@ namespace PowerMath.Session
                     lastPetGachaWasNew = ReadBool(economy, "lastPetGachaWasNew"),
                     lastPetGachaCost = ReadLong(economy, "lastPetGachaCost"),
                     lastPetGachaResultingPowerCoins = ReadLong(economy, "lastPetGachaResultingPowerCoins"),
+                    petGachaPullsSinceSsr = ReadInt(economy, "petGachaPullsSinceSsr"),
+                    lastPetGachaPreviousPityCount = ReadInt(economy, "lastPetGachaPreviousPityCount"),
+                    lastPetGachaResultingPityCount = ReadInt(economy, "lastPetGachaResultingPityCount"),
                     lastPetEquipTransactionId = ReadString(economy, "lastPetEquipTransactionId"),
-                    lastPetEquipPetId = ReadString(economy, "lastPetEquipPetId")
+                    lastPetEquipPetId = ReadString(economy, "lastPetEquipPetId"),
+                    firstGachaPullCompleted = ReadBool(economy, "firstGachaPullCompleted")
                 },
                 lastRunSettlement = new PlayerSnapshot.RunSettlementData
                 {
@@ -452,6 +472,7 @@ namespace PowerMath.Session
             if (string.IsNullOrWhiteSpace(presentationId)) return null;
             TryGetMapFromFields(value, "source", out JsonValue source);
             TryGetMapFromFields(value, "destination", out JsonValue destination);
+            TryGetMapFromFields(value, "petFollowUp", out JsonValue petFollowUp);
             return new PlayerSnapshot.AttemptPresentationData
             {
                 version = ReadInt(value, "version"),
@@ -460,6 +481,8 @@ namespace PowerMath.Session
                 outcome = ReadString(value, "outcome"),
                 responseScore = ReadInt(value, "responseScore"),
                 finalDamage = ReadInt(value, "finalDamage"),
+                playerDamage = ReadInt(value, "playerDamage"),
+                playerEnemyHpAfter = ReadInt(value, "playerEnemyHpAfter"),
                 isCritical = ReadBool(value, "isCritical"),
                 resolvedEnemyHpAfter = ReadInt(value, "resolvedEnemyHpAfter"),
                 enemyDefeated = ReadBool(value, "enemyDefeated"),
@@ -467,10 +490,31 @@ namespace PowerMath.Session
                 playerDefeated = ReadBool(value, "playerDefeated"),
                 stageAdvanced = ReadBool(value, "stageAdvanced"),
                 biomeChanged = ReadBool(value, "biomeChanged"),
+                enemyFled = ReadBool(value, "enemyFled"),
+                powerCoinsGranted = ReadInt(value, "powerCoinsGranted"),
+                resultingPowerCoins = ReadLong(value, "resultingPowerCoins"),
                 previousRank = ReadString(value, "previousRank", "Silver"),
                 currentRank = ReadString(value, "currentRank", "Silver"),
                 source = MapPresentationSnapshot(source),
-                destination = MapPresentationSnapshot(destination)
+                destination = MapPresentationSnapshot(destination),
+                petFollowUp = MapPetFollowUpPresentation(petFollowUp)
+            };
+        }
+
+        private static PlayerSnapshot.PetFollowUpPresentationData MapPetFollowUpPresentation(
+            JsonValue value)
+        {
+            if (value == null) return null;
+            TryGetMapFromFields(value, "target", out JsonValue target);
+            return new PlayerSnapshot.PetFollowUpPresentationData
+            {
+                damage = ReadInt(value, "damage"),
+                isCritical = ReadBool(value, "isCritical"),
+                enemyHpAfter = ReadInt(value, "enemyHpAfter"),
+                enemyDefeated = ReadBool(value, "enemyDefeated"),
+                stageAdvanced = ReadBool(value, "stageAdvanced"),
+                carried = ReadBool(value, "carried"),
+                target = MapPresentationSnapshot(target)
             };
         }
 
@@ -627,11 +671,49 @@ namespace PowerMath.Session
             foreach (JsonValue value in values)
             {
                 if (!FirestoreJsonNavigator.TryGetMapFields(value, out JsonValue fields)) continue;
+                bool owned = ReadBool(fields, "owned");
+                int count = ReadInt(fields, "count");
                 result.Add(new PlayerSnapshot.InventoryItemData
                 {
                     itemId = ReadString(fields, "itemId"),
-                    owned = ReadBool(fields, "owned"),
-                    upgradeLevel = ReadInt(fields, "upgradeLevel")
+                    owned = owned,
+                    upgradeLevel = ReadInt(fields, "upgradeLevel"),
+                    count = count > 0 ? count : (owned ? 1 : 0)
+                });
+            }
+            return result.ToArray();
+        }
+
+        private static PlayerSnapshot.TutorialEntryData[] MapTutorialEntries(JsonValue gameData)
+        {
+            if (gameData == null || !gameData.TryGet("tutorialMap", out JsonValue tutorialMap) ||
+                !FirestoreJsonNavigator.TryGetMapFields(tutorialMap, out JsonValue entriesMap) ||
+                entriesMap.Object == null)
+            {
+                return Array.Empty<PlayerSnapshot.TutorialEntryData>();
+            }
+
+            var result = new List<PlayerSnapshot.TutorialEntryData>();
+            foreach (KeyValuePair<string, JsonValue> pair in entriesMap.Object)
+            {
+                if (!FirestoreJsonNavigator.TryGetMapFields(pair.Value, out JsonValue fields))
+                    continue;
+
+                result.Add(new PlayerSnapshot.TutorialEntryData
+                {
+                    tutorialId = pair.Key,
+                    version = ReadInt(fields, "version"),
+                    status = ReadString(fields, "status"),
+                    currentStepId = ReadString(fields, "currentStepId"),
+                    triggerRecordedAtUnixSeconds = ReadLong(fields, "triggerRecordedAt"),
+                    completedAtUnixSeconds = ReadLong(fields, "completedAt"),
+                    rewardClaimed = ReadBool(fields, "rewardClaimed"),
+                    lastTransactionId = ReadString(fields, "lastTransactionId"),
+                    lastOperationId = ReadString(fields, "lastOperationId"),
+                    legacyPlayer = ReadBool(fields, "legacyPlayer"),
+                    guidedEncounterId = ReadString(fields, "guidedEncounterId"),
+                    firstAttemptOutcome = ReadString(fields, "firstAttemptOutcome"),
+                    variant = ReadString(fields, "variant")
                 });
             }
             return result.ToArray();

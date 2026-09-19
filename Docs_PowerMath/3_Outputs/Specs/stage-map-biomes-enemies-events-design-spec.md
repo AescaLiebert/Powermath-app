@@ -67,10 +67,10 @@ Biome membership comes only from the ordered map data. The Stage itself remains 
 | `StageMapDefinition` | Ordered route, 200-Stage coverage, biome references, Event scheduling/bindings | Runtime HP, wallet, player progress |
 | `BiomeDefinition` | ID/title, Stage range, background, landmark/map position, normal pool, boss bindings, transition presentation keys | Hidden damage/HP multipliers, player data |
 | `MonsterDefinition` | ID/name, sprite, encounter class, biome membership, cooldown, boss spike profile/reference | Event logic; per-monster HP for normal monsters |
-| `EventDefinition` | ID/kind, title/instructions, custom sprite, handler key, eligibility, question source, failure/reward policy | Fake monster cooldown/type fields |
+| `EventDefinition` | ID/kind, title/instructions, custom sprite, and audio presentation | Firebase document ownership or fake monster cooldown/type fields |
 | Runtime encounter snapshot | Selected encounter ID/type, Stage, generated HP, cooldown/event state, transaction identity | Authoring assets themselves |
 
-Validation must reject duplicate IDs, missing sprites, empty normal pools, route gaps/overlaps, unsorted ranges, boss-class mismatches, protected-Stage Event bindings, missing handler/question references, and Stage 1/200 coverage errors.
+Validation must reject duplicate IDs, missing sprites, empty normal pools, route gaps/overlaps, unsorted ranges, boss-class mismatches, protected-Stage Event bindings, and Stage 1/200 coverage errors.
 
 ### Monster behavior
 
@@ -102,7 +102,7 @@ Entry requires an eligible normal Stage with no active combat attempt. Attack re
 ### Challenge Monster recommendation
 
 - Runtime target: exactly 1 HP.
-- Content: one harder question from `EventDefinition.questionDocumentId` rather than the active-Rank document.
+- Content: one harder question from the centrally configured Challenge Rank document rather than the active-Rank ordinary-question document.
 - Correct: deals 1 damage and completes the Stage.
 - Recommended incorrect/timeout/abandon rule: lose one heart, keep the Event at 1 HP, and return to `EventReady` if hearts remain. At zero hearts, enter normal `RunDefeat` settlement.
 - Rank protection: result is logged in Event analytics but does not alter the five-question Rank audit by default.

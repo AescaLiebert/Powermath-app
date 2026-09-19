@@ -226,13 +226,13 @@ public interface ICombatPresentationPlanBuilder
 }
 ```
 
-The builder is deterministic and data-only. It emits the approved order:
+The builder is deterministic and data-only. It emits the approved authoritative order. The Unity director may present an attacker and its target reaction concurrently inside one blocking impact group without changing that order:
 
 1. answer-result lifecycle;
 2. player PrimaryAttack or FailedAttack;
-3. impact group: enemy reaction, HP, FCT, audio, optional critical impulse;
+3. player-impact group: Player PrimaryAttack remains active while Enemy TakeDamage, HP, FCT, audio, and normal/critical combat-world impulse begin at its marker;
 4. enemy defeat/cancelled token or surviving enemy Walk/Attack;
-5. player damage/Death if applicable;
+5. enemy-impact group when applicable: Enemy Attack remains active while Player TakeDamage, heart update, knockback, hurt audio, and light combat-world impulse begin at its marker;
 6. new encounter queue/Appear or biome transition;
 7. Rank reaction/modal;
 8. completion barrier.
@@ -334,6 +334,9 @@ public interface IActorPresentationController
 - `PlayerPresentationController` enforces approved Player transitions and queues Rank/Potion reactions behind exclusive combat states.
 - `EnemyPresentationController` enforces Appear/Idle/Walk/Attack/TakeDamage/Die and binds the active enemy profile/sprite.
 - `ActorPresentationPlayer` executes one profile entry and publishes named impact/recovery markers.
+- `ActorPresentationController.Play` accepts an optional one-shot impact callback. Player and enemy attacks publish it at profile-driven normalized times (starting values 0.40 and 0.47), before either actor returns to Idle.
+- `ActorPresentationController.HoldCurrentPose` pauses only that actor's presentation progress. The paired-action orchestrator seeds the same hold on attacker and reactor, leaving `Time.timeScale`, audio, authority, and unrelated UI untouched.
+- Player attack and damage states preserve the authored scale and communicate force through translation, local contact hold, target knockback, flash, and burst. Restrained squash/stretch remains available only to Enemy actors.
 - `IActorAnimationDriver` separates motion implementation:
   - `TweenActorAnimationDriver` uses the existing LeanTween dependency for static uGUI images.
   - `AnimatorActorAnimationDriver` is available when final Animator/clip assets exist.
@@ -365,20 +368,22 @@ public interface IFloatingCombatTextService
 | Component | Responsibility |
 |---|---|
 | `RectTransformCombatAnchor` | Convert visible actor bounds plus profile offset into local coordinates of the FX overlay. |
-| `FloatingCombatTextService` | Validate semantic request, assign deterministic overlap offset, acquire pool item, and start lifecycle. |
+| `FloatingCombatTextService` | Validate semantic request, combine deterministic lane separation with bounded random scatter, acquire a pool item, and start Pop/apex-hold/off-screen-drop lifecycle. |
 | `FloatingCombatTextPool` | Prewarm/reuse views, enforce configured active cap, and release deterministically. |
-| `FloatingCombatTextView` | Own `TMP_Text`, `CanvasGroup`, RectTransform, Pop/Hold/Slide-Fade tween, and reset. |
+| `FloatingCombatTextView` | Own `TMP_Text`, `CanvasGroup`, RectTransform, Pop/apex-hold/gravity-drop tween, random rotation direction, and reset. |
 | `FloatingCombatTextStyleDefinition` | Font asset/material, size, outline, semantic colors/labels, offsets, curves, timings, pool capacity, and reduced-motion settings. |
 
 The request contains only presentation ID, semantic type, accepted value, target anchor, critical flag, and spawn ordinal. It cannot calculate damage.
 
 The current `combat-damage-label` and `combat-critical-label` remain temporarily for migration compatibility, then are removed after FCT parity tests. Designers edit the TMP prefab for component styling and the ScriptableObject for style/motion; runtime text comes from the accepted request.
 
-## 11. Critical Impact Impulse
+## 11. Combat-World Impact Impulses
 
 Create a uGUI `CombatWorldPresentationRoot` containing background, Player, and Enemy art. `CombatWorldImpulsePlayer` applies a short profile-driven local offset to that root and always restores its authored origin. HUD, question UI, FCT overlay, and modal panels stay outside the moved root.
 
-`ImpactImpulseProfileDefinition` contains the approved starting strength/duration/curve and reduced-motion alternative. The player is invoked only by an explicit critical-impact plan step. Normal hit, Rank, and UI transitions cannot trigger it accidentally.
+`CombatJuiceProfileDefinition` contains the starting strength/duration/oscillation values and the reduced-motion behavior. Normal player hits use a restrained 6-pixel, 0.12-second, one-oscillation impulse; critical player hits use the stronger 14-pixel, 0.18-second, two-oscillation impulse. Enemy hits on the player use a directional 8-pixel, 0.14-second impulse while the player actor supplies the local knockback. All paths restore the authored root position and skip root translation under Reduced Motion; Rank and ordinary UI transitions cannot trigger an impulse accidentally.
+
+`CombatImpactBurstPlayer` owns one reusable, runtime-built uGUI burst under `CombatFxRoot`. It resolves the affected actor's `ICombatAnchor`, reuses six non-raycast Image children, selects normal/critical/player-damage styling, and restores to Hidden after every unscaled-time playback. No prefab, gameplay value, scene camera, or third-party dependency is required.
 
 Do not move the Unity Main Camera; it does not affect the existing Screen Space Overlay characters. Do not add Cinemachine.
 

@@ -122,10 +122,10 @@ TextureImporter:
       name: Event_7_0
       rect:
         serializedVersion: 2
-        x: 659
-        y: 499
-        width: 8
-        height: 8
+        x: 892
+        y: 704
+        width: 11
+        height: 11
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -144,10 +144,10 @@ TextureImporter:
       name: Event_7_1
       rect:
         serializedVersion: 2
-        x: 87
-        y: 98
-        width: 622
-        height: 378
+        x: 89
+        y: 141
+        width: 873
+        height: 530
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,10 +166,10 @@ TextureImporter:
       name: Event_7_2
       rect:
         serializedVersion: 2
-        x: 225
-        y: 33
-        width: 334
-        height: 57
+        x: 283
+        y: 50
+        width: 468
+        height: 79
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

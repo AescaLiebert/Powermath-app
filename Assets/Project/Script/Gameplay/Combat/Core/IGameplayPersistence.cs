@@ -22,7 +22,8 @@ namespace PowerMath.Gameplay.Combat
             AnswerWindowReceipt? answerWindow = null,
             AttemptResolution resolution = null,
             string transactionId = "",
-            string presentationId = "")
+            string presentationId = "",
+            ChallengeQuestionSequenceSnapshot challengeQuestions = default)
         {
             TransactionId = string.IsNullOrWhiteSpace(transactionId)
                 ? Guid.NewGuid().ToString("N")
@@ -34,6 +35,7 @@ namespace PowerMath.Gameplay.Combat
             AnswerWindow = answerWindow;
             Resolution = resolution;
             PresentationId = presentationId ?? string.Empty;
+            ChallengeQuestions = challengeQuestions;
         }
 
         public GameplaySavePoint SavePoint { get; }
@@ -44,6 +46,7 @@ namespace PowerMath.Gameplay.Combat
         public AnswerWindowReceipt? AnswerWindow { get; }
         public AttemptResolution Resolution { get; }
         public string PresentationId { get; }
+        public ChallengeQuestionSequenceSnapshot ChallengeQuestions { get; }
     }
 
     public interface IGameplayPersistence

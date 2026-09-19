@@ -29,6 +29,7 @@ Make every accepted combat result play as a readable character-and-UI action seq
 - Origin: Manual project-owner request on 2026-08-28.
 - Requested by: Project owner.
 - Design approval: `LGTM` on 2026-08-28.
+- Impact-accent extension approval: `LGTM` on 2026-09-15.
 - Canonical design artifact: `Docs_PowerMath/3_Outputs/Specs/combat-game-juice-data-driven-design-spec.md`.
 
 ## GDD Reference
@@ -60,7 +61,7 @@ Recommended workflow: `/implement-feature`, with the approved design consumed by
 
 - Combat attempt/result orchestration and presentation-completion recovery.
 - Player and enemy Canvas presentation state machines.
-- Target-anchored pooled FCT and critical impact impulse.
+- Target-anchored pooled FCT/FRT with bounded random spawn and off-screen drop, plus normal/critical impact impulse hierarchy.
 - Enemy Walk/Attack action queue UI and animated reflow.
 - Main Menu interaction/focus gate and UI lifecycle transitions.
 - Death/Rebirth settlement presentation and acknowledgement persistence.
@@ -97,9 +98,15 @@ Recommended workflow: `/implement-feature`, with the approved design consumed by
 
 - [x] Semantic action plans reconstruct deterministically from accepted attempt/settlement results and support future follow-up/counter steps.
 - [x] Player and enemy presentation states enforce the approved entry, exit, interrupt, and chaining rules.
+- [x] Player Attack/Enemy TakeDamage and Enemy Attack/Player TakeDamage execute as synchronized impact-marker pairs rather than serial actor actions.
+- [x] Enemy impact updates hearts immediately and adds a light combat-world impulse plus the existing player knockback; Reduced Motion removes only the translation.
+- [x] Normal, critical, and player-damage contacts locally hold attacker/reactor poses without pausing global time, authority, UI, or audio.
+- [x] Player attacks use positional anticipation without silhouette squash/stretch; Enemy actors may use restrained deformation. Target reactions use one directional knockback and small recovery overshoot instead of repeated oscillation.
+- [x] Normal, critical, and player-damage hits create distinct reusable target-anchored starbursts, and a lost heart receives a short punch reaction.
+- [x] Normal/critical post-hit tails are shortened to 0.20/0.35 seconds while interaction remains locked through settlement.
 - [x] Ordinary game interaction stays locked until authority is ready, the plan is empty, both living actors are Idle, action boxes are stable, and blocking UI is stable.
-- [x] FCT spawns from the affected actor anchor and follows the approved pooled Pop/Hold/Slide-Fade lifecycle.
-- [x] Critical hits trigger distinct FCT/reaction plus combat-root impulse; Reduced Motion removes impulse. Production audio remains an asset-wiring checkpoint.
+- [x] FCT/FRT spawn within a bounded random area around their source anchor and follow Pop/60-ms-apex-hold/gravity-drop-below-screen lifecycle with random rotation direction.
+- [x] Normal hits trigger a restrained combat-root impulse; critical hits use a stronger distinct FCT/reaction/impulse tier. Reduced Motion removes translation. Production audio remains an asset-wiring checkpoint.
 - [x] The first-left Walk/Attack box arms at commit, consumes after player presentation, is removed, and remaining boxes animate reflow.
 - [x] New/reset enemy queues initiate and new enemies reach Idle before Attack unlocks.
 - [x] Die completes before the mandatory Death result panel enters.
@@ -127,4 +134,4 @@ Recommended workflow: `/implement-feature`, with the approved design consumed by
 - Next agent: `qa-agent` / project owner visual review.
 - Required output: execute `Docs_PowerMath/3_Outputs/TestPlans/combat-game-juice-data-driven-test-plan.md` after leaving Play Mode.
 - Human checkpoint: implementation is compile-validated; retain timing/motion/FCT/audio/Death-Rebirth, PR, and publishing checkpoints.
-- Blockers: Unity test execution is blocked while the open Editor owns the project in Play Mode.
+- Blockers: focused runtime and EditMode assemblies compile cleanly; executing the Unity Test Runner and judging motion feel remain open-Editor human checkpoints.

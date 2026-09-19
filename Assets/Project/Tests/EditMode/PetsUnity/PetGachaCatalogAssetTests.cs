@@ -7,7 +7,7 @@ namespace PowerMath.Gameplay.Pets.Unity.Tests
     public sealed class PetGachaCatalogAssetTests
     {
         private const string CatalogPath =
-            "Assets/Project/Resources/PetGachaCatalog.asset";
+            "Assets/Project/Resources/Pets/PetGachaCatalog.asset";
 
         [Test]
         public void PrototypeCatalog_IsLoadableAndMatchesApprovedContentPlan()
@@ -18,33 +18,36 @@ namespace PowerMath.Gameplay.Pets.Unity.Tests
             Assert.That(definition, Is.Not.Null);
             Assert.That(definition.TryBuildCatalog(out PetGachaCatalog catalog,
                 out string error), Is.True, error);
-            Assert.That(catalog.Version, Is.EqualTo("prototype-v1"));
+            Assert.That(catalog.Version, Is.EqualTo("prototype-v2"));
             Assert.That(catalog.Rarities.Select(rarity => rarity.Id), Is.EqualTo(
                 new[] { "rare", "super_rare", "ssr" }));
             Assert.That(catalog.Rarities.Select(rarity => rarity.RateBasisPoints),
                 Is.EqualTo(new[] { 7000, 2700, 300 }));
-            Assert.That(catalog.Rarities.All(rarity => rarity.Pets.Count == 5),
-                Is.True);
+            Assert.That(catalog.Rarities[0].Pets.Count, Is.EqualTo(5));
+            Assert.That(catalog.Rarities[1].Pets.Count, Is.EqualTo(4));
+            Assert.That(catalog.Rarities[2].Pets.Count, Is.EqualTo(5));
+            Assert.That(catalog.GetTenPullGuaranteeRarity().Id,
+                Is.EqualTo("super_rare"));
+            Assert.That(catalog.GetSsrPityRarity().Id, Is.EqualTo("ssr"));
             Assert.That(catalog.Rarities.Sum(rarity => rarity.Pets.Count),
-                Is.EqualTo(15));
+                Is.EqualTo(14));
             Assert.That(
                 catalog.Rarities.SelectMany(rarity => rarity.Pets)
                     .Select(pet => pet.Id),
                 Is.EqualTo(new[]
                 {
-                    "ember_fox", "moss_turtle", "cloud_finch",
-                    "pebble_golem", "moon_bunny",
-                    "prism_owl", "rune_lynx", "tide_serpent",
-                    "gear_griffin", "bloom_stag",
-                    "infinity_dragon", "chrono_phoenix", "astral_kirin",
-                    "crown_sphinx", "wisdom_leviathan"
+                    "butterfly_spirit", "capybara", "jellumi",
+                    "little_cozy", "mizu",
+                    "cozy", "furbo", "twili", "trippi_troppi",
+                    "sapphire", "auregriff", "golden_crane",
+                    "lunamoth", "lumirin"
                 }));
         }
 
-        [TestCase("ember_fox", "Ember Fox", "rare")]
-        [TestCase("prism_owl", "Prism Owl", "super_rare")]
-        [TestCase("infinity_dragon", "Infinity Dragon", "ssr")]
-        [TestCase("wisdom_leviathan", "Wisdom Leviathan", "ssr")]
+        [TestCase("butterfly_spirit", "ButterflySpirit", "rare")]
+        [TestCase("furbo", "Furbo", "super_rare")]
+        [TestCase("sapphire", "Sapphire", "ssr")]
+        [TestCase("lumirin", "Lumirin", "ssr")]
         public void PrototypeCatalog_ResolvesStableIdentityAndPlaceholderIcon(
             string petId,
             string expectedName,

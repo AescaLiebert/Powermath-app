@@ -144,5 +144,37 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(closeCount, Is.Zero);
             Assert.That(host.OpenPanel, Is.EqualTo(MainMenuPanelId.None));
         }
+
+        [Test]
+        public void TryOpen_WhenInteractionGateBlocksNavigationAndTerminalAction_BlocksRebirth()
+        {
+            var gate = new MainMenuInteractionGate();
+            var host = new MainMenuPanelHost(gate);
+            var rebirthPanel = new VisualElement();
+            var worldMapPanel = new VisualElement();
+
+            using (gate.Acquire("combat-attempt", InteractionScope.Navigation | InteractionScope.TerminalAction))
+            {
+                Assert.That(host.TryOpen(MainMenuPanelId.WorldMap, worldMapPanel, null), Is.False);
+                Assert.That(host.TryOpen(MainMenuPanelId.Rebirth, rebirthPanel, null), Is.False);
+                Assert.That(host.OpenPanel, Is.EqualTo(MainMenuPanelId.None));
+            }
+        }
+
+        [Test]
+        public void TryOpen_WhenInteractionGateBlocksNavigationOnly_AllowsRebirthForTerminalSettlement()
+        {
+            var gate = new MainMenuInteractionGate();
+            var host = new MainMenuPanelHost(gate);
+            var rebirthPanel = new VisualElement();
+            var worldMapPanel = new VisualElement();
+
+            using (gate.Acquire("terminal-settlement", InteractionScope.Navigation))
+            {
+                Assert.That(host.TryOpen(MainMenuPanelId.WorldMap, worldMapPanel, null), Is.False);
+                Assert.That(host.TryOpen(MainMenuPanelId.Rebirth, rebirthPanel, null), Is.True);
+                Assert.That(host.OpenPanel, Is.EqualTo(MainMenuPanelId.Rebirth));
+            }
+        }
     }
 }

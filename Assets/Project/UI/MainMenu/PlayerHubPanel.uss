@@ -1,172 +1,1099 @@
-.player-hub-modal { padding: 82px 22px 18px 22px; background-color: rgb(25, 74, 111); overflow: hidden; }
-.player-hub-sky-glow { position: absolute; left: 12%; right: 12%; top: -28%; height: 72%; background-color: rgba(101, 219, 222, 0.34); border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; }
-.player-hub-ground { position: absolute; left: -8%; right: -8%; bottom: -18%; height: 48%; background-color: rgb(40, 103, 87); border-top-left-radius: 50%; border-top-right-radius: 50%; }
-.player-hub-landmark { position: absolute; bottom: 13%; width: 180px; height: 310px; background-color: rgba(19, 55, 79, 0.45); border-top-left-radius: 80px; border-top-right-radius: 80px; }
-.player-hub-landmark--left { left: -55px; rotate: -12deg; }
-.player-hub-landmark--right { right: -50px; rotate: 14deg; }
+:root {
+    --ph-navy: rgb(18, 57, 107);
+    --ph-deep-navy: rgb(12, 55, 106);
+    --ph-blue: rgb(57, 124, 194);
+    --ph-active-blue: rgb(18, 111, 232);
+    --ph-paper: rgb(255, 248, 235);
+    --ph-panel: rgb(255, 253, 248);
+    --ph-panel-soft: rgb(255, 249, 239);
+    --ph-soft-blue: rgb(232, 242, 248);
+    --ph-line: rgb(158, 180, 200);
+    --ph-warm-line: rgb(215, 194, 165);
+    --ph-warm-line-soft: rgb(217, 200, 175);
+    --ph-tab-line: rgb(214, 184, 147);
+    --ph-muted: rgb(96, 117, 138);
+    --ph-gold: rgb(255, 200, 61);
+    --ph-button-border: rgb(151, 91, 33);
+    --ph-pet-detail: rgb(250, 245, 236);
+    --ph-pet-slot-selected: rgb(232, 242, 248);
+    --ph-pet-selected: rgb(109, 201, 59);
+}
+
+.player-hub-modal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    color: var(--ph-navy);
+}
+
+.player-hub-modal.is-hidden {
+    display: none;
+}
+
+.player-hub-screen,
+.player-hub-ui-layer,
+.player-hub-ui-composition {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.player-hub-background-stage {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.player-hub-background-image {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: url("project://database/Assets/Project/Art/BG_PlayerHub.png?fileID=21300000&guid=425805f65effff84994d363d13157196&type=3#BG_PlayerHub");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.player-hub-player-sprite {
+    position: absolute;
+    left: 0.8%;
+    top: 7.5%;
+    width: 31%;
+    height: 75%;
+    background-image: url("project://database/Assets/Project/Art/Character/SL_Seperate_Stellar.png?fileID=21300000&guid=ffad266a8ee944e49a9d7ba14dace9fe&type=3#SL_Seperate_Stellar");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-pet-sprite-anchor {
+    position: absolute;
+    left: 18.7%;
+    top: 46.8%;
+    width: 19.2%;
+    height: 34.2%;
+}
+
+.player-hub-pet-sprite {
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-background-composition {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 38%;
+    height: 100%;
+}
+
+.player-hub-panel-skin {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_panel.png?fileID=3359639448991369497&guid=0cc4b7d014c0c204fa3af3527790e3db&type=3#Icon_panel_0");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 23;
+    -unity-slice-right: 22;
+    -unity-slice-top: 22;
+    -unity-slice-bottom: 21;
+}
+
+.player-hub-quick-slot {
+    position: absolute;
+    left: 5.4%;
+    bottom: 4.4%;
+    width: 23.7%;
+    height: 18%;
+    padding: 11px 20px;
+    align-items: center;
+}
+
+.player-hub-quick-slot-art {
+    width: 110px;
+    height: 110px;
+    padding: 7px 6px;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-hub-equipped-weapon {
+    width: 96px;
+    height: 96px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-quick-slot-pips {
+    height: 20px;
+    color: var(--ph-deep-navy);
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: 2px;
+}
+
+.player-hub-compact-column {
+    position: absolute;
+    bottom: 4.6%;
+    width: 24.6%;
+    height: 17.6%;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.player-hub-compact-column--aggressive {
+    left: 39.1%;
+}
+
+.player-hub-compact-column--passive {
+    left: 64.9%;
+}
+
+.player-hub-compact-stat {
+    width: 100%;
+    height: 30%;
+    min-height: 44px;
+    padding: 0 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.player-hub-compact-icon {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-compact-value {
+    flex-grow: 1;
+    color: var(--ph-deep-navy);
+    font-size: 17px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    white-space: nowrap;
+}
+
+.player-hub-icon-atk {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_Icon_ATK.png?fileID=21300000&guid=861292fb80b3c0445896c23a0ff57e34&type=3#player_Icon_ATK");
+}
+
+.player-hub-icon-cr {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_Icon_CR.png?fileID=21300000&guid=28c3f74bd7b2c5246a4139376d969ca3&type=3#player_Icon_CR");
+}
+
+.player-hub-icon-cd {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_Icon_CD.png?fileID=21300000&guid=a260095d598a6c3439d6f6d33368220e&type=3#player_Icon_CD");
+}
+
+.player-hub-icon-pet {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_pet_atk.png?fileID=21300000&guid=0a79dffb67a6d7b468596d83fa6939ac&type=3#Icon_pet_atk");
+}
+
+.player-hub-icon-luck {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_chest_luck.png?fileID=21300000&guid=7dc25f0de0872c04ba291aeb1ad67916&type=3#Icon_chest_luck");
+}
+
+.player-hub-icon-coin {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_pc_gain.png?fileID=21300000&guid=7a96b667d180d8a40b90b87723523e7c&type=3#Icon_pc_gain");
+}
+
+.player-hub-cost-icon,
+.player-hub-balance-icon {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=21300000&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power");
+}
+
+.player-hub-icon-heart {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/player_heart.png?fileID=21300000&guid=60fcaad347e70f34784b180fb9e07496&type=3#player_heart");
+}
+
+.player-hub-right-sheet {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 37.74%;
+    background-color: rgb(255, 249, 238);
+    border-top-left-radius: 36px;
+    border-bottom-left-radius: 36px;
+}
+
+.player-hub-screen-title {
+    position: absolute;
+    left: 40.84%;
+    top: 3.6%;
+    width: 317px;
+    height: 56px;
+    color: var(--ph-deep-navy);
+    font-size: 46px;
+    -unity-font-style: bold;
+}
+
+.player-hub-tabs {
+    position: absolute;
+    left: 40.35%;
+    top: 11.1%;
+    width: 362px;
+    height: 78px;
+    flex-direction: row;
+}
+
+.player-hub-tab {
+    width: 172px;
+    height: 78px;
+    min-width: 172px;
+    min-height: 78px;
+    margin: 0 18px 0 0;
+    padding: 0;
+    color: transparent;
+    background-color: var(--ph-paper);
+    border-width: 2px;
+    border-color: var(--ph-tab-line);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.player-hub-tab:hover,
+.player-hub-tab:focus {
+    background-color: var(--ph-panel);
+}
+
+.player-hub-tab.is-selected {
+    border-width: 3px;
+    border-color: var(--ph-active-blue);
+}
+
+.player-hub-tab-reference {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.player-hub-tab-icon {
+    width: 55px;
+    height: 55px;
+    margin-top: 3px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-tab-icon--weapon {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Player_title_sword.png?fileID=21300000&guid=3aefe66a41532574680663ae25a71d04&type=3#Player_title_sword");
+}
+
+.player-hub-tab-icon--pet {
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_title_pet.png?fileID=21300000&guid=1b2e391e263824a498bd75fc33eae64a&type=3#Icon_title_pet");
+}
+
+.player-hub-tab-underline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 16px;
+    height: 5px;
+    border-radius: 2px;
+    background-color: transparent;
+}
+
+.player-hub-tab.is-selected .player-hub-tab-underline {
+    background-color: var(--ph-active-blue);
+}
+
+.player-hub-workspace {
+    position: absolute;
+    left: 38.57%;
+    right: 1.31%;
+    top: 17.57%;
+    bottom: 1.9%;
+}
+
+.player-hub-workspace-surface {
+    width: 100%;
+    height: 100%;
+    padding: 30px 40px;
+}
+
+.player-hub-ascend-layout {
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+}
+
+.player-hub-showcase {
+    width: 62%;
+    height: 100%;
+    margin-right: 18px;
+    padding: 18px;
+    align-items: center;
+}
+
+.player-hub-kicker {
+    height: 15px;
+    color: var(--ph-blue);
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-weapon-name {
+    min-height: 37px;
+    margin-top: 10px;
+    color: var(--ph-navy);
+    font-size: 30px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.player-hub-star-frame {
+    min-width: 24px;
+    height: 24px;
+    margin-top: 2px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+.player-hub-star {
+    color: rgb(255, 200, 61);
+    font-size: 20px;
+    letter-spacing: 2px;
+    -unity-text-outline-color: rgb(166, 133, 52);
+    -unity-text-outline-width: 1px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.player-hub-equipped-star {
+    font-size: 13px;
+    height: 16px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.player-hub-weapon-icon {
+    position: relative;
+    width: 246px;
+    height: 240px;
+    min-height: 200px;
+    margin-top: 10px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(232, 242, 248, 0.72);
+    border-width: 2px;
+    border-color: var(--ph-line);
+    border-radius: 20px;
+}
+
+.player-hub-weapon-aura {
+    position: absolute;
+    width: 86%;
+    height: 86%;
+    border-radius: 50%;
+    background-color: rgba(57, 124, 194, 0.14);
+    opacity: 0.55;
+}
+
+.player-hub-weapon-sprite {
+    width: 86%;
+    height: 86%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-particle-layer {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1px;
+    height: 1px;
+}
+
+.player-hub-particle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background-color: var(--ph-gold);
+    opacity: 0;
+}
+
+.player-hub-awakening-progress {
+    width: 190px;
+    height: 40px;
+    margin-top: 10px;
+    padding: 8px 10px;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--ph-soft-blue);
+    border-width: 2px;
+    border-color: var(--ph-line);
+    border-radius: 14px;
+}
+
+.player-hub-sublevel-pips {
+    color: var(--ph-navy);
+    font-size: 23px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.player-hub-stat-list {
+    width: 100%;
+    flex-grow: 1;
+    margin-top: 10px;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.player-hub-stat-row {
+    width: 100%;
+    height: 30%;
+    min-height: 56px;
+    margin-bottom: 6px;
+    padding: 12px;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--ph-paper);
+    border-width: 2px;
+    border-color: var(--ph-warm-line);
+    border-radius: 16px;
+}
+
+.player-hub-stat-name {
+    width: 25%;
+    color: var(--ph-navy);
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.player-hub-stat-chip {
+    width: 29%;
+    height: 54px;
+    padding: 8px 10px;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--ph-panel-soft);
+    border-width: 2px;
+    border-color: var(--ph-warm-line-soft);
+    border-radius: 16px;
+}
+
+.player-hub-stat-icon {
+    width: 30px;
+    height: 32px;
+    margin-right: 6px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-stat-value {
+    flex-grow: 1;
+    color: var(--ph-navy);
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    white-space: normal;
+}
+
+.player-hub-stat-arrow {
+    width: 8%;
+    color: var(--ph-navy);
+    font-size: 28px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-ascend-panel {
+    width: 38%;
+    height: 100%;
+    padding: 18px;
+    align-items: center;
+}
+
+.player-hub-ascend-title {
+    height: 28px;
+    color: var(--ph-navy);
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-ascend-subtitle {
+    min-height: 18px;
+    color: var(--ph-muted);
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-level-transition {
+    width: 100%;
+    flex-grow: 1;
+    color: var(--ph-navy);
+    font-size: 45px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.player-hub-cost-area {
+    width: 100%;
+    align-items: center;
+}
+
+.player-hub-cost-label {
+    height: 18px;
+    color: var(--ph-navy);
+    font-size: 11px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-cost-chip {
+    width: 82%;
+    height: 54px;
+    padding: 8px 12px;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--ph-panel);
+    border-width: 2px;
+    border-color: var(--ph-warm-line);
+    border-radius: 14px;
+}
+
+.player-hub-cost-icon {
+    width: 41px;
+    height: 41px;
+    margin-right: 10px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-cost-value {
+    flex-grow: 1;
+    color: var(--ph-navy);
+    font-size: 19px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+}
+
+.player-hub-upgrade {
+    width: 100%;
+    height: 98px;
+    min-height: 76px;
+    margin-top: 14px;
+    padding: 0 24px;
+    color: rgb(80, 80, 80);
+    font-size: 42px;
+    -unity-font-style: bold;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Button.png?fileID=-5965464602138509459&guid=7eb9ac3800e359646998f07c84168d74&type=3#Icon_Rebirth 1_0");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 36;
+    -unity-slice-right: 35;
+    -unity-slice-top: 32;
+    -unity-slice-bottom: 37;
+    background-color: transparent;
+    border-width: 0;
+}
+
+.player-hub-upgrade:hover,
+.player-hub-upgrade:focus {
+    scale: 1.02 1.02;
+}
+
+.player-hub-upgrade:active {
+    scale: 0.97 0.97;
+}
+
 .player-hub-header-controls {
     position: absolute;
-    top: 16px;
-    right: 22px;
-    height: 54px;
+    top: 0;
+    right: 0;
+    width: 386px;
+    height: 84px;
+    padding: 13px 39px;
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
 }
 
 .player-hub-balance-pill {
-    min-width: 130px;
-    height: 54px;
-    padding: 7px 18px 7px 14px;
+    width: 200px;
+    height: 46px;
+    padding: 2px 12px;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
-    background-color: rgb(255, 249, 232);
-    border-radius: 27px;
-    border-width: 3px;
-    border-color: rgb(222, 199, 157);
 }
 
-.player-hub-coin-icon {
-    width: 34px;
-    height: 34px;
-    margin-right: 10px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/coin_power.png?fileID=21300000&guid=0293b2c42305b784eb70f1ca658d2b92&type=3#coin_power");
+.player-hub-balance-icon {
+    width: 41px;
+    height: 41px;
+    margin-right: 8px;
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.player-hub-close {
-    min-width: 54px;
-    width: 54px;
-    min-height: 54px;
-    height: 54px;
-    margin-left: 14px;
-    padding: 0;
-    color: rgb(20, 48, 91);
-    background-color: rgb(255, 249, 232);
-    border-radius: 15px;
-    border-width: 3px;
-    border-color: rgb(222, 199, 157);
-    font-size: 37px;
+.player-hub-balance {
+    flex-grow: 1;
+    color: var(--ph-navy);
+    font-size: 19px;
     -unity-font-style: bold;
-    transition-property: scale, translate, background-color, border-color;
-    transition-duration: 0.16s;
-    transition-timing-function: ease-out-back;
+    -unity-text-align: middle-right;
+}
+
+.player-hub-close {
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    min-height: 58px;
+    margin-left: 50px;
+    padding: 0;
+    background-color: rgba(255, 247, 224, 0.94);
+    border-width: 2px;
+    border-color: rgb(224, 178, 102);
+    border-radius: 29px;
 }
 
 .player-hub-close:hover,
 .player-hub-close:focus {
-    scale: 1.06 1.06;
-    translate: 0 -2px;
-    border-color: rgb(255, 194, 64);
-    background-color: white;
+    scale: 1.05 1.05;
 }
 
 .player-hub-close:active {
     scale: 0.94 0.94;
-    translate: 0 1px;
-    transition-duration: 0.08s;
 }
-.player-hub-screen { width: 100%; height: 100%; flex-direction: row; }
 
-.player-hub-player-stage { width: 30%; min-width: 290px; padding: 18px 18px 16px 14px; justify-content: space-between; }
-.player-hub-kicker, .player-hub-section-title, .player-hub-comparison-label, .player-hub-chip-title { color: rgb(114, 229, 231); font-size: 12px; -unity-font-style: bold; letter-spacing: 1.5px; }
-.player-hub-avatar-scene { flex-grow: 1; min-height: 330px; align-items: center; justify-content: center; }
-.player-hub-avatar-shadow { position: absolute; width: 210px; height: 54px; bottom: 35px; background-color: rgba(8, 25, 38, 0.45); border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; }
-.player-hub-avatar { width: 178px; height: 268px; align-items: center; justify-content: center; background-color: rgb(255, 184, 68); border-left-width: 7px; border-right-width: 7px; border-top-width: 7px; border-bottom-width: 7px; border-left-color: rgb(255, 249, 232); border-right-color: rgb(255, 249, 232); border-top-color: rgb(255, 249, 232); border-bottom-color: rgb(255, 249, 232); border-top-left-radius: 86px; border-top-right-radius: 86px; border-bottom-left-radius: 48px; border-bottom-right-radius: 48px; }
-.player-hub-avatar-placeholder { color: rgb(20, 48, 91); font-size: 104px; -unity-font-style: bold; }
-.player-hub-equipped-visual { position: absolute; width: 76px; height: 76px; background-color: rgba(255, 249, 232, 0.9); border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px; border-left-color: rgb(95, 211, 225); border-right-color: rgb(95, 211, 225); border-top-color: rgb(95, 211, 225); border-bottom-color: rgb(95, 211, 225); border-top-left-radius: 38px; border-top-right-radius: 38px; border-bottom-left-radius: 38px; border-bottom-right-radius: 38px; -unity-background-scale-mode: scale-to-fit; }
-.player-hub-equipped-weapon { right: 12px; top: 42px; }
-.player-hub-equipped-pet { left: 6px; bottom: 56px; }
-.player-hub-stats-float { padding: 13px 16px; background-color: rgba(10, 31, 52, 0.76); border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
-.player-hub-metric-label { color: rgba(255, 249, 232, 0.7); font-size: 10px; -unity-font-style: bold; letter-spacing: 1.2px; }
-.player-hub-effective-atk { color: rgb(255, 249, 232); font-size: 31px; -unity-font-style: bold; }
-.player-hub-atk-breakdown, .player-hub-legacy-bonus { margin-top: 3px; color: rgba(255, 249, 232, 0.82); font-size: 12px; white-space: normal; }
-.player-hub-pet-status { display: none; }
+.player-hub-close > .panel-close-icon {
+    width: 100%;
+    height: 100%;
+}
 
-.player-hub-workspace { flex-grow: 1; min-width: 640px; padding: 18px 20px 16px 20px; background-color: rgba(255, 249, 232, 0.97); border-top-left-radius: 28px; border-top-right-radius: 28px; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px; border-left-color: rgba(255, 184, 68, 0.8); border-right-color: rgba(255, 184, 68, 0.8); border-top-color: rgba(255, 184, 68, 0.8); border-bottom-color: rgba(255, 184, 68, 0.8); }
-.player-hub-tabs { height: 52px; flex-direction: row; align-items: flex-start; }
-.player-hub-tab { min-width: 190px; height: 42px; margin-right: 10px; color: rgb(53, 82, 112); background-color: rgb(229, 233, 222); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 3px; border-bottom-color: rgba(0,0,0,0); -unity-font-style: bold; transition-property: scale, translate, background-color, border-color; transition-duration: 0.14s; transition-timing-function: ease-out-back; }
-.player-hub-tab:hover, .player-hub-tab:focus { scale: 1.03 1.03; translate: 0 -2px; }
-.player-hub-tab.is-selected { color: rgb(20, 48, 91); background-color: rgb(255, 220, 151); border-bottom-color: rgb(244, 111, 83); }
-.player-hub-feature { flex-grow: 1; }
-.player-hub-pet-workspace { display: none; }
-.player-hub-feature-header { min-height: 52px; flex-direction: row; justify-content: space-between; align-items: flex-start; }
-.player-hub-section-title { color: rgb(32, 92, 183); font-size: 13px; }
-.player-hub-balance {
-    color: rgb(20, 48, 91);
-    font-size: 18px;
+.player-hub-status {
+    position: absolute;
+    left: 15%;
+    right: 15%;
+    bottom: 12px;
+    min-height: 34px;
+    padding: 6px 14px;
+}
+
+.player-hub-binding-compat {
+    display: none;
+}
+
+.player-hub-pet-workspace {
+    display: none;
+}
+
+.player-hub-pet-state {
+    width: 100%;
+    height: 100%;
+}
+
+.player-hub-pet-workspace-surface {
+    padding: 30px 40px 28px 40px;
+    background-image: none;
+    background-color: var(--ph-paper);
+    border-width: 2px;
+    border-color: var(--ph-tab-line);
+    border-radius: 30px;
+}
+
+.player-hub-pet-inventory-detail {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+}
+
+.player-hub-pet-showcase {
+    position: relative;
+    width: 100%;
+    height: 245px;
+    min-height: 245px;
+    margin-bottom: 18px;
+    padding: 18px;
+    overflow: hidden;
+    background-color: var(--ph-panel);
+    border-width: 2px;
+    border-color: var(--ph-line);
+    border-radius: 22px;
+}
+
+.player-hub-pet-scroll {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    top: 18px;
+    bottom: 18px;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.player-hub-pet-scroll .unity-scroll-view__content-viewport {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.player-hub-pet-scroll .unity-scroll-view__content-container {
+    height: 210px;
+    min-height: 210px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.player-hub-pet-scroll .unity-scroll-view__horizontal-scroller,
+.player-hub-pet-scroll .unity-scroll-view__vertical-scroller {
+    display: none;
+    width: 0;
+    height: 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.player-hub-pet-grid {
+    height: 210px;
+    min-height: 210px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.player-hub-pet-scroll-button {
+    position: absolute;
+    top: 40px;
+    width: 48px;
+    height: 164px;
+    min-width: 48px;
+    min-height: 164px;
+    padding: 0;
+    background-color: transparent;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_back_chevron.svg?fileID=3286163911610860551&guid=cc0a58eeafd658147b14918c52591bfd&type=3#icon_back_chevron");
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 0;
+}
+
+.player-hub-pet-scroll-button--previous {
+    left: 0;
+}
+
+.player-hub-pet-scroll-button--next {
+    right: 0;
+    rotate: 180deg;
+}
+
+.player-hub-pet-scroll-button:hover,
+.player-hub-pet-scroll-button:focus {
+    scale: 1.06 1.06;
+}
+
+.player-hub-pet-scroll-button:active {
+    scale: 0.94 0.94;
+}
+
+.player-hub-pet-tile {
+    position: relative;
+    width: 200px;
+    min-width: 200px;
+    height: 200px;
+    min-height: 200px;
+    margin-right: 15px;
+    padding: 16px;
+    flex-shrink: 0;
+    background-color: rgba(255, 255, 255, 0.72);
+    border-width: 1px;
+    border-color: var(--ph-line);
+    border-radius: 20px;
+    border-top-width: 0.5px;
+    border-right-width: 0.5px;
+    border-bottom-width: 0.5px;
+    border-left-width: 0.5px;
+}
+
+.player-hub-pet-tile.is-equipped {
+    border-color: var(--ph-gold);
+}
+
+.player-hub-pet-tile.is-selected {
+    background-color: var(--ph-pet-slot-selected);
+    border-width: 3px;
+    border-color: var(--ph-pet-selected);
+}
+
+.player-hub-pet-tile.is-pending {
+    opacity: 0.72;
+}
+
+.player-hub-pet-tile-icon {
+    width: 178px;
+    height: 178px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.player-hub-pet-tile-selected-marker {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    width: 30px;
+    height: 30px;
+    -unity-background-scale-mode: scale-to-fit;
+    background-image: url("project://database/Assets/Project/Art/UI/Icon/generic_selected.png");
+}
+
+.player-hub-pet-tile-rarity {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 7px;
+    height: 23px;
+    color: var(--ph-gold);
+    font-size: 19px;
+    -unity-font-style: bold;
+    -unity-text-outline-color: rgb(166, 133, 52);
+    -unity-text-outline-width: 1px;
+    -unity-text-align: middle-center;
+    letter-spacing: 3px;
+    white-space: nowrap;
+}
+
+.player-hub-pet-tile-count {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    color: white;
+    background-color: rgba(18, 57, 107, 0.9);
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 11px;
+}
+
+.player-hub-pet-detail-panel {
+    width: 100%;
+    flex-grow: 1;
+    padding: 18px;
+    flex-direction: row;
+    background-color: var(--ph-pet-detail);
+    border-width: 2px;
+    border-color: var(--ph-tab-line);
+    border-radius: 22px;
+}
+
+.player-hub-pet-preview {
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+}
+
+.player-hub-pet-selected-info {
+    width: 48.2%;
+    height: 100%;
+    padding: 10px 20px;
+}
+
+.player-hub-pet-selected-info--metadata {
+    margin-right: 14px;
+    flex-direction: column;
+}
+
+.player-hub-pet-selected-info--artwork {
+    align-items: center;
+    justify-content: center;
+}
+
+.player-hub-pet-metadata {
+    width: 100%;
+    height: 89px;
+    min-height: 89px;
+    flex-direction: column;
+}
+
+.player-hub-pet-preview-name {
+    width: 100%;
+    height: 56px;
+    color: var(--ph-deep-navy);
+    font-size: 46px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    white-space: nowrap;
+}
+
+.player-hub-pet-rarity {
+    width: 100%;
+    height: 23px;
+    margin-top: 10px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.player-hub-pet-preview-rarity {
+    height: 23px;
+    color: var(--ph-gold);
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-outline-color: rgb(166, 133, 52);
+    -unity-text-outline-width: 1px;
+    letter-spacing: 5px;
+    white-space: nowrap;
+}
+
+.player-hub-pet-stat-passive {
+    width: 100%;
+    flex-grow: 1;
+    margin-top: 50px;
+    flex-direction: column;
+}
+
+.player-hub-pet-attack-row {
+    width: 100%;
+    height: 50px;
+    min-height: 50px;
+    padding: 0 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--ph-panel);
+    border-width: 1px;
+    border-color: var(--ph-line);
+    border-radius: 14px;
+}
+
+.player-hub-pet-preview-attack {
+    flex-grow: 1;
+    color: var(--ph-deep-navy);
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    white-space: nowrap;
+}
+
+.player-hub-pet-collection-title {
+    min-height: 29px;
+    margin-top: 22px;
+    color: var(--ph-deep-navy);
+    font-size: 24px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.player-hub-pet-passive {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px 0;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.player-hub-pet-passive-name {
+    min-height: 29px;
+    color: var(--ph-deep-navy);
+    font-size: 24px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.player-hub-pet-passive-description {
+    margin-top: 8px;
+    color: var(--ph-muted);
+    font-size: 16px;
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
+
+.player-hub-pet-preview-description {
+    margin-top: 8px;
+    color: var(--ph-muted);
+    font-size: 16px;
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
+
+.player-hub-pet-preview-state {
+    min-height: 24px;
+    color: var(--ph-blue);
+    font-size: 12px;
     -unity-font-style: bold;
     -unity-text-align: middle-left;
 }
 
-.player-hub-weapon-workspace { justify-content: space-between; }
-.player-hub-weapon-showcase { min-height: 205px; max-height: 300px; flex-grow: 1; margin-top: 8px; align-items: center; justify-content: center; background-color: rgb(20, 48, 91); border-top-left-radius: 22px; border-top-right-radius: 22px; border-bottom-left-radius: 22px; border-bottom-right-radius: 22px; overflow: hidden; }
-.player-hub-weapon-aura { position: absolute; width: 190px; height: 190px; background-color: rgba(95, 211, 225, 0.2); border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; scale: 0.88 0.88; }
-.player-hub-weapon-icon { width: 112px; height: 112px; align-items: center; justify-content: center; background-color: rgb(244, 111, 83); border-left-width: 5px; border-right-width: 5px; border-top-width: 5px; border-bottom-width: 5px; border-left-color: rgb(255, 249, 232); border-right-color: rgb(255, 249, 232); border-top-color: rgb(255, 249, 232); border-bottom-color: rgb(255, 249, 232); border-top-left-radius: 56px; border-top-right-radius: 56px; border-bottom-left-radius: 56px; border-bottom-right-radius: 56px; }
-.player-hub-weapon-sprite { position: absolute; width: 88px; height: 88px; background-image: url("project://database/Assets/Project/Art/UI/Icon/Player_title_sword.png?fileID=21300000&guid=3aefe66a41532574680663ae25a71d04&type=3#Player_title_sword"); -unity-background-scale-mode: scale-to-fit; }
-.player-hub-weapon-placeholder { color: rgb(255, 249, 232); font-size: 64px; -unity-font-style: bold; }
-.player-hub-weapon-name { margin-top: 8px; color: rgb(255, 249, 232); font-size: 23px; -unity-font-style: bold; }
-.player-hub-particle-layer { position: absolute; left: 50%; top: 50%; width: 1px; height: 1px; }
-.player-hub-particle { position: absolute; width: 12px; height: 12px; background-color: rgb(255, 220, 88); border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; opacity: 0; }
-
-.player-hub-comparison { min-height: 126px; margin-top: 11px; flex-direction: row; align-items: center; }
-.player-hub-comparison-card { height: 118px; flex-grow: 1; padding: 13px; justify-content: center; background-color: rgb(246, 235, 210); border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px; border-left-color: rgb(222, 199, 157); border-right-color: rgb(222, 199, 157); border-top-color: rgb(222, 199, 157); border-bottom-color: rgb(222, 199, 157); border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; transition-property: background-color, border-color; transition-duration: 0.2s; transition-timing-function: ease-out; }
-.player-hub-comparison-card--next { background-color: rgb(225, 244, 237); border-left-color: rgb(32, 184, 193); border-right-color: rgb(32, 184, 193); border-top-color: rgb(32, 184, 193); border-bottom-color: rgb(32, 184, 193); }
-.player-hub-comparison-arrow { width: 38px; color: rgb(244, 111, 83); font-size: 28px; -unity-font-style: bold; -unity-text-align: middle-center; }
-.player-hub-weapon-stat, .player-hub-weapon-next { margin-top: 6px; padding: 0; color: rgb(20, 48, 91); background-color: rgba(0, 0, 0, 0); font-size: 14px; -unity-font-style: bold; white-space: normal; }
-.player-hub-weapon-next { color: rgb(22, 119, 126); }
-.player-hub-purchase-row { min-height: 68px; margin-top: 8px; flex-direction: row; align-items: center; justify-content: space-between; }
-.player-hub-cost-block { flex-grow: 1; }
-.player-hub-cost { margin-top: 3px; color: rgb(20, 48, 91); font-size: 17px; -unity-font-style: bold; }
-.player-hub-upgrade { width: 220px; height: 55px; color: rgb(20, 48, 91); transition-property: scale, background-color; transition-duration: 0.14s; transition-timing-function: ease-out-back; }
-.player-hub-upgrade:hover, .player-hub-upgrade:focus { scale: 1.04 1.04; translate: 0 -2px; }
-.player-hub-upgrade:active { scale: 0.92 0.92; translate: 0 2px; }
-
-.player-hub-pet-browser { height: 100%; flex-direction: row; }
-.player-hub-pet-inventory-panel { width: 54%; padding: 10px 14px 10px 0; }
-.player-hub-pet-scroll { flex-grow: 1; margin-top: 10px; }
-.player-hub-pet-grid { flex-direction: row; flex-wrap: wrap; align-content: flex-start; }
-.player-hub-pet-tile { width: 30%; min-width: 104px; height: 126px; margin: 0 3.3% 12px 0; padding: 8px; align-items: center; background-color: rgb(237, 231, 213); border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px; border-left-color: rgb(202, 188, 159); border-right-color: rgb(202, 188, 159); border-top-color: rgb(202, 188, 159); border-bottom-color: rgb(202, 188, 159); border-top-left-radius: 17px; border-top-right-radius: 17px; border-bottom-left-radius: 17px; border-bottom-right-radius: 17px; transition-property: scale, translate, background-color, border-color; transition-duration: 0.14s; transition-timing-function: ease-out-back; }
-.player-hub-pet-tile:hover, .player-hub-pet-tile:focus { scale: 1.05 1.05; translate: 0 -3px; background-color: rgb(255, 245, 218); }
-.player-hub-pet-tile:active { scale: 0.9 0.9; }
-.player-hub-pet-tile.is-selected { background-color: rgb(255, 245, 218); scale: 1.03 1.03; }
-.player-hub-pet-tile.is-equipped { background-color: rgb(221, 244, 231); border-left-width: 4px; border-right-width: 4px; border-top-width: 4px; border-bottom-width: 4px; }
-.player-hub-pet-tile.is-pending { background-color: rgb(226, 240, 244); opacity: 0.82; }
-.player-hub-pet-tile-icon { width: 72px; height: 72px; -unity-background-scale-mode: scale-to-fit; }
-.player-hub-pet-tile-rarity { margin-top: 4px; font-size: 10px; -unity-font-style: bold; letter-spacing: 0.9px; }
-.player-hub-pet-tile-badge { position: absolute; right: 5px; top: 5px; padding: 3px 5px; color: rgb(255, 249, 232); background-color: rgb(20, 48, 91); border-top-left-radius: 7px; border-top-right-radius: 7px; border-bottom-left-radius: 7px; border-bottom-right-radius: 7px; font-size: 8px; -unity-font-style: bold; }
-.player-hub-pet-preview { flex-grow: 1; margin-left: 8px; padding: 24px; align-items: center; justify-content: center; background-color: rgb(20, 48, 91); border-top-left-radius: 24px; border-top-right-radius: 24px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; overflow: hidden; }
-.player-hub-pet-preview-aura { position: absolute; width: 270px; height: 270px; top: 34px; background-color: rgba(95, 211, 225, 0.18); border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; }
-.player-hub-pet-preview-icon { width: 210px; height: 210px; background-image: url("project://database/Assets/Project/Art/UI/Icon/Icon_Pet.png?fileID=21300000&guid=8e828c1bf7b8b8548b698a7140aacaef&type=3#Icon_Pet"); -unity-background-scale-mode: scale-to-fit; }
-.player-hub-pet-preview-rarity { margin-top: 5px; font-size: 12px; -unity-font-style: bold; letter-spacing: 1.8px; }
-.player-hub-pet-preview-name { margin-top: 3px; color: rgb(255, 249, 232); font-size: 28px; -unity-font-style: bold; -unity-text-align: middle-center; }
-.player-hub-pet-preview-description { min-height: 62px; margin-top: 10px; color: rgba(255, 249, 232, 0.8); font-size: 14px; white-space: normal; -unity-text-align: upper-center; }
-.player-hub-pet-preview-state { min-height: 27px; margin-top: 8px; padding: 5px 12px; color: rgb(95, 211, 225); font-size: 13px; -unity-font-style: bold; -unity-text-align: middle-center; }
-
-.player-hub-status { min-height: 34px; margin-top: 5px; padding: 5px 10px; -unity-text-align: middle-center; }
-.player-hub-modal.is-success .player-hub-status { color: rgb(18, 99, 68); background-color: rgb(219, 241, 218); }
-.player-hub-modal.is-error .player-hub-status { color: rgb(151, 54, 58); background-color: rgb(255, 224, 214); }
-.player-hub-modal.is-busy .player-hub-workspace { border-left-color: rgb(95, 211, 225); border-right-color: rgb(95, 211, 225); border-top-color: rgb(95, 211, 225); border-bottom-color: rgb(95, 211, 225); }
-.player-hub-milestone { position: absolute; left: 50%; top: 42%; width: 470px; min-height: 120px; margin-left: -235px; padding: 22px; align-items: center; justify-content: center; opacity: 0; scale: 0.7 0.7; background-color: rgba(20, 48, 91, 0.98); border-left-width: 4px; border-right-width: 4px; border-top-width: 4px; border-bottom-width: 4px; border-left-color: rgb(255, 202, 84); border-right-color: rgb(255, 202, 84); border-top-color: rgb(255, 202, 84); border-bottom-color: rgb(255, 202, 84); border-top-left-radius: 25px; border-top-right-radius: 25px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; transition-property: opacity, scale, translate; transition-duration: 0.22s; transition-timing-function: ease-out-back; }
-.player-hub-milestone.is-visible { opacity: 1; scale: 1 1; }
-.player-hub-milestone-kicker { color: rgb(95, 211, 225); font-size: 13px; -unity-font-style: bold; letter-spacing: 2px; }
-.player-hub-milestone-name { margin-top: 7px; color: rgb(255, 249, 232); font-size: 30px; -unity-font-style: bold; -unity-text-align: middle-center; }
-
-/* ─── SVG Icon Replacements ─── */
-
-.player-hub-avatar-star-icon {
-    width: 40px; height: 40px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_star_sparkle.svg?fileID=11400000&guid=a5fa73d757521a24396f3866b85c51cb&type=2#icon_star_sparkle");
-    -unity-background-scale-mode: scale-to-fit; align-self: center;
+.player-hub-pet-preview-icon {
+    width: 381px;
+    height: 381px;
+    align-items: center;
+    justify-content: center;
 }
-.player-hub-arrow-up-icon {
-    width: 30px; height: 30px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_arrow_up.svg?fileID=11400000&guid=567a2039c3d9d2b4390c757394c79975&type=2#icon_arrow_up");
-    -unity-background-scale-mode: scale-to-fit; align-self: center;
+
+.player-hub-pet-preview-binding {
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: scale-to-fit;
 }
-.player-hub-arrow-right-icon {
-    width: 24px; height: 24px;
-    background-image: url("project://database/Assets/Project/Art/UI/Icon/Svg/icon_arrow_right.svg?fileID=11400000&guid=d6300a01e7f61f24c834a396b6171394&type=2#icon_arrow_right");
-    -unity-background-scale-mode: scale-to-fit; align-self: center;
+
+.player-hub-comparison-card {
+    opacity: 1;
+}
+
+.player-hub-milestone {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 520px;
+    min-height: 160px;
+    margin-left: -260px;
+    margin-top: -80px;
+    padding: 28px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(18, 57, 107, 0.96);
+    border-width: 3px;
+    border-color: var(--ph-gold);
+    border-radius: 28px;
+    opacity: 0;
+    scale: 0.82 0.82;
+    visibility: hidden;
+}
+
+.player-hub-milestone.is-visible {
+    opacity: 1;
+    scale: 1 1;
+    visibility: visible;
+}
+
+.player-hub-milestone-kicker {
+    color: rgb(255, 220, 112);
+    font-size: 15px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    -unity-text-align: middle-center;
+}
+
+.player-hub-milestone-name {
+    margin-top: 12px;
+    color: white;
+    font-size: 34px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
 }

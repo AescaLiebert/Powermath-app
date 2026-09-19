@@ -9,13 +9,13 @@ namespace PowerMath.Gameplay.Combat.Unity
     public sealed class EventDefinition : ScriptableObject, IEventSfxProfile
     {
         [SerializeField] private string eventId = "challenge-monster";
-        [SerializeField] private string fallbackTitle = "Challenge Monster";
+        [SerializeField] private EventStageType eventStageType = EventStageType.ChallengeMonster;
+        [SerializeField] private string englishName = "Challenge Monster";
+        [SerializeField] private string thaiName = "มอนสเตอร์ท้าทาย";
         [TextArea, SerializeField]
         private string instructions =
-            "Solve one harder question. Wrong answers cost one heart.";
+            "Solve one harder question. You have one attempt; failure makes it flee.";
         [SerializeField] private Sprite eventSprite;
-        [SerializeField] private string questionDocumentId = "challenge";
-        [SerializeField] private string handlerKey = "challenge-monster";
 
         [Header("Audio Ownership (Optional Custom Overrides)")]
         [SerializeField] private SfxCueConfig customAppearSfx;
@@ -27,10 +27,14 @@ namespace PowerMath.Gameplay.Combat.Unity
         [SerializeField] private SfxCueConfig customChallengeFailSfx;
 
         public string EventId => eventId;
-        public string FallbackTitle => fallbackTitle;
+        public EventStageType EventStageType => eventStageType;
+        public string EnglishName => englishName;
+        public string ThaiName => thaiName;
         public string Instructions => instructions;
         public Sprite EventSprite => eventSprite;
-        public string QuestionDocumentId => questionDocumentId;
+
+        public string GetDisplayName(string locale = "en") =>
+            locale == "th" && !string.IsNullOrWhiteSpace(thaiName) ? thaiName : englishName;
 
         public SfxCueConfig AppearSfx => customAppearSfx;
         public SfxCueConfig HurtSfx => customHurtSfx;
@@ -42,8 +46,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public EventData ToDomainData() => new EventData(
             eventId,
-            fallbackTitle,
-            questionDocumentId,
-            handlerKey);
+            englishName,
+            eventStageType);
     }
 }

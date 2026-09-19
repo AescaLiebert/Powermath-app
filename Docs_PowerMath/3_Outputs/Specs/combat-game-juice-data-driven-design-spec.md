@@ -200,9 +200,9 @@ The actor state is presentation-only. HP zero, hearts zero, cooldown state, and 
 ```text
 Answer result accepted
 -> Result UI exits
--> Player Attack begins
--> Impact marker: Enemy TakeDamage + HP interpolation + anchored FCT + hit audio
--> Player Attack and Enemy TakeDamage both settle to Idle
+-> Paired action begins: Player Attack starts its wind-up
+-> Player impact marker: Enemy TakeDamage + HP interpolation + anchored FCT + hit audio start in the same frame
+-> Player Attack and Enemy TakeDamage run concurrently and both settle to Idle
 -> Leftmost Armed Walk box Consumes/Exits
 -> Remaining boxes reflow left
 -> Enemy Walk pseudo-action
@@ -214,10 +214,11 @@ Answer result accepted
 ### 7.2 Correct, enemy survives, Attack token
 
 ```text
-Player Attack -> enemy damage response -> both settle
+Paired Player Attack + Enemy TakeDamage resolves at the player impact marker -> both settle
 -> Attack box consumes/exits -> queue reaches empty
--> Enemy Attack -> impact marker: player heart loss + TakeDamage
--> enemy and living player return Idle
+-> Paired action begins: Enemy Attack starts its readable wind-up
+-> Enemy impact marker: player heart loss + TakeDamage + light combat-world impulse start in the same frame
+-> Enemy Attack and living Player TakeDamage run concurrently and both return Idle
 -> a fresh cooldown queue initiates and settles
 -> presentation completion saved -> interaction opens
 ```
@@ -286,10 +287,10 @@ The current damage label is a root-level UI Toolkit label in `CombatSurface.uxml
 ### 9.2 FCT lifecycle
 
 ```text
-Acquire pooled view at target anchor
--> Pop in (scale/opacity overshoot)
--> Hold for readability
--> Slide upward while fading
+Acquire pooled view at a bounded random offset around the target anchor
+-> Burst upward/outward (scale/opacity overshoot)
+-> Hold at the apex for the presentation-local pop hit stop
+-> Follow one profile-authored ballistic jump using independent apex height, horizontal distance, vertical drop distance, and flight-duration controls
 -> Return to pool
 ```
 
@@ -302,7 +303,7 @@ Acquire pooled view at target anchor
 
 ### 9.3 Critical impact impulse
 
-At a critical impact marker, pulse only the combat-world presentation layer, leaving HUD text and answer/result UI readable. The effect is a short directional impulse toward/away from the target plus critical audio and stronger target reaction. Because the current characters live on a Screen Space Overlay Canvas, architecture must implement this as a combat-presentation-root impulse or deliberately migrate the affected visuals; moving the Unity camera alone would not move the current overlay characters.
+At every accepted player-hit impact marker, pulse only the combat-world presentation layer, leaving HUD text and answer/result UI readable. A normal hit starts at 6 px over 120 ms with one oscillation; a critical hit starts at 14 px over 180 ms with two oscillations plus critical audio and stronger target reaction. Because the current characters live on a Screen Space Overlay Canvas, architecture must implement this as a combat-presentation-root impulse or deliberately migrate the affected visuals; moving the Unity camera alone would not move the current overlay characters.
 
 Reduced Motion disables translation/noise impulse and uses a brief contrast/outline pulse plus the critical label/audio.
 
@@ -408,7 +409,8 @@ Hidden -> Entering -> Idle -> Exiting -> Hidden
 | Rank modal | Rank result reveal | Continue available | Continue acknowledged | Blocks Lobby and actor plan |
 | Death result | After Die and settlement | Retry or Restart only | Accepted acknowledgement | Hard terminal block |
 | Rebirth preview/result | Request/result reveal | Context-specific controls | Cancel/confirm/continue | Modal block; hard block after acceptance |
-| FCT | Pop | Hold | Slide/fade | Non-blocking |
+| FCT | Randomized anchored spawn + brief contact hold | Continuous ballistic jump with concurrent scale pop | Editable ballistic descent + late fade | Non-blocking |
+| FRT | Randomized anchored spawn + brief contact hold | Continuous ballistic jump with concurrent scale pop | Ballistic descent below screen + late fade | Non-blocking |
 | Global interaction shield | Immediate activation | Captures picking/focus | After unlock predicate | Must prevent pointer and keyboard leakage |
 
 ## 12. Juice and Starting Tuning Values
@@ -419,13 +421,20 @@ All values below are **starting values**, not standards or final balance. They r
 |---|---:|---|---|
 | Standard player Attack, start to settled Idle | 0.55 s; impact at 0.22 s | Observer identifies attacker and impact order in 9/10 mixed clips without the sequence feeling delayed | Move impact earlier in 0.03 s steps if laggy; lengthen recovery only if weight is unclear |
 | Enemy Walk pseudo-action | 0.32 s | Player notices one plan step advanced in 9/10 turns | Increase displacement/contrast before increasing duration |
-| Enemy Attack, start to settled Idle | 0.60 s; impact at 0.28 s | Player predicts heart loss before impact in 8/10 first encounters | Lengthen wind-up in 0.05 s steps; do not delay heart/FCT after impact |
+| Enemy Attack + Player TakeDamage pair, start to settled Idle | 0.60 s; impact at 0.28 s | Player predicts heart loss before impact in 8/10 first encounters and sees the heart/reaction change on impact | Lengthen wind-up in 0.05 s steps; do not delay heart/reaction after impact |
 | Take Damage reaction | 0.30 s | Normal hit reads without obscuring the next action | Increase visual contrast first; lengthen by 0.05 s only if missed |
 | Enemy Appear | 0.45 s | New encounter identity is recognized before Attack enables in 9/10 transitions | Increase hold/name clarity rather than spectacle if identity is missed |
 | Player Die before panel Enter | 0.90 s | Death is recognized before summary in 10/10 lethal sequences without feeling stalled | Adjust impact/pose hold in 0.10 s steps |
 | Player Rebirth | 0.85 s | Observers distinguish Rebirth from Death in 10/10 unlabeled clips | Change direction/color/silhouette before changing duration |
-| FCT pop / hold / exit | 0.12 / 0.24 / 0.34 s | Exact value and critical status are read in 9/10 mixed hits | Increase hold by 0.05 s; reduce travel speed if digits blur |
+| FCT/FRT pop / apex hold / drop | Starting values: FCT 0.12 / 0.06 / 0.48 s; FRT 0.16 / 0.06 / 0.52 s | Exact value and critical/reward status are read in 9/10 mixed events before the value leaves the screen | Increase apex hold by 0.02 s; reduce drop speed if digits blur |
 | Critical combat-root impulse | 14 reference pixels over 0.18 s, 2 directional oscillations | Critical is distinguished from normal in 9/10 hits and causes no discomfort report | Reduce amplitude first; then duration; disable fully in Reduced Motion |
+| Player-damage combat-root impulse | Starting value: 8 reference pixels over 0.14 s, 1 directional oscillation | Enemy impact feels stronger than UI-only heart loss in 8/10 observations without competing with critical-hit emphasis | Reduce amplitude in 2-pixel steps if distracting; increase to 10 pixels only if 3/10 observers miss the hit; disable fully in Reduced Motion |
+| Presentation-local hit stop | Starting value: 60 ms normal / 75 ms critical / 60 ms player damaged; Reduced Motion 25 ms | Contact frame is identified in 9/10 muted clips without the flow feeling stalled | Shorten post-hit tail first; then reduce hold in 10 ms steps |
+| Attack anticipation | Starting value: 12 reference pixels ending at normalized time 0.22; Player translation only | Attack direction and coming contact are understood in 9/10 muted clips without deforming the Player silhouette | Increase positional anticipation before adding any new effect |
+| Directional target knockback | Starting value: 24 px normal / 30 px critical / 20 px player | Target visibly moves away from the attacker and critical is distinguished in 9/10 clips | Adjust in 4-pixel steps; remove translation in Reduced Motion |
+| Impact starburst | Starting value: 6 rays; 0.18 s normal / 0.26 s critical / 0.20 s player damage | Contact point is found in 9/10 muted clips without obscuring FCT | Reduce ray size/opacity before changing duration |
+| Lost-heart punch | Starting value: 1.25× over 0.18 s | Player identifies which resource changed in 9/10 enemy-hit clips | Reduce scale to 1.15× if it competes with the actor reaction |
+| Post-hit readability tail | Starting value: 0.20 s normal / 0.35 s critical | Damage remains readable while the next decision arrives promptly | Reduce in 0.05 s steps if the loop feels slow |
 | Action box consume / reflow | 0.16 / 0.20 s | Observer can point to the consumed first box and new first box in 9/10 turns | Increase consume contrast; then add 0.04 s to reflow |
 | Queue initiate stagger | 0.05 s per box, capped by profile | Full order reads without making long cooldowns slow | Reduce stagger as queue length grows |
 | Standard UI Enter / Exit | 0.18 / 0.14 s | UI feels responsive and no control is clickable while visually absent | Shorten by 0.03 s if input acknowledgement feels delayed |
@@ -515,7 +524,7 @@ Primary risks:
 - [ ] Interaction cannot reopen until the authoritative ready state, empty action plan, both living actors Idle, stable action queue, and stable blocking UI all agree.
 - [ ] Lethal exceptions route to enemy replacement/RunComplete or mandatory Death result without waiting for a dead actor to become Idle.
 - [ ] FCT spawns from the affected enemy/player anchor and never from the player-menu/stat position.
-- [ ] FCT performs Pop -> Hold -> Slide/Fade -> Pool return and exposes authorable text/style/timing data.
+- [ ] FCT and FRT use bounded random spawn positions, Pop -> apex hold -> gravity drop below screen -> Pool return, with independently random rotation direction and authorable style/timing data.
 - [ ] Critical hits add a distinct label/audio/target response and combat-root impulse; Reduced Motion removes impulse.
 - [ ] Enemy action boxes Enter, Arm, Consume, Exit, and reflow; the first-left box is removed every accepted turn.
 - [ ] New enemy/reset queues animate Initiate and settle before input unlocks.

@@ -1,5 +1,37 @@
 namespace PowerMath.Gameplay.Combat
 {
+    public sealed class PetFollowUpResolution
+    {
+        public PetFollowUpResolution(
+            int damage,
+            bool isCritical,
+            CombatSnapshot target,
+            int enemyHpAfter,
+            bool enemyDefeated,
+            bool stageAdvanced,
+            bool carried)
+        {
+            if (damage <= 0) throw new System.ArgumentOutOfRangeException(nameof(damage));
+            Target = target ?? throw new System.ArgumentNullException(nameof(target));
+            if (enemyHpAfter < 0 || enemyHpAfter > target.EnemyMaximumHp)
+                throw new System.ArgumentOutOfRangeException(nameof(enemyHpAfter));
+            Damage = damage;
+            IsCritical = isCritical;
+            EnemyHpAfter = enemyHpAfter;
+            EnemyDefeated = enemyDefeated;
+            StageAdvanced = stageAdvanced;
+            Carried = carried;
+        }
+
+        public int Damage { get; }
+        public bool IsCritical { get; }
+        public CombatSnapshot Target { get; }
+        public int EnemyHpAfter { get; }
+        public bool EnemyDefeated { get; }
+        public bool StageAdvanced { get; }
+        public bool Carried { get; }
+    }
+
     public enum CombatPhase
     {
         EnemyReady,
@@ -51,7 +83,11 @@ namespace PowerMath.Gameplay.Combat
             string biomeTitle,
             StageEncounterKind encounterKind,
             string questionDocumentId,
-            int eventAttemptOrdinal)
+            int eventAttemptOrdinal,
+            EventScheduleSnapshot eventSchedule = null,
+            int stageAttackCount = 0,
+            int bigBossesDefeated = 0,
+            int pendingPetFollowUpDamage = 0)
         {
             Stage = stage;
             EnemyId = enemyId;
@@ -69,6 +105,10 @@ namespace PowerMath.Gameplay.Combat
             EncounterKind = encounterKind;
             QuestionDocumentId = questionDocumentId ?? string.Empty;
             EventAttemptOrdinal = eventAttemptOrdinal;
+            EventSchedule = eventSchedule;
+            StageAttackCount = stageAttackCount;
+            BigBossesDefeated = bigBossesDefeated;
+            PendingPetFollowUpDamage = pendingPetFollowUpDamage;
         }
 
         public StageId Stage { get; }
@@ -88,6 +128,10 @@ namespace PowerMath.Gameplay.Combat
         public StageEncounterKind EncounterKind { get; }
         public string QuestionDocumentId { get; }
         public int EventAttemptOrdinal { get; }
+        public EventScheduleSnapshot EventSchedule { get; }
+        public int StageAttackCount { get; }
+        public int BigBossesDefeated { get; }
+        public int PendingPetFollowUpDamage { get; }
         public bool IsEvent => EncounterKind == StageEncounterKind.ChallengeEvent;
     }
 
@@ -128,7 +172,11 @@ namespace PowerMath.Gameplay.Combat
             bool stageAdvanced,
             CombatSnapshot snapshot,
             bool biomeChanged,
-            DamageBreakdown damageBreakdown = default)
+            DamageBreakdown damageBreakdown = default,
+            bool enemyFled = false,
+            int playerDamage = -1,
+            int playerEnemyHpAfter = -1,
+            PetFollowUpResolution petFollowUp = null)
         {
             ResponseScore = responseScore;
             ResponseDamageMultiplier = isCorrect
@@ -148,6 +196,12 @@ namespace PowerMath.Gameplay.Combat
             Snapshot = snapshot;
             BiomeChanged = biomeChanged;
             DamageBreakdown = damageBreakdown;
+            EnemyFled = enemyFled;
+            PlayerDamage = playerDamage < 0 ? finalDamage : playerDamage;
+            PlayerEnemyHpAfter = playerEnemyHpAfter < 0
+                ? enemyHpAfter
+                : playerEnemyHpAfter;
+            PetFollowUp = petFollowUp;
         }
 
         public int ResponseScore { get; }
@@ -169,5 +223,10 @@ namespace PowerMath.Gameplay.Combat
         public CombatSnapshot Snapshot { get; }
         public bool BiomeChanged { get; }
         public DamageBreakdown DamageBreakdown { get; }
+        public bool EnemyFled { get; }
+        public int PlayerDamage { get; }
+        public int PlayerEnemyHpAfter { get; }
+        public PetFollowUpResolution PetFollowUp { get; }
+        public bool HasPetFollowUp => PetFollowUp != null;
     }
 }

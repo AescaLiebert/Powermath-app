@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "catalogRevision": "2026.09.17.2",
+  "patches": [
+    {
+      "id": "patch-1.1-update",
+      "version": "1.1",
+      "publishedAtUtc": "2026-09-17T00:00:00Z",
+      "featured": true,
+      "titleEn": "Sorry!",
+      "titleTh": "ขอโทษ!",
+      "bodyEn": "# Patch 1.1 Update\n\nHello, Adventurer! ✨ On September 16, 2026, we announced that the Patch 1.2 update has been postponed to September 18, 2026. We apologize for the delay!\n\nHere are the Patch 1.1 updates:\n\n## New Features\n\n- 👩‍🏫 **[ADD]** Added the beginner tutorial and story system.\n\n- 📌 **[ADD]** The Announcement Board is now available. Read more in the **Announcement Board** from the sign-in screen.\n\n- 👹 **[ADD]** Added a mysterious challenge enemy. ✨\n\n- 🔁 Rebalanced Power Coin rewards and the rebirth attack-power bonus to reduce tension and excessive farming.\n\n- 🗨️ Improved damage messages during combat.\n\n- 😈 Adjusted enemy sizes for a more consistent presentation.\n\n---\n\n## Bug Fixes\n\n- Fixed music disappearing when entering a question.\n\n- Fixed broken video playback.\n\n---\n\n## 👀 Update Preview\n\n![Patch 1.1 preview](resource:Announcements/Images/Weapon State)\n\n![Patch 1.1 preview](resource:Announcements/Images/Pet State)",
+      "bodyTh": "# อัปเดตแพตช์เกม 1.1\n\nสวัสดี นักผจญภัย! ✨ เมื่อวันที่ 16/09/2569 ทางเกมขอประกาศเลื่อนการอัปเดตแพตช์ 1.2 ไปเป็นวันที่ 18/09/2569 ขออภัยในความล่าช้าด้วย!\n\nปัจจุบันทางเกมขอนำเสนอการอัปเดตแพตช์ 1.1 ดังนี้\n\n## อัปเดตใหม่\n\n- 👩‍🏫 **[ADD]** ระบบสอนเล่นเบื้องต้นเเละเนื้อเรื่อง\n\n- 📌 **[ADD]** เพิ่มกระดานประกาศ สามารถอ่านรายละเอียดเพิ่มเติมได้ที่ **กระดานประกาศ** จากหน้าลงชื่อเข้าใช้\n\n- 👹 **[ADD]** เพิ่มศัตรูโจทย์แทรกสุดลึกลับ ✨\n\n- 🔁 ปรับสมดุลการได้รับเหรียญ Power และโบนัสเพิ่มพลังโจมตีเมื่อเกิดใหม่ เพื่อลดความตึงเครียดและปัญหาการฟาร์มเกมมากเกินไป\n\n- 🗨️ ปรับปรุงข้อความดาเมจในการต่อสู้\n\n- 😈 ปรับขนาดศัตรูให้แสดงผลได้สมดุลมากขึ้น\n\n---\n\n## การแก้ไขบัค\n\n- แก้ไขเพลงหายเมื่อกดเข้าสู่คำถาม\n\n- แก้ไขวิดีโอเล่นไม่ได้\n\n---\n\n## 👀 ส่องอัปเดต\n\n![Patch 1.1 preview](resource:Announcements/Images/Weapon State)\n\n![Patch 1.1 preview](resource:Announcements/Images/Pet State)"
+    }
+  ]
+}

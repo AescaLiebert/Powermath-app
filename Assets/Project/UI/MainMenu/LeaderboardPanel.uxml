@@ -89,7 +89,7 @@
                             <ui:Label name=".header-text" text="YOUR STANDING — YOU" class="loc-leaderboard.yourStanding leaderboard-pinned-header-text"/>
                         </ui:VisualElement>
                         <ui:VisualElement name=".pinned-self-row" class="leaderboard-pinned-row">
-                            <ui:VisualElement name=".rank-badge-self" class="leaderboard-row-rank-slot leaderboard-self-rank">
+                            <ui:VisualElement name=".rank-badge-self" class="leaderboard-self-rank">
                                 <ui:Label name="leaderboard-self-rank" text="--" class="leaderboard-self-rank-text"/>
                             </ui:VisualElement>
                             <ui:VisualElement name=".row-avatar-slot" class="leaderboard-avatar-slot leaderboard-avatar-slot--self">

@@ -12,11 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ec6029a921ef54fbc0e56a6815c59f, type: 3}
   m_Name: PetGachaCatalog
   m_EditorClassIdentifier:
-  catalogVersion: prototype-v1
+  catalogVersion: prototype-v2
   rarities:
   - rarityId: rare
     displayName: Rare
-    rateBasisPoints: 7000
+    rateBasisPoints: 9430
+    countsForTenPullGuarantee: 0
+    resetsSsrPity: 0
+    showcaseStarCount: 3
     displayColor: {r: 0.74, g: 0.52, b: 0.28, a: 1}
     pets:
     - {fileID: 11400000, guid: a1000000000000000000000000000001, type: 2}
@@ -26,17 +29,22 @@ MonoBehaviour:
     - {fileID: 11400000, guid: a1000000000000000000000000000005, type: 2}
   - rarityId: super_rare
     displayName: Super Rare
-    rateBasisPoints: 2700
+    rateBasisPoints: 510
+    countsForTenPullGuarantee: 1
+    resetsSsrPity: 0
+    showcaseStarCount: 4
     displayColor: {r: 0.55, g: 0.36, b: 0.9, a: 1}
     pets:
     - {fileID: 11400000, guid: a1000000000000000000000000000006, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000007, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000008, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000009, type: 2}
-    - {fileID: 11400000, guid: a100000000000000000000000000000a, type: 2}
   - rarityId: ssr
     displayName: SSR
-    rateBasisPoints: 300
+    rateBasisPoints: 60
+    countsForTenPullGuarantee: 1
+    resetsSsrPity: 1
+    showcaseStarCount: 5
     displayColor: {r: 1, g: 0.78, b: 0.2, a: 1}
     pets:
     - {fileID: 11400000, guid: a100000000000000000000000000000b, type: 2}

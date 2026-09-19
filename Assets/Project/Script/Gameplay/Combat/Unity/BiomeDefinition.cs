@@ -17,7 +17,10 @@ namespace PowerMath.Gameplay.Combat.Unity
         }
 
         [SerializeField] private string biomeId = "biome-1";
+        [Tooltip("Official biome display name used when localized text is unavailable.")]
         [SerializeField] private string fallbackTitle = "Biome";
+        [Tooltip("Optional official name for the deterministic midpoint variant. Blank keeps the official biome name.")]
+        [SerializeField] private string secondaryTitle = string.Empty;
         [Min(1), SerializeField] private int firstStage = 1;
         [Min(1), SerializeField] private int lastStage = 30;
         [SerializeField] private Sprite backgroundSprite;
@@ -30,6 +33,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public string BiomeId => biomeId;
         public string FallbackTitle => fallbackTitle;
+        public string SecondaryTitle => secondaryTitle;
         public int FirstStage => firstStage;
         public int LastStage => lastStage;
         public Sprite BackgroundSprite => backgroundSprite;
@@ -49,6 +53,14 @@ namespace PowerMath.Gameplay.Combat.Unity
                 stage >= MidpointStage
                 ? secondaryBackgroundSprite
                 : backgroundSprite;
+        }
+
+        public string ResolveTitle(int stage)
+        {
+            return !string.IsNullOrWhiteSpace(secondaryTitle) && lastStage > firstStage &&
+                stage >= MidpointStage
+                ? secondaryTitle
+                : fallbackTitle;
         }
     }
 }

@@ -34,6 +34,7 @@ namespace PowerMath.UI.Settings
                 builder.AddInteger(Join(root, "progression", "rankProgress"), 0);
                 builder.AddInteger(Join(root, "academic", "auditScore"), 0);
                 builder.AddInteger(Join(root, "academic", "auditResolvedCount"), 0);
+                builder.AddInteger(Join(root, "academic", "auditCorrectCount"), 0);
                 builder.AddNull(Join(root, "academic", "activeAttempt"));
                 string inventory = rank.ToLowerInvariant();
                 builder.AddInteger(Join(root, "academic", "inventories", inventory, "cycle"), 0);
@@ -147,7 +148,8 @@ namespace PowerMath.UI.Settings
                 if (_player?.activeRun != null)
                 {
                     builder.AddInteger(Join(root, "activeRun", "currentStage"), targetStage);
-                    builder.AddNull(Join(root, "activeRun", "committedAttemptId"));
+                    builder.AddBoolean(Join(root, "activeRun", "wasTeleported"), true);
+                    builder.AddString(Join(root, "activeRun", "committedAttemptId"), string.Empty);
                     builder.AddNull(Join(root, "activeRun", "pendingPresentation"));
                     builder.AddInteger(Join(root, "activeRun", "enemyMaximumHp"), 0);
                     builder.AddInteger(Join(root, "activeRun", "enemyCurrentHp"), 0);
@@ -169,7 +171,7 @@ namespace PowerMath.UI.Settings
                 failed?.Invoke("Player service is not configured.");
                 yield break;
             }
-            if (!_settings.TryGetLevelDocumentById(levelId, out string levelUrl))
+            if (!_settings.TryGetPlayerDocument(levelId, username, out string levelUrl))
             {
                 failed?.Invoke("Level document is not configured.");
                 yield break;
@@ -184,8 +186,7 @@ namespace PowerMath.UI.Settings
                 if (get.result != UnityWebRequest.Result.Success ||
                     !FirestoreJsonNavigator.TryParse(get.downloadHandler.text, out JsonValue root, out _) ||
                     !root.TryGet("updateTime", out JsonValue update) || update.Kind != JsonValueKind.String ||
-                    !FirestoreJsonNavigator.TryGetDocumentFields(root, out JsonValue documentFields) ||
-                    !documentFields.TryGet(username, out JsonValue student) ||
+                    !FirestoreRestClient.TryGetStudent(root, username, out JsonValue student) ||
                     !FirestoreRestClient.TryMapPlayer(
                         username,
                         levelId,
@@ -247,8 +248,7 @@ namespace PowerMath.UI.Settings
                 yield return reload.SendWebRequest();
                 if (reload.result != UnityWebRequest.Result.Success ||
                     !FirestoreJsonNavigator.TryParse(reload.downloadHandler.text, out JsonValue document, out _) ||
-                    !FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue documentFields) ||
-                    !documentFields.TryGet(username, out JsonValue student) ||
+                    !FirestoreRestClient.TryGetStudent(document, username, out JsonValue student) ||
                     !FirestoreRestClient.TryMapPlayer(
                         username,
                         levelId,
@@ -291,8 +291,7 @@ namespace PowerMath.UI.Settings
 
         private string[] PlayerRoot()
         {
-            TryResolve(out _, out string username);
-            return new[] { username, "gamedata" };
+            return new[] { "gamedata" };
         }
 
         private static string[] Join(string[] root, params string[] values)

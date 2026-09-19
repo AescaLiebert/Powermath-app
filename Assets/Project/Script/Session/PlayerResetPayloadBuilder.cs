@@ -17,7 +17,7 @@ namespace PowerMath.Session
                 : newPublicPlayerId.Trim();
 
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { username, "gamedata" };
+            string[] root = { "gamedata" };
 
             builder.AddInteger(Join(root, "schemaVersion"),
                 PowerMath.PlayerData.PlayerSchemaMigrator.CurrentSchemaVersion);
@@ -34,6 +34,7 @@ namespace PowerMath.Session
             builder.AddBoolean(Join(root, "onboarding", "legacyPlayer"), false);
             builder.AddInteger(Join(root, "tutorial", "version"), 1);
             builder.AddString(Join(root, "tutorial", "checkpointId"), string.Empty);
+            builder.AddEmptyMap(Join(root, "tutorialMap"));
 
             // Profile
             builder.AddString(Join(root, "profile", "characterId"), string.Empty);
@@ -79,7 +80,22 @@ namespace PowerMath.Session
             builder.AddString(Join(root, "activeRun", "questionContentKind"), string.Empty);
             builder.AddString(Join(root, "activeRun", "questionDocumentId"), string.Empty);
             builder.AddInteger(Join(root, "activeRun", "questionId"), 0);
+            builder.AddString(Join(root, "activeRun", "questionContentId"), string.Empty);
             builder.AddInteger(Join(root, "activeRun", "eventAttemptOrdinal"), 0);
+            builder.AddInteger(Join(root, "activeRun", "eventScheduleVersion"), 0);
+            builder.AddString(Join(root, "activeRun", "eventScheduleCatalogVersion"), string.Empty);
+            builder.AddString(Join(root, "activeRun", "eventScheduleEventId"), string.Empty);
+            builder.AddEmptyArray(Join(root, "activeRun", "eventScheduleStages"));
+            builder.AddInteger(Join(root, "activeRun", "eventChanceBasisPoints"), 0);
+            builder.AddInteger(Join(root, "activeRun", "petEventMultiplierBasisPoints"), 10000);
+            builder.AddInteger(Join(root, "activeRun", "challengeQuestions", "silverCursor"), 0);
+            builder.AddInteger(Join(root, "activeRun", "challengeQuestions", "goldCursor"), 0);
+            builder.AddInteger(Join(root, "activeRun", "challengeQuestions", "diamondCursor"), 0);
+            builder.AddString(Join(root, "activeRun", "challengeQuestions", "reservedDocumentId"), string.Empty);
+            builder.AddString(Join(root, "activeRun", "challengeQuestions", "reservedQuestionId"), string.Empty);
+            builder.AddString(Join(root, "activeRun", "lastChallengeRewardAttemptId"), string.Empty);
+            builder.AddInteger(Join(root, "activeRun", "lastChallengeRewardPowerCoins"), 0);
+            builder.AddInteger(Join(root, "activeRun", "lastChallengeRewardResultingPowerCoins"), 0);
             builder.AddString(Join(root, "activeRun", "enemyId"), string.Empty);
             builder.AddInteger(Join(root, "activeRun", "enemyCurrentHp"), 0);
             builder.AddInteger(Join(root, "activeRun", "enemyMaximumHp"), 0);
@@ -103,6 +119,10 @@ namespace PowerMath.Session
             builder.AddBoolean(Join(root, "economy", "lastPetGachaWasNew"), false);
             builder.AddInteger(Join(root, "economy", "lastPetGachaCost"), 0);
             builder.AddInteger(Join(root, "economy", "lastPetGachaResultingPowerCoins"), 0);
+            builder.AddInteger(Join(root, "economy", "petGachaPullsSinceSsr"), 0);
+            builder.AddInteger(Join(root, "economy", "lastPetGachaPreviousPityCount"), 0);
+            builder.AddInteger(Join(root, "economy", "lastPetGachaResultingPityCount"), 0);
+            builder.AddEmptyArray(Join(root, "economy", "lastPetGachaResults"));
             builder.AddString(Join(root, "economy", "lastPetEquipTransactionId"), string.Empty);
             builder.AddString(Join(root, "economy", "lastPetEquipPetId"), string.Empty);
 
@@ -118,6 +138,7 @@ namespace PowerMath.Session
             // Academic
             builder.AddInteger(Join(root, "academic", "auditScore"), 0);
             builder.AddInteger(Join(root, "academic", "auditResolvedCount"), 0);
+            builder.AddInteger(Join(root, "academic", "auditCorrectCount"), 0);
             builder.AddNull(Join(root, "academic", "activeAttempt"));
             foreach (string rank in new[] { "silver", "gold", "diamond" })
             {
@@ -156,7 +177,7 @@ namespace PowerMath.Session
                 completeMap.Root,
                 new[]
                 {
-                    FirestoreFieldPath.EscapeSegment(username) + ".gamedata"
+                    "gamedata"
                 });
         }
 

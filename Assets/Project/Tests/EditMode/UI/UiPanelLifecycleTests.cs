@@ -40,12 +40,14 @@ namespace PowerMath.UI.Core.Tests
 
             _lifecycle.Enter(() => completed++);
             Assert.That(_lifecycle.State, Is.EqualTo(UiMotionState.Entering));
+            Assert.That(_panel.style.visibility.value, Is.EqualTo(Visibility.Visible));
             Assert.That(_panel.pickingMode, Is.EqualTo(PickingMode.Ignore));
 
             _driver.Complete();
 
             Assert.That(_lifecycle.State, Is.EqualTo(UiMotionState.Idle));
             Assert.That(_lifecycle.IsStable, Is.True);
+            Assert.That(_panel.style.visibility.value, Is.EqualTo(Visibility.Visible));
             Assert.That(_panel.pickingMode, Is.EqualTo(PickingMode.Position));
             Assert.That(completed, Is.EqualTo(1));
         }
@@ -100,6 +102,39 @@ namespace PowerMath.UI.Core.Tests
 
             Assert.That(_panel.style.scale.value.value.x, Is.EqualTo(1f));
             Assert.That(_panel.style.translate.value.y.value, Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void LifecycleTransitions_PreserveChildPickingModesAcrossAllStates()
+        {
+            var childInteractive = new VisualElement { pickingMode = PickingMode.Position };
+            var childDecorative = new VisualElement { pickingMode = PickingMode.Ignore };
+            _panel.Add(childInteractive);
+            _panel.Add(childDecorative);
+
+            Assert.That(_lifecycle.State, Is.EqualTo(UiMotionState.Hidden));
+            Assert.That(childInteractive.pickingMode, Is.EqualTo(PickingMode.Position));
+            Assert.That(childDecorative.pickingMode, Is.EqualTo(PickingMode.Ignore));
+
+            _lifecycle.Enter();
+            Assert.That(_lifecycle.State, Is.EqualTo(UiMotionState.Entering));
+            Assert.That(childInteractive.pickingMode, Is.EqualTo(PickingMode.Position));
+            Assert.That(childDecorative.pickingMode, Is.EqualTo(PickingMode.Ignore));
+
+            _driver.Complete();
+            Assert.That(_lifecycle.State, Is.EqualTo(UiMotionState.Idle));
+            Assert.That(childInteractive.pickingMode, Is.EqualTo(PickingMode.Position));
+            Assert.That(childDecorative.pickingMode, Is.EqualTo(PickingMode.Ignore));
+
+            _lifecycle.Exit();
+            Assert.That(_lifecycle.State, Is.EqualTo(UiMotionState.Exiting));
+            Assert.That(childInteractive.pickingMode, Is.EqualTo(PickingMode.Position));
+            Assert.That(childDecorative.pickingMode, Is.EqualTo(PickingMode.Ignore));
+
+            _driver.Complete();
+            Assert.That(_lifecycle.State, Is.EqualTo(UiMotionState.Hidden));
+            Assert.That(childInteractive.pickingMode, Is.EqualTo(PickingMode.Position));
+            Assert.That(childDecorative.pickingMode, Is.EqualTo(PickingMode.Ignore));
         }
 
         private sealed class FakeMotionDriver : IUiMotionDriver

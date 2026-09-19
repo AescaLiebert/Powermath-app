@@ -124,10 +124,18 @@ namespace PowerMath.UI.Shared
                 return;
             }
 #else
-            // Inherit the forward clip from the VideoPlayer if not authored explicitly
-            if (forwardClip == null && _player.clip != null)
+            if (forwardClip != null)
+            {
+                _player.source = VideoSource.VideoClip;
+                _player.clip = forwardClip;
+            }
+            else if (_player.clip != null)
             {
                 forwardClip = _player.clip;
+            }
+            else if (!string.IsNullOrWhiteSpace(forwardUrl))
+            {
+                ApplyWebSource(PlaybackDirection.Forward);
             }
 #endif
 
@@ -187,7 +195,11 @@ namespace PowerMath.UI.Shared
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (!ApplyWebSource(_direction)) return;
 #else
-            if (forwardClip != null && _player.clip == null)
+            if (_player.source == VideoSource.Url)
+            {
+                if (!ApplyWebSource(_direction)) return;
+            }
+            else if (forwardClip != null && _player.clip == null)
             {
                 _player.clip = forwardClip;
             }
@@ -221,7 +233,11 @@ namespace PowerMath.UI.Shared
 #if UNITY_WEBGL && !UNITY_EDITOR
             ApplyWebSource(PlaybackDirection.Forward);
 #else
-            if (forwardClip != null)
+            if (_player.source == VideoSource.Url)
+            {
+                ApplyWebSource(PlaybackDirection.Forward);
+            }
+            else if (forwardClip != null)
             {
                 _player.clip = forwardClip;
             }
@@ -291,7 +307,14 @@ namespace PowerMath.UI.Shared
 #if UNITY_WEBGL && !UNITY_EDITOR
                     if (!ApplyWebSource(PlaybackDirection.Reverse)) return;
 #else
-                    _player.clip = reverseClip;
+                    if (_player.source == VideoSource.Url)
+                    {
+                        if (!ApplyWebSource(PlaybackDirection.Reverse)) return;
+                    }
+                    else
+                    {
+                        _player.clip = reverseClip;
+                    }
 #endif
                     try
                     {
@@ -320,7 +343,11 @@ namespace PowerMath.UI.Shared
 #if UNITY_WEBGL && !UNITY_EDITOR
                 if (!ApplyWebSource(PlaybackDirection.Forward)) return;
 #else
-                if (forwardClip != null)
+                if (_player.source == VideoSource.Url)
+                {
+                    if (!ApplyWebSource(PlaybackDirection.Forward)) return;
+                }
+                else if (forwardClip != null)
                 {
                     _player.clip = forwardClip;
                 }
@@ -367,10 +394,17 @@ namespace PowerMath.UI.Shared
             _isSeeking = false;
         }
 
-#if UNITY_WEBGL && !UNITY_EDITOR
         private bool HasReversePlaybackSource()
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
             return StreamingVideoPath.TryResolve(reverseUrl, out _);
+#else
+            if (_player != null && _player.source == VideoSource.Url)
+            {
+                return StreamingVideoPath.TryResolve(reverseUrl, out _);
+            }
+            return reverseClip != null;
+#endif
         }
 
         private bool ApplyWebSource(PlaybackDirection direction)
@@ -381,7 +415,7 @@ namespace PowerMath.UI.Shared
                 : forwardUrl;
             if (!StreamingVideoPath.TryResolve(configured, out string url))
             {
-                Debug.LogWarning($"[PingPongVideoPlayer] Missing WebGL {direction} video URL.", this);
+                Debug.LogWarning($"[PingPongVideoPlayer] Missing video URL for {direction}.", this);
                 return false;
             }
 
@@ -392,11 +426,5 @@ namespace PowerMath.UI.Shared
             }
             return true;
         }
-#else
-        private bool HasReversePlaybackSource()
-        {
-            return reverseClip != null;
-        }
-#endif
     }
 }

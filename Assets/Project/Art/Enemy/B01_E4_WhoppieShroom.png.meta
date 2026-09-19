@@ -58,7 +58,7 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 7
+  alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
@@ -125,10 +125,10 @@ TextureImporter:
       name: B01_E4_WhoppieShroom_0
       rect:
         serializedVersion: 2
-        x: 92
-        y: 342
-        width: 15
-        height: 24
+        x: 160
+        y: 423
+        width: 18
+        height: 28
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,10 +147,10 @@ TextureImporter:
       name: B01_E4_WhoppieShroom_1
       rect:
         serializedVersion: 2
-        x: 110
-        y: 304
-        width: 79
-        height: 137
+        x: 183
+        y: 376
+        width: 96
+        height: 168
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -169,10 +169,10 @@ TextureImporter:
       name: B01_E4_WhoppieShroom_2
       rect:
         serializedVersion: 2
-        x: 141
-        y: 2
-        width: 533
-        height: 641
+        x: 218
+        y: 1
+        width: 660
+        height: 792
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -191,10 +191,10 @@ TextureImporter:
       name: B01_E4_WhoppieShroom_3
       rect:
         serializedVersion: 2
-        x: 106
-        y: 310
-        width: 18
-        height: 16
+        x: 177
+        y: 383
+        width: 22
+        height: 20
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

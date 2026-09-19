@@ -128,20 +128,35 @@ namespace PowerMath.Gameplay.Academic
     {
         public static RankTransition Evaluate(
             AcademicRank current,
-            int completedAuditScore)
+            int completedAuditScore,
+            int correctCount)
         {
             int score = Math.Max(0, Math.Min(AuditWindow.MaximumScore, completedAuditScore));
+            int clampedCorrect = Math.Max(0, Math.Min(AuditWindow.RequiredResults, correctCount));
             AcademicRank next = current;
-            if (score >= 40)
+
+            // Promote: CorrectCount >= 4 AND AuditScore >= 40
+            if (clampedCorrect >= 4 && score >= 40)
             {
                 next = current.PromoteOne();
             }
-            else if (score <= 25)
+            // Demote: CorrectCount <= 2
+            else if (clampedCorrect <= 2)
             {
                 next = current.DemoteOne();
             }
+            // Maintain: CorrectCount >= 3 OR (CorrectCount >= 4 but AuditScore < 40)
+            // Implicitly handled by leaving next = current
 
             return new RankTransition(current, next);
+        }
+
+        public static RankTransition Evaluate(
+            AcademicRank current,
+            int completedAuditScore)
+        {
+            int inferredCorrect = completedAuditScore >= 40 ? 4 : (completedAuditScore <= 20 ? 2 : 3);
+            return Evaluate(current, completedAuditScore, inferredCorrect);
         }
     }
 }

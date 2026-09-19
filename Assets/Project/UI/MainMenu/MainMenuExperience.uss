@@ -1742,6 +1742,9 @@
     flex-shrink: 0;
     background-image: url("project://database/Assets/Project/Art/UI/Icon/player_heart.png?fileID=21300000&guid=60fcaad347e70f34784b180fb9e07496&type=3#player_heart");
     -unity-background-scale-mode: scale-to-fit;
+    transition-property: scale, opacity, -unity-background-image-tint-color;
+    transition-duration: 0.09s;
+    transition-timing-function: ease-out-back;
 }
 
 .hud-loadout-heart--last {
@@ -1750,6 +1753,12 @@
 
 .hud-loadout-heart.is-empty {
     opacity: 0.22;
+}
+
+.hud-loadout-heart.is-damaged {
+    scale: 1.25 1.25;
+    opacity: 1;
+    -unity-background-image-tint-color: rgb(255, 238, 160);
 }
 
 .hud-loadout-heart.is-unused {
@@ -1919,22 +1928,60 @@
 }
 
 .combat-attempt-panel {
+    position: absolute;
     left: 50%;
+    top: 50%;
     right: auto;
-    margin-left: -230px;
+    bottom: auto;
+    translate: -50% -50%;
+    margin-left: 0;
     margin-right: 0;
-    top: 7%;
-    bottom: 7%;
-    transition-property: opacity, scale, translate, left, right, margin-left;
+    margin-top: 0;
+    margin-bottom: 0;
+    width: 460px;
+    max-width: 90%;
+    height: 650px;
+    max-height: 88%;
+    min-height: 460px;
+    transition-property: opacity, scale, translate, left, right, top, bottom, width, height;
     transition-duration: 220ms;
     transition-timing-function: ease-out-back;
+}
+
+.combat-attempt-panel.ui-lifecycle--entering {
+    opacity: 0;
+    scale: 0.9 0.9;
+    translate: -50% -48%;
+}
+
+.combat-attempt-panel.ui-lifecycle--exiting {
+    opacity: 0;
+    scale: 0.96 0.96;
+    translate: -50% -52%;
 }
 
 .combat-attempt-panel.combat-attempt-panel--retained-video {
     left: 49%;
     right: 5%;
+    top: 7%;
+    bottom: 7%;
+    width: auto;
+    max-width: none;
+    height: auto;
+    max-height: none;
+    translate: 0 0;
     margin-left: 0;
     margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.combat-attempt-panel.combat-attempt-panel--retained-video.ui-lifecycle--entering {
+    translate: 0 12px;
+}
+
+.combat-attempt-panel.combat-attempt-panel--retained-video.ui-lifecycle--exiting {
+    translate: 0 -6px;
 }
 
 .combat-attempt-panel.combat-attempt-panel--retained-video-narrow {
@@ -1944,8 +1991,21 @@
     bottom: 12px;
     width: auto;
     max-width: none;
+    height: auto;
+    max-height: none;
+    translate: 0 0;
     margin-left: 0;
     margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.combat-attempt-panel.combat-attempt-panel--retained-video-narrow.ui-lifecycle--entering {
+    translate: 0 12px;
+}
+
+.combat-attempt-panel.combat-attempt-panel--retained-video-narrow.ui-lifecycle--exiting {
+    translate: 0 -6px;
 }
 
 .navigator-modal {

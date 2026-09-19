@@ -113,6 +113,7 @@ namespace PowerMath.Gameplay.Academic
             _player.wallet.silver = request.Academic.Balances.Silver;
             _player.wallet.gold = request.Academic.Balances.Gold;
             _player.wallet.diamond = request.Academic.Balances.Diamond;
+            _player.wallet.powerCoins = request.Snapshot.PowerCoins;
 
             _player.activeRun = _player.activeRun ?? new PlayerSnapshot.ActiveRunData();
             CombatSnapshot combat = request.Snapshot.Combat;
@@ -130,6 +131,9 @@ namespace PowerMath.Gameplay.Academic
             _player.activeRun.playerCurrentHearts = combat.PlayerCurrentHearts;
             _player.activeRun.playerMaximumHearts = combat.PlayerMaximumHearts;
             _player.activeRun.phase = combat.Phase.ToString();
+            _player.activeRun.stageAttackCount = combat.StageAttackCount;
+            _player.activeRun.bigBossesDefeated = combat.BigBossesDefeated;
+            _player.activeRun.pendingPetFollowUpDamage = combat.PendingPetFollowUpDamage;
             _player.activeRun.committedAttemptId = request.ActiveQuestion == null
                 ? string.Empty
                 : request.TransactionId;
@@ -138,7 +142,13 @@ namespace PowerMath.Gameplay.Academic
             _player.activeRun.questionDocumentId = request.ActiveQuestion == null
                 ? string.Empty : request.ActiveQuestion.SourceId;
             _player.activeRun.questionId = request.ActiveQuestion == null
-                ? 0 : request.ActiveQuestion.Id.Value;
+                ? 0
+                : request.ActiveQuestion.ContentKind == QuestionContentKind.RankQuestion
+                    ? request.ActiveQuestion.Id.Value : 0;
+            _player.activeRun.questionContentId = request.ActiveQuestion == null
+                ? string.Empty : request.ActiveQuestion.ContentId;
+            ApplyEventSchedule(_player.activeRun, combat.EventSchedule);
+            _player.activeRun.challengeQuestions = ToPlayer(request.ChallengeQuestions);
             if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
                 request.Resolution?.Presentation != null)
             {
@@ -161,16 +171,54 @@ namespace PowerMath.Gameplay.Academic
                     default: _player.activeRun.silverEarned = checked(_player.activeRun.silverEarned + delta); break;
                 }
             }
+            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution != null && !request.Resolution.IsAcademic &&
+                !string.Equals(_player.activeRun.lastChallengeRewardAttemptId,
+                    request.TransactionId, StringComparison.Ordinal))
+            {
+                _player.activeRun.lastChallengeRewardAttemptId = request.TransactionId;
+                _player.activeRun.lastChallengeRewardPowerCoins =
+                    request.Resolution.Event.PowerCoinsGranted;
+                _player.activeRun.lastChallengeRewardResultingPowerCoins =
+                    request.Snapshot.PowerCoins;
+            }
 
             _player.academic = _player.academic ?? new PlayerSnapshot.AcademicData();
             _player.academic.auditScore = request.Academic.AuditScore;
             _player.academic.auditResolvedCount = request.Academic.AuditResolvedCount;
+            _player.academic.auditCorrectCount = request.Academic.AuditCorrectCount;
             _player.academic.silver = ToPlayer(request.Academic.Silver);
             _player.academic.gold = ToPlayer(request.Academic.Gold);
             _player.academic.diamond = ToPlayer(request.Academic.Diamond);
             PlayerAnalyticsUpdater.Apply(_player, request);
             _player.analytics = _player.analytics ?? new PlayerSnapshot.AnalyticsData();
             _player.analytics.totalPlaySeconds = _store.LastTotalPlaySeconds;
+        }
+
+        private static void ApplyEventSchedule(
+            PlayerSnapshot.ActiveRunData target,
+            EventScheduleSnapshot schedule)
+        {
+            if (schedule == null) return;
+            target.eventScheduleVersion = schedule.Version;
+            target.eventScheduleCatalogVersion = schedule.CatalogVersion;
+            target.eventScheduleEventId = schedule.EventId;
+            target.eventScheduleStages = schedule.GeneratedStages.ToArray();
+            target.eventChanceBasisPoints = schedule.BaseChanceBasisPoints;
+            target.petEventMultiplierBasisPoints = schedule.PetMultiplierBasisPoints;
+        }
+
+        private static PlayerSnapshot.ChallengeQuestionSequenceData ToPlayer(
+            ChallengeQuestionSequenceSnapshot snapshot)
+        {
+            return new PlayerSnapshot.ChallengeQuestionSequenceData
+            {
+                silverCursor = snapshot.SilverCursor,
+                goldCursor = snapshot.GoldCursor,
+                diamondCursor = snapshot.DiamondCursor,
+                reservedDocumentId = snapshot.ReservedDocumentId,
+                reservedQuestionId = snapshot.ReservedQuestionId
+            };
         }
 
         private static PlayerSnapshot.RankInventoryData ToPlayer(
@@ -206,6 +254,8 @@ namespace PowerMath.Gameplay.Academic
                 outcome = receipt.Outcome.ToString(),
                 responseScore = receipt.ResponseScore,
                 finalDamage = receipt.FinalDamage,
+                playerDamage = receipt.PlayerDamage,
+                playerEnemyHpAfter = receipt.PlayerEnemyHpAfter,
                 isCritical = receipt.IsCritical,
                 resolvedEnemyHpAfter = receipt.ResolvedEnemyHpAfter,
                 enemyDefeated = receipt.EnemyDefeated,
@@ -213,8 +263,23 @@ namespace PowerMath.Gameplay.Academic
                 playerDefeated = receipt.PlayerDefeated,
                 stageAdvanced = receipt.StageAdvanced,
                 biomeChanged = receipt.BiomeChanged,
+                enemyFled = receipt.EnemyFled,
+                powerCoinsGranted = receipt.PowerCoinsGranted,
+                resultingPowerCoins = receipt.ResultingPowerCoins,
                 source = ToPlayer(receipt.Source),
                 destination = ToPlayer(receipt.Destination),
+                petFollowUp = receipt.PetFollowUp == null
+                    ? null
+                    : new PlayerSnapshot.PetFollowUpPresentationData
+                    {
+                        damage = receipt.PetFollowUp.Damage,
+                        isCritical = receipt.PetFollowUp.IsCritical,
+                        enemyHpAfter = receipt.PetFollowUp.EnemyHpAfter,
+                        enemyDefeated = receipt.PetFollowUp.EnemyDefeated,
+                        stageAdvanced = receipt.PetFollowUp.StageAdvanced,
+                        carried = receipt.PetFollowUp.Carried,
+                        target = ToPlayer(receipt.PetFollowUp.Target)
+                    },
                 previousRank = receipt.RankTransition.Previous.ToString(),
                 currentRank = receipt.RankTransition.Current.ToString()
             };

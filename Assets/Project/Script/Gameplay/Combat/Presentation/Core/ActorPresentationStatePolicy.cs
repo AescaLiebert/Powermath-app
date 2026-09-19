@@ -20,7 +20,9 @@ namespace PowerMath.Gameplay.Combat.Presentation
             ActorVisualState current,
             ActorVisualState next)
         {
-            if (actor != PresentationActor.Player && actor != PresentationActor.Enemy)
+            if (actor != PresentationActor.Player &&
+                actor != PresentationActor.Pet &&
+                actor != PresentationActor.Enemy)
                 return false;
             if (current == next) return current == ActorVisualState.Idle;
             if (next == ActorVisualState.Hidden) return true;
@@ -43,6 +45,9 @@ namespace PowerMath.Gameplay.Combat.Presentation
                     next == ActorVisualState.Dying ||
                     next == ActorVisualState.Rebirthing;
             }
+
+            if (actor == PresentationActor.Pet)
+                return next == ActorVisualState.Attacking;
 
             return next == ActorVisualState.Attacking ||
                 next == ActorVisualState.TakingDamage ||

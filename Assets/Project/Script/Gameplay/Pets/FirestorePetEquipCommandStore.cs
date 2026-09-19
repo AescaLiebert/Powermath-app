@@ -29,14 +29,17 @@ namespace PowerMath.Gameplay.Pets
                 throw new ArgumentException("Pet catalog is invalid: " + error, nameof(catalog));
 
             int separator = (player.playerId ?? string.Empty).IndexOf(':');
-            if (separator <= 0 || separator >= player.playerId.Length - 1 ||
-                !_settings.TryGetLevelDocumentById(
-                    player.playerId.Substring(0, separator), out _url))
+            if (separator <= 0 || separator >= player.playerId.Length - 1)
+            {
+                throw new ArgumentException("Player ID cannot resolve its Firestore document.", nameof(player));
+            }
+            string levelId = player.playerId.Substring(0, separator);
+            _username = player.playerId.Substring(separator + 1);
+            if (!_settings.TryGetPlayerDocument(levelId, _username, out _url))
             {
                 throw new ArgumentException(
                     "Player ID cannot resolve its Firestore document.", nameof(player));
             }
-            _username = player.playerId.Substring(separator + 1);
         }
 
         public IEnumerator Equip(
@@ -144,7 +147,7 @@ namespace PowerMath.Gameplay.Pets
             }
 
             var builder = new FirestorePatchDocumentBuilder();
-            string[] root = { _username, "gamedata" };
+            string[] root = { "gamedata" };
             builder.AddInteger(Join(root, "revision"), nextRevision);
             builder.AddString(Join(root, "loadout", "petId"), command.PetId);
             builder.AddString(
@@ -269,12 +272,30 @@ namespace PowerMath.Gameplay.Pets
         {
             state = null;
             error = string.Empty;
-            if (!FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields) ||
-                !fields.TryGet(_username, out JsonValue studentValue) ||
-                !FirestoreJsonNavigator.TryGetMapFields(studentValue, out JsonValue student) ||
-                !student.TryGet("gamedata", out JsonValue gameDataValue) ||
-                !FirestoreJsonNavigator.TryGetMapFields(gameDataValue, out JsonValue gameData) ||
-                !TryReadInteger(gameData, "revision", out long revision) || revision < 0 ||
+            if (!FirestoreJsonNavigator.TryGetDocumentFields(document, out JsonValue fields))
+            {
+                error = "Required inventory or revision data is invalid.";
+                return false;
+            }
+
+            JsonValue gameData;
+            if (fields.TryGet("gamedata", out JsonValue directGameData) &&
+                FirestoreJsonNavigator.TryGetMapFields(directGameData, out gameData))
+            {
+            }
+            else if (fields.TryGet(_username, out JsonValue studentValue) &&
+                     FirestoreJsonNavigator.TryGetMapFields(studentValue, out JsonValue student) &&
+                     student.TryGet("gamedata", out JsonValue nestedGameData) &&
+                     FirestoreJsonNavigator.TryGetMapFields(nestedGameData, out gameData))
+            {
+            }
+            else
+            {
+                error = "Required inventory or revision data is invalid.";
+                return false;
+            }
+
+            if (!TryReadInteger(gameData, "revision", out long revision) || revision < 0 ||
                 !TryMapInventory(gameData, out PlayerSnapshot.InventoryItemData[] inventory, out error))
             {
                 if (string.IsNullOrEmpty(error))
@@ -314,17 +335,22 @@ namespace PowerMath.Gameplay.Pets
             out HashSet<string> owned,
             out string error)
         {
-            owned = new HashSet<string>(StringComparer.Ordinal);
+            owned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             error = string.Empty;
             foreach (PlayerSnapshot.InventoryItemData item in inventory)
             {
                 if (item == null || !_catalog.TryResolvePet(item.itemId, out _, out _))
                     continue;
-                if (!item.owned || item.upgradeLevel != 0 || !owned.Add(item.itemId))
+                if (!item.owned || item.upgradeLevel != 0)
                 {
                     error = "Saved pet ownership is inconsistent and requires data repair.";
                     return false;
                 }
+                if (item.count <= 0)
+                {
+                    item.count = 1;
+                }
+                owned.Add(item.itemId);
             }
             return true;
         }
@@ -358,11 +384,23 @@ namespace PowerMath.Gameplay.Pets
                     error = "Inventory contains an invalid item record.";
                     return false;
                 }
+                int count = 1;
+                if (item.TryGet("count", out JsonValue countLeaf))
+                {
+                    if (!FirestoreJsonNavigator.TryReadInteger(countLeaf, out long c) ||
+                        c > int.MaxValue)
+                    {
+                        error = "Inventory contains an invalid copy count.";
+                        return false;
+                    }
+                    count = c <= 0 ? 1 : (int)c;
+                }
                 result.Add(new PlayerSnapshot.InventoryItemData
                 {
                     itemId = itemId,
                     owned = owned,
-                    upgradeLevel = (int)level
+                    upgradeLevel = (int)level,
+                    count = count
                 });
             }
             inventory = result.ToArray();
@@ -386,7 +424,8 @@ namespace PowerMath.Gameplay.Pets
             {
                 itemId = item.itemId,
                 upgradeLevel = item.upgradeLevel,
-                owned = item.owned
+                owned = item.owned,
+                count = Math.Max(1, item.count)
             };
 
         private static bool TryGetMap(JsonValue fields, string name, out JsonValue map)

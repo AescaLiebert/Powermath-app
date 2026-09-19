@@ -16,7 +16,8 @@ namespace PowerMath.Gameplay.Progression
             long legacyBasisPoints,
             int effectiveAttack,
             double criticalRate,
-            double criticalDamagePercent)
+            double criticalDamagePercent,
+            PetCollectionStats petStats = default)
         {
             Weapon = weapon;
             PetFlatAttack = petFlatAttack;
@@ -26,15 +27,17 @@ namespace PowerMath.Gameplay.Progression
             EffectiveAttack = effectiveAttack;
             CriticalRate = criticalRate;
             CriticalDamagePercent = criticalDamagePercent;
+            PetStats = petStats;
         }
 
         public WeaponAscensionStats Weapon { get; }
-        /// <summary>Flat ATK contributed by the equipped pet.</summary>
+        /// <summary>Flat ATK contributed by the pet collection.</summary>
         public int PetFlatAttack { get; }
-        /// <summary>Percentage multiplier bonus from the equipped pet. E.g. 10.0 = +10%.</summary>
+        /// <summary>Percentage multiplier bonus from the pet collection. E.g. 10.0 = +10%.</summary>
         public double PetMultiplierPercent { get; }
         public bool HasConfiguredPetStats { get; }
         public long LegacyBasisPoints { get; }
+        public PetCollectionStats PetStats { get; }
         /// <summary>WeaponATK + PetFlatATK before any multipliers.</summary>
         public int PermanentAttackSubtotal => checked(Weapon.Attack + PetFlatAttack);
         /// <summary>ATK added by the Rebirth/Legacy multiplier (rounded effective minus subtotal).</summary>
@@ -48,7 +51,10 @@ namespace PowerMath.Gameplay.Progression
             return new PlayerCombatStats(
                 EffectiveAttack,
                 CriticalRate,
-                CriticalDamagePercent);
+                CriticalDamagePercent,
+                effectivePetAttack: PetStats.EffectivePetAttack,
+                bonusMaxHearts: PetStats.TotalPlayerHeartBonus,
+                petPassives: PetStats.ActivePassives);
         }
     }
 
@@ -117,14 +123,23 @@ namespace PowerMath.Gameplay.Progression
                 .Select(item => new PetOwnershipRecord(
                     item.itemId,
                     item.owned,
-                    item.upgradeLevel))
+                    item.upgradeLevel,
+                    item.count > 0 ? item.count : (item.owned ? 1 : 0)))
                 .ToArray();
-            int petFlatAttack = EquippedPetAttackPolicy.Resolve(
-                player?.loadout?.petId,
-                petCatalog,
-                records,
-                out bool hasConfiguredPetStats,
-                out double petMultiplierPercent);
+
+            // Validate cosmetic equip if one is set
+            if (!string.IsNullOrWhiteSpace(player?.loadout?.petId))
+            {
+                PetEquipPolicy.Validate(
+                    player.loadout.petId,
+                    petCatalog,
+                    records);
+            }
+
+            PetCollectionStats petStats = PetCollectionPolicy.Calculate(petCatalog, records);
+            bool hasConfiguredPetStats = petStats.TotalOwnedPetsCount > 0;
+            int petFlatAttack = petStats.TotalPlayerFlatAttack;
+            double petMultiplierPercent = petStats.TotalPlayerAttackMultiplierPercent;
 
             long legacyBasisPoints = checked(
                 Math.Max(0, player?.progression?.legacyAtkBonusBasisPoints ?? 0) +
@@ -137,6 +152,11 @@ namespace PowerMath.Gameplay.Progression
             if (effectiveAttack > int.MaxValue)
                 throw new OverflowException("Projected player ATK exceeds the supported range.");
 
+            double finalCritRate = Math.Min(1d, Math.Max(0d,
+                baseCriticalRate + weapon.CriticalRatePercent / 100d + petStats.TotalCritRatePercent / 100d));
+            double finalCritDamage = Math.Max(0d,
+                baseCriticalDamagePercent + weapon.CriticalDamagePercent + petStats.TotalCritDamagePercent);
+
             return new PlayerStatProjection(
                 weapon,
                 petFlatAttack,
@@ -146,10 +166,9 @@ namespace PowerMath.Gameplay.Progression
                 Math.Max(1, (int)Math.Round(
                     effectiveAttack,
                     MidpointRounding.AwayFromZero)),
-                Math.Min(1d, Math.Max(0d,
-                    baseCriticalRate + weapon.CriticalRatePercent / 100d)),
-                Math.Max(0d,
-                    baseCriticalDamagePercent + weapon.CriticalDamagePercent));
+                finalCritRate,
+                finalCritDamage,
+                petStats);
         }
     }
 }

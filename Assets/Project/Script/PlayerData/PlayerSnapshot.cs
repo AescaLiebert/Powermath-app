@@ -9,6 +9,7 @@ namespace PowerMath.PlayerData
         public PreferencesData preferences;
         public OnboardingData onboarding;
         public TutorialData tutorial;
+        public TutorialEntryData[] tutorialEntries;
         public string playerId;
         public bool isAdmin;
         public long revision;
@@ -60,6 +61,24 @@ namespace PowerMath.PlayerData
         }
 
         [Serializable]
+        public sealed class TutorialEntryData
+        {
+            public string tutorialId;
+            public int version;
+            public string status;
+            public string currentStepId;
+            public long triggerRecordedAtUnixSeconds;
+            public long completedAtUnixSeconds;
+            public bool rewardClaimed;
+            public string lastTransactionId;
+            public string lastOperationId;
+            public bool legacyPlayer;
+            public string guidedEncounterId;
+            public string firstAttemptOutcome;
+            public string variant;
+        }
+
+        [Serializable]
         public sealed class ProfileData
         {
             public string characterId;
@@ -102,6 +121,7 @@ namespace PowerMath.PlayerData
             public string itemId;
             public int upgradeLevel;
             public bool owned;
+            public int count;
         }
 
         [Serializable]
@@ -125,7 +145,18 @@ namespace PowerMath.PlayerData
             public string questionContentKind;
             public string questionDocumentId;
             public long questionId;
+            public string questionContentId;
             public int eventAttemptOrdinal;
+            public int eventScheduleVersion;
+            public string eventScheduleCatalogVersion;
+            public string eventScheduleEventId;
+            public int[] eventScheduleStages;
+            public int eventChanceBasisPoints;
+            public int petEventMultiplierBasisPoints;
+            public ChallengeQuestionSequenceData challengeQuestions;
+            public string lastChallengeRewardAttemptId;
+            public int lastChallengeRewardPowerCoins;
+            public long lastChallengeRewardResultingPowerCoins;
             public string enemyId;
             public int enemyCurrentHp;
             public int enemyMaximumHp;
@@ -139,6 +170,10 @@ namespace PowerMath.PlayerData
             public long diamondEarned;
             public int bonusMultiplierBasisPoints;
             public AttemptPresentationData pendingPresentation;
+            public int stageAttackCount;
+            public int bigBossesDefeated;
+            public int pendingPetFollowUpDamage;
+            public bool wasTeleported;
         }
 
         [Serializable]
@@ -150,6 +185,8 @@ namespace PowerMath.PlayerData
             public string outcome;
             public int responseScore;
             public int finalDamage;
+            public int playerDamage;
+            public int playerEnemyHpAfter;
             public bool isCritical;
             public int resolvedEnemyHpAfter;
             public bool enemyDefeated;
@@ -157,10 +194,36 @@ namespace PowerMath.PlayerData
             public bool playerDefeated;
             public bool stageAdvanced;
             public bool biomeChanged;
+            public bool enemyFled;
+            public int powerCoinsGranted;
+            public long resultingPowerCoins;
             public CombatPresentationData source;
             public CombatPresentationData destination;
+            public PetFollowUpPresentationData petFollowUp;
             public string previousRank;
             public string currentRank;
+        }
+
+        [Serializable]
+        public sealed class PetFollowUpPresentationData
+        {
+            public int damage;
+            public bool isCritical;
+            public int enemyHpAfter;
+            public bool enemyDefeated;
+            public bool stageAdvanced;
+            public bool carried;
+            public CombatPresentationData target;
+        }
+
+        [Serializable]
+        public sealed class ChallengeQuestionSequenceData
+        {
+            public int silverCursor;
+            public int goldCursor;
+            public int diamondCursor;
+            public string reservedDocumentId;
+            public string reservedQuestionId;
         }
 
         [Serializable]
@@ -191,8 +254,23 @@ namespace PowerMath.PlayerData
             public bool lastPetGachaWasNew;
             public long lastPetGachaCost;
             public long lastPetGachaResultingPowerCoins;
+            public int petGachaPullsSinceSsr;
+            public int lastPetGachaPreviousPityCount;
+            public int lastPetGachaResultingPityCount;
+            public PetGachaResultData[] lastPetGachaResults;
             public string lastPetEquipTransactionId;
             public string lastPetEquipPetId;
+            public bool firstGachaPullCompleted;
+        }
+
+        [Serializable]
+        public sealed class PetGachaResultData
+        {
+            public string petId;
+            public string rarityId;
+            public bool wasNew;
+            public int previousCount;
+            public int resultingCount;
         }
 
         [Serializable]
@@ -225,6 +303,7 @@ namespace PowerMath.PlayerData
         {
             public int auditScore;
             public int auditResolvedCount;
+            public int auditCorrectCount;
             public RankInventoryData silver;
             public RankInventoryData gold;
             public RankInventoryData diamond;

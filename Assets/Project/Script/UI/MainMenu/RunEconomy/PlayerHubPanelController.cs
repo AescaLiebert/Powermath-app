@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Globalization;
 using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
@@ -14,7 +15,7 @@ namespace PowerMath.UI.MainMenu
     public sealed class PlayerHubPanelController : IDisposable
     {
         private readonly MonoBehaviour _host;
-        private readonly PlayerSnapshot _player;
+        private PlayerSnapshot _player;
         private readonly FirestoreProgressionCommandStore _weaponStore;
         private readonly FirestoreLeaderboardProjectionPublisher _publisher;
         private readonly WeaponAscensionCatalogDefinition _weaponCatalog;
@@ -33,6 +34,7 @@ namespace PowerMath.UI.MainMenu
         private string _pendingPetId;
         private string _selectedPetId;
         private bool _busy;
+        private int _lastRenderedStarCount = -1;
 
         public PlayerHubPanelController(
             MonoBehaviour host,
@@ -104,6 +106,7 @@ namespace PowerMath.UI.MainMenu
         private void OnPlayerChanged(PlayerSnapshot player)
         {
             if (player == null) return;
+            _player = player;
             try
             {
                 RenderSummary(ProjectStats());
@@ -153,7 +156,7 @@ namespace PowerMath.UI.MainMenu
                     _view.Modal,
                     _view.OpenButton)) return;
             SetSemanticState();
-            _view.Status.text = string.Empty;
+            SetStatus(string.Empty);
             Render();
             _feedback.StartIdle();
         }
@@ -167,6 +170,7 @@ namespace PowerMath.UI.MainMenu
             else if (_panelHost.OpenPanel == MainMenuPanelId.None)
                 HideInitially();
             _pendingWeaponTransactionId = string.Empty;
+            _lastRenderedStarCount = -1;
         }
 
         private void OnPanelClosed(MainMenuPanelId panelId)
@@ -174,22 +178,26 @@ namespace PowerMath.UI.MainMenu
             if (panelId != MainMenuPanelId.PlayerHub) return;
             _feedback.StopIdle();
             _pendingWeaponTransactionId = string.Empty;
+            _lastRenderedStarCount = -1;
+            _view.Modal.style.display = DisplayStyle.None;
+            _view.Modal.style.visibility = Visibility.Hidden;
+            _view.Modal.EnableInClassList("is-hidden", true);
         }
 
         private void Render()
         {
-            _view.Status.text = string.Empty;
+            SetStatus(string.Empty);
             _view.Balance.text = (_player?.wallet?.powerCoins ?? 0).ToString("N0");
             try
             {
                 PlayerStatProjection stats = ProjectStats();
                 RenderStats(stats);
-                RenderWeapon(stats.Weapon);
+                RenderWeapon(stats);
                 RenderPets();
             }
             catch (Exception exception) when (IsProjectionFailure(exception))
             {
-                _view.Status.text = "Player data is unavailable: " + exception.Message;
+                SetStatus("Player data is unavailable: " + exception.Message);
                 _view.UpgradeButton.SetEnabled(false);
                 SetSemanticState("is-error");
             }
@@ -223,6 +231,13 @@ namespace PowerMath.UI.MainMenu
             _view.LegacyBonus.text =
                 $"REBIRTH +{stats.LegacyBasisPoints / 100d:0.0}%  -  +{stats.LegacyBonusAttack:N0} ATK";
             _view.PetStatus.text = string.Empty;
+
+            _view.CompactAttack.text = stats.EffectiveAttack.ToString("N0", CultureInfo.InvariantCulture);
+            _view.CompactCritRate.text = $"{stats.CriticalRate * 100d:0.##}%";
+            _view.CompactCritDamage.text = $"{stats.CriticalDamagePercent:0.##}%";
+            _view.CompactPetAttack.text = stats.PetStats.EffectivePetAttack.ToString("N0", CultureInfo.InvariantCulture);
+            _view.CompactLuck.text = $"{stats.PetStats.TotalEncounterLuckPercent:0.##}%";
+            _view.CompactCoinBonus.text = $"{stats.PetStats.TotalPowerCoinBonusPercent:0.##}%";
         }
 
         private void RenderSummary(PlayerStatProjection stats)
@@ -231,39 +246,138 @@ namespace PowerMath.UI.MainMenu
                 _view.SummaryAttack.text = stats.EffectiveAttack.ToString("N0");
         }
 
-        private void RenderWeapon(WeaponAscensionStats current)
+        private void RenderWeapon(PlayerStatProjection projection)
         {
+            WeaponAscensionStats current = projection.Weapon;
             WeaponAscensionCatalogDefinition.Tier tier =
                 _weaponCatalog?.Resolve(current.Level);
             string currentName = tier?.displayName ?? "Sword";
             _view.SetWeaponPresentation(tier);
-            _view.WeaponName.text = $"{currentName.ToUpperInvariant()}  LV.{current.Level}";
+            _view.WeaponName.text = currentName.ToUpperInvariant();
+            _view.WeaponName.tooltip = $"Global weapon level {current.Level}";
             _view.WeaponCurrent.text =
                 $"ATK {current.Attack:N0}\nCR +{current.CriticalRatePercent}%   CD +{current.CriticalDamagePercent}%";
+
+            int maxLevel = MaximumWeaponLevel;
+            int levelsPerTier = _weaponCatalog?.LevelsPerTier ??
+                WeaponAscensionPolicy.DefaultLevelsPerTier;
+            int currentSubLevel = _weaponCatalog != null
+                ? _weaponCatalog.GetSubLevelInTier(current.Level)
+                : GetFallbackSubLevel(current.Level, maxLevel, levelsPerTier);
+            string pips = BuildPips(currentSubLevel, levelsPerTier);
+            _view.WeaponSubLevel.text = pips;
+            _view.EquippedWeaponSubLevel.text = pips;
+
+            int starCount = ResolveStarCount(tier, current.Level);
+            string starText = ResolveStarString(starCount);
+            if (_view.StarLabel != null) _view.StarLabel.text = starText;
+            if (_view.EquippedStarLabel != null) _view.EquippedStarLabel.text = starText;
+
+            if (_lastRenderedStarCount > 0 && starCount > _lastRenderedStarCount)
+            {
+                _feedback.PlayStarIncrease();
+            }
+            _lastRenderedStarCount = starCount;
+
+            _view.CurrentAttack.text = current.Attack.ToString("N0", CultureInfo.InvariantCulture);
+            _view.CurrentCritRate.text = $"{current.CriticalRatePercent:0.##}%";
+            _view.CurrentCritDamage.text = $"{current.CriticalDamagePercent:0.##}%";
+
             long coins = _player.wallet?.powerCoins ?? 0;
             _view.Balance.text = coins.ToString("N0");
 
-            if (current.Level >= WeaponAscensionPolicy.MaximumLevel)
+            if (current.Level >= maxLevel)
             {
                 _view.WeaponNext.text = PowerMath.Localization.LocalizationService.Get("menu.maxPower");
                 _view.WeaponCost.text = PowerMath.Localization.LocalizationService.Get("menu.noAscension");
                 _view.UpgradeButton.text = PowerMath.Localization.LocalizationService.Get("menu.maxLevel");
+                _view.LevelTransition.text = "MAX";
+                _view.AscendSubtitle.text = "MAXIMUM FORM AWAKENED";
+                _view.NextAttack.text = "MAX";
+                _view.NextCritRate.text = "MAX";
+                _view.NextCritDamage.text = "MAX";
                 _view.UpgradeButton.SetEnabled(false);
+                UpdateStatRowVisibility(current.CriticalRatePercent > 0, current.CriticalDamagePercent > 0);
                 return;
             }
 
             WeaponAscensionStats next = WeaponAscensionPolicy.GetStats(
                 current.Level + 1,
-                _baseWeaponAttack);
-            long cost = WeaponAscensionPolicy.GetNextCost(current.Level);
+                _baseWeaponAttack,
+                maxLevel);
+            long cost = WeaponAscensionPolicy.GetNextCost(current.Level, maxLevel);
             WeaponAscensionCatalogDefinition.Tier nextTier =
                 _weaponCatalog?.Resolve(next.Level);
             string nextName = nextTier?.displayName ?? currentName;
             _view.WeaponNext.text =
                 $"{nextName.ToUpperInvariant()}  LV.{next.Level}\nATK {next.Attack:N0}   CR +{next.CriticalRatePercent}%   CD +{next.CriticalDamagePercent}%";
-            _view.WeaponCost.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, PowerMath.Localization.LocalizationService.Get("menu.powerCoinCost"), cost);
-            _view.UpgradeButton.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, PowerMath.Localization.LocalizationService.Get("menu.ascendCost"), cost);
+            _view.NextAttack.text = next.Attack.ToString("N0", CultureInfo.InvariantCulture);
+            _view.NextCritRate.text = $"{next.CriticalRatePercent:0.##}%";
+            _view.NextCritDamage.text = $"{next.CriticalDamagePercent:0.##}%";
+
+            bool awakensNextForm = _weaponCatalog != null
+                ? _weaponCatalog.IsMilestoneAwakening(next.Level)
+                : next.Level > 0 && next.Level % levelsPerTier == 0;
+            _view.LevelTransition.text = $"Lv.{current.Level} → Lv.{next.Level}";
+            _view.AscendSubtitle.text = awakensNextForm
+                ? $"AWAKEN {nextName.ToUpperInvariant()}"
+                : "POWER UP CURRENT FORM";
+            _view.WeaponCost.text = cost.ToString("N0", CultureInfo.InvariantCulture);
+            _view.UpgradeButton.text = "Upgrade";
             _view.UpgradeButton.SetEnabled(CanMutate(out _));
+
+            bool showCritRate = current.CriticalRatePercent > 0 || next.CriticalRatePercent > 0;
+            bool showCritDamage = current.CriticalDamagePercent > 0 || next.CriticalDamagePercent > 0;
+            UpdateStatRowVisibility(showCritRate, showCritDamage);
+        }
+
+        private void UpdateStatRowVisibility(bool showCritRate, bool showCritDamage)
+        {
+            if (_view.RowAttack != null)
+                _view.RowAttack.style.display = DisplayStyle.Flex;
+            if (_view.RowCritRate != null)
+                _view.RowCritRate.style.display = showCritRate ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_view.RowCritDamage != null)
+                _view.RowCritDamage.style.display = showCritDamage ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        public static int ResolveStarCount(WeaponAscensionCatalogDefinition.Tier tier, int level)
+        {
+            if (tier != null && !string.IsNullOrEmpty(tier.milestoneFeedbackKey))
+            {
+                string key = tier.milestoneFeedbackKey;
+                if (key.IndexOf("t1", StringComparison.OrdinalIgnoreCase) >= 0) return 5;
+                if (key.IndexOf("t2", StringComparison.OrdinalIgnoreCase) >= 0) return 3;
+                if (key.IndexOf("t3", StringComparison.OrdinalIgnoreCase) >= 0) return 1;
+            }
+            if (level >= 85) return 5;
+            if (level >= 45) return 3;
+            return 1;
+        }
+
+        public static string ResolveStarString(int starCount)
+        {
+            return new string('★', Mathf.Clamp(starCount, 1, 5));
+        }
+
+        private static int GetFallbackSubLevel(
+            int level,
+            int maximumLevel,
+            int levelsPerTier)
+        {
+            if (level <= 0) return 0;
+            if (maximumLevel > 0 && level >= maximumLevel) return levelsPerTier;
+            return level % levelsPerTier;
+        }
+
+        private static string BuildPips(int filled, int total)
+        {
+            int safeTotal = Math.Max(1, total);
+            int safeFilled = Math.Max(0, Math.Min(filled, safeTotal));
+            var pips = new string[safeTotal];
+            for (int index = 0; index < safeTotal; index++)
+                pips[index] = index < safeFilled ? "◆" : "◇";
+            return string.Join(" ", pips);
         }
 
         private void RenderPets()
@@ -326,6 +440,10 @@ namespace PowerMath.UI.MainMenu
             return true;
         }
 
+        private int MaximumWeaponLevel => _weaponCatalog != null && _weaponCatalog.MaximumLevel > 0
+            ? _weaponCatalog.MaximumLevel
+            : WeaponAscensionPolicy.DefaultMaximumLevel;
+
         private void Upgrade()
         {
             _feedback.PlayWeaponPress();
@@ -335,8 +453,9 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
             PlayerStatProjection current = ProjectStats();
-            if (current.Weapon.Level >= WeaponAscensionPolicy.MaximumLevel) return;
-            long cost = WeaponAscensionPolicy.GetNextCost(current.Weapon.Level);
+            int maxLevel = MaximumWeaponLevel;
+            if (current.Weapon.Level >= maxLevel) return;
+            long cost = WeaponAscensionPolicy.GetNextCost(current.Weapon.Level, maxLevel);
             long coins = _player.wallet?.powerCoins ?? 0;
             if (coins < cost)
             {
@@ -502,16 +621,25 @@ namespace PowerMath.UI.MainMenu
                 "RunDefeat",
                 StringComparison.Ordinal));
             _sharedOverlay?.SetBackEnabled(!busy);
-            if (!string.IsNullOrEmpty(message)) _view.Status.text = message;
+            if (!string.IsNullOrEmpty(message)) SetStatus(message);
         }
 
         private void Warn(string message)
         {
-            _view.Status.text = message ?? string.Empty;
+            SetStatus(message);
             SetSemanticState("is-error");
             _sharedOverlay?.Publish(
                 string.IsNullOrWhiteSpace(message) ? "Action unavailable." : message,
                 MainMenuNoticeKind.Warning);
+        }
+
+        private void SetStatus(string message)
+        {
+            string value = message ?? string.Empty;
+            _view.Status.text = value;
+            _view.Status.style.display = string.IsNullOrWhiteSpace(value)
+                ? DisplayStyle.None
+                : DisplayStyle.Flex;
         }
 
         private void HideInitially()

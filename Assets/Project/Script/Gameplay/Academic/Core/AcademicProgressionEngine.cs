@@ -37,7 +37,7 @@ namespace PowerMath.Gameplay.Academic
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             return new AcademicProgressionState(
                 snapshot.ActiveRank,
-                new AuditWindow(snapshot.AuditResolvedCount, snapshot.AuditScore),
+                new AuditWindow(snapshot.AuditResolvedCount, snapshot.AuditScore, snapshot.AuditCorrectCount),
                 snapshot.Balances,
                 new RankQuestionInventorySet(_catalog, snapshot)
             );
@@ -114,7 +114,7 @@ namespace PowerMath.Gameplay.Academic
                 );
             }
 
-            AuditRecordResult audit = next.Audit.Record(appliedScore);
+            AuditRecordResult audit = next.Audit.Record(correct, appliedScore);
             next.Audit = audit.NextWindow;
             RankTransition transition = new RankTransition(
                 next.ActiveRank,
@@ -125,7 +125,8 @@ namespace PowerMath.Gameplay.Academic
                 inventory.CompleteAudit();
                 transition = RankProgressionPolicy.Evaluate(
                     next.ActiveRank,
-                    audit.CompletedScore
+                    audit.CompletedScore,
+                    audit.CompletedCorrectCount
                 );
                 next.ActiveRank = transition.Current;
             }

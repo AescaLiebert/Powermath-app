@@ -20,7 +20,33 @@ namespace PowerMath.Gameplay.Progression
             [TextArea] public string childFriendlyDescription;
         }
 
+        public const int DefaultLevelsPerTier = 5;
+
+        [SerializeField, Min(1)] private int levelsPerTier = DefaultLevelsPerTier;
         [SerializeField] private Tier[] tiers = Array.Empty<Tier>();
+
+        public int LevelsPerTier => levelsPerTier > 0 ? levelsPerTier : DefaultLevelsPerTier;
+        public IReadOnlyList<Tier> Tiers => tiers ?? Array.Empty<Tier>();
+        public int MaximumLevel => (tiers != null && tiers.Length > 0) ? (tiers.Length * LevelsPerTier) : 0;
+
+        public int GetTierIndex(int level)
+        {
+            if (tiers == null || tiers.Length == 0) return 0;
+            return Mathf.Clamp(level / LevelsPerTier, 0, tiers.Length - 1);
+        }
+
+        public int GetSubLevelInTier(int level)
+        {
+            if (level <= 0) return 0;
+            int max = MaximumLevel;
+            if (max > 0 && level >= max) return LevelsPerTier;
+            return level % LevelsPerTier;
+        }
+
+        public bool IsMilestoneAwakening(int level)
+        {
+            return level > 0 && (level % LevelsPerTier == 0);
+        }
 
         public Tier Resolve(int level)
         {
@@ -43,11 +69,12 @@ namespace PowerMath.Gameplay.Progression
             }
             var ids = new HashSet<string>(StringComparer.Ordinal);
             int previousLevel = -1;
+            int maxLevel = MaximumLevel;
             foreach (Tier tier in tiers)
             {
                 if (tier == null || string.IsNullOrWhiteSpace(tier.tierId) ||
                     !ids.Add(tier.tierId) || tier.unlockLevel <= previousLevel ||
-                    tier.unlockLevel < 0 || tier.unlockLevel > WeaponAscensionPolicy.MaximumLevel ||
+                    tier.unlockLevel < 0 || (maxLevel > 0 && tier.unlockLevel > maxLevel) ||
                     string.IsNullOrWhiteSpace(tier.displayName) || tier.icon == null ||
                     string.IsNullOrWhiteSpace(tier.appearanceReference) ||
                     string.IsNullOrWhiteSpace(tier.milestoneFeedbackKey))

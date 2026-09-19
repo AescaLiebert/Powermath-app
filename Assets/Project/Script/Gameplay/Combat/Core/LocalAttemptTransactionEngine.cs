@@ -12,12 +12,15 @@ namespace PowerMath.Gameplay.Combat
         private readonly double _preparationSeconds;
         private readonly double _answerSeconds;
         private readonly EventQuestionCatalog _eventQuestions;
+        private readonly ChallengeQuestionSequence _challengeQuestions;
         private readonly string _runId;
 
         private AcademicProgressionState _academicState;
         private ActiveAttempt _activeAttempt;
         private string _lastAttemptId = string.Empty;
         private AttemptPresentationReceipt _pendingPresentation;
+        private long _powerCoins;
+        private string _recoveredChallengeAttemptId;
 
         public LocalAttemptTransactionEngine(
             ILocalEncounterEngine combat,
@@ -40,7 +43,10 @@ namespace PowerMath.Gameplay.Combat
             double answerSeconds,
             EventQuestionCatalog eventQuestions,
             string runId,
-            AttemptPresentationReceipt pendingPresentation = null)
+            AttemptPresentationReceipt pendingPresentation = null,
+            ChallengeQuestionSequenceSnapshot challengeQuestionSnapshot = default,
+            long powerCoins = 0,
+            string recoveredChallengeAttemptId = "")
         {
             _combat = combat ?? throw new ArgumentNullException(nameof(combat));
             _academic = academic ?? throw new ArgumentNullException(nameof(academic));
@@ -60,7 +66,13 @@ namespace PowerMath.Gameplay.Combat
             _preparationSeconds = preparationSeconds;
             _answerSeconds = answerSeconds;
             _eventQuestions = eventQuestions;
+            _challengeQuestions = eventQuestions == null
+                ? null
+                : new ChallengeQuestionSequence(eventQuestions, challengeQuestionSnapshot);
             _runId = string.IsNullOrWhiteSpace(runId) ? "local-run" : runId;
+            if (powerCoins < 0) throw new ArgumentOutOfRangeException(nameof(powerCoins));
+            _powerCoins = powerCoins;
+            _recoveredChallengeAttemptId = recoveredChallengeAttemptId ?? string.Empty;
             _pendingPresentation = pendingPresentation;
             if (_pendingPresentation != null &&
                 _combat.Snapshot.Phase != CombatPhase.PresentingResult &&
@@ -72,6 +84,12 @@ namespace PowerMath.Gameplay.Combat
 
         public GameplaySnapshot Snapshot => CreateSnapshot();
         public AttemptPresentationReceipt PendingPresentation => _pendingPresentation;
+
+        public void SynchronizePowerCoins(long powerCoins)
+        {
+            if (powerCoins < 0) throw new ArgumentOutOfRangeException(nameof(powerCoins));
+            _powerCoins = powerCoins;
+        }
 
         public AcademicPersistenceSnapshot ExportAcademicPersistence()
         {
@@ -93,7 +111,8 @@ namespace PowerMath.Gameplay.Combat
                 answerWindow,
                 resolution,
                 ResolveTransactionId(),
-                presentationId
+                presentationId,
+                _challengeQuestions?.Export() ?? default
             );
         }
 
@@ -124,6 +143,7 @@ namespace PowerMath.Gameplay.Combat
             }
 
             QuestionDefinition question;
+            string contentId;
             if (isEvent)
             {
                 if (_eventQuestions == null)
@@ -131,15 +151,25 @@ namespace PowerMath.Gameplay.Combat
                     _combat.VoidContentFailure();
                     throw new InvalidOperationException("Event question catalog is unavailable.");
                 }
-                question = _eventQuestions.Select(combatBefore.QuestionDocumentId,
-                    _runId, combatBefore.Stage, combatBefore.EventAttemptOrdinal);
-                _activeAttempt = ActiveAttempt.ForEvent(question, combatBefore.EnemyId,
-                    combatBefore.QuestionDocumentId);
+                ChallengeQuestionDefinition challenge = _challengeQuestions.Reserve(
+                    combatBefore.QuestionDocumentId, _academicState.ActiveRank);
+                question = new QuestionDefinition(
+                    challenge.SequenceId,
+                    challenge.Rank,
+                    challenge.VideoUri,
+                    challenge.CorrectAnswer,
+                    challenge.YouTubeVideoId);
+                contentId = challenge.Id.Value;
+                _activeAttempt = ActiveAttempt.ForEvent(question, challenge.Id,
+                    combatBefore.EnemyId, combatBefore.QuestionDocumentId,
+                    _recoveredChallengeAttemptId);
+                _recoveredChallengeAttemptId = string.Empty;
             }
             else
             {
                 _academicState = reservation.State;
                 question = reservation.Reservation.Question;
+                contentId = question.Id.ToString();
                 _activeAttempt = ActiveAttempt.ForAcademic(reservation.Reservation);
             }
             var descriptor = new QuestionPresentationDescriptor(
@@ -149,7 +179,8 @@ namespace PowerMath.Gameplay.Combat
                 $"Answer: {question.CorrectAnswer}",
                 question.YouTubeVideoId,
                 isEvent ? QuestionContentKind.EventQuestion : QuestionContentKind.RankQuestion,
-                isEvent ? combatBefore.QuestionDocumentId : string.Empty
+                isEvent ? combatBefore.QuestionDocumentId : string.Empty,
+                contentId
             );
             return new AttemptCommit(
                 descriptor,
@@ -227,6 +258,8 @@ namespace PowerMath.Gameplay.Combat
             if (_activeAttempt.IsAcademic)
                 _academicState = _academic.VoidReservation(
                     _academicState, _activeAttempt.Reservation);
+            else
+                _challengeQuestions.Void(_activeAttempt.ChallengeQuestionId);
             _combat.VoidContentFailure();
             _lastAttemptId = _activeAttempt.AttemptId;
             _activeAttempt = null;
@@ -275,8 +308,11 @@ namespace PowerMath.Gameplay.Combat
             }
             else
             {
+                _challengeQuestions.Resolve(active.ChallengeQuestionId);
+                int biomeIndex = Math.Min(7, Math.Max(1, (source.Stage.Value - 1) / 30 + 1));
                 eventResult = new EventAttemptResult(active.EventId,
-                    active.QuestionDocumentId, active.Question.Id, outcome, responseScore);
+                    active.QuestionDocumentId, active.ChallengeQuestionId, outcome, responseScore, biomeIndex);
+                _powerCoins = checked(_powerCoins + eventResult.PowerCoinsGranted);
             }
             _lastAttemptId = active.AttemptId;
             _activeAttempt = null;
@@ -286,6 +322,16 @@ namespace PowerMath.Gameplay.Combat
                 : new RankTransitionReceipt(
                     academicResult.RankTransition.Previous,
                     academicResult.RankTransition.Current);
+            PetFollowUpPresentationReceipt petFollowUp = combat.PetFollowUp == null
+                ? null
+                : new PetFollowUpPresentationReceipt(
+                    combat.PetFollowUp.Damage,
+                    combat.PetFollowUp.IsCritical,
+                    CombatPresentationSnapshot.From(combat.PetFollowUp.Target),
+                    combat.PetFollowUp.EnemyHpAfter,
+                    combat.PetFollowUp.EnemyDefeated,
+                    combat.PetFollowUp.StageAdvanced,
+                    combat.PetFollowUp.Carried);
             _pendingPresentation = new AttemptPresentationReceipt(
                 "attempt-presentation-" + active.AttemptId,
                 active.AttemptId,
@@ -305,7 +351,14 @@ namespace PowerMath.Gameplay.Combat
                 combat.PlayerDefeated,
                 combat.StageAdvanced,
                 combat.BiomeChanged,
-                rankTransition);
+                rankTransition,
+                AttemptPresentationReceipt.CurrentVersion,
+                combat.EnemyFled,
+                eventResult?.PowerCoinsGranted ?? 0,
+                _powerCoins,
+                combat.PlayerDamage,
+                combat.PlayerEnemyHpAfter,
+                petFollowUp);
             return active.IsAcademic
                 ? new AttemptResolution(academicResult, combat, snapshot,
                     responseDurationMilliseconds, _pendingPresentation)
@@ -317,7 +370,8 @@ namespace PowerMath.Gameplay.Combat
         {
             return new GameplaySnapshot(
                 _combat.Snapshot,
-                _academicState.ToProjection(true)
+                _academicState.ToProjection(true),
+                _powerCoins
             );
         }
 
@@ -342,26 +396,34 @@ namespace PowerMath.Gameplay.Combat
         {
             private ActiveAttempt(QuestionDefinition question,
                 QuestionReservation? reservation, string eventId,
-                string questionDocumentId)
+                string questionDocumentId,
+                ChallengeQuestionId? challengeQuestionId = null,
+                string attemptId = "")
             {
                 Question = question ?? throw new ArgumentNullException(nameof(question));
                 _reservation = reservation;
                 EventId = eventId ?? string.Empty;
                 QuestionDocumentId = questionDocumentId ?? string.Empty;
-                AttemptId = Guid.NewGuid().ToString("N");
+                ChallengeQuestionId = challengeQuestionId ?? default;
+                AttemptId = string.IsNullOrWhiteSpace(attemptId)
+                    ? Guid.NewGuid().ToString("N")
+                    : attemptId.Trim();
             }
 
             public static ActiveAttempt ForAcademic(QuestionReservation reservation) =>
                 new ActiveAttempt(reservation.Question, reservation, string.Empty, string.Empty);
             public static ActiveAttempt ForEvent(QuestionDefinition question,
-                string eventId, string documentId) =>
-                new ActiveAttempt(question, null, eventId, documentId);
+                ChallengeQuestionId challengeQuestionId, string eventId, string documentId,
+                string attemptId = "") =>
+                new ActiveAttempt(question, null, eventId, documentId,
+                    challengeQuestionId, attemptId);
 
             public QuestionDefinition Question { get; }
             public QuestionReservation Reservation => _reservation.Value;
             public bool IsAcademic => _reservation.HasValue;
             public string EventId { get; }
             public string QuestionDocumentId { get; }
+            public ChallengeQuestionId ChallengeQuestionId { get; }
             public string AttemptId { get; }
             private readonly QuestionReservation? _reservation;
             public bool WindowOpen { get; private set; }

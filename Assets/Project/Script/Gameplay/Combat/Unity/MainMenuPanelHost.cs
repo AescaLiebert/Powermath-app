@@ -69,11 +69,16 @@ namespace PowerMath.UI.MainMenu
                 return false;
             }
 
-            bool terminalPanel = panelId == MainMenuPanelId.Rebirth &&
-                _interactionGate != null &&
+            bool terminalAllowed = _interactionGate == null ||
                 _interactionGate.IsAllowed(InteractionScope.TerminalAction);
-            if (_interactionGate != null && !terminalPanel &&
-                !_interactionGate.IsAllowed(InteractionScope.Navigation))
+            bool navAllowed = _interactionGate == null ||
+                _interactionGate.IsAllowed(InteractionScope.Navigation);
+
+            bool allowed = panelId == MainMenuPanelId.Rebirth
+                ? (navAllowed || terminalAllowed)
+                : navAllowed;
+
+            if (!allowed)
             {
                 return false;
             }
@@ -117,6 +122,10 @@ namespace PowerMath.UI.MainMenu
                 panelRoot.Focus();
             }
             PanelOpened?.Invoke(panelId);
+            if (Application.isPlaying && !HasCustomOpenerSfx(opener))
+            {
+                PowerMath.Audio.SfxController.Instance?.PlayPanelOpen();
+            }
             return true;
         }
 
@@ -190,6 +199,10 @@ namespace PowerMath.UI.MainMenu
             ClearOpenPanel();
             focusTarget?.Focus();
             PanelClosed?.Invoke(panelId);
+            if (Application.isPlaying)
+            {
+                PowerMath.Audio.SfxController.Instance?.PlayPanelClose();
+            }
         }
 
         private void EnterAndFocusWhenIdle(
@@ -222,6 +235,30 @@ namespace PowerMath.UI.MainMenu
             _openPanelLifecycle = null;
             _opener = null;
             _closing = false;
+        }
+
+        private static bool HasCustomOpenerSfx(Focusable opener)
+        {
+            if (opener is VisualElement ve)
+            {
+                var lib = PowerMath.Audio.SfxController.Instance?.Library;
+                if (lib != null && lib.UiStyles != null)
+                {
+                    for (int i = 0; i < lib.UiStyles.Count; i++)
+                    {
+                        var style = lib.UiStyles[i];
+                        if (style != null && style.ClickSfx != null && style.ClickSfx.HasClip())
+                        {
+                            string cls = style.StyleClass?.Trim().TrimStart('.');
+                            if (!string.IsNullOrEmpty(cls) && ve.ClassListContains(cls))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
     }
 

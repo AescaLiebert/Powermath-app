@@ -14,7 +14,7 @@ namespace PowerMath.Session
             if (isNewPlayer) return 0;
             if (!FirestoreJsonNavigator.TryGetMapFields(value, out var game))
                 throw new FormatException("Player data is not a map. Recovery is required.");
-            foreach (string name in new[] { "profile", "wallet", "progression", "loadout", "activeRun", "academic", "economy", "analytics", "lastRunSettlement", "preferences", "onboarding", "tutorial" })
+            foreach (string name in new[] { "profile", "wallet", "progression", "loadout", "activeRun", "academic", "economy", "analytics", "lastRunSettlement", "preferences", "onboarding", "tutorial", "tutorialMap" })
                 if (game.TryGet(name, out var section) && !FirestoreJsonNavigator.TryGetMapFields(section, out _))
                     throw new FormatException("Invalid player section: " + name);
             if (!game.TryGet("schemaVersion", out var schema))

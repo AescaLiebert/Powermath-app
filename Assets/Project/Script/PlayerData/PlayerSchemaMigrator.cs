@@ -5,7 +5,7 @@ namespace PowerMath.PlayerData
 {
     public static class PlayerSchemaMigrator
     {
-        public const int CurrentSchemaVersion = 3;
+        public const int CurrentSchemaVersion = 6;
 
         public static PlayerSnapshot Migrate(PlayerSnapshot snapshot, int fromVersion, int targetVersion = CurrentSchemaVersion)
         {
@@ -15,6 +15,7 @@ namespace PowerMath.PlayerData
             if (fromVersion == targetVersion)
             {
                 EnsureBaselineDefaults(snapshot);
+                snapshot.schemaVersion = targetVersion;
                 return snapshot;
             }
 
@@ -41,6 +42,20 @@ namespace PowerMath.PlayerData
                     case 2:
                         EnsureLifecycleDefaults(current);
                         version = 3;
+                        break;
+                    case 3:
+                        EnsureBaselineDefaults(current);
+                        current.tutorialEntries ??= Array.Empty<PlayerSnapshot.TutorialEntryData>();
+                        version = 4;
+                        break;
+                    case 4:
+                        EnsureBaselineDefaults(current);
+                        current.tutorialEntries ??= Array.Empty<PlayerSnapshot.TutorialEntryData>();
+                        version = 5;
+                        break;
+                    case 5:
+                        current = MigrateV5ToV6(current);
+                        version = 6;
                         break;
                     default:
                         throw new NotSupportedException("Missing schema migration step.");
@@ -69,6 +84,20 @@ namespace PowerMath.PlayerData
             return s;
         }
 
+        private static PlayerSnapshot MigrateV5ToV6(PlayerSnapshot s)
+        {
+            EnsureBaselineDefaults(s);
+            if (s.activeRun != null &&
+                string.Equals(s.activeRun.encounterKind, "NormalMonster", StringComparison.Ordinal) &&
+                string.Equals(s.activeRun.phase, "Committed", StringComparison.Ordinal))
+            {
+                s.activeRun.enemyRemainingCooldown = Math.Min(
+                    s.activeRun.enemyMaximumCooldown,
+                    s.activeRun.enemyRemainingCooldown + 1);
+            }
+            return s;
+        }
+
         private static void EnsureLifecycleDefaults(PlayerSnapshot s)
         {
             s.preferences ??= new PlayerSnapshot.PreferencesData();
@@ -84,6 +113,7 @@ namespace PowerMath.PlayerData
         {
             if (s == null) return;
             EnsureLifecycleDefaults(s);
+            s.tutorialEntries ??= Array.Empty<PlayerSnapshot.TutorialEntryData>();
 
             if (s.profile == null)
             {
@@ -143,6 +173,14 @@ namespace PowerMath.PlayerData
             if (s.inventory == null)
             {
                 s.inventory = Array.Empty<PlayerSnapshot.InventoryItemData>();
+            }
+            else
+            {
+                for (int i = 0; i < s.inventory.Length; i++)
+                {
+                    if (s.inventory[i] != null && s.inventory[i].count <= 0)
+                        s.inventory[i].count = 1;
+                }
             }
 
             if (s.academic == null)

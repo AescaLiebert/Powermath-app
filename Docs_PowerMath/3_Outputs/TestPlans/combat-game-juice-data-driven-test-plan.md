@@ -48,6 +48,54 @@
 
 ### P1 — Presentation correctness
 
+**TEST: Player attack and enemy reaction are one synchronized action**
+
+**GIVEN:** A correct non-lethal result is ready for presentation.
+
+**WHEN:** the Player Attack reaches its impact marker.
+
+**THEN:** Enemy TakeDamage, enemy HP interpolation, FCT, and hit audio begin on that frame while Player Attack is still active; the sequence waits for both actors and does not replay damage authority.
+
+**TEST: Enemy attack and player reaction are one synchronized action**
+
+**GIVEN:** the accepted result includes an enemy attack.
+
+**WHEN:** Enemy Attack reaches its impact marker.
+
+**THEN:** Player TakeDamage, the authoritative heart display change, light combat-world impulse, and knockback begin on that frame while Enemy Attack is still active; both settle before the queue resets or death begins.
+
+**TEST: Reduced Motion preserves paired readability**
+
+**GIVEN:** Reduced Motion is enabled.
+
+**WHEN:** either paired impact resolves.
+
+**THEN:** reaction sprite/flash, HP or heart change, FCT, and audio remain synchronized while combat-world translation is absent.
+
+**TEST: Local hit stop does not freeze gameplay systems**
+
+**GIVEN:** normal, critical, player-damage, and Reduced Motion presentations.
+
+**WHEN:** each attack reaches contact.
+
+**THEN:** only attacker/reactor pose progress pauses for the configured hold; `Time.timeScale`, audio, persistence, and unrelated UI never pause or mutate.
+
+**TEST: Translation-only Player anticipation, knockback, and pose restoration**
+
+**GIVEN:** Player and Enemy actors begin from non-zero authored positions and scales.
+
+**WHEN:** attack and TakeDamage actions complete or are cancelled.
+
+**THEN:** attack first moves opposite its travel direction, the Player remains at its authored scale throughout attack and damage states, damage moves away from the attacker with no repeated shake, and every path restores the exact authored pose. Enemy actors may retain restrained scale deformation.
+
+**TEST: Impact burst and heart punch hierarchy**
+
+**GIVEN:** normal, critical, player-damage, shielded/no-heart-loss, and Reduced Motion outcomes.
+
+**WHEN:** contact resolves.
+
+**THEN:** one target-anchored burst plays with the correct hierarchy; only an actually lost heart punches; Reduced Motion uses opacity/static shape without positional movement.
+
 **TEST: Player-first sequence**  
 **GIVEN:** correct, incorrect, timeout, critical, lethal, Walk, and Attack outcomes.  
 **WHEN:** each accepted receipt is presented.  
@@ -63,13 +111,13 @@
 **TEST: Target-relative FCT**  
 **GIVEN:** enemy and player anchors at multiple Canvas scales/aspect ratios.  
 **WHEN:** damage is accepted.  
-**THEN:** pooled TMP text originates above the affected sprite, shows the exact accepted value, follows Pop/Hold/Slide-Fade, and simultaneous values separate deterministically.  
+**THEN:** pooled TMP text originates within its bounded random area around the affected sprite, shows the exact accepted value, follows a continuous kinematic jump after its brief contact hold, randomly rotates clockwise or counter-clockwise, and simultaneous values retain lane separation. Increasing `Burst Height` raises the apex, `Drop Distance` increases vertical reach, `Fall Horizontal Distance` widens the arc, and `Drop Seconds` lengthens the flight without introducing an apex pause.
 **PRIORITY:** P1
 
 **TEST: Critical feedback and Reduced Motion**  
 **GIVEN:** the same critical receipt with Reduced Motion off and on.  
 **WHEN:** the impact step runs.  
-**THEN:** critical text has a non-color label and distinct reaction; normal mode impulses only the combat world root; Reduced Motion removes the impulse and preserves readable timing/state completion.  
+**THEN:** critical text has a non-color label and distinct reaction; normal and critical hits impulse only the combat world root at their configured strengths; Reduced Motion removes the impulse and preserves readable timing/state completion.
 **PRIORITY:** P1
 
 **TEST: UI lifecycle cleanup**  

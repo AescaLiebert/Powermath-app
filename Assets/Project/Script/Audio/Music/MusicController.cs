@@ -225,9 +225,7 @@ namespace PowerMath.Audio
 
             bool isSameBiome = string.Equals(currentBattleBiomeId, biomeId, StringComparison.OrdinalIgnoreCase);
             bool isDifferentClip = (_battleSource.clip != battleClip);
-            // Sudden kick-in polish applies ONLY when coming from a boss defeat into a new biome with different music,
-            // or when explicitly requested with a different music track.
-            bool shouldSuddenKickIn = isDifferentClip && (suddenKickIn || (_wasBossDefeated && !isSameBiome));
+            bool shouldSuddenKickIn = isDifferentClip && suddenKickIn;
 
             currentBattleBiomeId = biomeId;
             _wasBossDefeated = false;
@@ -431,6 +429,13 @@ namespace PowerMath.Audio
             isEncounterOverrideActive = false;
             _activeEncounterMusic = null;
             _wasBossDefeated = true;
+
+            if (_battleChannel != null)
+            {
+                _battleChannel.FadeSpeed = 1f / duration;
+                _battleChannel.TargetBaseVolume = 0f;
+                _battleChannel.StopOnZero = false;
+            }
         }
 
         public void EnsurePlayback()
@@ -440,17 +445,29 @@ namespace PowerMath.Audio
                 AudioListener.pause = false;
             }
 
-            if (_themeChannel != null && _themeChannel.TargetBaseVolume > 0.0001f && _themeSource != null && !_themeSource.isPlaying && _themeSource.clip != null)
+            if (_themeChannel != null && _themeChannel.TargetBaseVolume > 0.0001f && _themeSource != null && _themeSource.clip != null)
             {
-                _themeSource.Play();
+                if (!_themeSource.isPlaying)
+                {
+                    _themeSource.UnPause();
+                    if (!_themeSource.isPlaying) _themeSource.Play();
+                }
             }
-            if (_battleChannel != null && _battleChannel.TargetBaseVolume > 0.0001f && _battleSource != null && !_battleSource.isPlaying && _battleSource.clip != null)
+            if (_battleChannel != null && _battleChannel.TargetBaseVolume > 0.0001f && _battleSource != null && _battleSource.clip != null)
             {
-                _battleSource.Play();
+                if (!_battleSource.isPlaying)
+                {
+                    _battleSource.UnPause();
+                    if (!_battleSource.isPlaying) _battleSource.Play();
+                }
             }
-            if (_bossChannel != null && _bossChannel.TargetBaseVolume > 0.0001f && _bossSource != null && !_bossSource.isPlaying && _bossSource.clip != null)
+            if (_bossChannel != null && _bossChannel.TargetBaseVolume > 0.0001f && _bossSource != null && _bossSource.clip != null)
             {
-                _bossSource.Play();
+                if (!_bossSource.isPlaying)
+                {
+                    _bossSource.UnPause();
+                    if (!_bossSource.isPlaying) _bossSource.Play();
+                }
             }
         }
 
@@ -537,8 +554,23 @@ namespace PowerMath.Audio
                 channel.Source.Play();
             }
 
-            // Smooth pitch calculation: slow down combat music when ducked
-            channel.Source.pitch = channel.IsCombat ? _currentDuckPitchMultiplier : 1f;
+            // Smooth pitch calculation: slow down combat music when ducked.
+            // On Unity WebGL, changing AudioSource.pitch on a looping track triggers an engine bug:
+            // jsAudioMixinSetPitch computes (currentTime - curPosition / newPitch) where estimatePlaybackPosition()
+            // evaluates (t % (loopEnd - loopStart)), producing NaN (0 % 0) and permanently muting the WebAudio channel.
+            // In WebGL, ducking operates purely on volume with pitch locked at 1.0f.
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (channel.Source.pitch != 1f)
+            {
+                channel.Source.pitch = 1f;
+            }
+#else
+            float targetPitch = channel.IsCombat ? _currentDuckPitchMultiplier : 1f;
+            if (Mathf.Abs(channel.Source.pitch - targetPitch) > 0.001f)
+            {
+                channel.Source.pitch = targetPitch;
+            }
+#endif
 
             if (isMuted)
             {

@@ -82,5 +82,16 @@ if (-not $version.clientVersion -or -not $version.minSupportedVersion -or
     throw "version.json does not contain a valid release policy."
 }
 
+$migratorPath = Join-Path $projectRoot "Assets\Project\Script\PlayerData\PlayerSchemaMigrator.cs"
+if (Test-Path -LiteralPath $migratorPath -PathType Leaf) {
+    $migratorContent = Get-Content -LiteralPath $migratorPath -Raw
+    if ($migratorContent -match 'CurrentSchemaVersion\s*=\s*(\d+);') {
+        $codeSchema = [int]$matches[1]
+        if ([int]$version.schemaVersion -ne $codeSchema) {
+            throw "version.json schemaVersion ($($version.schemaVersion)) does not match PlayerSchemaMigrator.CurrentSchemaVersion ($codeSchema)."
+        }
+    }
+}
+
 Write-Host "Cloudflare Pages package is ready: $resolvedOutput"
 Write-Host "Upload only this generated folder to Cloudflare Pages."

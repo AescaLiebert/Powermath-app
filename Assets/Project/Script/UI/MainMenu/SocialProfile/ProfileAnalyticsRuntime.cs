@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Globalization;
 using System.Text;
@@ -100,7 +100,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             }
 
             var builder = new FirestorePatchDocumentBuilder();
-            string[] data = { username, "gamedata" };
+            string[] data = { "gamedata" };
             builder.AddInteger(Join(data, "revision"), _player.revision + 1);
             builder.AddString(Join(data, "profile", "displayName"), displayName);
             builder.AddInteger(Join(data, "profile", "displayNameChangedAtUnixSeconds"), serverSeconds);
@@ -157,8 +157,9 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             string playerId = _player?.playerId ?? string.Empty;
             int separator = playerId.IndexOf(':');
             if (_settings == null || separator <= 0 || separator >= playerId.Length - 1) return false;
+            string levelId = playerId.Substring(0, separator);
             username = playerId.Substring(separator + 1);
-            return _settings.TryGetLevelDocumentById(playerId.Substring(0, separator), out url);
+            return _settings.TryGetPlayerDocument(levelId, username, out url);
         }
 
         private static bool TryReadServerTime(UnityWebRequest request, out long seconds)
@@ -255,14 +256,19 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 
         private void Open(ClickEvent _)
         {
+            TryOpenFromTutorial();
+        }
+
+        public bool TryOpenFromTutorial()
+        {
             if (_attemptPanel != null && _attemptPanel.resolvedStyle.display != DisplayStyle.None)
-                return;
+                return false;
             if (!_panelHost.TryOpen(
                     MainMenuPanelId.ProfileAnalytics,
-                    _modal,
-                    _open)) return;
+                    _modal, _open)) return false;
             Render();
             SetSemanticState();
+            return true;
         }
         private void Close()
         {
@@ -270,6 +276,19 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _panelHost.TryClose(MainMenuPanelId.ProfileAnalytics, _open);
             _save.SetEnabled(true);
             SetSemanticState();
+        }
+
+        public bool TryCloseFromTutorial()
+        {
+            if (_busy) return false;
+            bool closed = _panelHost.TryClose(
+                MainMenuPanelId.ProfileAnalytics, _open);
+            if (closed)
+            {
+                _save.SetEnabled(true);
+                SetSemanticState();
+            }
+            return closed;
         }
 
         private void Save()

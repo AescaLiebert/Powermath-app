@@ -96,7 +96,8 @@ namespace PowerMath.Gameplay.Combat
 
     public sealed class AttemptPresentationReceipt
     {
-        public const int CurrentVersion = 1;
+        public const int MinimumSupportedVersion = 1;
+        public const int CurrentVersion = 3;
 
         public AttemptPresentationReceipt(
             string presentationId,
@@ -114,7 +115,13 @@ namespace PowerMath.Gameplay.Combat
             bool stageAdvanced,
             bool biomeChanged,
             RankTransitionReceipt rankTransition,
-            int version = CurrentVersion)
+            int version = CurrentVersion,
+            bool enemyFled = false,
+            int powerCoinsGranted = 0,
+            long resultingPowerCoins = 0,
+            int playerDamage = -1,
+            int playerEnemyHpAfter = -1,
+            PetFollowUpPresentationReceipt petFollowUp = null)
         {
             PresentationId = presentationId ?? string.Empty;
             AttemptId = attemptId ?? string.Empty;
@@ -132,6 +139,14 @@ namespace PowerMath.Gameplay.Combat
             StageAdvanced = stageAdvanced;
             BiomeChanged = biomeChanged;
             RankTransition = rankTransition;
+            EnemyFled = enemyFled;
+            PowerCoinsGranted = powerCoinsGranted;
+            ResultingPowerCoins = resultingPowerCoins;
+            PlayerDamage = playerDamage < 0 ? finalDamage : playerDamage;
+            PlayerEnemyHpAfter = playerEnemyHpAfter < 0
+                ? resolvedEnemyHpAfter
+                : playerEnemyHpAfter;
+            PetFollowUp = petFollowUp;
 
             if (!TryValidate(out string error))
                 throw new ArgumentException(error, nameof(presentationId));
@@ -153,16 +168,24 @@ namespace PowerMath.Gameplay.Combat
         public bool StageAdvanced { get; }
         public bool BiomeChanged { get; }
         public RankTransitionReceipt RankTransition { get; }
+        public bool EnemyFled { get; }
+        public int PowerCoinsGranted { get; }
+        public long ResultingPowerCoins { get; }
+        public int PlayerDamage { get; }
+        public int PlayerEnemyHpAfter { get; }
+        public PetFollowUpPresentationReceipt PetFollowUp { get; }
+        public bool HasPetFollowUp => PetFollowUp != null;
 
         public bool TryValidate(out string error)
         {
-            if (Version != CurrentVersion)
+            if (Version < MinimumSupportedVersion || Version > CurrentVersion)
                 return Fail("Unsupported attempt presentation receipt version.", out error);
             if (string.IsNullOrWhiteSpace(PresentationId) || string.IsNullOrWhiteSpace(AttemptId))
                 return Fail("Presentation and attempt IDs are required.", out error);
             if (Source == null || Destination == null)
                 return Fail("Source and destination snapshots are required.", out error);
-            if (ResponseScore < 0 || ResponseScore > 10 || FinalDamage < 0)
+            if (ResponseScore < 0 || ResponseScore > 10 || FinalDamage < 0 ||
+                PlayerDamage < 0 || PowerCoinsGranted < 0 || ResultingPowerCoins < 0)
                 return Fail("Attempt values are outside their accepted ranges.", out error);
             if (Outcome != AttemptOutcomeKind.Correct && FinalDamage != 0)
                 return Fail("Failed attempts cannot carry damage.", out error);
@@ -175,21 +198,99 @@ namespace PowerMath.Gameplay.Combat
                 return Fail("Resolved enemy HP does not agree with accepted damage.", out error);
             if (EnemyDefeated != (ResolvedEnemyHpAfter == 0))
                 return Fail("Enemy defeat does not agree with resolved enemy HP.", out error);
+            if (Version >= 3)
+            {
+                int expectedPlayerHp = Math.Max(
+                    0,
+                    Source.EnemyCurrentHp - PlayerDamage);
+                if (PlayerEnemyHpAfter != expectedPlayerHp)
+                    return Fail("Player damage does not agree with its resolved HP.", out error);
+                if (PetFollowUp == null && PlayerDamage != FinalDamage)
+                    return Fail("Damage differs without a pet follow-up.", out error);
+                if (PetFollowUp != null && !PetFollowUp.TryValidate(out error))
+                    return false;
+            }
             if (EnemyDefeated && EnemyAttacked)
                 return Fail("A defeated enemy cannot also attack.", out error);
+            if (EnemyFled && (Source.EncounterKind != StageEncounterKind.ChallengeEvent ||
+                EnemyDefeated || EnemyAttacked || !StageAdvanced))
+                return Fail("Flee requires a non-attacking Challenge Event that advances the Stage.", out error);
+            if (Source.EncounterKind == StageEncounterKind.ChallengeEvent &&
+                (PowerCoinsGranted < ChallengeRewardPolicy.MinimumPowerCoins ||
+                 PowerCoinsGranted > ChallengeRewardPolicy.MaximumPowerCoins ||
+                 ResultingPowerCoins < PowerCoinsGranted))
+                return Fail("Challenge Event reward is outside its accepted range.", out error);
+            if (Source.EncounterKind != StageEncounterKind.ChallengeEvent &&
+                (EnemyFled || PowerCoinsGranted != 0))
+                return Fail("Only Challenge Events can flee or grant Challenge rewards.", out error);
             if (PlayerDefeated && (Destination.PlayerCurrentHearts != 0 ||
                 Destination.Phase != CombatPhase.RunDefeat))
                 return Fail("Player defeat requires zero hearts and RunDefeat.", out error);
             int heartDelta = Source.PlayerCurrentHearts - Destination.PlayerCurrentHearts;
             if (EnemyAttacked && heartDelta != 1 && heartDelta != 0)
                 return Fail("Enemy attack must agree with the accepted heart delta.", out error);
-            if (!EnemyAttacked && Source.PlayerCurrentHearts != Destination.PlayerCurrentHearts)
-                return Fail("Hearts changed without an accepted enemy attack.", out error);
+            if (!EnemyAttacked &&
+                Source.PlayerCurrentHearts != Destination.PlayerCurrentHearts)
+            {
+                bool passiveRestore = Destination.PlayerCurrentHearts >
+                        Source.PlayerCurrentHearts &&
+                    (EnemyDefeated || PetFollowUp?.EnemyDefeated == true);
+                if (!passiveRestore)
+                    return Fail("Hearts changed without an accepted enemy attack or pet restore.", out error);
+            }
             if (Destination.Phase != CombatPhase.PresentingResult &&
                 Destination.Phase != CombatPhase.RunDefeat &&
                 Destination.Phase != CombatPhase.RunComplete)
                 return Fail("A pending receipt requires a presentation or terminal phase.", out error);
 
+            error = string.Empty;
+            return true;
+        }
+
+        private static bool Fail(string message, out string error)
+        {
+            error = message;
+            return false;
+        }
+    }
+
+    public sealed class PetFollowUpPresentationReceipt
+    {
+        public PetFollowUpPresentationReceipt(
+            int damage,
+            bool isCritical,
+            CombatPresentationSnapshot target,
+            int enemyHpAfter,
+            bool enemyDefeated,
+            bool stageAdvanced,
+            bool carried)
+        {
+            Damage = damage;
+            IsCritical = isCritical;
+            Target = target;
+            EnemyHpAfter = enemyHpAfter;
+            EnemyDefeated = enemyDefeated;
+            StageAdvanced = stageAdvanced;
+            Carried = carried;
+            if (!TryValidate(out string error))
+                throw new ArgumentException(error, nameof(damage));
+        }
+
+        public int Damage { get; }
+        public bool IsCritical { get; }
+        public CombatPresentationSnapshot Target { get; }
+        public int EnemyHpAfter { get; }
+        public bool EnemyDefeated { get; }
+        public bool StageAdvanced { get; }
+        public bool Carried { get; }
+
+        public bool TryValidate(out string error)
+        {
+            if (Damage <= 0 || Target == null)
+                return Fail("Pet follow-up damage and target are required.", out error);
+            int expected = Math.Max(0, Target.EnemyCurrentHp - Damage);
+            if (EnemyHpAfter != expected || EnemyDefeated != (EnemyHpAfter == 0))
+                return Fail("Pet follow-up HP does not agree with its damage.", out error);
             error = string.Empty;
             return true;
         }

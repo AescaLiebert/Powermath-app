@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using PowerMath.Gameplay.Tutorial;
 using PowerMath.PlayerData;
 
 namespace PowerMath.Session
@@ -16,6 +18,17 @@ namespace PowerMath.Session
         public long expectedRevision;
         public string value;
         public string displayName;
+        public int tutorialVersion;
+        public string tutorialStatus;
+        public string tutorialStepId;
+        public long tutorialTriggerRecordedAtUnixSeconds;
+        public long tutorialCompletedAtUnixSeconds;
+        public bool tutorialRewardClaimed;
+        public string tutorialLastTransactionId;
+        public bool tutorialLegacyPlayer;
+        public string tutorialGuidedEncounterId;
+        public string tutorialFirstAttemptOutcome;
+        public string tutorialVariant;
     }
 
     public interface IPlayerLifecycleCommands
@@ -49,9 +62,9 @@ namespace PowerMath.Session
             var builder = new FirestorePatchDocumentBuilder();
             string[] Path(params string[] parts)
             {
-                var result = new string[parts.Length + 2];
-                result[0] = username; result[1] = "gamedata";
-                Array.Copy(parts, 0, result, 2, parts.Length);
+                var result = new string[parts.Length + 1];
+                result[0] = "gamedata";
+                Array.Copy(parts, 0, result, 1, parts.Length);
                 return result;
             }
             var onboarding = player.onboarding ?? throw new FormatException("Missing onboarding state.");
@@ -64,7 +77,8 @@ namespace PowerMath.Session
                     onboarding.completionOperationId == command.operationId &&
                     player.profile.characterId == command.value &&
                     player.profile.displayName == command.displayName,
-                PlayerLifecycleCommandKind.AdvanceTutorial => player.tutorial?.checkpointId == command.value,
+                PlayerLifecycleCommandKind.AdvanceTutorial =>
+                    TutorialProgressPolicy.IsAlreadyApplied(player, command),
                 _ => false
             };
             if (alreadyApplied) return builder.Build();
@@ -96,12 +110,139 @@ namespace PowerMath.Session
                     builder.AddString(Path("onboarding", "completionOperationId"), command.operationId);
                     break;
                 case PlayerLifecycleCommandKind.AdvanceTutorial:
-                    // Authored steps must be supplied by a catalog before this command is enabled.
-                    throw new NotSupportedException("Tutorial steps have not been configured.");
+                    TutorialProgressPolicy.AddPatch(builder, root: new[] { "gamedata" }, player, command);
+                    break;
                 default: throw new ArgumentException("Unsupported operation.");
             }
             builder.AddInteger(Path("revision"), checked(player.revision + 1));
             return builder.Build();
+        }
+    }
+
+    public static class TutorialProgressPolicy
+    {
+        public static bool IsAlreadyApplied(
+            PlayerSnapshot player,
+            PlayerLifecycleCommand command)
+        {
+            PlayerSnapshot.TutorialEntryData entry = Find(player, command?.value);
+            return entry != null && command != null &&
+                string.Equals(entry.lastOperationId, command.operationId,
+                    StringComparison.Ordinal);
+        }
+
+        public static void AddPatch(
+            FirestorePatchDocumentBuilder builder,
+            IReadOnlyList<string> root,
+            PlayerSnapshot player,
+            PlayerLifecycleCommand command)
+        {
+            if (builder == null || root == null || player == null || command == null)
+                throw new ArgumentNullException();
+            if (!IsStableId(command.value) || command.tutorialVersion <= 0 ||
+                !Enum.TryParse(command.tutorialStatus, false, out TutorialStatus status) ||
+                !Enum.TryParse(command.tutorialFirstAttemptOutcome, false,
+                    out TutorialAttemptOutcome _))
+                throw new ArgumentException("Invalid tutorial transition.");
+            if (status != TutorialStatus.Completed &&
+                status != TutorialStatus.Queued &&
+                string.IsNullOrWhiteSpace(command.tutorialStepId))
+                throw new ArgumentException("Active tutorial transition requires a step ID.");
+            if (!string.IsNullOrWhiteSpace(command.tutorialStepId) &&
+                !IsStableId(command.tutorialStepId))
+                throw new ArgumentException("Invalid tutorial step ID.");
+
+            PlayerSnapshot.TutorialEntryData current = Find(player, command.value);
+            if (current != null &&
+                string.Equals(current.status, TutorialStatus.Completed.ToString(),
+                    StringComparison.Ordinal) && status != TutorialStatus.Completed)
+                throw new InvalidOperationException("Completed tutorials cannot be reopened.");
+            if (current != null && current.version > command.tutorialVersion)
+                throw new NotSupportedException("This tutorial save requires newer content.");
+
+            string[] EntryPath(params string[] fields)
+            {
+                var result = new string[root.Count + fields.Length + 2];
+                for (int index = 0; index < root.Count; index++) result[index] = root[index];
+                result[root.Count] = "tutorialMap";
+                result[root.Count + 1] = command.value;
+                Array.Copy(fields, 0, result, root.Count + 2, fields.Length);
+                return result;
+            }
+
+            builder.AddInteger(EntryPath("version"), command.tutorialVersion);
+            builder.AddString(EntryPath("status"), status.ToString());
+            builder.AddString(EntryPath("currentStepId"), command.tutorialStepId);
+            builder.AddInteger(EntryPath("triggerRecordedAt"),
+                Math.Max(0, command.tutorialTriggerRecordedAtUnixSeconds));
+            builder.AddInteger(EntryPath("completedAt"),
+                Math.Max(0, command.tutorialCompletedAtUnixSeconds));
+            builder.AddBoolean(EntryPath("rewardClaimed"), command.tutorialRewardClaimed);
+            builder.AddString(EntryPath("lastTransactionId"),
+                command.tutorialLastTransactionId);
+            builder.AddString(EntryPath("lastOperationId"), command.operationId);
+            builder.AddBoolean(EntryPath("legacyPlayer"), command.tutorialLegacyPlayer);
+            builder.AddString(EntryPath("guidedEncounterId"),
+                command.tutorialGuidedEncounterId);
+            builder.AddString(EntryPath("firstAttemptOutcome"),
+                command.tutorialFirstAttemptOutcome);
+            builder.AddString(EntryPath("variant"), command.tutorialVariant);
+        }
+
+        public static void ApplyToSnapshot(
+            PlayerSnapshot player,
+            PlayerLifecycleCommand command)
+        {
+            PlayerSnapshot.TutorialEntryData value = Find(player, command.value);
+            if (value == null)
+            {
+                int length = player.tutorialEntries?.Length ?? 0;
+                var entries = new PlayerSnapshot.TutorialEntryData[length + 1];
+                if (length > 0) Array.Copy(player.tutorialEntries, entries, length);
+                value = new PlayerSnapshot.TutorialEntryData { tutorialId = command.value };
+                entries[length] = value;
+                player.tutorialEntries = entries;
+            }
+            value.version = command.tutorialVersion;
+            value.status = command.tutorialStatus;
+            value.currentStepId = command.tutorialStepId;
+            value.triggerRecordedAtUnixSeconds = command.tutorialTriggerRecordedAtUnixSeconds;
+            value.completedAtUnixSeconds = command.tutorialCompletedAtUnixSeconds;
+            value.rewardClaimed = command.tutorialRewardClaimed;
+            value.lastTransactionId = command.tutorialLastTransactionId;
+            value.lastOperationId = command.operationId;
+            value.legacyPlayer = command.tutorialLegacyPlayer;
+            value.guidedEncounterId = command.tutorialGuidedEncounterId;
+            value.firstAttemptOutcome = command.tutorialFirstAttemptOutcome;
+            value.variant = command.tutorialVariant;
+        }
+
+        public static PlayerSnapshot.TutorialEntryData Find(
+            PlayerSnapshot player,
+            string tutorialId)
+        {
+            if (player?.tutorialEntries == null || string.IsNullOrWhiteSpace(tutorialId))
+                return null;
+            for (int index = 0; index < player.tutorialEntries.Length; index++)
+            {
+                PlayerSnapshot.TutorialEntryData entry = player.tutorialEntries[index];
+                if (entry != null && string.Equals(entry.tutorialId, tutorialId,
+                    StringComparison.Ordinal))
+                    return entry;
+            }
+            return null;
+        }
+
+        private static bool IsStableId(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 80) return false;
+            for (int index = 0; index < value.Length; index++)
+            {
+                char character = value[index];
+                if (!char.IsLetterOrDigit(character) && character != '-' &&
+                    character != '_' && character != '.') return false;
+            }
+            return true;
         }
     }
 

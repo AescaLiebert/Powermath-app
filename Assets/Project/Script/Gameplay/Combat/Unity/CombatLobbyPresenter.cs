@@ -6,6 +6,41 @@ using PowerMath.UI.MainMenu;
 
 namespace PowerMath.Gameplay.Combat.Unity
 {
+    public readonly struct CombatTutorialResult
+    {
+        public CombatTutorialResult(
+            string transactionId,
+            string sourceEncounterId,
+            CombatSnapshot destination,
+            AttemptOutcomeKind outcome,
+            RankTransitionReceipt rankTransition,
+            int finalDamage,
+            bool enemyDefeated,
+            bool enemyFled,
+            bool enemyActionConsumed)
+        {
+            TransactionId = transactionId ?? string.Empty;
+            SourceEncounterId = sourceEncounterId ?? string.Empty;
+            Destination = destination;
+            Outcome = outcome;
+            RankTransition = rankTransition;
+            FinalDamage = finalDamage;
+            EnemyDefeated = enemyDefeated;
+            EnemyFled = enemyFled;
+            EnemyActionConsumed = enemyActionConsumed;
+        }
+
+        public string TransactionId { get; }
+        public string SourceEncounterId { get; }
+        public CombatSnapshot Destination { get; }
+        public AttemptOutcomeKind Outcome { get; }
+        public RankTransitionReceipt RankTransition { get; }
+        public int FinalDamage { get; }
+        public bool EnemyDefeated { get; }
+        public bool EnemyFled { get; }
+        public bool EnemyActionConsumed { get; }
+    }
+
     public interface ICombatCoroutineRunner
     {
         void RunCombatRoutine(IEnumerator routine);
@@ -33,6 +68,17 @@ namespace PowerMath.Gameplay.Combat.Unity
         private bool _musicDucked;
 
         public event Action<CombatPhase> TerminalPresentationCompleted;
+        public event Action<string, CombatSnapshot> TutorialAttemptCommitted;
+        public event Action<CombatTutorialResult> TutorialAttemptPresentationCompleted;
+        public event Action<CombatSnapshot> TutorialLobbyStable;
+        public Func<string, CombatSnapshot, IEnumerator> TutorialCommitCheckpoint { get; set; }
+        public Func<CombatTutorialResult, IEnumerator> TutorialResultCheckpoint { get; set; }
+
+        public CombatSnapshot CurrentCombatSnapshot => _coordinator.Snapshot.Combat;
+        public bool IsStableForTutorial => _bound && !_saveInFlight &&
+            !_presentationInFlight && _feedback.AreActorsStable &&
+            _view.IsEnemyActionQueueStable && _view.IsBlockingUiStable &&
+            CurrentCombatSnapshot.Phase == CombatPhase.EnemyReady;
 
         public CombatLobbyPresenter(
             CombatLobbyView view,
@@ -130,18 +176,43 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void OnAttack()
         {
-            if (_saveInFlight || (_interactionGate != null &&
-                !_interactionGate.IsAllowed(InteractionScope.Lobby))) return;
+            TryBeginAttack(false);
+        }
+
+        public bool RequestTutorialAttack()
+        {
+            return TryBeginAttack(true);
+        }
+
+        private bool TryBeginAttack(bool tutorialAuthorized)
+        {
+            if (_saveInFlight)
+            {
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Combat",
+                    "[CombatLobbyPresenter] TryBeginAttack rejected: _saveInFlight is true.");
+                return false;
+            }
+            if (!tutorialAuthorized && _interactionGate != null && !_interactionGate.IsAllowed(InteractionScope.Lobby))
+            {
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Combat",
+                    $"[CombatLobbyPresenter] TryBeginAttack rejected: interaction gate blocked for Lobby. BlockedScopes={_interactionGate.Snapshot.BlockedScopes}, LockCount={_interactionGate.Snapshot.LockCount}");
+                return false;
+            }
             if (!_coordinator.TryBeginAttempt(out AttemptCommit commit))
             {
-                return;
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Combat",
+                    $"[CombatLobbyPresenter] TryBeginAttempt rejected: coordinator phase is {_coordinator.Phase}.");
+                return false;
             }
 
             _audio.PlayCommit();
             _attemptLock = _interactionGate?.Acquire(
                 "combat-attempt:" + commit.PresentationId,
                 InteractionScope.Lobby | InteractionScope.Navigation |
-                InteractionScope.ModalDismiss);
+                InteractionScope.ModalDismiss | InteractionScope.TerminalAction);
             _view.ArmEnemyAction(commit.PresentationId);
             _activeQuestion = commit.Question;
             _view.SetAttackEnabled(false);
@@ -156,12 +227,32 @@ namespace PowerMath.Gameplay.Combat.Unity
                     commit.Question),
                 () =>
                 {
-                    _view.SetResult("PREPARING QUESTION...", true);
-                    SetMusicDucked(true);
-                    _questionPresentation.Begin(
-                        commit.Question,
-                        OnQuestionPresentationCompleted);
+                    TutorialAttemptCommitted?.Invoke(
+                        commit.PresentationId,
+                        commit.Snapshot.Combat);
+                    _runner.RunCombatRoutine(BeginQuestionRoutine(commit));
                 });
+            return true;
+        }
+
+        private IEnumerator BeginQuestionRoutine(AttemptCommit commit)
+        {
+            if (TutorialCommitCheckpoint != null)
+                yield return TutorialCommitCheckpoint(
+                    commit.PresentationId,
+                    commit.Snapshot.Combat);
+            if (!_bound || _coordinator.Phase != CombatPhase.Committed)
+            {
+                _attemptLock?.Dispose();
+                _attemptLock = null;
+                _view.SetAttackEnabled(true);
+                yield break;
+            }
+            _view.SetResult("PREPARING QUESTION...", true);
+            SetMusicDucked(true);
+            _questionPresentation.Begin(
+                commit.Question,
+                OnQuestionPresentationCompleted);
         }
 
         private void OnQuestionPresentationCompleted(
@@ -169,6 +260,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             if (!_bound || _coordinator.Phase != CombatPhase.Committed)
             {
+                _attemptLock?.Dispose();
+                _attemptLock = null;
+                _view.SetAttackEnabled(true);
                 return;
             }
 
@@ -197,6 +291,9 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (!_coordinator.BeginAnswerWindow(out AnswerWindowReceipt window))
             {
+                _attemptLock?.Dispose();
+                _attemptLock = null;
+                _view.SetAttackEnabled(true);
                 return;
             }
 
@@ -321,6 +418,11 @@ namespace PowerMath.Gameplay.Combat.Unity
                    !_view.IsEnemyActionQueueStable ||
                    !_view.IsBlockingUiStable)
                 yield return null;
+            CombatTutorialResult tutorialResult = CreateTutorialResult(
+                resolution.Presentation,
+                resolution.Snapshot.Combat);
+            if (TutorialResultCheckpoint != null)
+                yield return TutorialResultCheckpoint(tutorialResult);
             GameplaySnapshot snapshot = _coordinator.CompletePresentation();
             bool saved = false;
             Save(
@@ -335,6 +437,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _activeQuestion = null;
             _view.Render(snapshot.Combat);
             _academic.Render(snapshot.Academic);
+            PublishTutorialResult(resolution.Presentation, snapshot.Combat);
 
             bool terminal = snapshot.Combat.Phase == CombatPhase.RunDefeat ||
                 snapshot.Combat.Phase == CombatPhase.RunComplete;
@@ -359,6 +462,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                 while (!_view.IsEnemyActionQueueStable) yield return null;
                 _resolutionLock?.Dispose();
                 _resolutionLock = null;
+                PublishTutorialLobbyStable();
             }
         }
 
@@ -369,6 +473,11 @@ namespace PowerMath.Gameplay.Combat.Unity
                    !_view.IsEnemyActionQueueStable ||
                    !_view.IsBlockingUiStable)
                 yield return null;
+            CombatTutorialResult tutorialResult = CreateTutorialResult(
+                receipt,
+                ToCombatSnapshot(receipt.Destination));
+            if (TutorialResultCheckpoint != null)
+                yield return TutorialResultCheckpoint(tutorialResult);
             GameplaySnapshot snapshot = _coordinator.CompletePresentation();
             bool saved = false;
             Save(
@@ -382,6 +491,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _presentationInFlight = false;
             _view.Render(snapshot.Combat);
             _academic.Render(snapshot.Academic);
+            PublishTutorialResult(receipt, snapshot.Combat);
             bool terminal = snapshot.Combat.Phase == CombatPhase.RunDefeat ||
                 snapshot.Combat.Phase == CombatPhase.RunComplete;
             if (terminal)
@@ -395,7 +505,66 @@ namespace PowerMath.Gameplay.Combat.Unity
                 while (!_view.IsEnemyActionQueueStable) yield return null;
                 _resolutionLock?.Dispose();
                 _resolutionLock = null;
+                PublishTutorialLobbyStable();
             }
+        }
+
+        public void PublishTutorialLobbyStable()
+        {
+            if (IsStableForTutorial)
+                TutorialLobbyStable?.Invoke(CurrentCombatSnapshot);
+        }
+
+        private void PublishTutorialResult(
+            AttemptPresentationReceipt receipt,
+            CombatSnapshot destination)
+        {
+            if (receipt == null || destination == null) return;
+            TutorialAttemptPresentationCompleted?.Invoke(
+                CreateTutorialResult(receipt, destination));
+        }
+
+        private static CombatTutorialResult CreateTutorialResult(
+            AttemptPresentationReceipt receipt,
+            CombatSnapshot destination)
+        {
+            return receipt == null
+                ? default
+                : new CombatTutorialResult(
+                    receipt.PresentationId,
+                    receipt.Source.EncounterId,
+                    destination,
+                    receipt.Outcome,
+                    receipt.RankTransition,
+                    receipt.FinalDamage,
+                    receipt.EnemyDefeated,
+                    receipt.EnemyFled,
+                    !receipt.EnemyDefeated &&
+                    !receipt.EnemyFled &&
+                    receipt.Source.EncounterKind != StageEncounterKind.ChallengeEvent);
+        }
+
+        private static CombatSnapshot ToCombatSnapshot(
+            CombatPresentationSnapshot value)
+        {
+            if (value == null) return null;
+            return new CombatSnapshot(
+                value.Stage,
+                value.EncounterId,
+                value.EncounterId,
+                value.EnemyCurrentHp,
+                value.EnemyMaximumHp,
+                value.EnemyRemainingCooldown,
+                value.EnemyMaximumCooldown,
+                value.PlayerCurrentHearts,
+                value.PlayerMaximumHearts,
+                value.Phase,
+                false,
+                value.BiomeId,
+                string.Empty,
+                value.EncounterKind,
+                string.Empty,
+                0);
         }
 
         private void Save(GameplaySaveRequest request, Action completed)
@@ -413,8 +582,14 @@ namespace PowerMath.Gameplay.Combat.Unity
                 message =>
                 {
                     _saveInFlight = false;
+                    _attemptLock?.Dispose();
+                    _attemptLock = null;
                     if (_bound)
                     {
+                        PowerMath.Diagnostics.AppLog.Warning(
+                            "Combat",
+                            $"[CombatLobbyPresenter] Save failed for {request.SavePoint}: {message}");
+                        _view.SetAttackEnabled(true);
                         _view.SetAnswerInputEnabled(false);
                         _view.SetUnavailable(string.IsNullOrWhiteSpace(message)
                             ? "Progress could not be saved. Reconnect and restart PowerMath."

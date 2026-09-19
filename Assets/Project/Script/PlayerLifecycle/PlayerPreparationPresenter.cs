@@ -281,7 +281,7 @@ namespace PowerMath.PlayerLifecycle
             _view.SetInteractive(!_busy && _pending == null);
             PowerMath.Audio.MusicController.Instance.PlayLoginMusic();
 
-            if (_catalog?.selectionVideo != null &&
+            if ((_catalog?.selectionVideo != null || _catalog?.HasHostedSelectionVideo == true) &&
                 PrepareVideo(VideoPurpose.Selection, true))
             {
                 _video.Prepare();
@@ -825,7 +825,10 @@ namespace PowerMath.PlayerLifecycle
                 else if (_catalog != null && _catalog.HasHostedSelectionVideo)
                 {
                     _video.source = VideoSource.Url;
-                    _video.url = _catalog.selectionVideoUrl;
+                    StreamingVideoPath.TryResolve(
+                        _catalog.selectionVideoUrl,
+                        out string selectionVideoUrl);
+                    _video.url = selectionVideoUrl;
                 }
                 else
                 {
@@ -856,7 +859,10 @@ namespace PowerMath.PlayerLifecycle
             else if (_opening != null && _opening.HasHostedVideo)
             {
                 _video.source = VideoSource.Url;
-                _video.url = _opening.videoUrl;
+                StreamingVideoPath.TryResolve(
+                    _opening.videoUrl,
+                    out string openingVideoUrl);
+                _video.url = openingVideoUrl;
             }
             else
             {

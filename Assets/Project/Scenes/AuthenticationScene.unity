@@ -166,7 +166,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 161285853}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 6f8a72a9e4e16b540a078ab299384347, type: 3}
+  m_VideoClip: {fileID: 0}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
@@ -176,7 +176,7 @@ VideoPlayer:
   m_TargetMaterialProperty: <noninit>
   m_RenderMode: 2
   m_AspectRatio: 2
-  m_DataSource: 0
+  m_DataSource: 1
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 0
@@ -184,7 +184,7 @@ VideoPlayer:
   - {fileID: 0}
   m_DirectAudioVolumes:
   - 1
-  m_Url: 
+  m_Url: Videos/V2_LogInLive2D.mp4
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
@@ -242,8 +242,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.Shared.PingPongVideoPlayer
   loopMode: 0
-  forwardClip: {fileID: 32900000, guid: 6f8a72a9e4e16b540a078ab299384347, type: 3}
-  reverseClip: {fileID: 32900000, guid: 8f9b1c2d3e4f5a6b7c8d9e0f1a2b3c4d, type: 3}
+  forwardClip: {fileID: 0}
+  reverseClip: {fileID: 0}
   forwardUrl: Videos/V2_LogInLive2D.mp4
   reverseUrl: Videos/V2_LogInLive2D_Reverse.mp4
   playbackSpeed: 1

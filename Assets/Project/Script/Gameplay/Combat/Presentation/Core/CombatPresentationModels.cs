@@ -7,6 +7,7 @@ namespace PowerMath.Gameplay.Combat.Presentation
     {
         System,
         Player,
+        Pet,
         Enemy,
         Ui
     }
@@ -22,9 +23,11 @@ namespace PowerMath.Gameplay.Combat.Presentation
         PlayerPotionReaction,
         PlayerRankUp,
         PlayerRankDown,
+        PetFollowUpAttack,
         EnemyAppear,
         EnemyWalk,
         EnemyAttack,
+        EnemyFlee,
         EnemyTakeDamage,
         EnemyDie,
         ArmEnemyAction,
@@ -50,7 +53,8 @@ namespace PowerMath.Gameplay.Combat.Presentation
     {
         Walk,
         Attack,
-        EventRisk
+        EventRisk,
+        Flee
     }
 
     public sealed class PresentationPayload

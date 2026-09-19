@@ -7,14 +7,18 @@ namespace PowerMath.Gameplay.Combat
     {
         public GameplaySnapshot(
             CombatSnapshot combat,
-            AcademicProgressionProjection academic)
+            AcademicProgressionProjection academic,
+            long powerCoins = 0)
         {
+            if (powerCoins < 0) throw new ArgumentOutOfRangeException(nameof(powerCoins));
             Combat = combat ?? throw new ArgumentNullException(nameof(combat));
             Academic = academic;
+            PowerCoins = powerCoins;
         }
 
         public CombatSnapshot Combat { get; }
         public AcademicProgressionProjection Academic { get; }
+        public long PowerCoins { get; }
     }
 
     public readonly struct AnswerInputPolicy
@@ -116,7 +120,7 @@ namespace PowerMath.Gameplay.Combat
     public sealed class EventAttemptResult
     {
         public EventAttemptResult(string eventId, string questionDocumentId,
-            QuestionId questionId, QuestionOutcome outcome, int responseScore)
+            ChallengeQuestionId questionId, QuestionOutcome outcome, int responseScore, int biomeIndex = 1)
         {
             if (string.IsNullOrWhiteSpace(eventId))
                 throw new ArgumentException("Event ID is required.", nameof(eventId));
@@ -127,13 +131,15 @@ namespace PowerMath.Gameplay.Combat
             QuestionId = questionId;
             Outcome = outcome;
             ResponseScore = Math.Max(0, Math.Min(10, responseScore));
+            PowerCoinsGranted = ChallengeRewardPolicy.Calculate(outcome, responseScore, biomeIndex);
         }
 
         public string EventId { get; }
         public string QuestionDocumentId { get; }
-        public QuestionId QuestionId { get; }
+        public ChallengeQuestionId QuestionId { get; }
         public QuestionOutcome Outcome { get; }
         public int ResponseScore { get; }
         public bool IsCorrect => Outcome == QuestionOutcome.Correct;
+        public int PowerCoinsGranted { get; }
     }
 }

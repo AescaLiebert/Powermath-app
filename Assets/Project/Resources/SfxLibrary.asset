@@ -224,6 +224,21 @@ MonoBehaviour:
     volumeScale: 0.75
     pitchRange: {x: 0.97, y: 1.03}
   uiStyles:
+  - styleClass: hud-player-menu-button--hub
+    hoverSfx:
+      clips:
+      - {fileID: 8300000, guid: b529160bed9e9ed4db020c61153f8d27, type: 3}
+      volumeScale: 0.4
+      pitchRange: {x: 0.98, y: 1.02}
+    clickSfx:
+      clips:
+      - {fileID: 8300000, guid: e70e3b039744c584a999cf8edb0387ba, type: 3}
+      volumeScale: 1
+      pitchRange: {x: 0.98, y: 1.02}
+    animationSfx:
+      clips: []
+      volumeScale: 0
+      pitchRange: {x: 0, y: 0}
   - styleClass: hud-icon-button
     hoverSfx:
       clips:

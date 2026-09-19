@@ -55,7 +55,7 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 7
+  alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
@@ -122,10 +122,10 @@ TextureImporter:
       name: B03_N9_Wispling_0
       rect:
         serializedVersion: 2
-        x: 260
-        y: 325
-        width: 17
-        height: 31
+        x: 324
+        y: 383
+        width: 20
+        height: 36
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -144,10 +144,10 @@ TextureImporter:
       name: B03_N9_Wispling_1
       rect:
         serializedVersion: 2
-        x: 269
-        y: 40
-        width: 287
-        height: 482
+        x: 335
+        y: 47
+        width: 337
+        height: 567
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,10 +166,10 @@ TextureImporter:
       name: B03_N9_Wispling_2
       rect:
         serializedVersion: 2
-        x: 341
-        y: 14
-        width: 139
-        height: 25
+        x: 415
+        y: 11
+        width: 171
+        height: 37
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

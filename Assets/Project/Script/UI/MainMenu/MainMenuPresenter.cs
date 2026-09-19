@@ -78,7 +78,7 @@ namespace PowerMath.UI.MainMenu
             {
                 _view.RenderUnavailable();
                 GetComponent<MainMenuTransitionController>()?
-                    .CancelAndApplyFinalState();
+                    .NotifyRecoveryReady();
                 PowerMath.Diagnostics.AppLog.Error(
                     "UI",
                     "MainMenuScene requires a successful BootstrapScene player session."
@@ -88,6 +88,7 @@ namespace PowerMath.UI.MainMenu
 
             _sessionStore.Changed += OnPlayerSessionChanged;
             _view.Render(MainMenuViewModel.From(_sessionStore.Snapshot));
+            NotifyMainMenuReady();
 
             if (apiSettings == null)
             {
@@ -124,7 +125,7 @@ namespace PowerMath.UI.MainMenu
                 _pendingSnapshot = null;
                 _view.RenderUnavailable();
                 GetComponent<MainMenuTransitionController>()?
-                    .CancelAndApplyFinalState();
+                    .NotifyRecoveryReady();
                 return;
             }
 
@@ -136,6 +137,7 @@ namespace PowerMath.UI.MainMenu
 
             _pendingSnapshot = null;
             _view.Render(MainMenuViewModel.From(snapshot));
+            NotifyMainMenuReady();
         }
 
         private void OnInteractionGateChanged(InteractionGateSnapshot snapshot)
@@ -145,7 +147,16 @@ namespace PowerMath.UI.MainMenu
                 PlayerSnapshot pending = _pendingSnapshot;
                 _pendingSnapshot = null;
                 _view.Render(MainMenuViewModel.From(pending));
+                NotifyMainMenuReady();
             }
+        }
+
+        private void NotifyMainMenuReady()
+        {
+            // Main-menu visibility belongs to the hydrated session shell.
+            // Feature initialization (including Combat Lobby) may finish later
+            // or enter its own unavailable state without blocking the menu.
+            GetComponent<MainMenuTransitionController>()?.NotifySessionReady();
         }
 
         private void OnLogoutRequested()

@@ -4,7 +4,7 @@
     <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuExperience.uss?fileID=7433441132597879392&amp;guid=a3168f27716975f42a77b8d15d9be5c1&amp;type=3#MainMenuExperience"/>
     <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuSharedOverlay.uss?fileID=7433441132597879392&amp;guid=0ab46313332b46e8a9fa5e40c123c9d5&amp;type=3#MainMenuSharedOverlay"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
-    <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden" style="top: 0;">
+    <ui:VisualElement name="combat-layer" enabled="true" picking-mode="Ignore" class="combat-layer is-hidden" style="top: 0; align-self: auto;">
         <ui:VisualElement name="combat-enemy-card" class="hud-encounter-panel main-menu-transition-top">
             <ui:Label name="combat-stage-label-compat" text="STAGE 1" class="hud-stage-label"/>
             <ui:VisualElement name="combat-enemy-hp-shell" picking-mode="Ignore" class="hud-enemy-hp-shell">
@@ -84,7 +84,7 @@
         <ui:Label name="combat-damage-label" text="" picking-mode="Ignore" class="combat-damage-label"/>
         <ui:Label name="combat-critical-label" text="CRITICAL" picking-mode="Ignore" class="loc-menu.critical combat-critical-label is-hidden"/>
         <ui:Label name="combat-battle-banner" text="" picking-mode="Ignore" class="combat-battle-banner is-hidden" style="display: flex;"/>
-        <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel math-challenge-card is-hidden" style="bottom: 180px; top: 198px;">
+        <ui:VisualElement name="combat-attempt-panel" focusable="true" class="mw-card combat-attempt-panel math-challenge-card is-hidden">
             <ui:VisualElement name="combat-attempt-header" class="combat-attempt-header card-header">
                 <ui:Label text="★" class="combat-attempt-star card-star"/>
                 <ui:Label text="MATH CHALLENGE" class="loc-menu.challenge combat-attempt-title card-title"/>
@@ -161,7 +161,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:Instance template="NavigatorPanel" picking-mode="Ignore" class="mw-template-fill"/>
-        <ui:VisualElement name="main-menu-interaction-shield" focusable="true" class="main-menu-interaction-shield is-hidden" style="display: flex;"/>
+        <ui:VisualElement name="main-menu-interaction-shield" focusable="true" class="main-menu-interaction-shield is-hidden" style="display: flex; flex-shrink: 1;"/>
         <ui:VisualElement name="academic-rank-modal" picking-mode="Position" class="academic-rank-modal" style="display: none;">
             <ui:VisualElement name="academic-rank-aura" picking-mode="Ignore" class="academic-rank-aura"/>
             <ui:VisualElement name="academic-rank-notification" picking-mode="Ignore" class="academic-rank-notification">

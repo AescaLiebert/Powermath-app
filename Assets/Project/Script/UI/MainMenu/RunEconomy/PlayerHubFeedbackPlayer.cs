@@ -114,6 +114,18 @@ namespace PowerMath.UI.MainMenu
             if (milestone) ShowMilestone(milestoneName);
         }
 
+        public void PlayStarIncrease()
+        {
+            PlayClip(_profile.MilestoneClip != null ? _profile.MilestoneClip : _profile.UpgradeSuccessClip);
+            if (_view.StarFrame != null)
+                Pulse(_view.StarFrame, 0.5f, 1.45f, _profile.SuccessSeconds);
+            else if (_view.StarLabel != null)
+                Pulse(_view.StarLabel, 0.5f, 1.45f, _profile.SuccessSeconds);
+
+            if (_view.EquippedStarLabel != null)
+                Pulse(_view.EquippedStarLabel, 0.6f, 1.35f, _profile.SuccessSeconds);
+        }
+
         public void PlayPetPressed()
         {
             Pulse(_view.PetPreviewIcon, 1f, 0.9f, _profile.PressSeconds);
@@ -224,6 +236,9 @@ namespace PowerMath.UI.MainMenu
             _view.PetPreviewIcon.style.scale = new Scale(Vector3.one);
             _view.EquippedPet.style.scale = new Scale(Vector3.one);
             _view.PetPreview.style.scale = new Scale(Vector3.one);
+            if (_view.StarFrame != null) _view.StarFrame.style.scale = new Scale(Vector3.one);
+            if (_view.StarLabel != null) _view.StarLabel.style.scale = new Scale(Vector3.one);
+            if (_view.EquippedStarLabel != null) _view.EquippedStarLabel.style.scale = new Scale(Vector3.one);
             _view.Milestone.EnableInClassList("is-visible", false);
             for (int index = 0; index < _particles.Length; index++)
             {

@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Academic.Infrastructure;
+using PowerMath.Gameplay.Pets;
 
 namespace PowerMath.Gameplay.Combat.Tests
 {
@@ -33,21 +37,21 @@ namespace PowerMath.Gameplay.Combat.Tests
         {
             DamageCalculator calculator = new DamageCalculator();
             DamageResult result = calculator.Calculate(
-                new DamageInput(5, 1d, 1d, 50d, true, 5)
+                new DamageInput(5, 1d, 1d, 50d, true, 1)
             );
 
             Assert.That(result.UnroundedDamage, Is.EqualTo(7.5d));
             Assert.That(result.FinalDamage, Is.EqualTo(8));
         }
 
-        [TestCase(1, 20, 10)]
-        [TestCase(2, 40, 20)]
-        [TestCase(3, 60, 30)]
-        [TestCase(4, 80, 40)]
-        [TestCase(5, 100, 50)]
-        [TestCase(6, 120, 60)]
-        [TestCase(7, 140, 70)]
-        [TestCase(8, 160, 80)]
+        [TestCase(1, 100, 50)]
+        [TestCase(2, 110, 55)]
+        [TestCase(3, 120, 60)]
+        [TestCase(4, 130, 65)]
+        [TestCase(5, 140, 70)]
+        [TestCase(6, 150, 75)]
+        [TestCase(7, 160, 80)]
+        [TestCase(8, 170, 85)]
         [TestCase(9, 180, 90)]
         [TestCase(10, 200, 100)]
         public void DamageCalculator_AppliesResponseScoreMultiplier(
@@ -94,7 +98,7 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [Test]
-        public void ContentFailure_RestoresConsumedCooldown()
+        public void ContentFailure_DoesNotConsumeEnemyCooldown()
         {
             LocalCombatEngine engine = CreateCombatEngine(maximumCooldown: 3);
 
@@ -122,6 +126,7 @@ namespace PowerMath.Gameplay.Combat.Tests
 
             Assert.That(result.EnemyDefeated, Is.True);
             Assert.That(result.EnemyAttacked, Is.False);
+            Assert.That(result.Snapshot.EnemyRemainingCooldown, Is.EqualTo(1));
             Assert.That(result.StageAdvanced, Is.True);
             Assert.That(result.Snapshot.Stage.Value, Is.EqualTo(2));
             Assert.That(result.Snapshot.PlayerCurrentHearts, Is.EqualTo(3));
@@ -140,6 +145,20 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(result.EnemyAttacked, Is.True);
             Assert.That(result.Snapshot.PlayerCurrentHearts, Is.EqualTo(2));
             Assert.That(result.Snapshot.EnemyRemainingCooldown, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SurvivingEnemy_ConsumesCooldownOnlyAfterPlayerResult()
+        {
+            LocalCombatEngine engine = CreateCombatEngine(maximumCooldown: 3);
+
+            CombatSnapshot committed = engine.CommitAttempt();
+            CombatResolution result = engine.ResolveCorrect(1, 1d);
+
+            Assert.That(committed.EnemyRemainingCooldown, Is.EqualTo(3));
+            Assert.That(result.EnemyDefeated, Is.False);
+            Assert.That(result.EnemyAttacked, Is.False);
+            Assert.That(result.Snapshot.EnemyRemainingCooldown, Is.EqualTo(2));
         }
 
         [Test]
@@ -181,7 +200,7 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(first, Is.SameAs(duplicate));
             Assert.That(
                 fixture.Gateway.Snapshot.Combat.EnemyRemainingCooldown,
-                Is.EqualTo(2)
+                Is.EqualTo(3)
             );
         }
 
@@ -281,11 +300,25 @@ namespace PowerMath.Gameplay.Combat.Tests
             );
             var clock = new ManualClock();
             LocalCombatEngine readyCombat = CreateCombatEngine(maximumCooldown: 3);
+            CombatPresentationSnapshot source =
+                CombatPresentationSnapshot.From(readyCombat.Snapshot);
+            var destination = new CombatPresentationSnapshot(
+                source.Stage,
+                source.BiomeId,
+                source.EncounterId,
+                source.EncounterKind,
+                source.EnemyCurrentHp - 5,
+                source.EnemyMaximumHp,
+                source.EnemyRemainingCooldown,
+                source.EnemyMaximumCooldown,
+                source.PlayerCurrentHearts,
+                source.PlayerMaximumHearts,
+                CombatPhase.PresentingResult);
             var dummyReceipt = new AttemptPresentationReceipt(
                 "p-1", "a-1", AttemptOutcomeKind.Correct, 10, 5, false,
-                CombatPresentationSnapshot.From(readyCombat.Snapshot),
-                CombatPresentationSnapshot.From(readyCombat.Snapshot),
-                10, false, false, false, false, false, default);
+                source, destination,
+                source.EnemyCurrentHp - 5,
+                false, false, false, false, false, default);
 
             Assert.Throws<System.InvalidOperationException>(() =>
                 new LocalAttemptTransactionEngine(
@@ -332,7 +365,7 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [Test]
-        public void PersistenceRequest_AfterCommitContainsReservedQuestionAndCooldown()
+        public void PersistenceRequest_AfterCommitPreservesEnemyCooldownUntilEnemyTurn()
         {
             GatewayFixture fixture = CreateGateway(maximumCooldown: 3);
             AttemptCommit commit = fixture.Gateway.CommitAttempt(
@@ -342,7 +375,7 @@ namespace PowerMath.Gameplay.Combat.Tests
                 GameplaySavePoint.AttemptCommitted,
                 commit.Question);
 
-            Assert.That(request.Snapshot.Combat.EnemyRemainingCooldown, Is.EqualTo(2));
+            Assert.That(request.Snapshot.Combat.EnemyRemainingCooldown, Is.EqualTo(3));
             Assert.That(request.ActiveQuestion.Id, Is.EqualTo(commit.Question.Id));
             Assert.That(request.Academic.Silver.Reserved, Is.EqualTo(commit.Question.Id));
         }
@@ -567,6 +600,607 @@ namespace PowerMath.Gameplay.Combat.Tests
             var encounter215 = resolver.Resolve("test-run", new StageId(215));
             Assert.That(encounter215.Kind, Is.EqualTo(StageEncounterKind.FinalBoss));
         }
+
+        [TestCase(0, 1)]
+        [TestCase(10000, 2)]
+        public void EventSchedule_GuaranteesOneAndCapsEachBlockAtTwo(
+            int chanceBasisPoints,
+            int expectedPerBlock)
+        {
+            StageMapData source = DevelopmentStageMapFactory.Create();
+            var map = new StageMapData(
+                source.CatalogVersion,
+                source.NormalHpBaseline,
+                source.GrowthBasisPoints,
+                source.VariationBasisPoints,
+                source.Biomes,
+                source.FixedEventStages.ToDictionary(
+                    value => value,
+                    value =>
+                    {
+                        source.TryGetFixedEvent(new StageId(value), out EventData fixedEvent);
+                        return fixedEvent;
+                    }),
+                source.ChanceEvents,
+                chanceBasisPoints);
+
+            EventScheduleSnapshot schedule = EventScheduleGenerator.Create(
+                "event-schedule-test", map, 10000);
+
+            Assert.That(schedule.GeneratedStages.All(value =>
+                !StageClassificationPolicy.IsProtected(new StageId(value))), Is.True);
+            for (int start = StageId.First;
+                 start <= StageId.Final;
+                 start += EventScheduleGenerator.StagesPerBlock)
+            {
+                int end = Math.Min(StageId.Final,
+                    start + EventScheduleGenerator.StagesPerBlock - 1);
+                int fixedCount = map.FixedEventStages.Count(value =>
+                    value >= start && value <= end &&
+                    map.TryGetFixedEvent(new StageId(value), out EventData eventData) &&
+                    eventData.Type == EventStageType.ChallengeMonster);
+                int generatedCount = schedule.GeneratedStages.Count(value =>
+                    value >= start && value <= end);
+                Assert.That(fixedCount + generatedCount,
+                    Is.EqualTo(expectedPerBlock), $"Block {start}-{end}");
+            }
+        }
+
+        [Test]
+        public void EventSchedule_SelectsDeterministicallyFromMultipleChallengeEvents()
+        {
+            StageMapData source = DevelopmentStageMapFactory.Create();
+            EventData[] eventPool =
+            {
+                new EventData("event-c1", "Challenge One", EventStageType.ChallengeMonster),
+                new EventData("event-c2", "Challenge Two", EventStageType.ChallengeMonster)
+            };
+            var map = new StageMapData(
+                source.CatalogVersion,
+                source.NormalHpBaseline,
+                source.GrowthBasisPoints,
+                source.VariationBasisPoints,
+                source.Biomes,
+                new Dictionary<int, EventData>(),
+                eventPool,
+                0);
+
+            EventScheduleSnapshot schedule = EventScheduleGenerator.Create(
+                "multi-event-schedule", map);
+            var firstResolver = new StageEncounterResolver(map, schedule);
+            var secondResolver = new StageEncounterResolver(map, schedule);
+
+            foreach (int scheduledStage in schedule.GeneratedStages)
+            {
+                EncounterSelection first = firstResolver.Resolve(
+                    "multi-event-schedule", new StageId(scheduledStage));
+                EncounterSelection second = secondResolver.Resolve(
+                    "multi-event-schedule", new StageId(scheduledStage));
+
+                Assert.That(first.IsEvent, Is.True);
+                Assert.That(eventPool.Select(value => value.Id), Does.Contain(first.EncounterId));
+                Assert.That(second.EncounterId, Is.EqualTo(first.EncounterId));
+            }
+        }
+
+        [Test]
+        public void ChallengeQuestionId_RequiresCanonicalRankPrefix()
+        {
+            Assert.That(ChallengeQuestionId.TryParse("cs1", out ChallengeQuestionId silver), Is.True);
+            Assert.That(silver.Rank, Is.EqualTo(AcademicRank.Silver));
+            Assert.That(ChallengeQuestionId.TryParse("cg12", out ChallengeQuestionId gold), Is.True);
+            Assert.That(gold.Rank, Is.EqualTo(AcademicRank.Gold));
+            Assert.That(ChallengeQuestionId.TryParse("cd3", out ChallengeQuestionId diamond), Is.True);
+            Assert.That(diamond.Rank, Is.EqualTo(AcademicRank.Diamond));
+            Assert.That(ChallengeQuestionId.TryParse("CS1", out _), Is.False);
+            Assert.That(ChallengeQuestionId.TryParse("cs01", out _), Is.False);
+            Assert.That(ChallengeQuestionId.TryParse("s1", out _), Is.False);
+            Assert.That(ChallengeQuestionId.TryParse(" cs1 ", out _), Is.False);
+        }
+
+        [Test]
+        public void ChallengeSequence_AdvancesEachRankIndependently()
+        {
+            EventQuestionCatalog catalog = CreateChallengeCatalog();
+            var sequence = new ChallengeQuestionSequence(catalog);
+
+            ChallengeQuestionDefinition firstSilver = sequence.Reserve("challenge", AcademicRank.Silver);
+            sequence.Resolve(firstSilver.Id);
+            ChallengeQuestionDefinition firstGold = sequence.Reserve("challenge", AcademicRank.Gold);
+            sequence.Resolve(firstGold.Id);
+            ChallengeQuestionDefinition secondSilver = sequence.Reserve("challenge", AcademicRank.Silver);
+
+            Assert.That(firstSilver.Id.Value, Is.EqualTo("cs1"));
+            Assert.That(firstGold.Id.Value, Is.EqualTo("cg1"));
+            Assert.That(secondSilver.Id.Value, Is.EqualTo("cs2"));
+            Assert.That(sequence.Export().GoldCursor, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ChallengeSequence_SharesRankCursorAcrossEventCatalogKeys()
+        {
+            IReadOnlyList<ChallengeQuestionDefinition> questions =
+                CreateChallengeQuestions();
+            var catalog = new EventQuestionCatalog(
+                new Dictionary<string, IReadOnlyList<ChallengeQuestionDefinition>>
+                {
+                    { "challenge-a", questions },
+                    { "challenge-b", questions }
+                });
+            var sequence = new ChallengeQuestionSequence(catalog);
+
+            ChallengeQuestionDefinition first = sequence.Reserve(
+                "challenge-a", AcademicRank.Silver);
+            sequence.Resolve(first.Id);
+            ChallengeQuestionDefinition second = sequence.Reserve(
+                "challenge-b", AcademicRank.Silver);
+
+            Assert.That(first.Id.Value, Is.EqualTo("cs1"));
+            Assert.That(second.Id.Value, Is.EqualTo("cs2"));
+        }
+
+        [TestCase(QuestionOutcome.Correct, 10, 20)]
+        [TestCase(QuestionOutcome.Correct, 5, 15)]
+        [TestCase(QuestionOutcome.Correct, 0, 10)]
+        [TestCase(QuestionOutcome.Incorrect, 10, 10)]
+        [TestCase(QuestionOutcome.Timeout, 10, 10)]
+        public void ChallengeReward_UsesEfficiencyAndHalfRewardFloor(
+            QuestionOutcome outcome,
+            int score,
+            int expected)
+        {
+            Assert.That(ChallengeRewardPolicy.Calculate(outcome, score), Is.EqualTo(expected));
+        }
+
+        [TestCase(QuestionOutcome.Correct, 10, 2, 30)]
+        [TestCase(QuestionOutcome.Correct, 0, 2, 15)]
+        [TestCase(QuestionOutcome.Correct, 10, 6, 150)]
+        [TestCase(QuestionOutcome.Correct, 5, 6, 112)]
+        [TestCase(QuestionOutcome.Incorrect, 10, 6, 75)]
+        [TestCase(QuestionOutcome.Correct, 10, 7, 200)]
+        [TestCase(QuestionOutcome.Incorrect, 10, 7, 100)]
+        public void ChallengeReward_ScalesByBiome(
+            QuestionOutcome outcome,
+            int score,
+            int biomeIndex,
+            int expected)
+        {
+            Assert.That(ChallengeRewardPolicy.Calculate(outcome, score, biomeIndex), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void ChallengeFailure_FleesWithoutHeartLossAndAdvancesStage()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var engine = new LocalRunEncounterEngine(
+                new StageId(7),
+                "challenge-flee-test",
+                new StageEncounterResolver(map),
+                new MinimumRandomSource(),
+                3,
+                new PlayerCombatStats(5, 0d, 50d));
+
+            engine.CommitAttempt();
+            CombatResolution result = engine.ResolveIncorrect(timedOut: false);
+
+            Assert.That(result.EnemyFled, Is.True);
+            Assert.That(result.EnemyAttacked, Is.False);
+            Assert.That(result.PlayerDefeated, Is.False);
+            Assert.That(result.StageAdvanced, Is.True);
+            Assert.That(result.Snapshot.Stage.Value, Is.EqualTo(8));
+            Assert.That(result.Snapshot.PlayerCurrentHearts, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void ChallengeTransaction_GrantsCoinsWithoutChangingAudit()
+        {
+            QuestionCatalogLoadResult rankCatalog = new QuestionDocumentMapper()
+                .MapCatalog(InMemoryQuestionCatalogRepository.CreateDefaultDocuments());
+            var academic = new AcademicProgressionEngine(rankCatalog.Catalog);
+            AcademicProgressionState academicState = academic.CreateInitialState(
+                AcademicRank.Silver, new RankCurrencyBalances(0, 0, 0));
+            var clock = new ManualClock { NowSeconds = 10d };
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var combat = new LocalRunEncounterEngine(
+                new StageId(7), "challenge-transaction-test",
+                new StageEncounterResolver(map), new MinimumRandomSource(), 3,
+                new PlayerCombatStats(5, 0d, 50d));
+            var transaction = new LocalAttemptTransactionEngine(
+                combat, academic, academicState, clock, 1d, 10d,
+                CreateChallengeCatalog(), "challenge-transaction-test",
+                powerCoins: 5);
+
+            AttemptCommit commit = transaction.CommitAttempt();
+            transaction.OpenAnswerWindow(commit.Question.Id);
+            AttemptResolution result = transaction.SubmitAnswer("999");
+            GameplaySaveRequest save = transaction.CreateSaveRequest(
+                GameplaySavePoint.AttemptResolved, resolution: result);
+
+            Assert.That(commit.Question.ContentId, Is.EqualTo("cs1"));
+            Assert.That(result.IsAcademic, Is.False);
+            Assert.That(result.Event.PowerCoinsGranted, Is.EqualTo(10));
+            Assert.That(result.Snapshot.PowerCoins, Is.EqualTo(15));
+            Assert.That(save.Academic.AuditResolvedCount, Is.Zero);
+            Assert.That(result.Combat.EnemyFled, Is.True);
+        }
+
+        [Test]
+        public void StageHpPolicy_SmoothGrowthAcrossWorldLevels()
+        {
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(1, 1500), Is.EqualTo(10000L));
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(6, 1500), Is.EqualTo(17500L));
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(12, 1500), Is.EqualTo(26500L));
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(18, 1500), Is.EqualTo(47500L));
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(24, 1500), Is.EqualTo(68500L));
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(30, 1500), Is.EqualTo(116500L));
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(36, 1500), Is.EqualTo(206500L));
+            Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(40, 1500), Is.EqualTo(266500L));
+        }
+
+        [Test]
+        public void LocalRunEncounterEngine_AuregriffPassive_IncreasesThirdAttackDamageAndResetsOnStageProgression()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var resolver = new StageEncounterResolver(map);
+            // EffectiveAttack = 10, Auregriff passive enabled
+            var stats = new PlayerCombatStats(
+                effectiveAttack: 10,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:nth-attack",
+                    PetPassiveEffectType.ModifyEveryNthPlayerAttack,
+                    0.25d,
+                    triggerCount: 3,
+                    resetScope: PetPassiveResetScope.Stage)));
+
+            EncounterSelection selection = resolver.Resolve(
+                "auregriff-test-run",
+                new StageId(1));
+            var snapshot = new CombatSnapshot(
+                new StageId(1), selection.EncounterId, selection.DisplayName,
+                enemyCurrentHp: 100,
+                enemyMaximumHp: 100,
+                selection.MaximumCooldown,
+                selection.MaximumCooldown,
+                playerCurrentHearts: 3,
+                playerMaximumHearts: 3,
+                phase: CombatPhase.EnemyReady,
+                isSimulation: false,
+                biomeId: selection.BiomeId,
+                biomeTitle: selection.BiomeTitle,
+                encounterKind: selection.Kind,
+                questionDocumentId: selection.QuestionDocumentId,
+                eventAttemptOrdinal: 0);
+            var engine = new LocalRunEncounterEngine(
+                snapshot,
+                "auregriff-test-run",
+                resolver,
+                new MinimumRandomSource(),
+                stats);
+
+            // Hit 1: buffMultiplier 1.0 -> 10 * 1.0 * 2.0 (score 10) = 20 damage
+            engine.CommitAttempt();
+            CombatResolution res1 = engine.ResolveCorrect(10, 1d);
+            Assert.That(res1.FinalDamage, Is.EqualTo(20));
+            Assert.That(engine.StageAttackCount, Is.EqualTo(1));
+
+            // Hit 2: buffMultiplier 1.0 -> 20 damage
+            engine.CompletePresentation();
+            engine.CommitAttempt();
+            CombatResolution res2 = engine.ResolveCorrect(10, 1d);
+            Assert.That(res2.FinalDamage, Is.EqualTo(20));
+            Assert.That(engine.StageAttackCount, Is.EqualTo(2));
+
+            // Hit 3: 3rd hit in same stage! buffMultiplier 1.25 -> 10 * 1.25 * 2.0 = 25 damage!
+            engine.CompletePresentation();
+            engine.CommitAttempt();
+            CombatResolution res3 = engine.ResolveCorrect(10, 1d);
+            Assert.That(res3.FinalDamage, Is.EqualTo(25));
+            Assert.That(engine.StageAttackCount, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void LocalRunEncounterEngine_LumirinPassive_RegeneratesHeartOnBigBossDefeat()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var resolver = new StageEncounterResolver(map);
+            // Stage 30 is BigBoss
+            var stats = new PlayerCombatStats(
+                effectiveAttack: 10000,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                bonusMaxHearts: 1,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:heart-restore",
+                    PetPassiveEffectType.RestoreHeartsOnEncounterDefeat,
+                    1d,
+                    encounterFilter: PetEncounterFilter.BigBoss)));
+
+            // Snapshot with 2 / 4 hearts at stage 30
+            var selection = resolver.Resolve("lumirin-test-run", new StageId(30));
+            Assert.That(selection.Kind, Is.EqualTo(StageEncounterKind.BigBoss));
+
+            var snapshot = new CombatSnapshot(
+                new StageId(30), selection.EncounterId, selection.DisplayName,
+                selection.MaximumHp, selection.MaximumHp,
+                selection.MaximumCooldown, selection.MaximumCooldown,
+                playerCurrentHearts: 2,
+                playerMaximumHearts: 4,
+                phase: CombatPhase.EnemyReady,
+                isSimulation: false,
+                biomeId: selection.BiomeId,
+                biomeTitle: selection.BiomeTitle,
+                encounterKind: selection.Kind,
+                questionDocumentId: selection.QuestionDocumentId,
+                eventAttemptOrdinal: 0);
+
+            var engine = new LocalRunEncounterEngine(
+                snapshot, "lumirin-test-run",
+                resolver, new MinimumRandomSource(), stats);
+
+            HeartChangeArgs? receivedHeartChange = null;
+            engine.HeartChanged += args => receivedHeartChange = args;
+
+            engine.CommitAttempt();
+            CombatResolution res = engine.ResolveCorrect(10, 1d);
+
+            Assert.That(res.EnemyDefeated, Is.True);
+            Assert.That(receivedHeartChange.HasValue, Is.True);
+            Assert.That(receivedHeartChange.Value.Reason, Is.EqualTo(HeartChangeReason.PetPassiveRestore));
+            Assert.That(receivedHeartChange.Value.PreviousHearts, Is.EqualTo(2));
+            Assert.That(receivedHeartChange.Value.CurrentHearts, Is.EqualTo(3));
+            Assert.That(receivedHeartChange.Value.ChangeAmount, Is.EqualTo(1));
+            Assert.That(res.Snapshot.PlayerCurrentHearts, Is.EqualTo(3));
+            Assert.That(res.Snapshot.BigBossesDefeated, Is.EqualTo(1));
+            Assert.That(engine.BigBossesDefeated, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void LocalRunEncounterEngine_DamageTaken_FiresHeartChangedEvent()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var resolver = new StageEncounterResolver(map);
+            var stats = new PlayerCombatStats(10, 0d, 50d);
+
+            EncounterSelection selection = resolver.Resolve(
+                "damage-event-test",
+                new StageId(1));
+            Assert.That(selection.IsEvent, Is.False);
+            var snapshot = new CombatSnapshot(
+                new StageId(1), selection.EncounterId, selection.DisplayName,
+                selection.MaximumHp, selection.MaximumHp,
+                enemyRemainingCooldown: 1,
+                enemyMaximumCooldown: selection.MaximumCooldown,
+                playerCurrentHearts: 3,
+                playerMaximumHearts: 3,
+                phase: CombatPhase.EnemyReady,
+                isSimulation: false,
+                biomeId: selection.BiomeId,
+                biomeTitle: selection.BiomeTitle,
+                encounterKind: selection.Kind,
+                questionDocumentId: selection.QuestionDocumentId,
+                eventAttemptOrdinal: 0);
+            var engine = new LocalRunEncounterEngine(
+                snapshot,
+                "damage-event-test",
+                resolver,
+                new MinimumRandomSource(),
+                stats);
+
+            HeartChangeArgs? received = null;
+            engine.HeartChanged += args => received = args;
+
+            engine.CommitAttempt();
+            engine.ResolveIncorrect(false);
+
+            Assert.That(received.HasValue, Is.True);
+            Assert.That(received.Value.Reason, Is.EqualTo(HeartChangeReason.DamageTaken));
+            Assert.That(received.Value.ChangeAmount, Is.EqualTo(-1));
+            Assert.That(received.Value.PreviousHearts, Is.EqualTo(3));
+            Assert.That(received.Value.CurrentHearts, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void LocalRunEncounterEngine_SapphireFollowUp_AddsPetAttackToTotalDamage()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var resolver = new StageEncounterResolver(map);
+            // Player ATK: 10, Pet ATK: 30, SapphireFollowUp active
+            var stats = new PlayerCombatStats(
+                effectiveAttack: 10,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                effectivePetAttack: 30,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:follow-up",
+                    PetPassiveEffectType.FollowUpAfterSuccessfulPlayerAttack,
+                    1d)));
+
+            var engine = new LocalRunEncounterEngine(
+                new StageId(1), "sapphire-test",
+                resolver, new MinimumRandomSource(), 3, stats);
+
+            engine.CommitAttempt();
+            // Player damage = 10 * 1.0 * 2.0 (score 10) = 20. Pet damage = 30. Total = 50.
+            CombatResolution res = engine.ResolveCorrect(10, 1d);
+            Assert.That(res.FinalDamage, Is.EqualTo(50));
+            Assert.That(res.PlayerDamage, Is.EqualTo(20));
+            Assert.That(res.PetFollowUp, Is.Not.Null);
+            Assert.That(res.PetFollowUp.Damage, Is.EqualTo(30));
+            Assert.That(res.PetFollowUp.Carried, Is.False);
+        }
+
+        [Test]
+        public void LocalRunEncounterEngine_CarriedFollowUp_KillsNextEnemyAndAdvancesAgain()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            const string runId = "carried-follow-up-test";
+            var resolver = new StageEncounterResolver(map);
+            var stats = new PlayerCombatStats(
+                effectiveAttack: 10000,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                effectivePetAttack: 10000,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:follow-up",
+                    PetPassiveEffectType.FollowUpAfterSuccessfulPlayerAttack,
+                    1d)));
+            var engine = new LocalRunEncounterEngine(
+                new StageId(1),
+                runId,
+                resolver,
+                new MinimumRandomSource(),
+                3,
+                stats);
+
+            engine.CommitAttempt();
+            CombatResolution result = engine.ResolveCorrect(10, 1d);
+
+            Assert.That(result.PlayerEnemyHpAfter, Is.Zero);
+            Assert.That(result.PetFollowUp, Is.Not.Null);
+            Assert.That(result.PetFollowUp.Carried, Is.True);
+            Assert.That(result.PetFollowUp.Target.Stage.Value, Is.EqualTo(2));
+            Assert.That(result.PetFollowUp.EnemyDefeated, Is.True);
+            Assert.That(result.Snapshot.Stage.Value, Is.EqualTo(3));
+            Assert.That(result.Snapshot.PendingPetFollowUpDamage, Is.Zero);
+        }
+
+        [Test]
+        public void LocalRunEncounterEngine_RefreshPlayerStats_AppliesNewPetImmediately()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var engine = new LocalRunEncounterEngine(
+                new StageId(1),
+                "pet-hot-reload",
+                new StageEncounterResolver(map),
+                new MinimumRandomSource(),
+                3,
+                new PlayerCombatStats(10, 0d, 50d));
+            var refreshed = new PlayerCombatStats(
+                effectiveAttack: 20,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                effectivePetAttack: 30,
+                bonusMaxHearts: 1,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:follow-up",
+                    PetPassiveEffectType.FollowUpAfterSuccessfulPlayerAttack,
+                    1d)));
+
+            engine.RefreshPlayerStats(refreshed);
+            engine.CommitAttempt();
+            CombatResolution result = engine.ResolveCorrect(1, 1d);
+
+            Assert.That(result.PlayerDamage, Is.EqualTo(20));
+            Assert.That(result.PetFollowUp, Is.Not.Null);
+            Assert.That(result.PetFollowUp.Damage, Is.EqualTo(30));
+            Assert.That(result.Snapshot.PlayerMaximumHearts, Is.EqualTo(4));
+            Assert.That(result.Snapshot.PlayerCurrentHearts, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void EventScheduleRefresh_PreservesReachedStagesAndUsesNewMultiplier()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var current = new EventScheduleSnapshot(
+                map.CatalogVersion,
+                "challenge-monster",
+                new[] { 3, 18, 25 },
+                1000,
+                10000);
+            var refreshed = new EventScheduleSnapshot(
+                map.CatalogVersion,
+                "challenge-monster",
+                new[] { 4, 19, 26, 35 },
+                1000,
+                12500);
+
+            EventScheduleSnapshot merged =
+                EventScheduleRefreshPolicy.PreserveReachedStages(
+                    map,
+                    current,
+                    refreshed,
+                    new StageId(10));
+
+            Assert.That(merged.GeneratedStages, Does.Contain(3));
+            Assert.That(merged.GeneratedStages, Has.No.Member(18));
+            Assert.That(merged.GeneratedStages, Does.Contain(26));
+            Assert.That(merged.PetMultiplierBasisPoints, Is.EqualTo(12500));
+        }
+
+        [Test]
+        public void LocalRunEncounterEngine_RestoresPetStateFromSnapshot_PreservesTrackingMetrics()
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var resolver = new StageEncounterResolver(map);
+            var stats = new PlayerCombatStats(10, 0d, 50d);
+            var selection = resolver.Resolve("restore-test-run", new StageId(5));
+
+            var snapshot = new CombatSnapshot(
+                new StageId(5), selection.EncounterId, selection.DisplayName,
+                selection.MaximumHp, selection.MaximumHp,
+                selection.MaximumCooldown, selection.MaximumCooldown,
+                playerCurrentHearts: 3,
+                playerMaximumHearts: 3,
+                phase: CombatPhase.EnemyReady,
+                isSimulation: false,
+                biomeId: selection.BiomeId,
+                biomeTitle: selection.BiomeTitle,
+                encounterKind: selection.Kind,
+                questionDocumentId: selection.QuestionDocumentId,
+                eventAttemptOrdinal: 0,
+                eventSchedule: null,
+                stageAttackCount: 2,
+                bigBossesDefeated: 1,
+                pendingPetFollowUpDamage: 15);
+
+            var engine = new LocalRunEncounterEngine(
+                snapshot, "restore-test-run",
+                resolver, new MinimumRandomSource(), stats);
+
+            Assert.That(engine.StageAttackCount, Is.EqualTo(2));
+            Assert.That(engine.BigBossesDefeated, Is.EqualTo(1));
+            Assert.That(engine.PendingPetFollowUpDamage, Is.EqualTo(15));
+            Assert.That(engine.Snapshot.StageAttackCount, Is.EqualTo(2));
+            Assert.That(engine.Snapshot.BigBossesDefeated, Is.EqualTo(1));
+            Assert.That(engine.Snapshot.PendingPetFollowUpDamage, Is.EqualTo(15));
+        }
+
+        private static ActivePetPassiveSet Passives(
+            params PetPassiveDefinition[] definitions)
+        {
+            var passives = new ActivePetPassive[definitions.Length];
+            for (int index = 0; index < definitions.Length; index++)
+                passives[index] = new ActivePetPassive(definitions[index], 1);
+            return new ActivePetPassiveSet(passives);
+        }
+
+        private static EventQuestionCatalog CreateChallengeCatalog()
+        {
+            IReadOnlyList<ChallengeQuestionDefinition> questions =
+                CreateChallengeQuestions();
+            return new EventQuestionCatalog(
+                new Dictionary<string, IReadOnlyList<ChallengeQuestionDefinition>>
+                {
+                    { "challenge", questions }
+                });
+        }
+
+        private static IReadOnlyList<ChallengeQuestionDefinition>
+            CreateChallengeQuestions() => new List<ChallengeQuestionDefinition>
+            {
+                Challenge("cs1", 11), Challenge("cs2", 12),
+                Challenge("cg1", 21), Challenge("cg2", 22),
+                Challenge("cd1", 31), Challenge("cd2", 32)
+            };
+
+        private static ChallengeQuestionDefinition Challenge(string id, int answer) =>
+            new ChallengeQuestionDefinition(
+                new ChallengeQuestionId(id),
+                new Uri("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+                answer,
+                "dQw4w9WgXcQ");
 
         private sealed class MinimumRandomSource : IRandomSource
         {

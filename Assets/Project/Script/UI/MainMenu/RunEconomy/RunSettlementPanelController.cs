@@ -45,10 +45,10 @@ namespace PowerMath.UI.MainMenu
         private readonly ActorPresentationController _playerActor;
         private readonly bool _reducedMotion;
         private IInteractionLock _terminalLock;
-        private readonly UiToolkitLifecycleController _lifecycle;
         private readonly VisualElement _resetTransitionLayer;
         private readonly VisualElement _resetTransitionCircle;
         private readonly RewardMagnetFeedbackPlayer _rewardMagnet;
+        private readonly FloatingRewardTextService _floatingRewardText;
 
         public RunSettlementPanelController(
             MonoBehaviour host,
@@ -64,7 +64,8 @@ namespace PowerMath.UI.MainMenu
             IMainMenuInteractionGate interactionGate = null,
             ActorPresentationController playerActor = null,
             bool reducedMotion = false,
-            RewardMagnetFeedbackPlayer rewardMagnet = null)
+            RewardMagnetFeedbackPlayer rewardMagnet = null,
+            FloatingRewardTextService floatingRewardText = null)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _player = player ?? throw new ArgumentNullException(nameof(player));
@@ -79,6 +80,7 @@ namespace PowerMath.UI.MainMenu
             _playerActor = playerActor;
             _reducedMotion = reducedMotion;
             _rewardMagnet = rewardMagnet;
+            _floatingRewardText = floatingRewardText;
             _modal = Require<VisualElement>(root, "run-settlement-modal");
             _title = Require<Label>(root, "Title");
             _attackBefore = RequireClass<Label>(root, "rebirth-atk-before");
@@ -101,7 +103,6 @@ namespace PowerMath.UI.MainMenu
                 root, "run-reset-transition-circle");
             _attackBefore.enableRichText = true;
             _attackAfter.enableRichText = true;
-            _lifecycle = new UiToolkitLifecycleController(_modal);
 
             _rebirth.clicked += OpenRebirth;
             _confirm.clicked += Confirm;
@@ -109,6 +110,9 @@ namespace PowerMath.UI.MainMenu
             _continue.clicked += AcknowledgeAndReload;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
+            if (_interactionGate != null)
+                _interactionGate.Changed += OnInteractionGateChanged;
+            PowerMath.Audio.UiSfxAudioBinder.Bind(_modal);
             HideInitially();
             RefreshButton();
             OnPlayerChanged(_player);
@@ -124,16 +128,23 @@ namespace PowerMath.UI.MainMenu
         {
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
+            if (_interactionGate != null)
+                _interactionGate.Changed -= OnInteractionGateChanged;
             _rebirth.clicked -= OpenRebirth;
             _confirm.clicked -= Confirm;
             _close.clicked -= Close;
             _continue.clicked -= AcknowledgeAndReload;
             _terminalLock?.Dispose();
             _terminalLock = null;
-            _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            HideInitially();
             HideResetTransition();
             if (_panelHost.OpenPanel == MainMenuPanelId.Rebirth)
                 _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth);
+        }
+
+        private void OnInteractionGateChanged(InteractionGateSnapshot snapshot)
+        {
+            RefreshButton();
         }
 
         private void OnPlayerChanged(PlayerSnapshot player)
@@ -179,6 +190,18 @@ namespace PowerMath.UI.MainMenu
 
         private void OpenRebirth()
         {
+            if (_interactionGate != null &&
+                (!_interactionGate.IsAllowed(InteractionScope.Navigation) ||
+                 !_interactionGate.IsAllowed(InteractionScope.Lobby)))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(_player.activeRun?.committedAttemptId))
+            {
+                return;
+            }
+
             if (!TryBuildPreview(RunSettlementType.Rebirth, out _pendingPreview,
                     out string error))
             {
@@ -225,7 +248,8 @@ namespace PowerMath.UI.MainMenu
 
             try
             {
-                RunSettlementAward award = RunSettlementPolicy.Calculate(_player, type);
+                RunSettlementAward award = RunSettlementPolicy.Calculate(
+                    _player, type, _petCatalog);
                 PlayerStatProjection current = ProjectStats();
                 PlayerStatProjection resulting = ProjectStats(award.LegacyBasisPoints);
                 long currentCoins = _player.wallet?.powerCoins ?? 0;
@@ -272,8 +296,15 @@ namespace PowerMath.UI.MainMenu
             _stageBefore.text = preview.Award.StageReached.ToString("N0");
             _stageAfter.text = "1";
             _coinsBefore.text = preview.CurrentCoins.ToString("N0");
-            _coinsAfter.text = preview.ResultingCoins.ToString("N0");
+            _coinsAfter.enableRichText = true;
+            _coinsAfter.text = preview.Award.PowerCoinBonusPercent > 0d
+                ? $"{preview.ResultingCoins:N0}<size=24>(+{preview.Award.PowerCoinBonusPercent:0.##}%)</size>"
+                : preview.ResultingCoins.ToString("N0");
             UpdateProgressBar(preview.Award.StageReached);
+            if (preview.Award.WasTeleported)
+            {
+                _status.text = "Teleport active: Run settlement rewards reduced to 10%.";
+            }
         }
 
         private void Confirm()
@@ -335,9 +366,9 @@ namespace PowerMath.UI.MainMenu
 
             if (type == RunSettlementType.Rebirth)
             {
+                PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.RunComplete);
+
                 // Close modal so that player and currency icons are fully visible during the reward sequence
-                _lifecycle.Exit();
-                while (!_lifecycle.IsStable) yield return null;
                 _panelHost.ForceCloseAll();
 
                 if (_playerActor != null)
@@ -362,6 +393,13 @@ namespace PowerMath.UI.MainMenu
                     }
 
                     int iconCount = (int)Math.Min(award.PowerCoins, 200);
+                    if (_floatingRewardText != null && award.PowerCoins > 0)
+                    {
+                        _floatingRewardText.Spawn(
+                            RewardCurrencyKind.PowerCoin,
+                            award.PowerCoins,
+                            origin);
+                    }
                     yield return _rewardMagnet.PlayRewardDropAndMagnet(
                         RewardCurrencyKind.PowerCoin,
                         startCoins,
@@ -376,6 +414,7 @@ namespace PowerMath.UI.MainMenu
                 yield break;
             }
 
+            PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.RunDefeat);
             string acceptedTitle = "RUN ENDED";
             if (_pendingPreview.Award.StageReached == award.StageReached)
                 RenderPreview(_pendingPreview, acceptedTitle);
@@ -420,10 +459,10 @@ namespace PowerMath.UI.MainMenu
 
         private void RefreshButton()
         {
-            bool canAccess = !_busy && !string.Equals(
-                _player.activeRun?.phase,
-                "RunDefeat",
-                StringComparison.Ordinal);
+            bool canAccess = !_busy &&
+                !string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal) &&
+                string.IsNullOrEmpty(_player.activeRun?.committedAttemptId) &&
+                (_interactionGate == null || (_interactionGate.IsAllowed(InteractionScope.Lobby) && _interactionGate.IsAllowed(InteractionScope.Navigation)));
             _rebirth.SetEnabled(canAccess);
 
             int stage = Math.Min(200, Math.Max(1,
@@ -451,8 +490,7 @@ namespace PowerMath.UI.MainMenu
                 _pendingSettlement == RunSettlementType.Death
                 ? DisplayStyle.None
                 : DisplayStyle.Flex;
-            SetControls(false);
-            _lifecycle.Enter(() => SetControls(!_busy));
+            SetControls(!_busy);
             return true;
         }
 
@@ -470,11 +508,12 @@ namespace PowerMath.UI.MainMenu
             if (_busy) return;
             if (_panelHost.OpenPanel == MainMenuPanelId.Rebirth)
             {
-                _lifecycle.Exit(() =>
-                    _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth));
+                _panelHost.TryClose(MainMenuPanelId.Rebirth, _rebirth);
             }
             else if (_panelHost.OpenPanel == MainMenuPanelId.None)
-                _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            {
+                HideInitially();
+            }
             _pendingSettlement = null;
             _pendingPreview = default;
             SetConfirmText("Rebirth");
@@ -611,8 +650,6 @@ namespace PowerMath.UI.MainMenu
 
         private IEnumerator PlayResetTransition()
         {
-            _lifecycle.Exit();
-            while (!_lifecycle.IsStable) yield return null;
             _panelHost.ForceCloseAll();
 
             _resetTransitionLayer.RemoveFromClassList("is-hidden");
@@ -736,7 +773,9 @@ namespace PowerMath.UI.MainMenu
 
         private void HideInitially()
         {
-            _lifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            _modal.EnableInClassList("is-hidden", true);
+            _modal.style.display = DisplayStyle.None;
+            _modal.style.visibility = Visibility.Hidden;
         }
 
         private void SetSemanticState(string state = null)

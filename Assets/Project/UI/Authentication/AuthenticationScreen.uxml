@@ -1,4 +1,5 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="AnnouncementBoard" src="project://database/Assets/Project/UI/Authentication/AnnouncementBoard.uxml?fileID=9197481963319205126&amp;guid=9265f24d96c44e7f92943fce2d000d6c&amp;type=3#AnnouncementBoard"/>
     <ui:Template name="SettingsPanel" src="project://database/Assets/Project/UI/Shared/SettingsPanel.uxml?fileID=9197481963319205126&amp;guid=6089f111ac2aff14e97208a7fbf64c95&amp;type=3#SettingsPanel"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldControls.uss?fileID=7433441132597879392&amp;guid=0a8215442f910a4479ac54be6c38cc6c&amp;type=3#MathWorldControls"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
@@ -6,33 +7,33 @@
     <Style src="project://database/Assets/Project/UI/Authentication/AuthenticationScreen.uss?fileID=7433441132597879392&amp;guid=9f1b74330a223c54aaa2e321b93f1f97&amp;type=3#AuthenticationScreen"/>
     <ui:VisualElement name="Authentication / Desktop / 1680x945" enabled="true" class="mw-screen auth-root is-ready" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;); background-image: none;">
         <ui:VisualElement name="Background Artwork / Reference" enabled="true" picking-mode="Ignore" class="auth-background" style="background-image: none;"/>
-        <ui:VisualElement name="safe-area" class="mw-safe-area auth-safe-area">
-            <ui:VisualElement name="Logo" picking-mode="Ignore" class="auth-logo"/>
-            <ui:VisualElement name="Authentication border" picking-mode="Ignore" class="auth-border" style="padding-left: 3px; padding-right: 3px; padding-bottom: 3px; padding-top: 3px; border-top-left-radius: 30px; border-top-right-radius: 30px; border-bottom-right-radius: 30px; border-bottom-left-radius: 30px;">
-                <ui:VisualElement name="Authentication Card" class="mw-card auth-card" style="padding-bottom: 17px;">
-                    <ui:VisualElement name="Ornament / Celestial Divider" class="auth-celestial-divider" style="flex-grow: 1;">
-                        <ui:VisualElement name="Divider / Left" class="auth-divider-line"/>
-                        <PowerMath.UI.Core.StageInfoVectorPath name="Vector" class="generic-star" style="height: 20px; width: 20px;"/>
-                        <ui:VisualElement name="Divider / Right" class="auth-divider-line"/>
+        <ui:VisualElement name="safe-area" class="mw-safe-area auth-safe-area" style="bottom: 0;">
+            <ui:VisualElement name="Logo" picking-mode="Ignore" class="auth-logo" style="top: 13%; left: 50%; height: 190px; width: 564px;"/>
+            <ui:VisualElement name="Authentication border" picking-mode="Ignore" class="auth-border" style="padding-left: 3px; padding-right: 3px; padding-bottom: 3px; padding-top: 3px; border-top-left-radius: 32px; border-top-right-radius: 32px; border-bottom-right-radius: 32px; border-bottom-left-radius: 32px; top: 30%; left: 50%; right: 0; bottom: -560px; position: relative; flex-shrink: 1; flex-basis: 0; align-items: stretch; align-content: flex-start; align-self: flex-start; justify-content: flex-start;">
+                <ui:VisualElement name="Authentication Card" class="mw-card auth-card" style="padding-bottom: 17px; height: 551px; width: 500px;">
+                    <ui:VisualElement name="Ornament / Celestial Divider" class="auth-celestial-divider" style="flex-grow: 1; width: 360px; margin-bottom: 0;">
+                        <ui:VisualElement name="Divider / Left" class="auth-divider-line" style="height: 1.5px; width: 200px;"/>
+                        <PowerMath.UI.Core.StageInfoVectorPath name="Vector" class="generic-star" style="height: 24px; width: 24px;"/>
+                        <ui:VisualElement name="Divider / Right" class="auth-divider-line" style="width: 200px;"/>
                     </ui:VisualElement>
-                    <ui:Label name="Title / Sign In" text="SIGN IN" class="loc-auth.title mw-title auth-title" style="flex-grow: 1; flex-shrink: 1;"/>
-                    <ui:VisualElement name="Input / Email" class="auth-input-wrapper" style="flex-grow: 1;">
+                    <ui:Label name="Title / Sign In" text="SIGN IN" class="loc-auth.title mw-title auth-title" style="flex-grow: 1; flex-shrink: 1; margin-bottom: 0;"/>
+                    <ui:VisualElement name="Input / Email" class="auth-input-wrapper" style="flex-grow: 1; margin-bottom: 7px;">
                         <ui:TextField label="" name="username-field" max-length="64" placeholder-text="USER" hide-placeholder-on-focus="true" readonly="false" class="mw-field login-input auth-input-email" style="color: rgb(0, 0, 0);"/>
                     </ui:VisualElement>
-                    <ui:VisualElement name="Input / Password" class="auth-input-wrapper" style="flex-grow: 1;">
+                    <ui:VisualElement name="Input / Password" class="auth-input-wrapper" style="flex-grow: 1; margin-bottom: 7px;">
                         <ui:TextField label="" name="password-field" password="true" max-length="6" keyboard-type="NumberPad" placeholder-text="PASSWORD" hide-placeholder-on-focus="true" class="mw-field login-input auth-input-password"/>
                     </ui:VisualElement>
                     <ui:Toggle text="Remember this device" name="remember-device-toggle" value="false" class="remember-toggle" style="flex-grow: 1; flex-shrink: 1; translate: 0 -15px;"/>
-                    <ui:VisualElement name="Button / Enter" class="auth-button-wrapper" style="flex-grow: 1;">
+                    <ui:VisualElement name="Button / Enter" class="auth-button-wrapper" style="flex-grow: 1; margin-bottom: 0;">
                         <ui:Button name="login-button" class="mw-button mw-button--primary login-button">
                             <ui:Label text="ENTER" picking-mode="Ignore" class="login-button-text"/>
                             <ui:VisualElement picking-mode="Ignore" class="login-button-arrow-icon"/>
                         </ui:Button>
                     </ui:VisualElement>
-                    <ui:VisualElement name="Ornament / Bottom Divider" class="auth-bottom-divider" style="flex-grow: 1;">
-                        <ui:VisualElement name="Divider / Bottom Left" class="auth-bottom-line"/>
-                        <ui:VisualElement name="Ornament / Bottom Diamond" picking-mode="Ignore" class="auth-bottom-diamond-icon"/>
-                        <ui:VisualElement name="Divider / Bottom Right" class="auth-bottom-line"/>
+                    <ui:VisualElement name="Ornament / Bottom Divider" class="auth-bottom-divider" style="flex-grow: 1; margin-top: 0;">
+                        <ui:VisualElement name="Divider / Bottom Left" class="auth-bottom-line" style="width: 150px;"/>
+                        <ui:VisualElement name="Ornament / Bottom Diamond" picking-mode="Ignore" class="auth-bottom-diamond-icon" style="margin-right: 5px; margin-left: 5px;"/>
+                        <ui:VisualElement name="Divider / Bottom Right" class="auth-bottom-line" style="width: 150px;"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -46,8 +47,12 @@
             <ui:Button name="Utility / Settings" class="auth-utility auth-settings">
                 <ui:VisualElement picking-mode="Ignore" class="auth-settings-icon"/>
             </ui:Button>
-            <ui:Label name="Version" text="1.1" class="auth-version"/>
+            <ui:Button name="announcement-open-button" class="auth-utility auth-announcement-open">
+                <ui:Label text="!" picking-mode="Ignore" class="auth-announcement-symbol"/>
+            </ui:Button>
+            <ui:Label name="Version" text="1.2" class="auth-version"/>
         </ui:VisualElement>
         <ui:Instance template="SettingsPanel" picking-mode="Ignore" class="mw-template-fill"/>
+        <ui:Instance template="AnnouncementBoard" picking-mode="Ignore" class="mw-template-fill"/>
     </ui:VisualElement>
 </ui:UXML>

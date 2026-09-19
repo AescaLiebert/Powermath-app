@@ -1,0 +1,42 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/UI/Authentication/AnnouncementBoard.uss"/>
+    <ui:VisualElement name="announcement-overlay" class="announcement-overlay is-hidden">
+        <ui:VisualElement name="announcement-shield" class="announcement-shield"/>
+        <ui:VisualElement name="announcement-modal" class="announcement-modal mw-card">
+            <ui:VisualElement class="announcement-header">
+                <ui:VisualElement class="announcement-header-copy">
+                    <ui:Label name="announcement-board-title" text="ANNOUNCEMENTS" class="announcement-board-title"/>
+                    <ui:Label text="PATCH NOTES" class="announcement-kicker"/>
+                </ui:VisualElement>
+                <ui:Button name="announcement-close-button" text="CLOSE" class="mw-button announcement-close-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="announcement-body">
+                <ui:VisualElement class="announcement-patch-column">
+                    <ui:Label text="PATCHES" class="announcement-column-title"/>
+                    <ui:ScrollView name="announcement-patch-scroll" mode="Vertical" class="announcement-patch-scroll"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="announcement-content-column">
+                    <ui:VisualElement class="announcement-content-header">
+                        <ui:Label name="announcement-patch-title" text="Patch" class="announcement-patch-title"/>
+                        <ui:Label name="announcement-patch-meta" text="v1.1" class="announcement-patch-meta"/>
+                    </ui:VisualElement>
+                    <ui:ScrollView name="announcement-content-scroll" mode="Vertical" class="announcement-content-scroll">
+                        <ui:VisualElement name="announcement-content-root" class="announcement-content-root"/>
+                    </ui:ScrollView>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="announcement-footer">
+                <ui:Button name="announcement-suppress-button" text="DON'T SHOW AGAIN TODAY" class="mw-button announcement-suppress-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="announcement-confirmation" class="announcement-confirmation">
+                <ui:VisualElement class="announcement-confirm-card">
+                    <ui:Label name="announcement-confirm-text" text="Hide automatic announcements until tomorrow?" class="announcement-confirm-text"/>
+                    <ui:VisualElement class="announcement-confirm-actions">
+                        <ui:Button name="announcement-confirm-cancel" text="CANCEL" class="mw-button announcement-confirm-cancel"/>
+                        <ui:Button name="announcement-confirm-button" text="CONFIRM" class="mw-button mw-button--primary announcement-confirm-button"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

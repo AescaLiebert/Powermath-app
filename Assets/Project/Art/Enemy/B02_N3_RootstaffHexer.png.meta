@@ -11,9 +11,6 @@ TextureImporter:
   - first:
       213: -1479988504127758599
     second: B02_N3_RootstaffHexer_2
-  - first:
-      213: -85840891279835291
-    second: B02_N3_RootstaffHexer_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -58,7 +55,7 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 7
+  alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
@@ -125,10 +122,10 @@ TextureImporter:
       name: B02_N3_RootstaffHexer_0
       rect:
         serializedVersion: 2
-        x: 109
-        y: 433
-        width: 6
-        height: 9
+        x: 174
+        y: 501
+        width: 7
+        height: 10
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,10 +144,10 @@ TextureImporter:
       name: B02_N3_RootstaffHexer_1
       rect:
         serializedVersion: 2
-        x: 111
-        y: 15
-        width: 507
-        height: 505
+        x: 176
+        y: 4
+        width: 600
+        height: 599
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -169,10 +166,10 @@ TextureImporter:
       name: B02_N3_RootstaffHexer_2
       rect:
         serializedVersion: 2
-        x: 606
-        y: 267
-        width: 8
-        height: 9
+        x: 762
+        y: 304
+        width: 10
+        height: 10
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -183,28 +180,6 @@ TextureImporter:
       bones: []
       spriteID: 9fe9dcbfb46067be0800000000000000
       internalID: -1479988504127758599
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: B02_N3_RootstaffHexer_3
-      rect:
-        serializedVersion: 2
-        x: 356
-        y: 13
-        width: 26
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 56fff080a280fcef0800000000000000
-      internalID: -85840891279835291
       vertices: []
       indices: 
       edges: []
@@ -226,7 +201,6 @@ TextureImporter:
       B02_N3_RootstaffHexer_0: -8371001844363747848
       B02_N3_RootstaffHexer_1: -7717272146121280985
       B02_N3_RootstaffHexer_2: -1479988504127758599
-      B02_N3_RootstaffHexer_3: -85840891279835291
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

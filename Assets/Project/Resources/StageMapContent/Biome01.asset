@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Biome01
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.BiomeDefinition
   biomeId: biome-1
-  fallbackTitle: Teyvat
+  fallbackTitle: Oakhaven
+  secondaryTitle: Greenvile
   firstStage: 1
   lastStage: 30
   backgroundSprite: {fileID: -5691917114829102812, guid: 4c655f59c22e1f745bca3384985d9f48, type: 3}

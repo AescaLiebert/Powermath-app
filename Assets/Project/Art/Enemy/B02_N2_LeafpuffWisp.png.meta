@@ -8,6 +8,9 @@ TextureImporter:
   - first:
       213: 6880368655670582038
     second: B02_N2_LeafpuffWisp_1
+  - first:
+      213: 210047129584761777
+    second: B02_N2_LeafpuffWisp_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +55,7 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 7
+  alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
@@ -119,10 +122,10 @@ TextureImporter:
       name: B02_N2_LeafpuffWisp_0
       rect:
         serializedVersion: 2
-        x: 204
-        y: 89
-        width: 387
-        height: 360
+        x: 298
+        y: 95
+        width: 458
+        height: 398
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,10 +144,10 @@ TextureImporter:
       name: B02_N2_LeafpuffWisp_1
       rect:
         serializedVersion: 2
-        x: 265
-        y: 35
-        width: 270
-        height: 55
+        x: 465
+        y: 80
+        width: 9
+        height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -155,6 +158,28 @@ TextureImporter:
       bones: []
       spriteID: 61b1afca6dafb7f50800000000000000
       internalID: 6880368655670582038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B02_N2_LeafpuffWisp_2
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 2
+        width: 320
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bb7df060cc3ae200800000000000000
+      internalID: 210047129584761777
       vertices: []
       indices: 
       edges: []
@@ -175,6 +200,7 @@ TextureImporter:
     nameFileIdTable:
       B02_N2_LeafpuffWisp_0: -3574136176784402015
       B02_N2_LeafpuffWisp_1: 6880368655670582038
+      B02_N2_LeafpuffWisp_2: 210047129584761777
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

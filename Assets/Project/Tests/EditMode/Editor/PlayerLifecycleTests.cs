@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
+using PowerMath.Gameplay.Pets;
+using PowerMath.Gameplay.Progression;
+using PowerMath.Gameplay.Tutorial;
 using PowerMath.PlayerData;
 using PowerMath.Session;
 using PowerMath.Bootstrap;
@@ -32,14 +36,75 @@ namespace PowerMath.Tests.EditMode
                 Student("\"gamedata\":{\"mapValue\":{\"fields\":{\"wallet\":{\"stringValue\":\"broken\"}}}}"), "student"));
         }
         [Test]
+        public void EmptyMapInFirestoreDoesNotFailValidation()
+        {
+            var student = Student("\"gamedata\":{\"mapValue\":{\"fields\":{\"tutorialMap\":{\"mapValue\":{}}}}}");
+            Assert.DoesNotThrow(() => PlayerDefaultsPlanner.Plan(student, "student"));
+        }
+
+        [Test]
+        public void NewUserWithEmptyTutorialMapMapsSafely()
+        {
+            var student = Student("\"gamedata\":{\"mapValue\":{\"fields\":{\"tutorialMap\":{\"mapValue\":{}},\"schemaVersion\":{\"integerValue\":\"5\"}}}}");
+            Assert.DoesNotThrow(() => PlayerDefaultsPlanner.Plan(student, "newuser"));
+            bool mapped = FirestoreRestClient.TryMapPlayer("newuser", "level-1", "Grade 4-6", student, out var player);
+            Assert.IsTrue(mapped);
+            Assert.IsNotNull(player);
+            Assert.IsNotNull(player.tutorialEntries);
+            Assert.AreEqual(0, player.tutorialEntries.Length);
+        }
+
+        [Test]
+        public void PopulatedTutorialMapMapsCorrectly()
+        {
+            var student = Student("\"gamedata\":{\"mapValue\":{\"fields\":{\"schemaVersion\":{\"integerValue\":\"5\"},\"tutorialMap\":{\"mapValue\":{\"fields\":{\"OnFirstCreate\":{\"mapValue\":{\"fields\":{\"version\":{\"integerValue\":\"1\"},\"status\":{\"stringValue\":\"Active\"},\"currentStepId\":{\"stringValue\":\"step-1\"}}}}}}}}}}");
+            bool mapped = FirestoreRestClient.TryMapPlayer("user1", "level-1", "Grade 4-6", student, out var player);
+            Assert.IsTrue(mapped);
+            Assert.IsNotNull(player);
+            Assert.IsNotNull(player.tutorialEntries);
+            Assert.AreEqual(1, player.tutorialEntries.Length);
+            Assert.AreEqual("OnFirstCreate", player.tutorialEntries[0].tutorialId);
+            Assert.AreEqual(1, player.tutorialEntries[0].version);
+            Assert.AreEqual("Active", player.tutorialEntries[0].status);
+            Assert.AreEqual("step-1", player.tutorialEntries[0].currentStepId);
+        }
+        [Test]
         public void MigrationPreservesPendingReceiptAndRejectsUnsupportedTargets()
         {
             var receipt = new PlayerSnapshot.AttemptPresentationData { attemptId = "attempt" };
             var player = new PlayerSnapshot { activeRun = new PlayerSnapshot.ActiveRunData { pendingPresentation = receipt } };
-            PlayerSchemaMigrator.Migrate(player, 1, 3);
+            PlayerSchemaMigrator.Migrate(player, 1, PlayerSchemaMigrator.CurrentSchemaVersion);
             Assert.AreSame(receipt, player.activeRun.pendingPresentation);
             Assert.Throws<NotSupportedException>(() => PlayerSchemaMigrator.Migrate(player, 3, 2));
-            Assert.Throws<NotSupportedException>(() => PlayerSchemaMigrator.Migrate(player, 4, 4));
+            int future = PlayerSchemaMigrator.CurrentSchemaVersion + 1;
+            Assert.Throws<NotSupportedException>(() =>
+                PlayerSchemaMigrator.Migrate(player, future, future));
+        }
+
+        [Test]
+        public void PetEventMultiplier_UsesUniqueOwnedSsrPassivesOnly()
+        {
+            var ssr = new PetGachaPet("ssr-a", "SSR A", 1, 0d, 2500);
+            var rare = new PetGachaPet("rare-a", "Rare A", 1, 0d, 9000);
+            var catalog = new PetGachaCatalog("pets-v1", new[]
+            {
+                new PetGachaRarity("rare", "Rare", 9700,
+                    new List<PetGachaPet> { rare }),
+                new PetGachaRarity("ssr", "SSR", 300,
+                    new List<PetGachaPet> { ssr })
+            });
+            var player = new PlayerSnapshot
+            {
+                inventory = new[]
+                {
+                    new PlayerSnapshot.InventoryItemData { itemId = "ssr-a", owned = true },
+                    new PlayerSnapshot.InventoryItemData { itemId = "ssr-a", owned = true },
+                    new PlayerSnapshot.InventoryItemData { itemId = "rare-a", owned = true }
+                }
+            };
+
+            Assert.That(PetCollectionEventMultiplierPolicy.Calculate(player, catalog),
+                Is.EqualTo(12500));
         }
         [Test]
         public void CompletionRetriesDoNotGrantOrResetAnything()
@@ -109,6 +174,104 @@ namespace PowerMath.Tests.EditMode
         }
 
         [Test]
+        public void NullStringFieldInPlayerDataIsRepairedSafely()
+        {
+            var student = Student("\"gamedata\":{\"mapValue\":{\"fields\":{\"activeRun\":{\"mapValue\":{\"fields\":{\"committedAttemptId\":{\"nullValue\":null}}}}}}}");
+            var plan = PlayerDefaultsPlanner.Plan(student, "student");
+            bool containsAttemptId = false;
+            foreach (string path in plan.FieldPaths)
+            {
+                if (path.IndexOf("activeRun.committedAttemptId", StringComparison.Ordinal) >= 0)
+                {
+                    containsAttemptId = true;
+                    break;
+                }
+            }
+            Assert.IsTrue(containsAttemptId);
+        }
+
+        [Test]
+        public void TutorialMigrationAndDefaultsCreateAnEmptyDynamicMap()
+        {
+            var player = new PlayerSnapshot();
+            PlayerSchemaMigrator.Migrate(player, 4,
+                PlayerSchemaMigrator.CurrentSchemaVersion);
+
+            Assert.That(player.tutorialEntries, Is.Not.Null);
+            Assert.That(player.tutorialEntries, Is.Empty);
+
+            var plan = PlayerDefaultsPlanner.Plan(
+                Student("\"gamedata\":{\"mapValue\":{\"fields\":{\"schemaVersion\":{\"integerValue\":\"4\"}}}}"),
+                "student");
+            Assert.That(plan.FieldPaths, Does.Contain("gamedata.tutorialMap"));
+            StringAssert.Contains("\"tutorialMap\":{\"mapValue\":{\"fields\":{}}}",
+                plan.ToJson());
+        }
+
+        [Test]
+        public void V5CommittedNormalEncounter_RestoresItsPrematurelySpentCooldown()
+        {
+            var player = new PlayerSnapshot
+            {
+                activeRun = new PlayerSnapshot.ActiveRunData
+                {
+                    encounterKind = "NormalMonster",
+                    phase = "Committed",
+                    enemyRemainingCooldown = 1,
+                    enemyMaximumCooldown = 3
+                }
+            };
+
+            PlayerSchemaMigrator.Migrate(player, 5, 6);
+
+            Assert.That(player.schemaVersion, Is.EqualTo(6));
+            Assert.That(player.activeRun.enemyRemainingCooldown, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void TutorialTransitionWritesVersionedIdempotentEntry()
+        {
+            PlayerSnapshot player = Ready();
+            var command = TutorialCommand(player, TutorialStatus.Active,
+                "guide-attack", "attempt-1");
+
+            FirestorePatchPlan plan = PlayerLifecyclePolicy.Plan(
+                player, "student", command);
+
+            Assert.That(plan.FieldPaths,
+                Does.Contain("gamedata.tutorialMap.OnFirstCreate.currentStepId"));
+            Assert.That(plan.FieldPaths,
+                Does.Contain("gamedata.tutorialMap.OnFirstCreate.lastOperationId"));
+            StringAssert.Contains("\"stringValue\":\"guide-attack\"", plan.ToJson());
+
+            TutorialProgressPolicy.ApplyToSnapshot(player, command);
+            player.revision++;
+            Assert.That(PlayerLifecyclePolicy.Plan(player, "student", command).IsEmpty,
+                Is.True);
+        }
+
+        [Test]
+        public void CompletedTutorialCannotBeReopened()
+        {
+            PlayerSnapshot player = Ready();
+            player.tutorialEntries = new[]
+            {
+                new PlayerSnapshot.TutorialEntryData
+                {
+                    tutorialId = "OnFirstCreate",
+                    version = 1,
+                    status = TutorialStatus.Completed.ToString(),
+                    currentStepId = "threat-handoff"
+                }
+            };
+            PlayerLifecycleCommand command = TutorialCommand(
+                player, TutorialStatus.Active, "welcome-new", string.Empty);
+
+            Assert.Throws<InvalidOperationException>(() =>
+                PlayerLifecyclePolicy.Plan(player, "student", command));
+        }
+
+        [Test]
         public void CharacterPresentationBinding_DoesNotApplyToBackgroundGameObject()
         {
             var go = new UnityEngine.GameObject("bg", typeof(UnityEngine.RectTransform), typeof(UnityEngine.UI.Image));
@@ -137,6 +300,25 @@ namespace PowerMath.Tests.EditMode
             kind = PlayerLifecycleCommandKind.CompletePreparation, playerId = player.playerId,
             expectedRevision = player.revision, operationId = Guid.NewGuid().ToString("N"),
             value = "stellar", displayName = "ผู้กล้า"
+        };
+
+        private static PlayerLifecycleCommand TutorialCommand(
+            PlayerSnapshot player,
+            TutorialStatus status,
+            string stepId,
+            string transactionId) => new PlayerLifecycleCommand
+        {
+            kind = PlayerLifecycleCommandKind.AdvanceTutorial,
+            playerId = player.playerId,
+            expectedRevision = player.revision,
+            operationId = Guid.NewGuid().ToString("N"),
+            value = "OnFirstCreate",
+            tutorialVersion = 1,
+            tutorialStatus = status.ToString(),
+            tutorialStepId = stepId,
+            tutorialTriggerRecordedAtUnixSeconds = 100,
+            tutorialLastTransactionId = transactionId,
+            tutorialFirstAttemptOutcome = TutorialAttemptOutcome.None.ToString()
         };
     }
 }

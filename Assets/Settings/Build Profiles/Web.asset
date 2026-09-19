@@ -68,7 +68,8 @@ MonoBehaviour:
     - line: '|   - logo: {fileID: 21300000, guid: 6840f9b39cbe900488da86a4453a15f0,
         type: 3}'
     - line: '|     duration: 2'
-    - line: '|   m_VirtualRealitySplashScreen: {instanceID: 0}'
+    - line: '|   m_VirtualRealitySplashScreen: {fileID: 2800000, guid: 563b4ef8e5bc01c4988f2986dc8977d7,
+        type: 3}'
     - line: '|   defaultScreenWidth: 1920'
     - line: '|   defaultScreenHeight: 1080'
     - line: '|   defaultScreenWidthWeb: 1920'
@@ -176,7 +177,7 @@ MonoBehaviour:
     - line: '|   loadStoreDebugModeEnabled: 0'
     - line: '|   visionOSBundleVersion: 1.0'
     - line: '|   tvOSBundleVersion: 1.0'
-    - line: '|   bundleVersion: 1.01'
+    - line: '|   bundleVersion: 1.2'
     - line: '|   preloadedAssets:'
     - line: '|   - {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100,
         type: 3}'
@@ -604,7 +605,7 @@ MonoBehaviour:
     - line: '|   splashScreenBackgroundSourcePortrait: {instanceID: 0}'
     - line: '|   blurSplashScreenBackground: 1'
     - line: '|   spritePackerPolicy: '
-    - line: '|   webGLMemorySize: 32'
+    - line: '|   webGLMemorySize: 512'
     - line: '|   webGLExceptionSupport: 2'
     - line: '|   webGLNameFilesAsHashes: 0'
     - line: '|   webGLShowDiagnostics: 0'
@@ -620,7 +621,7 @@ MonoBehaviour:
     - line: '|   webGLLinkerTarget: 1'
     - line: '|   webGLThreadsSupport: 0'
     - line: '|   webGLDecompressionFallback: 1'
-    - line: '|   webGLInitialMemorySize: 256'
+    - line: '|   webGLInitialMemorySize: 512'
     - line: '|   webGLMaximumMemorySize: 2048'
     - line: '|   webGLMemoryGrowthMode: 2'
     - line: '|   webGLMemoryLinearGrowthStep: 16'

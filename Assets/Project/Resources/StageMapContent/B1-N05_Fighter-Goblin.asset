@@ -20,7 +20,7 @@ MonoBehaviour:
   baseHp: 30
   maximumCooldown: 5
   hpMultiplierBasisPoints: 10000
-  enemySprite: {fileID: 21300000, guid: c24ba8b1a6a2f2c438fc3a4324939d6c, type: 3}
+  enemySprite: {fileID: 21300000, guid: a3091eed268fe2447b38fe70372c19a1, type: 3}
   customBattleMusic:
     clip: {fileID: 0}
     volumeScale: 1

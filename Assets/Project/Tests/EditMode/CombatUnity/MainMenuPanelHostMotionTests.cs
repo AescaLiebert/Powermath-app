@@ -37,14 +37,18 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         {
             int closeCount = 0;
             _host.PanelClosed += _ => closeCount++;
+            var child = new VisualElement { pickingMode = PickingMode.Position };
+            _panel.Add(child);
 
             Assert.That(_host.TryOpen(
                 MainMenuPanelId.PlayerHub,
                 _panel,
                 null), Is.True);
             Assert.That(_panel.pickingMode, Is.EqualTo(PickingMode.Ignore));
+            Assert.That(child.pickingMode, Is.EqualTo(PickingMode.Position));
             _driver.Complete();
             Assert.That(_panel.pickingMode, Is.EqualTo(PickingMode.Position));
+            Assert.That(child.pickingMode, Is.EqualTo(PickingMode.Position));
 
             Assert.That(_host.TryClose(
                 MainMenuPanelId.PlayerHub,
@@ -53,12 +57,15 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 _host.OpenPanel,
                 Is.EqualTo(MainMenuPanelId.PlayerHub));
             Assert.That(_panel.pickingMode, Is.EqualTo(PickingMode.Ignore));
+            Assert.That(child.pickingMode, Is.EqualTo(PickingMode.Position));
             Assert.That(closeCount, Is.Zero);
 
             _driver.Complete();
 
             Assert.That(_host.OpenPanel, Is.EqualTo(MainMenuPanelId.None));
             Assert.That(_panel.style.display.value, Is.EqualTo(DisplayStyle.None));
+            Assert.That(_panel.style.visibility.value, Is.EqualTo(Visibility.Hidden));
+            Assert.That(child.pickingMode, Is.EqualTo(PickingMode.Position));
             Assert.That(closeCount, Is.EqualTo(1));
         }
 

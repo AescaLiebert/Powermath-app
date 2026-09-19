@@ -105,7 +105,7 @@
                         <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--hub"/>
                         <ui:Label name="Home Text Shadow" text="Home" picking-mode="Ignore" class="loc-menu.home hud-player-menu-card-label hud-player-menu-card-label--shadow" style="letter-spacing: -5px;"/>
                         <ui:Label name="Home Text" text="Home" picking-mode="Ignore" class="loc-menu.home hud-player-menu-card-label" style="letter-spacing: -5px;"/>
-                        <pm:ChainLockVectorElement name="player-hub-lock" picking-mode="Ignore" class="hud-chain-lock-overlay"/>
+                        <pm:ChainLockVectorElement name="player-hub-lock" picking-mode="Ignore" class="hud-chain-lock-overlay" style="display: none;"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="pet-gacha-button" text="" tooltip="Pet Gacha" class="hud-player-menu-button hud-player-menu-button--gacha">
@@ -116,7 +116,7 @@
                         <ui:VisualElement name="image 1" picking-mode="Ignore" class="hud-player-menu-card-icon hud-player-menu-card-icon--gacha"/>
                         <ui:Label name="Summon Text Shadow" text="Summon" picking-mode="Ignore" class="loc-menu.summon hud-player-menu-card-label hud-player-menu-card-label--shadow" style="letter-spacing: -5px;"/>
                         <ui:Label name="Summon Text" text="Summon" picking-mode="Ignore" class="loc-menu.summon hud-player-menu-card-label" style="letter-spacing: -5px;"/>
-                        <pm:ChainLockVectorElement name="pet-gacha-lock" picking-mode="Ignore" class="hud-chain-lock-overlay"/>
+                        <pm:ChainLockVectorElement name="pet-gacha-lock" picking-mode="Ignore" class="hud-chain-lock-overlay" style="display: none;"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="rebirth-button" text="" tooltip="Rebirth" class="hud-player-menu-button hud-player-menu-button--rebirth">

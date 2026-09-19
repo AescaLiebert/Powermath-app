@@ -147,5 +147,5 @@ const server = http.createServer(async (request, response) => {
 
 server.listen(PORT, "localhost", () => {
     console.log(`PowerMath Figma Bridge: http://localhost:${PORT}`);
-    console.log(`Token: ${BRIDGE_TOKEN}`);
+    console.log("Token: configured");
 });

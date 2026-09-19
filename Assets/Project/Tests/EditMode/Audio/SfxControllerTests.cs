@@ -155,10 +155,30 @@ namespace PowerMath.Tests.EditMode.Audio
             UiAnimationSfxStyle resolved = _library.FindUiStyle("btn-primary");
             Assert.That(resolved, Is.Not.Null);
             Assert.That(resolved.ClickSfx.HasClip(), Is.True);
+            Assert.That(_library.FindUiStyle(".btn-primary"), Is.Not.Null);
 
             Assert.DoesNotThrow(() => _controller.PlayUiStyle("btn-primary", isClick: true));
             Assert.DoesNotThrow(() => _controller.PlayUiStyle("btn-primary", isClick: false));
             Assert.DoesNotThrow(() => _controller.PlayUiStyle("unknown-style", isClick: true));
+            Assert.DoesNotThrow(() => _controller.PlayPanelOpen());
+            Assert.DoesNotThrow(() => _controller.PlayPanelClose());
+        }
+
+        [Test]
+        public void UiSfxAudioBinder_PrioritizesSpecificCustomStyles_OverDefaultStyles()
+        {
+            var root = new UnityEngine.UIElements.VisualElement();
+            var btn = new UnityEngine.UIElements.Button();
+            btn.AddToClassList("hud-player-menu-button");
+            btn.AddToClassList("hud-player-menu-button--hub");
+            root.Add(btn);
+
+            var hubStyle = new UiAnimationSfxStyle("hud-player-menu-button--hub", null, new SfxCueConfig(AudioClip.Create("HubClick", 10, 1, 22050, false)));
+            var stylesField = typeof(SfxLibraryDefinition).GetField("uiStyles", BindingFlags.NonPublic | BindingFlags.Instance);
+            stylesField?.SetValue(_library, new[] { hubStyle });
+
+            Assert.DoesNotThrow(() => UiSfxAudioBinder.Bind(root, _library));
+            Assert.That(btn.ClassListContains("sfx-audio-bound"), Is.True);
         }
 
         private sealed class DummyEnemySfxProfile : IEnemySfxProfile

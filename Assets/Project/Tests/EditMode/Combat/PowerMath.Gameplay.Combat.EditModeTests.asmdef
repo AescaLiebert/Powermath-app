@@ -5,7 +5,8 @@
     "PowerMath.Gameplay.Combat.Core",
     "PowerMath.Gameplay.Combat.Presentation.Core",
     "PowerMath.Gameplay.Academic.Core",
-    "PowerMath.Gameplay.Academic.Infrastructure"
+    "PowerMath.Gameplay.Academic.Infrastructure",
+    "PowerMath.Gameplay.Pets.Core"
   ],
   "includePlatforms": [
     "Editor"

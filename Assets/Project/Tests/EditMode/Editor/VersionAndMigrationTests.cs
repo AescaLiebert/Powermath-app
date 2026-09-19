@@ -124,6 +124,7 @@ namespace PowerMath.Tests.EditMode
             Assert.That(snapshot.progression.currentStage, Is.EqualTo(1));
             Assert.That(snapshot.wallet, Is.Not.Null);
             Assert.That(snapshot.wallet.silver, Is.EqualTo(0));
+
             Assert.That(snapshot.activeRun, Is.Not.Null);
             Assert.That(snapshot.activeRun.currentStage, Is.EqualTo(1));
             Assert.That(snapshot.academic, Is.Not.Null);
@@ -150,7 +151,26 @@ namespace PowerMath.Tests.EditMode
             Assert.That(migrated.activeRun.pendingPresentation, Is.Null);
             Assert.That(migrated.lastRunSettlement.presentationStatus,
                 Is.EqualTo("None"));
-            Assert.That(PlayerSessionStore.SupportedSchemaVersion, Is.EqualTo(3));
+            Assert.That(PlayerSessionStore.SupportedSchemaVersion,
+                Is.EqualTo(PlayerSchemaMigrator.CurrentSchemaVersion));
+        }
+
+        [Test]
+        public void VersionManifest_MatchesCurrentSchemaVersion()
+        {
+            string manifestPath = System.IO.Path.GetFullPath(
+                System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", "Cloudflare", "public", "version.json"));
+            if (!System.IO.File.Exists(manifestPath))
+            {
+                Assert.Ignore("Cloudflare version.json manifest not found at: " + manifestPath);
+                return;
+            }
+
+            string json = System.IO.File.ReadAllText(manifestPath);
+            var manifest = UnityEngine.JsonUtility.FromJson<GameVersionManifest>(json);
+            Assert.That(manifest, Is.Not.Null);
+            Assert.That(manifest.schemaVersion, Is.EqualTo(PlayerSchemaMigrator.CurrentSchemaVersion),
+                $"Cloudflare/public/version.json schemaVersion ({manifest.schemaVersion}) must match PlayerSchemaMigrator.CurrentSchemaVersion ({PlayerSchemaMigrator.CurrentSchemaVersion}).");
         }
     }
 }

@@ -1,0 +1,258 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74ac30f645954fc385029912a9d513f4, type: 3}
+  m_Name: OnFirstCreate
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.MainMenu.Tutorial.TutorialSequenceDefinition
+  tutorialId: OnFirstCreate
+  version: 1
+  enabledForPlayers: 1
+  startStepId: welcome-new
+  returningStartStepId: welcome-returning
+  prerequisiteTutorialIds: []
+  steps:
+  - id: welcome-new
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.welcomeNew
+    emotionId: grateful
+    spriteResourcePath: Character/Sticker_Power_Cheerful
+    audioCueId: S1_01_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: math-world
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: welcome-returning
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.welcomeReturning
+    emotionId: welcoming
+    spriteResourcePath: Character/Sticker_Power_Cheerful
+    audioCueId: S1_02_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: math-world
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: math-world
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.mathWorld
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S1_03_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: threat-comfront
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: threat-comfront
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.threatComfront
+    emotionId: scared
+    spriteResourcePath: Character/Sticker_Power_Scared
+    audioCueId: S1_04_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: guide-attack
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: guide-attack
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.attackPrompt
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: combat.enemy
+    fallbackTargetId: combat.attack
+    hidesPresentation: 1
+    rules:
+    - signal: 3
+      nextStepId: wait-first-result
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-first-result
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 4
+      nextStepId: first-try-correct
+      targetId: 
+      requiredOutcome: 1
+      requireMatchingTransaction: 1
+      requireDifferentEncounter: 0
+      completesSequence: 0
+    - signal: 4
+      nextStepId: first-try-incorrect
+      targetId: 
+      requiredOutcome: 2
+      requireMatchingTransaction: 1
+      requireDifferentEncounter: 0
+      completesSequence: 0
+    - signal: 4
+      nextStepId: first-try-timeout
+      targetId: 
+      requiredOutcome: 3
+      requireMatchingTransaction: 1
+      requireDifferentEncounter: 0
+      completesSequence: 0
+    - signal: 4
+      nextStepId: first-try-abandoned
+      targetId: 
+      requiredOutcome: 4
+      requireMatchingTransaction: 1
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: first-try-correct
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.firstTryCorrect
+    emotionId: cheerful
+    spriteResourcePath: Character/Sticker_Power_Congrat
+    audioCueId: S1_05_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: wait-encounter-clear
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: first-try-incorrect
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.firstTryIncorrect
+    emotionId: supportive
+    spriteResourcePath: Character/Sticker_Power_SoHard
+    audioCueId: S1_06_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: wait-encounter-clear
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: first-try-timeout
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.firstTryTimeout
+    emotionId: supportive
+    spriteResourcePath: Character/Sticker_Power_SoHard
+    audioCueId: S1_07_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: wait-encounter-clear
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: first-try-abandoned
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.firstTryAbandoned
+    emotionId: supportive
+    spriteResourcePath: Character/Sticker_Power_Cheerful
+    audioCueId: tutorial-support
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: wait-encounter-clear
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-encounter-clear
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 5
+      nextStepId: threat-handoff
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 1
+      completesSequence: 0
+  - id: threat-handoff
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstCreate.threatHandoff
+    emotionId: scared
+    spriteResourcePath: Character/Sticker_Power_Scared
+    audioCueId: S1_08_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: 
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 1

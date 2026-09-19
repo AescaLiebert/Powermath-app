@@ -46,6 +46,30 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             }
         }
 
+        [Test]
+        public void BiomeDefinition_UsesSecondaryOfficialTitleFromExactMidpoint()
+        {
+            var biome = ScriptableObject.CreateInstance<BiomeDefinition>();
+            try
+            {
+                SetPrivateField(biome, "firstStage", 1);
+                SetPrivateField(biome, "lastStage", 30);
+                SetPrivateField(biome, "fallbackTitle", "Official Meadow");
+                SetPrivateField(biome, "secondaryTitle", "Midway Meadow");
+
+                Assert.That(biome.ResolveTitle(15), Is.EqualTo("Official Meadow"));
+                Assert.That(biome.ResolveTitle(16), Is.EqualTo("Midway Meadow"));
+                Assert.That(biome.ResolveTitle(30), Is.EqualTo("Midway Meadow"));
+
+                SetPrivateField(biome, "secondaryTitle", string.Empty);
+                Assert.That(biome.ResolveTitle(30), Is.EqualTo("Official Meadow"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(biome);
+            }
+        }
+
         private static void SetPrivateField<T>(BiomeDefinition target, string name, T value)
         {
             FieldInfo field = typeof(BiomeDefinition).GetField(
@@ -640,6 +664,51 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(renderedBiome, Is.Null);
             Assert.That(renderedEncounter, Is.Null,
                 "The encounter belongs to the subsequent entrance, after the title exits.");
+            (routine as System.IDisposable)?.Dispose();
+        }
+
+        [Test]
+        public void PlayBiomeTransition_MidpointStage_SetsEnteringNewAreaKicker()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml
+            );
+            VisualElement root = asset.CloneTree();
+            using var view = new CombatLobbyView(root, reducedMotion: true);
+
+            StageMapData stageMap = DevelopmentStageMapFactory.Create();
+            view.ConfigureStageMap(
+                stageMap,
+                _ => { },
+                _ => { },
+                (_, __) => null
+            );
+
+            var destinationSnapshot = new CombatSnapshot(
+                new StageId(16),
+                "biome-1-scout",
+                "Scout",
+                80,
+                80,
+                3,
+                3,
+                3,
+                3,
+                CombatPhase.EnemyReady,
+                false,
+                "biome-1",
+                "Greenvile",
+                StageEncounterKind.NormalMonster,
+                string.Empty,
+                0
+            );
+
+            var routine = view.PlayBiomeTransition(destinationSnapshot);
+            Assert.That(routine.MoveNext(), Is.True);
+
+            Assert.That(root.Q<Label>("combat-biome-transition-title").text, Is.EqualTo("GREENVILE"));
+            Assert.That(root.Q<Label>("combat-biome-transition-kicker").text,
+                Is.EqualTo("ENTERING NEW AREA"));
             (routine as System.IDisposable)?.Dispose();
         }
 

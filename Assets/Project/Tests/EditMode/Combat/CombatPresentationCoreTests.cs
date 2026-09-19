@@ -82,9 +82,48 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [Test]
+        public void PlanBuilder_ChallengeFailure_ConsumesFleeAndAdvances()
+        {
+            var source = new CombatPresentationSnapshot(
+                new StageId(7), "biome-a", "challenge-monster",
+                StageEncounterKind.ChallengeEvent,
+                1, 1, 0, 0, 3, 3, CombatPhase.Committed);
+            var destination = new CombatPresentationSnapshot(
+                new StageId(8), "biome-a", "enemy-b",
+                StageEncounterKind.NormalMonster,
+                10, 10, 2, 2, 3, 3, CombatPhase.PresentingResult);
+            var receipt = new AttemptPresentationReceipt(
+                "presentation-flee", "attempt-flee",
+                AttemptOutcomeKind.Incorrect, 0, 0, false,
+                source, destination, 1,
+                false, false, false, true, false, default,
+                enemyFled: true,
+                powerCoinsGranted: 10,
+                resultingPowerCoins: 25);
+
+            CombatPresentationPlan plan = new CombatPresentationPlanBuilder().Build(receipt);
+
+            Assert.That(Count(plan, PresentationActionKind.EnemyFlee), Is.EqualTo(1));
+            Assert.That(Count(plan, PresentationActionKind.EnemyAttack), Is.Zero);
+            Assert.That(Find(plan, PresentationActionKind.ConsumeEnemyAction)
+                .Payload.Semantic, Is.EqualTo(EnemyActionTokenKind.Flee.ToString()));
+            Assert.That(IndexOf(plan, PresentationActionKind.EnemyFlee),
+                Is.LessThan(IndexOf(plan, PresentationActionKind.EnemyAppear)));
+        }
+
+        [Test]
         public void Receipt_RejectsUnknownVersion()
         {
             Assert.Throws<System.ArgumentException>(() => CreateReceipt(version: 99));
+        }
+
+        [Test]
+        public void Receipt_AcceptsPreviousSupportedVersion()
+        {
+            AttemptPresentationReceipt receipt = CreateReceipt(
+                version: AttemptPresentationReceipt.MinimumSupportedVersion);
+
+            Assert.That(receipt.TryValidate(out string error), Is.True, error);
         }
 
         [Test]

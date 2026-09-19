@@ -66,7 +66,10 @@ namespace PowerMath.Audio
             if (_instance != null) return _instance;
 
             GameObject go = new GameObject("GameSfxController");
-            DontDestroyOnLoad(go);
+            if (Application.isPlaying)
+            {
+                DontDestroyOnLoad(go);
+            }
             _instance = go.AddComponent<SfxController>();
             return _instance;
         }
@@ -80,7 +83,10 @@ namespace PowerMath.Audio
             }
 
             _instance = this;
-            DontDestroyOnLoad(gameObject);
+            if (Application.isPlaying)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
 
             EnsureLibrary();
             InitializeVoices();
@@ -438,6 +444,18 @@ namespace PowerMath.Audio
 
             // Generic procedural UI fallback
             PlayCueWithFallback(null, isClick ? "click" : "tick");
+        }
+
+        public void PlayPanelOpen()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.QuestionPopUp, "popup");
+        }
+
+        public void PlayPanelClose()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.UiNavigationBack, "click");
         }
     }
 }

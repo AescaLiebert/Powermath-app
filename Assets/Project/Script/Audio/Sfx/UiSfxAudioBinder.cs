@@ -24,7 +24,10 @@ namespace PowerMath.Audio
             "leaderboard-icon-button",
             "settings-tab",
             "settings-action",
-            "settings-close"
+            "settings-close",
+            "rebirth-action-button",
+            "rebirth-close-button",
+            "rebirth-continue-button"
         };
 
         public static void Bind(VisualElement root, SfxLibraryDefinition library = null)
@@ -33,12 +36,9 @@ namespace PowerMath.Audio
 
             SfxLibraryDefinition lib = library ?? SfxController.Instance?.Library;
 
-            // Gather all target class names from defaults plus library.UiStyles
+            // Gather all target class names: library.UiStyles FIRST (so specific custom overrides bind before generic defaults),
+            // followed by DefaultStyleClasses.
             var targetClasses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < DefaultStyleClasses.Length; i++)
-            {
-                targetClasses.Add(DefaultStyleClasses[i]);
-            }
 
             if (lib != null && lib.UiStyles != null)
             {
@@ -47,9 +47,14 @@ namespace PowerMath.Audio
                     UiAnimationSfxStyle style = lib.UiStyles[i];
                     if (style != null && !string.IsNullOrWhiteSpace(style.StyleClass))
                     {
-                        targetClasses.Add(style.StyleClass.TrimStart('.'));
+                        targetClasses.Add(style.StyleClass.Trim().TrimStart('.'));
                     }
                 }
+            }
+
+            for (int i = 0; i < DefaultStyleClasses.Length; i++)
+            {
+                targetClasses.Add(DefaultStyleClasses[i]);
             }
 
             foreach (string className in targetClasses)

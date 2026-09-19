@@ -1,7 +1,7 @@
 {
-  "clientVersion": "1.0.0.0",
-  "minSupportedVersion": "1.0.0.0",
-  "schemaVersion": 1,
+  "clientVersion": "1.2.0.0",
+  "minSupportedVersion": "1.2.0.0",
+  "schemaVersion": 6,
   "contentVersions": {
     "questionCatalog": "2026.08-v1",
     "stageMap": "1.0.0",
@@ -9,8 +9,8 @@
   },
   "features": {
     "biomeMap": false,
-    "playerHub": false,
-    "petGacha": false
+    "playerHub": true,
+    "petGacha": true
   },
   "maintenance": {
     "isActive": false,

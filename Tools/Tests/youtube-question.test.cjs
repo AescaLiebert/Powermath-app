@@ -226,3 +226,17 @@ test('API failure reports unavailable once for current question and permits retr
   c.show(3);
   assert.equal(c.scripts.length, 2);
 });
+
+test('repeated pause events yield to native user interaction to prevent infinite loops', () => {
+  const c = setup(); c.show(7); const player = c.players[0];
+  let restarts = 0;
+  const target = { playVideo: () => { restarts++; } };
+  player.options.events.onStateChange({ data: c.YT.PlayerState.PAUSED, target });
+  player.options.events.onStateChange({ data: c.YT.PlayerState.PAUSED, target });
+  assert.equal(restarts, 2);
+  player.options.events.onStateChange({ data: c.YT.PlayerState.PAUSED, target });
+  assert.equal(restarts, 2);
+  assert.equal(c.window.PowerMathYouTubeState.awaitingGesture, true);
+  assert.equal(c.nodes.get('powermath-youtube-overlay').style.pointerEvents, 'auto');
+});
+

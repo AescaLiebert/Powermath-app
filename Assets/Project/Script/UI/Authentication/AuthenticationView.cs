@@ -1,5 +1,6 @@
 using System;
 using PowerMath.Session;
+using PowerMath.UI.Authentication.Announcements;
 using PowerMath.UI.Shared;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -41,6 +42,7 @@ namespace PowerMath.UI.Authentication
         private bool _isLanguageFlyoutOpen;
         private bool _eventsBound;
         private bool _bindingErrorLogged;
+        private AuthenticationAnnouncementController _announcements;
 
         private bool _isInteractive = true;
 
@@ -69,6 +71,8 @@ namespace PowerMath.UI.Authentication
             {
                 _usernameField.Focus();
             }
+
+            _announcements?.RenderReady();
         }
 
         public void RenderBusy()
@@ -81,6 +85,7 @@ namespace PowerMath.UI.Authentication
             SetInteractive(false);
             _root.SetSemanticState(UiSemanticState.Busy);
             RefreshLocale();
+            _announcements?.RenderUnavailable();
         }
 
         public void RenderFailure(string playerMessage, bool clearPassword)
@@ -113,6 +118,7 @@ namespace PowerMath.UI.Authentication
             SetInteractive(false);
             _root.SetSemanticState(UiSemanticState.Success);
             RefreshLocale();
+            _announcements?.RenderUnavailable();
 
             PowerMath.UI.Core.StatusMessageService.ShowSuccess(PowerMath.Localization.LocalizationService.Get("auth.success"));
         }
@@ -136,6 +142,13 @@ namespace PowerMath.UI.Authentication
                 _languageFlyout = _root.Q<VisualElement>("auth-language-flyout");
                 _thButton = _root.Q<Button>("language-button-th");
                 _enButton = _root.Q<Button>("language-button-en");
+            }
+
+            if (_root != null)
+            {
+                _announcements = AuthenticationAnnouncementController.Ensure(
+                    gameObject,
+                    _root);
             }
 
             bool isBound = _root != null && _usernameField != null &&

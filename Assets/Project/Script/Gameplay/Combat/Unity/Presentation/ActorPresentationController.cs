@@ -35,6 +35,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private CombatJuiceProfileDefinition _profile;
         private bool _isPlaying;
         private int _playSessionId;
+        private float _holdSecondsRemaining;
         private bool _whiteFlashTriggered;
         private bool _majorDeath;
         private Func<bool> _interactionAllowed;
@@ -57,6 +58,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public ActorVisualState State { get; private set; } = ActorVisualState.Hidden;
         public bool IsPlayer => _actor == PresentationActor.Player;
+        public bool IsPet => _actor == PresentationActor.Pet;
         public bool IsIdle => State == ActorVisualState.Idle;
         public bool IsMajorDeath => _majorDeath;
         public bool IsPointerHovered => _isPointerHovered;
@@ -85,7 +87,9 @@ namespace PowerMath.Gameplay.Combat.Unity
             CombatJuiceProfileDefinition profile = null,
             Vector2? restPosition = null)
         {
-            if (actor != PresentationActor.Player && actor != PresentationActor.Enemy)
+            if (actor != PresentationActor.Player &&
+                actor != PresentationActor.Pet &&
+                actor != PresentationActor.Enemy)
                 throw new ArgumentOutOfRangeException(nameof(actor));
             _actor = actor;
             _majorDeath = actor == PresentationActor.Player;
@@ -187,7 +191,13 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData != null && eventData.button != PointerEventData.InputButton.Left) return;
-            if (!CanPlayInteractionJuice()) return;
+            if (!CanPlayInteractionJuice())
+            {
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Combat",
+                    $"[ActorPresentationController] Click rejected for {_actor}: interactionAllowed={(_interactionAllowed == null || _interactionAllowed())}, isPlaying={_isPlaying}, state={State}, activeInHierarchy={gameObject.activeInHierarchy}");
+                return;
+            }
             if (Application.isPlaying)
                 PowerMath.Audio.SfxController.Instance?.PlayBattle(
                     PowerMath.Audio.BattleSfxState.ActorClick);
@@ -196,7 +206,13 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public void TriggerClick()
         {
-            if (!CanPlayInteractionJuice()) return;
+            if (!CanPlayInteractionJuice())
+            {
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Combat",
+                    $"[ActorPresentationController] TriggerClick rejected for {_actor}: interactionAllowed={(_interactionAllowed == null || _interactionAllowed())}, isPlaying={_isPlaying}, state={State}, activeInHierarchy={gameObject.activeInHierarchy}");
+                return;
+            }
             if (Application.isPlaying)
                 PowerMath.Audio.SfxController.Instance?.PlayBattle(
                     PowerMath.Audio.BattleSfxState.ActorClick);
@@ -240,6 +256,19 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public IEnumerator Play(PresentationActionKind action)
         {
+            return Play(action, null);
+        }
+
+        public IEnumerator Play(PresentationActionKind action, Action impactReached)
+        {
+            return Play(action, impactReached, false);
+        }
+
+        public IEnumerator Play(
+            PresentationActionKind action,
+            Action impactReached,
+            bool emphasizedDamageReaction)
+        {
             _idleBreathApplied = false;
             StopJuiceAnimation();
             ActorVisualState target = ResolveState(action);
@@ -265,20 +294,40 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _whiteFlashTriggered = false;
                 float duration = ResolveDuration(target);
                 float elapsed = 0f;
-                Vector2 direction = _actor == PresentationActor.Player
+                bool impactTriggered = target != ActorVisualState.Attacking;
+                float impactNormalized = ResolveImpactNormalizedTime(action);
+                Vector2 direction = _actor == PresentationActor.Player ||
+                    _actor == PresentationActor.Pet
                     ? Vector2.right
                     : Vector2.left;
                 while (elapsed < duration)
                 {
                     if (sessionId != _playSessionId) yield break;
                     float delta = Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime : 0.05f;
+                    if (_holdSecondsRemaining > 0f)
+                    {
+                        _holdSecondsRemaining = Mathf.Max(
+                            0f,
+                            _holdSecondsRemaining - delta);
+                        yield return null;
+                        continue;
+                    }
                     elapsed += delta;
                     float t = duration <= 0f ? 1f : Mathf.Clamp01(elapsed / duration);
-                    ApplyFrame(target, t, direction);
+                    ApplyFrame(target, t, direction, emphasizedDamageReaction);
+                    if (!impactTriggered && t >= impactNormalized)
+                    {
+                        impactTriggered = true;
+                        impactReached?.Invoke();
+                    }
                     yield return null;
                 }
 
                 if (sessionId != _playSessionId) yield break;
+                if (!impactTriggered)
+                {
+                    impactReached?.Invoke();
+                }
 
                 bool terminal = target == ActorVisualState.Dying;
                 if (terminal)
@@ -301,9 +350,16 @@ namespace PowerMath.Gameplay.Combat.Unity
             {
                 if (sessionId == _playSessionId)
                 {
+                    _holdSecondsRemaining = 0f;
                     _isPlaying = false;
                 }
             }
+        }
+
+        public void HoldCurrentPose(float seconds)
+        {
+            if (seconds <= 0f) return;
+            _holdSecondsRemaining = Mathf.Max(_holdSecondsRemaining, seconds);
         }
 
         private void PlaySfxForAction(PresentationActionKind action, ActorVisualState target)
@@ -311,7 +367,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             var sfx = PowerMath.Audio.SfxController.Instance;
             if (sfx == null) return;
 
-            if (IsPlayer)
+            if (IsPlayer || IsPet)
             {
                 switch (target)
                 {
@@ -353,6 +409,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         {
             StopJuiceAnimation();
             _playSessionId++;
+            _holdSecondsRemaining = 0f;
             _isPlaying = false;
             RestoreAuthoredPose(resetAlpha: false);
             State = finalState;
@@ -363,17 +420,84 @@ namespace PowerMath.Gameplay.Combat.Unity
             gameObject.SetActive(finalState != ActorVisualState.Hidden);
         }
 
-        private void ApplyFrame(ActorVisualState state, float t, Vector2 direction)
+        private void ApplyFrame(
+            ActorVisualState state,
+            float t,
+            Vector2 direction,
+            bool emphasizedDamageReaction)
         {
             float travelScale = _reducedMotion ? 0.2f : 1f;
             switch (state)
             {
                 case ActorVisualState.Attacking:
                 {
-                    float lunge = t < 0.4f ? t / 0.4f : 1f - (t - 0.4f) / 0.6f;
+                    float anticipationEnd = Value(
+                        p => p.AttackAnticipationNormalized,
+                        0.22f);
+                    float impact = _actor == PresentationActor.Player ||
+                        _actor == PresentationActor.Pet
+                        ? Value(p => p.PlayerAttackImpactNormalized, 0.40f)
+                        : Value(p => p.EnemyAttackImpactNormalized, 0.47f);
+                    impact = Mathf.Max(anticipationEnd + 0.05f, impact);
+                    float attackTravel = Value(p => p.AttackTravel, 56f);
+                    float anticipationTravel = Value(
+                        p => p.AttackAnticipationTravel,
+                        12f);
+                    Vector2 anticipationScale = _profile == null
+                        ? new Vector2(1.06f, 0.94f)
+                        : _profile.AttackAnticipationScale;
+                    Vector2 swingScale = _profile == null
+                        ? new Vector2(1.08f, 0.94f)
+                        : _profile.AttackSwingScale;
+                    Vector2 impactScale = _profile == null
+                        ? new Vector2(0.92f, 1.08f)
+                        : _profile.AttackImpactScale;
+
+                    float distance;
+                    Vector2 poseScale;
+                    if (t < anticipationEnd)
+                    {
+                        float phase = Mathf.SmoothStep(
+                            0f,
+                            1f,
+                            t / Mathf.Max(0.01f, anticipationEnd));
+                        distance = -anticipationTravel * phase;
+                        poseScale = Vector2.Lerp(Vector2.one, anticipationScale, phase);
+                    }
+                    else if (t < impact)
+                    {
+                        float phase = Mathf.Clamp01(
+                            (t - anticipationEnd) /
+                            Mathf.Max(0.01f, impact - anticipationEnd));
+                        float acceleration = phase * phase;
+                        distance = Mathf.Lerp(
+                            -anticipationTravel,
+                            attackTravel,
+                            acceleration);
+                        poseScale = Vector2.Lerp(
+                            anticipationScale,
+                            swingScale,
+                            acceleration);
+                    }
+                    else
+                    {
+                        float phase = Mathf.Clamp01(
+                            (t - impact) / Mathf.Max(0.01f, 1f - impact));
+                        float recovery = Mathf.SmoothStep(0f, 1f, phase);
+                        distance = attackTravel * (1f - recovery);
+                        poseScale = Vector2.Lerp(impactScale, Vector2.one, recovery);
+                    }
+
                     _rectTransform.anchoredPosition = _authoredPosition +
-                        direction * (Value(p => p.AttackTravel, 56f) * travelScale *
-                            Mathf.Clamp01(lunge));
+                        direction * (distance * travelScale);
+                    if (_actor == PresentationActor.Enemy)
+                    {
+                        ApplyRelativeScale(poseScale, _reducedMotion ? 0.35f : 1f);
+                    }
+                    else
+                    {
+                        _rectTransform.localScale = _authoredScale;
+                    }
                     break;
                 }
                 case ActorVisualState.FailedAttack:
@@ -383,20 +507,72 @@ namespace PowerMath.Gameplay.Combat.Unity
                     break;
                 case ActorVisualState.TakingDamage:
                 {
-                    _rectTransform.anchoredPosition = _authoredPosition +
-                        direction * (-Mathf.Sin(t * Mathf.PI * 4f) *
-                            Value(p => p.DamageReactionTravel, 12f) *
-                            (1f - t) * travelScale);
+                    float travel = _actor == PresentationActor.Player
+                        ? Value(p => p.PlayerDamageReactionTravel, 20f)
+                        : emphasizedDamageReaction
+                            ? Value(p => p.CriticalDamageReactionTravel, 30f)
+                            : Value(p => p.DamageReactionTravel, 24f);
+                    float knockback;
+                    Vector2 poseScale;
+                    if (t < 0.22f)
+                    {
+                        float phase = 1f - Mathf.Pow(
+                            1f - t / 0.22f,
+                            3f);
+                        knockback = phase;
+                        poseScale = Vector2.Lerp(
+                            Vector2.one,
+                            new Vector2(0.90f, 1.08f),
+                            phase);
+                    }
+                    else if (t < 0.72f)
+                    {
+                        float phase = Mathf.SmoothStep(
+                            0f,
+                            1f,
+                            (t - 0.22f) / 0.50f);
+                        knockback = Mathf.Lerp(1f, -0.12f, phase);
+                        poseScale = Vector2.Lerp(
+                            new Vector2(0.90f, 1.08f),
+                            new Vector2(1.03f, 0.98f),
+                            phase);
+                    }
+                    else
+                    {
+                        float phase = Mathf.SmoothStep(
+                            0f,
+                            1f,
+                            (t - 0.72f) / 0.28f);
+                        knockback = Mathf.Lerp(-0.12f, 0f, phase);
+                        poseScale = Vector2.Lerp(
+                            new Vector2(1.03f, 0.98f),
+                            Vector2.one,
+                            phase);
+                    }
+
+                    float damageTravelScale = _reducedMotion ? 0f : 1f;
+                    _rectTransform.anchoredPosition = _authoredPosition -
+                        direction * (travel * knockback * damageTravelScale);
+                    if (_actor == PresentationActor.Enemy)
+                    {
+                        ApplyRelativeScale(poseScale, _reducedMotion ? 0.35f : 1f);
+                    }
+                    else
+                    {
+                        _rectTransform.localScale = _authoredScale;
+                    }
 
                     if (_graphic != null)
                     {
-                        int cycles = _profile != null ? _profile.HitFlashCycles : 3;
                         Color flashRed = _profile != null ? _profile.HitFlashRed : new Color(1f, 0.2f, 0.2f, 1f);
                         Color flashWhite = _profile != null ? _profile.HitFlashWhite : Color.white;
-                        float intensity = (_profile != null ? _profile.HitFlashIntensity : 1f) * (1f - t);
-
-                        float phase = Mathf.Sin(t * Mathf.PI * 2f * cycles);
-                        Color flashColor = phase >= 0f ? flashRed : flashWhite;
+                        float flashFade = Mathf.SmoothStep(
+                            0f,
+                            1f,
+                            Mathf.InverseLerp(0.08f, 1f, t));
+                        float intensity = (_profile != null ? _profile.HitFlashIntensity : 1f) *
+                            (1f - flashFade);
+                        Color flashColor = t < 0.18f ? flashWhite : flashRed;
                         _graphic.color = Color.Lerp(_authoredColor, flashColor, intensity);
                     }
                     break;
@@ -517,6 +693,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             switch (action)
             {
                 case PresentationActionKind.PlayerPrimaryAttack:
+                case PresentationActionKind.PetFollowUpAttack:
                 case PresentationActionKind.EnemyAttack:
                     return ActorVisualState.Attacking;
                 case PresentationActionKind.PlayerFailedAttack:
@@ -530,6 +707,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                     return ActorVisualState.Appearing;
                 case PresentationActionKind.PlayerDie:
                 case PresentationActionKind.EnemyDie:
+                case PresentationActionKind.EnemyFlee:
                     return ActorVisualState.Dying;
                 case PresentationActionKind.PlayerRebirth:
                     return ActorVisualState.Rebirthing;
@@ -563,6 +741,33 @@ namespace PowerMath.Gameplay.Combat.Unity
             State = ActorVisualState.Hidden;
             UpdateSprite();
             if (_canvasGroup != null) _canvasGroup.alpha = 0f;
+        }
+
+        private float ResolveImpactNormalizedTime(PresentationActionKind action)
+        {
+            switch (action)
+            {
+                case PresentationActionKind.PlayerPrimaryAttack:
+                case PresentationActionKind.PetFollowUpAttack:
+                    return _profile == null
+                        ? 0.40f
+                        : _profile.PlayerAttackImpactNormalized;
+                case PresentationActionKind.EnemyAttack:
+                    return _profile == null
+                        ? 0.47f
+                        : _profile.EnemyAttackImpactNormalized;
+                default:
+                    return 1f;
+            }
+        }
+
+        private void ApplyRelativeScale(Vector2 relativeScale, float strength)
+        {
+            Vector2 blended = Vector2.Lerp(Vector2.one, relativeScale, strength);
+            _rectTransform.localScale = new Vector3(
+                _authoredScale.x * blended.x,
+                _authoredScale.y * blended.y,
+                _authoredScale.z);
         }
 
         private void LateUpdate()

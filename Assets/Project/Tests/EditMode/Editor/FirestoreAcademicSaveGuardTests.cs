@@ -98,13 +98,19 @@ namespace PowerMath.Tests.EditMode
             string game = "\"marker\":{\"stringValue\":\"keep\"}";
             if (schema != null) game += ",\"schemaVersion\":" + schema;
             if (revision != null) game += ",\"revision\":" + revision;
-            string json = "{\"fields\":{\"student\":{\"mapValue\":{\"fields\":{\"gamedata\":{\"mapValue\":{\"fields\":{" +
-                game + extraFields + "}}}}}}}}";
+            string json = "{\"fields\":{\"gamedata\":{\"mapValue\":{\"fields\":{" +
+                game + extraFields + "}}}}}";
             Assert.That(FirestoreJsonNavigator.TryParse(json, out JsonValue document, out string error), Is.True, error);
             return document;
         }
 
-        private static JsonValue Game(JsonValue document) => document.Object["fields"].Object["student"]
-            .Object["mapValue"].Object["fields"].Object["gamedata"].Object["mapValue"].Object["fields"];
+        private static JsonValue Game(JsonValue document)
+        {
+            if (document.Object["fields"].Object.TryGetValue("gamedata", out JsonValue directGame))
+                return directGame.Object["mapValue"].Object["fields"];
+
+            return document.Object["fields"].Object["student"]
+                .Object["mapValue"].Object["fields"].Object["gamedata"].Object["mapValue"].Object["fields"];
+        }
     }
 }

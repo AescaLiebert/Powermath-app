@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ using PowerMath.PlayerLifecycle;
 using PowerMath.Session;
 using PowerMath.UI.Core;
 using PowerMath.UI.Settings;
+using PowerMath.UI.MainMenu.Tutorial;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
@@ -50,6 +52,11 @@ namespace PowerMath.UI.MainMenu
         [Tooltip("FCT text style, semantic colors, pooling, and Pop/Hold/Exit motion.")]
         [SerializeField] private FloatingCombatTextStyleDefinition floatingCombatTextStyle;
 
+        [SerializeField] private FloatingRewardTextView floatingRewardTextPrefab;
+
+        [Tooltip("Floating reward text style, currency colors, and celebratory Pop/Drift/Exit motion.")]
+        [SerializeField] private FloatingRewardTextStyleDefinition floatingRewardTextStyle;
+
         [Tooltip("Actor timing/motion and critical-impact tuning. Runtime defaults are used until assigned.")]
         [SerializeField] private CombatJuiceProfileDefinition combatJuiceProfile;
         [Tooltip("Optional authored battle clips; safe generated cues fill missing slots.")]
@@ -66,6 +73,12 @@ namespace PowerMath.UI.MainMenu
         [Tooltip("Pixel offset added to the enemy FCT spawn position.")]
         [SerializeField] private Vector2 enemyFctOffset = Vector2.zero;
 
+        [Header("Tutorial Focus")]
+        [Tooltip("Normalized visible region inside the enemy RectTransform. " +
+            "X/Y start at its bottom-left; Width/Height define the guided hit area.")]
+        [SerializeField] private Rect enemyTutorialFocusNormalizedRect =
+            new Rect(0.28f, 0.30f, 0.48f, 0.42f);
+
         private CombatLobbyPresenter _presenter;
         private CombatLobbyView _view;
         private IMainMenuPanelHost _panelHost;
@@ -76,19 +89,37 @@ namespace PowerMath.UI.MainMenu
         private LegacyImage _sceneBackgroundTransition;
         private LegacyImage _sceneEnemy;
         private LegacyImage _scenePlayer;
+        private LegacyImage _scenePet;
         private FloatingCombatTextService _floatingText;
+        private FloatingRewardTextService _floatingRewardText;
         private ICombatAnchor _enemyDamageAnchor;
         private CombatWorldImpulsePlayer _impactImpulse;
+        private CombatImpactBurstPlayer _impactBurst;
         private ActorPresentationController _playerActor;
         private ActorPresentationController _enemyActor;
+        private ActorPresentationController _petActor;
         private IMainMenuInteractionGate _interactionGate;
         private InteractionShieldView _interactionShield;
         private UiSceneContext _uiContext;
         private Sprite _runtimeEnemySprite;
         private RewardMagnetFeedbackPlayer _rewardMagnet;
         private CombatAudioPlayer _combatAudio;
+        private TutorialDirector _tutorialDirector;
+        private TutorialDirector _rankTutorialDirector;
+        private TutorialDirector _enemySurviveTutorialDirector;
+        private readonly List<ResultDrivenTutorialBinding> _resultDrivenTutorials =
+            new List<ResultDrivenTutorialBinding>();
         private int _questionCatalogLoadGeneration;
         private bool _questionCatalogLoadCompleted;
+        private LocalAttemptTransactionEngine _transactionEngine;
+        private ILocalEncounterEngine _encounterEngine;
+        private StageMapData _runtimeStageMap;
+        private PetGachaCatalog _runtimePetCatalog;
+        private string _runtimeRunId = string.Empty;
+        private string _boundPetId = string.Empty;
+        private int _runtimeBaseWeaponAttack;
+        private double _runtimeCriticalRate;
+        private double _runtimeCriticalDamagePercent;
 
         private void Start()
         {
@@ -102,7 +133,8 @@ namespace PowerMath.UI.MainMenu
             if (weaponAscensionCatalog == null)
                 weaponAscensionCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
             if (petGachaCatalog == null)
-                petGachaCatalog = Resources.Load<PetGachaCatalogDefinition>("PetGachaCatalog");
+                petGachaCatalog = Resources.Load<PetGachaCatalogDefinition>("Pets/PetGachaCatalog") ??
+                                  Resources.Load<PetGachaCatalogDefinition>("PetGachaCatalog");
             if (combatJuiceProfile == null)
                 combatJuiceProfile = Resources.Load<CombatJuiceProfileDefinition>(
                     "CombatJuiceProfile");
@@ -186,6 +218,16 @@ namespace PowerMath.UI.MainMenu
 
         private void OnDisable()
         {
+            if (_presenter != null)
+                _presenter.TutorialAttemptPresentationCompleted -=
+                    OnTutorialAttemptPresentationCompleted;
+            _resultDrivenTutorials.Clear();
+            _tutorialDirector?.Dispose();
+            _tutorialDirector = null;
+            _rankTutorialDirector?.Dispose();
+            _rankTutorialDirector = null;
+            _enemySurviveTutorialDirector?.Dispose();
+            _enemySurviveTutorialDirector = null;
             PowerMath.Localization.LocalizationService.Changed -= OnLocaleChanged;
             if (PlayerSessionStore.Instance != null)
             {
@@ -196,6 +238,11 @@ namespace PowerMath.UI.MainMenu
                     _runEconomyController.NotifyTerminalPresentationCompleted;
             _presenter?.Dispose();
             _presenter = null;
+            _transactionEngine = null;
+            _encounterEngine = null;
+            _runtimeStageMap = null;
+            _runtimePetCatalog = null;
+            _runtimeRunId = string.Empty;
             _questionCatalogRepository?.Cancel();
             _questionCatalogRepository = null;
             _questionCatalogLoadGeneration++;
@@ -252,8 +299,100 @@ namespace PowerMath.UI.MainMenu
 
         private void OnSessionChangedForMap(PlayerSnapshot snapshot)
         {
+            if (snapshot?.wallet != null)
+            {
+                _transactionEngine?.SynchronizePowerCoins(snapshot.wallet.powerCoins);
+            }
             _view?.SetPowerCoins(snapshot?.wallet?.powerCoins ?? 0);
             _view?.SetBiomeMapAvailable(GameVersionChecker.IsFeatureAvailable(GameFeature.BiomeMap));
+            RefreshRuntimePetCollection(snapshot);
+            string equippedPetId = snapshot?.loadout?.petId ?? string.Empty;
+            if (_scenePet != null && !string.Equals(
+                    equippedPetId,
+                    _boundPetId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                BindEquippedPetPresentation();
+                if (_petActor != null)
+                {
+                    _petActor.ConfigureSprites(_scenePet.sprite);
+                    _petActor.CancelAndApply(_scenePet.sprite == null
+                        ? PowerMath.Gameplay.Combat.Presentation.ActorVisualState.Hidden
+                        : PowerMath.Gameplay.Combat.Presentation.ActorVisualState.Idle);
+                }
+            }
+        }
+
+        private void RefreshRuntimePetCollection(PlayerSnapshot snapshot)
+        {
+            if (snapshot == null || _encounterEngine == null ||
+                _runtimePetCatalog == null)
+                return;
+
+            try
+            {
+                PlayerCombatStats stats = PlayerCombatStatsFactory.Create(
+                    snapshot,
+                    _runtimeBaseWeaponAttack,
+                    _runtimeCriticalRate,
+                    _runtimeCriticalDamagePercent,
+                    _runtimePetCatalog);
+                _encounterEngine.RefreshPlayerStats(stats);
+
+                EventScheduleSnapshot current = _encounterEngine.Snapshot.EventSchedule;
+                if (_runtimeStageMap == null || current == null ||
+                    string.IsNullOrWhiteSpace(_runtimeRunId))
+                    return;
+
+                int multiplier = PetCollectionEventMultiplierPolicy.Calculate(
+                    snapshot,
+                    _runtimePetCatalog);
+                if (current.PetMultiplierBasisPoints == multiplier)
+                    return;
+
+                EventScheduleSnapshot regenerated = EventScheduleGenerator.Create(
+                    _runtimeRunId,
+                    _runtimeStageMap,
+                    multiplier);
+                EventScheduleSnapshot merged =
+                    EventScheduleRefreshPolicy.PreserveReachedStages(
+                        _runtimeStageMap,
+                        current,
+                        regenerated,
+                        _encounterEngine.Snapshot.Stage);
+                _encounterEngine.RefreshEventSchedule(merged);
+            }
+            catch (System.Exception exception) when (
+                exception is System.ArgumentException ||
+                exception is System.InvalidOperationException ||
+                exception is System.OverflowException)
+            {
+                PowerMath.Diagnostics.AppLog.Error(
+                    "Pets",
+                    $"Runtime pet collection refresh failed: {exception.Message}");
+            }
+        }
+
+        private void RefreshCombatPresentationAfterEconomyPanelClosed()
+        {
+            PlayerSnapshot snapshot = PlayerSessionStore.Instance?.Snapshot;
+            RefreshRuntimePetCollection(snapshot);
+            if (_encounterEngine != null && _view != null)
+            {
+                CombatSnapshot combat = _encounterEngine.Snapshot;
+                _view.SetPlayerHearts(
+                    combat.PlayerCurrentHearts,
+                    combat.PlayerMaximumHearts);
+            }
+
+            BindEquippedPetPresentation();
+            if (_petActor != null && _scenePet != null)
+            {
+                _petActor.ConfigureSprites(_scenePet.sprite);
+                _petActor.CancelAndApply(_scenePet.sprite == null
+                    ? PowerMath.Gameplay.Combat.Presentation.ActorVisualState.Hidden
+                    : PowerMath.Gameplay.Combat.Presentation.ActorVisualState.Idle);
+            }
         }
 
         private void InitializeSimulation(PlayerSnapshot snapshot)
@@ -496,8 +635,6 @@ namespace PowerMath.UI.MainMenu
                 SetUnavailable(mapError);
                 return;
             }
-            var encounterResolver = new StageEncounterResolver(resolvedMap);
-
             int seed = runtimeSettings == null ? 1337 : runtimeSettings.RandomSeed;
             int maximumHearts = runtimeSettings == null
                 ? 3
@@ -564,6 +701,38 @@ namespace PowerMath.UI.MainMenu
             string runId = isolateQuestionFallback
                 ? "practice-" + System.Guid.NewGuid().ToString("N")
                 : ResolveRunId(snapshot);
+            EventScheduleSnapshot eventSchedule;
+            try
+            {
+                int petEventMultiplier = PetCollectionEventMultiplierPolicy.Calculate(
+                    snapshot, runtimePetCatalog);
+                EventScheduleSnapshot restoredSchedule = null;
+                bool hasRestoredSchedule = !isolateQuestionFallback &&
+                    TryMapEventSchedule(
+                        snapshot.activeRun,
+                        resolvedMap,
+                        out restoredSchedule);
+                bool staleStageOneMultiplier = hasRestoredSchedule &&
+                    startingStage == StageId.First &&
+                    restoredSchedule.PetMultiplierBasisPoints != petEventMultiplier;
+                eventSchedule = hasRestoredSchedule && !staleStageOneMultiplier
+                    ? restoredSchedule
+                    : EventScheduleGenerator.Create(
+                        runId,
+                        resolvedMap,
+                        petEventMultiplier);
+            }
+            catch (System.Exception exception) when (
+                exception is System.ArgumentException ||
+                exception is System.InvalidOperationException ||
+                exception is System.OverflowException)
+            {
+                PowerMath.Diagnostics.AppLog.Error("Combat",
+                    $"Event schedule is invalid: {exception.Message}");
+                SetUnavailable("The saved Event schedule is unavailable.");
+                return;
+            }
+            var encounterResolver = new StageEncounterResolver(resolvedMap, eventSchedule);
             AttemptPresentationReceipt pendingPresentation = null;
             if (!isolateQuestionFallback &&
                 snapshot.activeRun?.pendingPresentation != null &&
@@ -572,8 +741,9 @@ namespace PowerMath.UI.MainMenu
                     out pendingPresentation,
                     out string presentationError))
             {
-                SetUnavailable(presentationError);
-                return;
+                PowerMath.Diagnostics.AppLog.Warning("Combat",
+                    $"Saved combat presentation could not be restored ({presentationError}). Interrupted presentation discarded.");
+                pendingPresentation = null;
             }
             ILocalEncounterEngine engine;
             if (!isolateQuestionFallback &&
@@ -603,10 +773,15 @@ namespace PowerMath.UI.MainMenu
                         restoredCombat.BiomeTitle,
                         restoredCombat.EncounterKind,
                         restoredCombat.QuestionDocumentId,
-                        restoredCombat.EventAttemptOrdinal);
+                        restoredCombat.EventAttemptOrdinal,
+                        eventSchedule,
+                        restoredCombat.StageAttackCount,
+                        restoredCombat.BigBossesDefeated,
+                        restoredCombat.PendingPetFollowUpDamage);
                 }
                 engine = new LocalRunEncounterEngine(restoredCombat, runId,
-                    encounterResolver, random, combatStats, adminInvincible);
+                    encounterResolver, random, combatStats, adminInvincible,
+                    maximumHearts);
             }
             else
             {
@@ -614,6 +789,14 @@ namespace PowerMath.UI.MainMenu
                     runId, encounterResolver, random, maximumHearts, combatStats,
                     adminInvincible);
             }
+
+            _encounterEngine = engine;
+            _runtimeStageMap = resolvedMap;
+            _runtimePetCatalog = runtimePetCatalog;
+            _runtimeRunId = runId;
+            _runtimeBaseWeaponAttack = baseWeaponAttack;
+            _runtimeCriticalRate = criticalRate;
+            _runtimeCriticalDamagePercent = criticalDamage;
 
             if (pendingPresentation != null &&
                 engine.Snapshot.Phase != CombatPhase.PresentingResult &&
@@ -642,7 +825,8 @@ namespace PowerMath.UI.MainMenu
                         balances,
                         ToInventorySnapshot(snapshot.academic.silver),
                         ToInventorySnapshot(snapshot.academic.gold),
-                        ToInventorySnapshot(snapshot.academic.diamond)
+                        ToInventorySnapshot(snapshot.academic.diamond),
+                        snapshot.academic.auditCorrectCount
                     ));
                 }
                 catch (System.Exception exception)
@@ -664,8 +848,16 @@ namespace PowerMath.UI.MainMenu
                 runtimeSettings == null ? 10d : runtimeSettings.AnswerSeconds,
                 eventQuestions,
                 runId,
-                pendingPresentation
+                pendingPresentation,
+                ToChallengeQuestionSnapshot(snapshot.activeRun?.challengeQuestions),
+                snapshot.wallet?.powerCoins ?? 0,
+                string.Equals(snapshot.activeRun?.questionContentKind,
+                    QuestionContentKind.EventQuestion.ToString(),
+                    System.StringComparison.Ordinal)
+                    ? snapshot.activeRun?.committedAttemptId
+                    : string.Empty
             );
+            _transactionEngine = transactionEngine;
             var gateway = new LocalDevelopmentAttemptGateway(transactionEngine);
             var coordinator = new CombatAttemptCoordinator(gateway);
             IGameplayPersistence persistence;
@@ -708,8 +900,12 @@ namespace PowerMath.UI.MainMenu
                 _impactImpulse,
                 _playerActor,
                 _enemyActor,
+                _petActor,
                 _rewardMagnet,
-                this
+                this,
+                _floatingRewardText,
+                _impactBurst,
+                combatJuiceProfile
             );
             var academicView = new AcademicProgressionView(
                 rootVisualElement
@@ -747,6 +943,10 @@ namespace PowerMath.UI.MainMenu
                 _interactionGate
             );
             _presenter.Initialize();
+            InitializeTutorial(
+                rootVisualElement,
+                snapshot,
+                runtimeSettings != null && runtimeSettings.ReducedMotion);
             MainMenuTransitionController transition =
                 GetComponent<MainMenuTransitionController>();
             if (pendingPresentation != null)
@@ -756,6 +956,8 @@ namespace PowerMath.UI.MainMenu
             }
             else if (!string.IsNullOrWhiteSpace(startupNotice))
                 _view.SetResult(startupNotice, true);
+            if (pendingPresentation == null)
+                StartCoroutine(PublishTutorialReadyWhenStable());
             GameApiSettings settings = GetComponent<MainMenuPresenter>()?.ApiSettings;
             try
             {
@@ -776,7 +978,9 @@ namespace PowerMath.UI.MainMenu
                     _panelHost,
                     _interactionGate,
                     _playerActor,
-                    _rewardMagnet);
+                    _rewardMagnet,
+                    _floatingRewardText,
+                    RefreshCombatPresentationAfterEconomyPanelClosed);
                 _presenter.TerminalPresentationCompleted +=
                     _runEconomyController.NotifyTerminalPresentationCompleted;
             }
@@ -791,9 +995,186 @@ namespace PowerMath.UI.MainMenu
 
         private void SetUnavailable(string playerMessage)
         {
+            PowerMath.Diagnostics.AppLog.Error(
+                "Combat",
+                $"Combat Lobby unavailable: {playerMessage}");
+            StatusMessageService.ShowError(playerMessage);
             _view.SetUnavailable(playerMessage);
             GetComponent<MainMenuTransitionController>()?
-                .CancelAndApplyFinalState();
+                .NotifyRecoveryReady();
+        }
+
+        private void InitializeTutorial(
+            VisualElement root,
+            PlayerSnapshot snapshot,
+            bool reducedMotion)
+        {
+            if (_presenter == null || root == null || snapshot == null ||
+                _interactionGate == null || PlayerLifecycleRuntime.Commands == null)
+                return;
+            TutorialCatalogDefinition catalog =
+                Resources.Load<TutorialCatalogDefinition>("Tutorial/TutorialCatalog");
+            if (catalog == null || !catalog.TryGet(
+                TutorialDirector.OnFirstCreateId,
+                out PowerMath.Gameplay.Tutorial.TutorialSequence sequence))
+            {
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Tutorial",
+                    "OnFirstCreate tutorial content is unavailable; gameplay remains enabled.");
+                return;
+            }
+            _presenter.TutorialAttemptPresentationCompleted -=
+                OnTutorialAttemptPresentationCompleted;
+            _resultDrivenTutorials.Clear();
+            _tutorialDirector?.Dispose();
+            var targets = new TutorialTargetRegistry()
+                .Register("combat.enemy",
+                    _sceneEnemy != null ? _sceneEnemy.rectTransform : null,
+                    enemyTutorialFocusNormalizedRect,
+                    () => _presenter != null && _presenter.RequestTutorialAttack())
+                .Register("combat.attack",
+                    root.Q<VisualElement>("combat-attack-button"),
+                    () => _presenter != null && _presenter.RequestTutorialAttack());
+            _tutorialDirector = new TutorialDirector(
+                this,
+                root,
+                sequence,
+                new LifecycleTutorialProgressStore(PlayerLifecycleRuntime.Commands),
+                PlayerSessionStore.Instance,
+                _presenter,
+                _interactionGate,
+                targets,
+                reducedMotion);
+            _tutorialDirector.Initialize();
+
+            SocialProfile.SocialProfileCompositionRoot social =
+                GetComponent<SocialProfile.SocialProfileCompositionRoot>();
+            MainMenuPanelHostProvider panelProvider =
+                GetComponent<MainMenuPanelHostProvider>();
+            _rankTutorialDirector?.Dispose();
+            _rankTutorialDirector = null;
+            if (catalog.TryGet(TutorialDirector.OnFirstRankChangeId,
+                    out PowerMath.Gameplay.Tutorial.TutorialSequence rankSequence))
+            {
+                var rankTargets = new TutorialTargetRegistry()
+                    .Register("profile.open", root.Q<VisualElement>("profile-panel"),
+                        () => social != null && social.TryOpenProfileForTutorial())
+                    .Register("profile.currency", root.Q<VisualElement>("profile-ranks"),
+                        () => true)
+                    .Register("profile.close", root.Q<VisualElement>("profile-analytics-close"),
+                        () => social != null && social.TryCloseProfileForTutorial())
+                    .Register("leaderboard.open", root.Q<VisualElement>("leaderboard"),
+                        () => social != null && social.TryOpenLeaderboardForTutorial())
+                    .Register("leaderboard.currency",
+                        root.Q<VisualElement>("leaderboard-self-currencies"),
+                        () => true);
+                _rankTutorialDirector = new TutorialDirector(
+                    this,
+                    root,
+                    rankSequence,
+                    new LifecycleTutorialProgressStore(PlayerLifecycleRuntime.Commands),
+                    PlayerSessionStore.Instance,
+                    _presenter,
+                    _interactionGate,
+                    rankTargets,
+                    reducedMotion,
+                    autoQueueOnCreate: false,
+                    autoQueueLegacyRankChange: true,
+                    ownsCombatCheckpoints: false,
+                    allowExternalGate: () => panelProvider?.Host?.OpenPanel ==
+                            MainMenuPanelId.ProfileAnalytics ||
+                        panelProvider?.Host?.OpenPanel == MainMenuPanelId.Leaderboard);
+                _rankTutorialDirector.Initialize();
+                _resultDrivenTutorials.Add(new ResultDrivenTutorialBinding(
+                    _rankTutorialDirector,
+                    result => result.RankTransition.Changed
+                        ? result.RankTransition.IsDemotion ? "demotion" : "promotion"
+                        : null));
+            }
+
+            _enemySurviveTutorialDirector?.Dispose();
+            _enemySurviveTutorialDirector = null;
+            if (catalog.TryGet(TutorialDirector.OnFirstEnemySurviveId,
+                    out PowerMath.Gameplay.Tutorial.TutorialSequence surviveSequence))
+            {
+                var surviveTargets = new TutorialTargetRegistry()
+                    .Register("combat.enemy-actions",
+                        root.Q<VisualElement>("combat-enemy-actions"),
+                        () => true);
+                _enemySurviveTutorialDirector = new TutorialDirector(
+                    this,
+                    root,
+                    surviveSequence,
+                    new LifecycleTutorialProgressStore(PlayerLifecycleRuntime.Commands),
+                    PlayerSessionStore.Instance,
+                    _presenter,
+                    _interactionGate,
+                    surviveTargets,
+                    reducedMotion,
+                    autoQueueOnCreate: false,
+                    ownsCombatCheckpoints: false);
+                _enemySurviveTutorialDirector.Initialize();
+                _resultDrivenTutorials.Add(new ResultDrivenTutorialBinding(
+                    _enemySurviveTutorialDirector,
+                    result => TutorialCombatTriggerPolicy.IsFirstEnemySurvive(result)
+                        ? string.Empty
+                        : null));
+            }
+
+            if (_resultDrivenTutorials.Count > 0)
+                _presenter.TutorialAttemptPresentationCompleted +=
+                    OnTutorialAttemptPresentationCompleted;
+        }
+
+        private void OnTutorialAttemptPresentationCompleted(
+            CombatTutorialResult result)
+        {
+            // This callback runs in the same frame as the authoritative result.
+            // Reserve the first qualifying tutorial before its queue coroutine
+            // performs persistence work on a later frame.
+            for (int index = 0; index < _resultDrivenTutorials.Count; index++)
+            {
+                ResultDrivenTutorialBinding binding = _resultDrivenTutorials[index];
+                if (binding.ResolveVariant(result) == null) continue;
+                binding.Director.TryReservePendingOwnership();
+                break;
+            }
+            StartCoroutine(QueueResultDrivenTutorials(result));
+        }
+
+        private IEnumerator QueueResultDrivenTutorials(CombatTutorialResult result)
+        {
+            long triggerRecordedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            for (int index = 0; index < _resultDrivenTutorials.Count; index++)
+            {
+                ResultDrivenTutorialBinding binding = _resultDrivenTutorials[index];
+                string variant = binding.ResolveVariant(result);
+                if (variant == null) continue;
+                yield return binding.Director.QueueFromTrigger(
+                    triggerRecordedAt, variant);
+            }
+        }
+
+        private sealed class ResultDrivenTutorialBinding
+        {
+            public ResultDrivenTutorialBinding(
+                TutorialDirector director,
+                Func<CombatTutorialResult, string> resolveVariant)
+            {
+                Director = director ?? throw new ArgumentNullException(nameof(director));
+                ResolveVariant = resolveVariant ??
+                    throw new ArgumentNullException(nameof(resolveVariant));
+            }
+
+            public TutorialDirector Director { get; }
+            public Func<CombatTutorialResult, string> ResolveVariant { get; }
+        }
+
+        private IEnumerator PublishTutorialReadyWhenStable()
+        {
+            while (_presenter != null && !_presenter.IsStableForTutorial)
+                yield return null;
+            _presenter?.PublishTutorialLobbyStable();
         }
 
         private bool TryLoadDevelopmentCatalog(out QuestionCatalog catalog)
@@ -882,9 +1263,26 @@ namespace PowerMath.UI.MainMenu
             QuestionCatalog catalog,
             IEnumerable<string> documentIds = null)
         {
-            IReadOnlyList<QuestionDefinition> questions =
-                catalog.GetRankQuestions(AcademicRank.Diamond);
-            var documents = new Dictionary<string, IReadOnlyList<QuestionDefinition>>(
+            var questions = new List<ChallengeQuestionDefinition>();
+            foreach (AcademicRank rank in new[]
+            {
+                AcademicRank.Silver,
+                AcademicRank.Gold,
+                AcademicRank.Diamond
+            })
+            {
+                QuestionDefinition[] rankQuestions = catalog.GetRankQuestions(rank).ToArray();
+                for (int index = 0; index < rankQuestions.Length; index++)
+                {
+                    QuestionDefinition question = rankQuestions[index];
+                    questions.Add(new ChallengeQuestionDefinition(
+                        ChallengeQuestionId.Create(rank, index + 1),
+                        question.VideoUri,
+                        question.CorrectAnswer,
+                        question.YouTubeVideoId));
+                }
+            }
+            var documents = new Dictionary<string, IReadOnlyList<ChallengeQuestionDefinition>>(
                 System.StringComparer.Ordinal)
             {
                 { "challenge", questions }
@@ -922,6 +1320,7 @@ namespace PowerMath.UI.MainMenu
             _sceneBackground = GameObject.Find("bg")?.GetComponent<LegacyImage>();
             _sceneEnemy = GameObject.Find("monsterPrefab")?.GetComponent<LegacyImage>();
             _scenePlayer = GameObject.Find("playerPresentation")?.GetComponent<LegacyImage>();
+            _scenePet = GameObject.Find("petPresentation")?.GetComponent<LegacyImage>();
             if (_sceneBackground != null)
             {
                 _sceneBackground.raycastTarget = false;
@@ -931,6 +1330,11 @@ namespace PowerMath.UI.MainMenu
             {
                 _scenePlayer.raycastTarget = true;
                 _scenePlayer.gameObject.SetActive(true);
+            }
+            if (_scenePet != null)
+            {
+                _scenePet.raycastTarget = false;
+                BindEquippedPetPresentation();
             }
             if (_sceneEnemy != null)
             {
@@ -977,8 +1381,17 @@ namespace PowerMath.UI.MainMenu
                     combatJuiceProfile,
                     playerRest);
                 _playerActor.ConfigureInteractionEligibility(() =>
-                    _interactionGate == null ||
-                    _interactionGate.IsAllowed(InteractionScope.Lobby));
+                {
+                    if (_interactionGate == null) return true;
+                    bool allowed = _interactionGate.IsAllowed(InteractionScope.Lobby);
+                    if (!allowed)
+                    {
+                        PowerMath.Diagnostics.AppLog.Warning(
+                            "Combat",
+                            $"[PlayerActor] Eligibility rejected: Gate active leases: {_interactionGate.ActiveLeasesSummary}");
+                    }
+                    return allowed;
+                });
                 CharacterPresentationBinding.ApplyToPlayerActor(_playerActor);
             }
             if (_sceneEnemy != null)
@@ -997,10 +1410,54 @@ namespace PowerMath.UI.MainMenu
                     combatJuiceProfile,
                     enemyRest);
                 _enemyActor.ConfigureInteractionEligibility(() =>
-                    _interactionGate == null ||
-                    _interactionGate.IsAllowed(InteractionScope.Lobby));
+                {
+                    if (_interactionGate == null) return true;
+                    bool allowed = _interactionGate.IsAllowed(InteractionScope.Lobby);
+                    if (!allowed)
+                    {
+                        PowerMath.Diagnostics.AppLog.Warning(
+                            "Combat",
+                            $"[EnemyActor] Eligibility rejected: Gate active leases: {_interactionGate.ActiveLeasesSummary}");
+                    }
+                    return allowed;
+                });
                 _enemyDamageAnchor = _enemyActor.DamageTextAnchor;
             }
+            if (_scenePet != null)
+            {
+                _petActor = _scenePet.GetComponent<ActorPresentationController>();
+                if (_petActor == null)
+                    _petActor = _scenePet.gameObject.AddComponent<ActorPresentationController>();
+                _petActor.Initialize(
+                    PowerMath.Gameplay.Combat.Presentation.PresentationActor.Pet,
+                    reducedMotion,
+                    combatJuiceProfile);
+                _petActor.ConfigureSprites(_scenePet.sprite);
+                if (_scenePet.sprite == null)
+                    _petActor.CancelAndApply(
+                        PowerMath.Gameplay.Combat.Presentation.ActorVisualState.Hidden);
+            }
+        }
+
+        private void BindEquippedPetPresentation()
+        {
+            if (_scenePet == null) return;
+            string equippedPetId = PlayerSessionStore.Instance?.Snapshot?.loadout?.petId;
+            _boundPetId = equippedPetId ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(equippedPetId) || petGachaCatalog == null ||
+                !petGachaCatalog.TryResolvePet(
+                    equippedPetId,
+                    out PetDefinition pet,
+                    out _))
+            {
+                _scenePet.sprite = null;
+                _scenePet.gameObject.SetActive(false);
+                return;
+            }
+
+            _scenePet.sprite = pet.PreviewSprite;
+            _scenePet.preserveAspect = true;
+            _scenePet.gameObject.SetActive(_scenePet.sprite != null);
         }
 
         private void OnActorTapped()
@@ -1055,11 +1512,35 @@ namespace PowerMath.UI.MainMenu
             Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay
                 ? null
                 : canvas.worldCamera;
+
+            _impactBurst = GetComponent<CombatImpactBurstPlayer>();
+            if (_impactBurst == null)
+                _impactBurst = gameObject.AddComponent<CombatImpactBurstPlayer>();
+            _impactBurst.Initialize(
+                fxRoot,
+                uiCamera,
+                combatJuiceProfile,
+                runtimeSettings != null && runtimeSettings.ReducedMotion);
+
             _floatingText.Initialize(
                 fxRoot,
                 uiCamera,
                 floatingCombatTextPrefab,
                 style,
+                runtimeSettings != null && runtimeSettings.ReducedMotion);
+
+            _floatingRewardText = GetComponent<FloatingRewardTextService>();
+            if (_floatingRewardText == null)
+                _floatingRewardText = gameObject.AddComponent<FloatingRewardTextService>();
+            FloatingRewardTextStyleDefinition rewardStyle = floatingRewardTextStyle != null
+                ? floatingRewardTextStyle
+                : Resources.Load<FloatingRewardTextStyleDefinition>(
+                    "FloatingRewardTextStyle");
+            _floatingRewardText.Initialize(
+                fxRoot,
+                uiCamera,
+                floatingRewardTextPrefab,
+                rewardStyle,
                 runtimeSettings != null && runtimeSettings.ReducedMotion);
         }
 
@@ -1088,8 +1569,70 @@ namespace PowerMath.UI.MainMenu
                 if (_sceneEnemy != null)
                     _sceneEnemy.transform.SetParent(worldRoot, true);
             }
+            EnsurePetPresentationObject(worldRoot);
             EnsureBackgroundTransitionLayer(worldRoot);
             return worldRoot;
+        }
+
+        private void EnsurePetPresentationObject(RectTransform worldRoot)
+        {
+            if (worldRoot == null) return;
+            if (_scenePet == null)
+            {
+                Transform inRoot = worldRoot.Find("petPresentation");
+                if (inRoot != null)
+                {
+                    _scenePet = inRoot.GetComponent<LegacyImage>();
+                }
+                else
+                {
+                    GameObject outside = GameObject.Find("petPresentation");
+                    if (outside != null)
+                    {
+                        outside.transform.SetParent(worldRoot, true);
+                        _scenePet = outside.GetComponent<LegacyImage>();
+                    }
+                    else
+                    {
+                        var petGo = new GameObject(
+                            "petPresentation",
+                            typeof(RectTransform),
+                            typeof(CanvasRenderer),
+                            typeof(LegacyImage));
+                        petGo.transform.SetParent(worldRoot, false);
+                        RectTransform rect = petGo.GetComponent<RectTransform>();
+                        rect.anchorMin = new Vector2(0.5f, 0.5f);
+                        rect.anchorMax = new Vector2(0.5f, 0.5f);
+                        rect.pivot = new Vector2(0.5f, 0.5f);
+                        rect.sizeDelta = new Vector2(160f, 160f);
+                        if (_scenePlayer != null)
+                        {
+                            rect.anchoredPosition = _scenePlayer.rectTransform.anchoredPosition + new Vector2(130f, -40f);
+                        }
+                        else
+                        {
+                            rect.anchoredPosition = new Vector2(-150f, -100f);
+                        }
+                        _scenePet = petGo.GetComponent<LegacyImage>();
+                    }
+                }
+            }
+            else if (_scenePet.transform.parent != worldRoot)
+            {
+                _scenePet.transform.SetParent(worldRoot, true);
+            }
+
+            if (_scenePet != null)
+            {
+                _scenePet.raycastTarget = false;
+                _scenePet.preserveAspect = true;
+                if (_sceneEnemy != null)
+                {
+                    int enemyIndex = _sceneEnemy.transform.GetSiblingIndex();
+                    _scenePet.transform.SetSiblingIndex(Mathf.Max(0, enemyIndex));
+                }
+                BindEquippedPetPresentation();
+            }
         }
 
         private void EnsureBackgroundTransitionLayer(RectTransform worldRoot)
@@ -1294,6 +1837,14 @@ namespace PowerMath.UI.MainMenu
 
         private bool RequiresBackgroundTransition(CombatSnapshot snapshot)
         {
+            if (snapshot == null) return false;
+            BiomeDefinition biome = stageMapDefinition?.FindBiome(snapshot.BiomeId);
+            if (biome != null && biome.MidpointStage > 0 &&
+                snapshot.Stage.Value == biome.MidpointStage &&
+                biome.SecondaryBackgroundSprite != null)
+            {
+                return true;
+            }
             Sprite desired = ResolveBackground(snapshot);
             return desired != null && _sceneBackground != null &&
                 _sceneBackground.overrideSprite != desired;
@@ -1338,10 +1889,11 @@ namespace PowerMath.UI.MainMenu
             EnemyDefinition monster = stageMapDefinition?.FindMonster(encounterId);
             if (monster != null)
             {
-                return PowerMath.Localization.LocalizationService.Locale == "th" && !string.IsNullOrWhiteSpace(monster.ThaiDisplayName)
-                    ? monster.ThaiDisplayName
-                    : monster.DisplayName;
+                return monster.GetDisplayName(PowerMath.Localization.LocalizationService.Locale);
             }
+            EventDefinition eventDefinition = stageMapDefinition?.FindEvent(encounterId);
+            if (eventDefinition != null)
+                return eventDefinition.GetDisplayName(PowerMath.Localization.LocalizationService.Locale);
             return null;
         }
 
@@ -1405,6 +1957,49 @@ namespace PowerMath.UI.MainMenu
             return result;
         }
 
+        private static ChallengeQuestionSequenceSnapshot ToChallengeQuestionSnapshot(
+            PlayerSnapshot.ChallengeQuestionSequenceData source)
+        {
+            return source == null
+                ? default
+                : new ChallengeQuestionSequenceSnapshot(
+                    source.silverCursor,
+                    source.goldCursor,
+                    source.diamondCursor,
+                    source.reservedDocumentId,
+                    source.reservedQuestionId);
+        }
+
+        private static bool TryMapEventSchedule(
+            PlayerSnapshot.ActiveRunData run,
+            StageMapData map,
+            out EventScheduleSnapshot schedule)
+        {
+            schedule = null;
+            if (run == null || run.eventScheduleVersion == 0)
+                return false;
+            if (run.eventScheduleVersion != EventScheduleSnapshot.CurrentVersion)
+                throw new System.InvalidOperationException(
+                    "The active run uses an unsupported Event schedule version.");
+            if (string.IsNullOrWhiteSpace(run.eventScheduleCatalogVersion) ||
+                string.IsNullOrWhiteSpace(run.eventScheduleEventId) ||
+                run.eventScheduleStages == null)
+                throw new System.InvalidOperationException(
+                    "The active run Event schedule is incomplete.");
+            if (!string.Equals(run.eventScheduleCatalogVersion, map.CatalogVersion,
+                    System.StringComparison.Ordinal))
+                throw new System.InvalidOperationException(
+                    "The active run uses a different Stage Map catalog version.");
+            schedule = new EventScheduleSnapshot(
+                run.eventScheduleCatalogVersion,
+                run.eventScheduleEventId,
+                run.eventScheduleStages,
+                run.eventChanceBasisPoints,
+                run.petEventMultiplierBasisPoints,
+                run.eventScheduleVersion);
+            return true;
+        }
+
         private static FirestoreAcademicProgressionStore TryCreateProgressionStore(
             GameApiSettings settings,
             PlayerSnapshot snapshot)
@@ -1463,7 +2058,11 @@ namespace PowerMath.UI.MainMenu
                     expected.BiomeTitle,
                     expected.Kind,
                     expected.QuestionDocumentId,
-                    run.eventAttemptOrdinal);
+                    run.eventAttemptOrdinal,
+                    resolver.Schedule,
+                    run.stageAttackCount,
+                    run.bigBossesDefeated,
+                    run.pendingPetFollowUpDamage);
                 return true;
             }
             catch (System.Exception exception) when (
@@ -1482,11 +2081,18 @@ namespace PowerMath.UI.MainMenu
             receipt = null;
             error = string.Empty;
             if (source == null) return true;
-            if (source.version != AttemptPresentationReceipt.CurrentVersion)
+            if (source.version < 0 ||
+                source.version > AttemptPresentationReceipt.CurrentVersion)
             {
                 error = "This saved combat result requires a newer PowerMath version.";
                 return false;
             }
+            // V1 receipts predate explicit persisted versioning in some player
+            // documents. Missing version is therefore normalized to the oldest
+            // schema whose invariant fields are still fully represented.
+            int receiptVersion = source.version == 0
+                ? AttemptPresentationReceipt.MinimumSupportedVersion
+                : source.version;
             if (!System.Enum.TryParse(source.outcome, true,
                     out AttemptOutcomeKind outcome) ||
                 !TryMapPresentationSnapshot(source.source, out var before) ||
@@ -1500,6 +2106,25 @@ namespace PowerMath.UI.MainMenu
 
             try
             {
+                PetFollowUpPresentationReceipt petFollowUp = null;
+                if (source.petFollowUp != null)
+                {
+                    if (!TryMapPresentationSnapshot(
+                            source.petFollowUp.target,
+                            out CombatPresentationSnapshot petTarget))
+                    {
+                        error = "The saved pet follow-up target is invalid.";
+                        return false;
+                    }
+                    petFollowUp = new PetFollowUpPresentationReceipt(
+                        source.petFollowUp.damage,
+                        source.petFollowUp.isCritical,
+                        petTarget,
+                        source.petFollowUp.enemyHpAfter,
+                        source.petFollowUp.enemyDefeated,
+                        source.petFollowUp.stageAdvanced,
+                        source.petFollowUp.carried);
+                }
                 receipt = new AttemptPresentationReceipt(
                     source.presentationId,
                     source.attemptId,
@@ -1516,12 +2141,20 @@ namespace PowerMath.UI.MainMenu
                     source.stageAdvanced,
                     source.biomeChanged,
                     new RankTransitionReceipt(previous, current),
-                    source.version);
+                    receiptVersion,
+                    source.enemyFled,
+                    source.powerCoinsGranted,
+                    source.resultingPowerCoins,
+                    receiptVersion >= 3 ? source.playerDamage : source.finalDamage,
+                    receiptVersion >= 3
+                        ? source.playerEnemyHpAfter
+                        : source.resolvedEnemyHpAfter,
+                    petFollowUp);
                 return true;
             }
-            catch (System.ArgumentException)
+            catch (System.ArgumentException ex)
             {
-                error = "The saved combat presentation receipt failed validation.";
+                error = $"The saved combat presentation receipt failed validation: {ex.Message}";
                 return false;
             }
         }

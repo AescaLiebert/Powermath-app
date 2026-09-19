@@ -27,6 +27,8 @@ namespace PowerMath.PlayerLifecycle
                         case PlayerLifecycleCommandKind.CompletePreparation:
                             player.profile.characterId = command.value; player.profile.displayName = command.displayName;
                             player.onboarding.phase = "complete"; player.onboarding.completionOperationId = command.operationId; break;
+                        case PlayerLifecycleCommandKind.AdvanceTutorial:
+                            TutorialProgressPolicy.ApplyToSnapshot(player, command); break;
                     }
                     player.schemaVersion = PlayerSchemaMigrator.CurrentSchemaVersion;
                     player.revision++;
