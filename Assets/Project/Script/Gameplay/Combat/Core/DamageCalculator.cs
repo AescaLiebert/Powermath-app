@@ -10,15 +10,15 @@ namespace PowerMath.Gameplay.Combat
         private static readonly int[] PercentByScore =
         {
             100, // Score 1: Base hit (1.0x)
-            110, // Score 2: +10%
-            120, // Score 3: +20%
-            130, // Score 4: +30%
-            140, // Score 5: +40%
-            150, // Score 6: +50%
-            160, // Score 7: +60%
-            170, // Score 8: +70%
-            180, // Score 9: +80%
-            200  // Score 10: Max speed / Grace (+100%, 2.0x)
+            105, // Score 2: +5%
+            110, // Score 3: +10%
+            115, // Score 4: +15%
+            120, // Score 5: +20%
+            125, // Score 6: +25%
+            130, // Score 7: +30%
+            135, // Score 8: +35%
+            140, // Score 9: +40%
+            150  // Score 10: Max speed / Grace (+50%, 1.5x)
         };
 
         public static double GetMultiplier(int responseScore)
@@ -183,6 +183,47 @@ namespace PowerMath.Gameplay.Combat
                 unrounded,
                 input.IsCritical,
                 breakdown);
+        }
+    }
+
+    public static class PetCombatPolicy
+    {
+        public static int CalculateDamage(
+            int effectivePetAttack,
+            double passiveMagnitude,
+            double rankMultiplier,
+            bool isCritical,
+            double criticalDamagePercent)
+        {
+            if (effectivePetAttack <= 0 || passiveMagnitude <= 0d || rankMultiplier <= 0d)
+            {
+                return 0;
+            }
+
+            double rawDamage = effectivePetAttack * passiveMagnitude * rankMultiplier;
+            if (rawDamage > int.MaxValue)
+            {
+                throw new OverflowException("Pet damage exceeds the supported range.");
+            }
+
+            int damage = Math.Max(1, (int)Math.Round(
+                rawDamage,
+                MidpointRounding.AwayFromZero));
+
+            if (isCritical)
+            {
+                double criticalDamage = damage * (1d + criticalDamagePercent / 100d);
+                if (criticalDamage > int.MaxValue)
+                {
+                    throw new OverflowException("Critical pet damage exceeds the supported range.");
+                }
+
+                damage = Math.Max(1, (int)Math.Round(
+                    criticalDamage,
+                    MidpointRounding.AwayFromZero));
+            }
+
+            return damage;
         }
     }
 }

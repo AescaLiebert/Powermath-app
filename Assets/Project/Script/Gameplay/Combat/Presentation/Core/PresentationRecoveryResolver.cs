@@ -7,7 +7,8 @@ namespace PowerMath.Gameplay.Combat.Presentation
         RunDefeat,
         PendingDeathResult,
         PendingRebirthResult,
-        UnsupportedReceipt
+        UnsupportedReceipt,
+        InterruptedAttempt
     }
 
     public static class PresentationRecoveryResolver
@@ -15,7 +16,8 @@ namespace PowerMath.Gameplay.Combat.Presentation
         public static PresentationRecoveryKind Resolve(
             CombatPhase phase,
             AttemptPresentationReceipt pendingAttempt,
-            RunPresentationReceipt pendingRun)
+            RunPresentationReceipt pendingRun,
+            bool hasCommittedAttempt = false)
         {
             if (pendingAttempt != null)
             {
@@ -37,6 +39,16 @@ namespace PowerMath.Gameplay.Combat.Presentation
                 return PresentationRecoveryKind.UnsupportedReceipt;
             if (phase == CombatPhase.RunDefeat)
                 return PresentationRecoveryKind.RunDefeat;
+
+            if (hasCommittedAttempt ||
+                phase == CombatPhase.Committed ||
+                phase == CombatPhase.Preparation ||
+                phase == CombatPhase.Answering ||
+                phase == CombatPhase.Resolving)
+            {
+                return PresentationRecoveryKind.InterruptedAttempt;
+            }
+
             return PresentationRecoveryKind.Normal;
         }
     }

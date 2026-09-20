@@ -296,7 +296,12 @@ namespace PowerMath.Gameplay.Combat
                         ? active.Reservation.RankAtCommit.DamageMultiplier
                         : 1d
                 )
-                : _combat.ResolveIncorrect(outcome == QuestionOutcome.Timeout);
+                : _combat.ResolveIncorrect(
+                    outcome == QuestionOutcome.Timeout,
+                    active.IsAcademic
+                        ? active.Reservation.RankAtCommit.DamageMultiplier
+                        : 1d
+                );
             AcademicAttemptResult academicResult = null;
             EventAttemptResult eventResult = null;
             if (active.IsAcademic)

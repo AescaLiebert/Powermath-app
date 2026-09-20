@@ -114,7 +114,7 @@ namespace PowerMath.Gameplay.Academic.Unity
         {
             AcademicRank rank = projection.ActiveRank;
             _rankLabel.text = $"RANK {rank.ToString().ToUpperInvariant()}";
-            _multiplierLabel.text = $"Damage ×{rank.DamageMultiplier:0.0}";
+            _multiplierLabel.text = $"Damage ×{rank.DamageMultiplier:0.0#}";
             _activeCurrencyLabel.text =
                 $"{rank}: {projection.Balances.Get(rank)}";
 

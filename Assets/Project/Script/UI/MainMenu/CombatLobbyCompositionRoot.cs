@@ -7,6 +7,7 @@ using PowerMath.Gameplay.Academic;
 using PowerMath.Gameplay.Academic.Infrastructure;
 using PowerMath.Gameplay.Academic.Unity;
 using PowerMath.Gameplay.Combat;
+using PowerMath.Gameplay.Combat.Presentation;
 using PowerMath.Gameplay.Combat.Unity;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
@@ -750,24 +751,37 @@ namespace PowerMath.UI.MainMenu
                 TryBuildRestoredCombat(snapshot, encounterResolver, runId,
                 out CombatSnapshot restoredCombat))
             {
-                if (restoredCombat.Phase == CombatPhase.Committed ||
-                    restoredCombat.Phase == CombatPhase.Preparation ||
-                    restoredCombat.Phase == CombatPhase.Answering ||
-                    restoredCombat.Phase == CombatPhase.Resolving ||
-                    (restoredCombat.Phase == CombatPhase.PresentingResult && pendingPresentation == null))
+                bool hasCommittedAttempt = !string.IsNullOrEmpty(snapshot.activeRun?.committedAttemptId);
+                PresentationRecoveryKind recoveryKind = PresentationRecoveryResolver.Resolve(
+                    restoredCombat.Phase,
+                    pendingPresentation,
+                    null,
+                    hasCommittedAttempt);
+
+                if (recoveryKind == PresentationRecoveryKind.InterruptedAttempt)
                 {
-                    PowerMath.Diagnostics.AppLog.Warning("Combat", "An unfinished saved attempt was interrupted. Restoring encounter in ready state.");
-                    restoredCombat = new CombatSnapshot(
+                    PowerMath.Diagnostics.AppLog.Warning("Combat",
+                        "An unfinished saved attempt was interrupted. Resolving authoritatively as Timeout/Forfeit.");
+
+                    int safeHearts = restoredCombat.PlayerCurrentHearts <= 0 || restoredCombat.Phase == CombatPhase.RunDefeat
+                        ? 0
+                        : Math.Min(restoredCombat.PlayerCurrentHearts, maximumHearts);
+
+                    int safeCooldown = Math.Max(0, Math.Min(
+                        restoredCombat.EnemyRemainingCooldown,
+                        restoredCombat.EnemyMaximumCooldown));
+
+                    CombatSnapshot committedCombat = new CombatSnapshot(
                         restoredCombat.Stage,
                         restoredCombat.EnemyId,
                         restoredCombat.EnemyName,
-                        restoredCombat.EnemyCurrentHp > 0 ? restoredCombat.EnemyCurrentHp : restoredCombat.EnemyMaximumHp,
+                        restoredCombat.EnemyCurrentHp,
                         restoredCombat.EnemyMaximumHp,
-                        restoredCombat.EnemyRemainingCooldown > 0 ? restoredCombat.EnemyRemainingCooldown : restoredCombat.EnemyMaximumCooldown,
+                        safeCooldown,
                         restoredCombat.EnemyMaximumCooldown,
-                        restoredCombat.PlayerCurrentHearts > 0 ? restoredCombat.PlayerCurrentHearts : maximumHearts,
+                        safeHearts,
                         restoredCombat.PlayerMaximumHearts > 0 ? restoredCombat.PlayerMaximumHearts : maximumHearts,
-                        restoredCombat.EncounterKind == StageEncounterKind.ChallengeEvent ? CombatPhase.EventReady : CombatPhase.EnemyReady,
+                        CombatPhase.Committed,
                         false,
                         restoredCombat.BiomeId,
                         restoredCombat.BiomeTitle,
@@ -778,10 +792,129 @@ namespace PowerMath.UI.MainMenu
                         restoredCombat.StageAttackCount,
                         restoredCombat.BigBossesDefeated,
                         restoredCombat.PendingPetFollowUpDamage);
+
+                    engine = new LocalRunEncounterEngine(committedCombat, runId,
+                        encounterResolver, random, combatStats, adminInvincible,
+                        maximumHearts);
+
+                    CombatResolution resolution = engine.ResolveIncorrect(timedOut: true);
+
+                    string attemptId = !string.IsNullOrEmpty(snapshot.activeRun?.committedAttemptId)
+                        ? snapshot.activeRun.committedAttemptId
+                        : Guid.NewGuid().ToString("N");
+
+                    bool isChallengeEvent = committedCombat.EncounterKind == StageEncounterKind.ChallengeEvent;
+                    int challengeBiomeIndex = Math.Min(7, Math.Max(1, (committedCombat.Stage.Value - 1) / 30 + 1));
+                    int eventCoinsGranted = isChallengeEvent
+                        ? ChallengeRewardPolicy.Calculate(QuestionOutcome.Timeout, 0, challengeBiomeIndex)
+                        : 0;
+                    long currentCoins = snapshot.wallet?.powerCoins ?? 0;
+                    long resultingCoins = checked(currentCoins + eventCoinsGranted);
+
+                    pendingPresentation = new AttemptPresentationReceipt(
+                        "interrupted-attempt-" + attemptId,
+                        attemptId,
+                        AttemptOutcomeKind.Timeout,
+                        0,
+                        0,
+                        false,
+                        CombatPresentationSnapshot.From(committedCombat),
+                        CombatPresentationSnapshot.From(engine.Snapshot),
+                        committedCombat.EnemyCurrentHp,
+                        false,
+                        resolution.EnemyAttacked,
+                        resolution.PlayerDefeated,
+                        resolution.StageAdvanced,
+                        resolution.BiomeChanged,
+                        default,
+                        AttemptPresentationReceipt.CurrentVersion,
+                        resolution.EnemyFled,
+                        eventCoinsGranted,
+                        resultingCoins,
+                        0,
+                        committedCombat.EnemyCurrentHp,
+                        null);
+
+                    if (snapshot.activeRun != null)
+                    {
+                        snapshot.activeRun.pendingPresentation = new PlayerSnapshot.AttemptPresentationData
+                        {
+                            version = pendingPresentation.Version,
+                            presentationId = pendingPresentation.PresentationId,
+                            attemptId = pendingPresentation.AttemptId,
+                            outcome = pendingPresentation.Outcome.ToString(),
+                            responseScore = 0,
+                            finalDamage = 0,
+                            playerDamage = 0,
+                            playerEnemyHpAfter = committedCombat.EnemyCurrentHp,
+                            isCritical = false,
+                            resolvedEnemyHpAfter = committedCombat.EnemyCurrentHp,
+                            enemyDefeated = false,
+                            enemyAttacked = resolution.EnemyAttacked,
+                            playerDefeated = resolution.PlayerDefeated,
+                            stageAdvanced = resolution.StageAdvanced,
+                            biomeChanged = resolution.BiomeChanged,
+                            enemyFled = resolution.EnemyFled,
+                            powerCoinsGranted = eventCoinsGranted,
+                            resultingPowerCoins = resultingCoins
+                        };
+                    }
                 }
-                engine = new LocalRunEncounterEngine(restoredCombat, runId,
-                    encounterResolver, random, combatStats, adminInvincible,
-                    maximumHearts);
+                else
+                {
+                    if (restoredCombat.PlayerCurrentHearts <= 0 || restoredCombat.Phase == CombatPhase.RunDefeat)
+                    {
+                        restoredCombat = new CombatSnapshot(
+                            restoredCombat.Stage,
+                            restoredCombat.EnemyId,
+                            restoredCombat.EnemyName,
+                            restoredCombat.EnemyCurrentHp,
+                            restoredCombat.EnemyMaximumHp,
+                            Math.Max(0, restoredCombat.EnemyRemainingCooldown),
+                            restoredCombat.EnemyMaximumCooldown,
+                            0,
+                            restoredCombat.PlayerMaximumHearts > 0 ? restoredCombat.PlayerMaximumHearts : maximumHearts,
+                            CombatPhase.RunDefeat,
+                            false,
+                            restoredCombat.BiomeId,
+                            restoredCombat.BiomeTitle,
+                            restoredCombat.EncounterKind,
+                            restoredCombat.QuestionDocumentId,
+                            restoredCombat.EventAttemptOrdinal,
+                            eventSchedule,
+                            restoredCombat.StageAttackCount,
+                            restoredCombat.BigBossesDefeated,
+                            restoredCombat.PendingPetFollowUpDamage);
+                    }
+                    else if (restoredCombat.Phase == CombatPhase.PresentingResult && pendingPresentation == null)
+                    {
+                        restoredCombat = new CombatSnapshot(
+                            restoredCombat.Stage,
+                            restoredCombat.EnemyId,
+                            restoredCombat.EnemyName,
+                            restoredCombat.EnemyCurrentHp,
+                            restoredCombat.EnemyMaximumHp,
+                            Math.Max(0, restoredCombat.EnemyRemainingCooldown),
+                            restoredCombat.EnemyMaximumCooldown,
+                            Math.Min(restoredCombat.PlayerCurrentHearts, maximumHearts),
+                            restoredCombat.PlayerMaximumHearts > 0 ? restoredCombat.PlayerMaximumHearts : maximumHearts,
+                            restoredCombat.EncounterKind == StageEncounterKind.ChallengeEvent ? CombatPhase.EventReady : CombatPhase.EnemyReady,
+                            false,
+                            restoredCombat.BiomeId,
+                            restoredCombat.BiomeTitle,
+                            restoredCombat.EncounterKind,
+                            restoredCombat.QuestionDocumentId,
+                            restoredCombat.EventAttemptOrdinal,
+                            eventSchedule,
+                            restoredCombat.StageAttackCount,
+                            restoredCombat.BigBossesDefeated,
+                            restoredCombat.PendingPetFollowUpDamage);
+                    }
+
+                    engine = new LocalRunEncounterEngine(restoredCombat, runId,
+                        encounterResolver, random, combatStats, adminInvincible,
+                        maximumHearts);
+                }
             }
             else
             {
@@ -850,7 +983,9 @@ namespace PowerMath.UI.MainMenu
                 runId,
                 pendingPresentation,
                 ToChallengeQuestionSnapshot(snapshot.activeRun?.challengeQuestions),
-                snapshot.wallet?.powerCoins ?? 0,
+                (pendingPresentation != null && pendingPresentation.PowerCoinsGranted > 0)
+                    ? pendingPresentation.ResultingPowerCoins
+                    : (snapshot.wallet?.powerCoins ?? 0),
                 string.Equals(snapshot.activeRun?.questionContentKind,
                     QuestionContentKind.EventQuestion.ToString(),
                     System.StringComparison.Ordinal)

@@ -45,15 +45,15 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [TestCase(1, 100, 50)]
-        [TestCase(2, 110, 55)]
-        [TestCase(3, 120, 60)]
-        [TestCase(4, 130, 65)]
-        [TestCase(5, 140, 70)]
-        [TestCase(6, 150, 75)]
-        [TestCase(7, 160, 80)]
-        [TestCase(8, 170, 85)]
-        [TestCase(9, 180, 90)]
-        [TestCase(10, 200, 100)]
+        [TestCase(2, 105, 53)]
+        [TestCase(3, 110, 55)]
+        [TestCase(4, 115, 58)]
+        [TestCase(5, 120, 60)]
+        [TestCase(6, 125, 63)]
+        [TestCase(7, 130, 65)]
+        [TestCase(8, 135, 68)]
+        [TestCase(9, 140, 70)]
+        [TestCase(10, 150, 75)]
         public void DamageCalculator_AppliesResponseScoreMultiplier(
             int responseScore,
             int expectedPercent,
@@ -879,24 +879,24 @@ namespace PowerMath.Gameplay.Combat.Tests
                 new MinimumRandomSource(),
                 stats);
 
-            // Hit 1: buffMultiplier 1.0 -> 10 * 1.0 * 2.0 (score 10) = 20 damage
+            // Hit 1: buffMultiplier 1.0 -> 10 * 1.0 * 1.5 (score 10) = 15 damage
             engine.CommitAttempt();
             CombatResolution res1 = engine.ResolveCorrect(10, 1d);
-            Assert.That(res1.FinalDamage, Is.EqualTo(20));
+            Assert.That(res1.FinalDamage, Is.EqualTo(15));
             Assert.That(engine.StageAttackCount, Is.EqualTo(1));
 
-            // Hit 2: buffMultiplier 1.0 -> 20 damage
+            // Hit 2: buffMultiplier 1.0 -> 15 damage
             engine.CompletePresentation();
             engine.CommitAttempt();
             CombatResolution res2 = engine.ResolveCorrect(10, 1d);
-            Assert.That(res2.FinalDamage, Is.EqualTo(20));
+            Assert.That(res2.FinalDamage, Is.EqualTo(15));
             Assert.That(engine.StageAttackCount, Is.EqualTo(2));
 
-            // Hit 3: 3rd hit in same stage! buffMultiplier 1.25 -> 10 * 1.25 * 2.0 = 25 damage!
+            // Hit 3: 3rd hit in same stage! buffMultiplier 1.25 -> 10 * 1.25 * 1.5 = 18.75 -> 19 damage!
             engine.CompletePresentation();
             engine.CommitAttempt();
             CombatResolution res3 = engine.ResolveCorrect(10, 1d);
-            Assert.That(res3.FinalDamage, Is.EqualTo(25));
+            Assert.That(res3.FinalDamage, Is.EqualTo(19));
             Assert.That(engine.StageAttackCount, Is.EqualTo(3));
         }
 
@@ -1022,10 +1022,10 @@ namespace PowerMath.Gameplay.Combat.Tests
                 resolver, new MinimumRandomSource(), 3, stats);
 
             engine.CommitAttempt();
-            // Player damage = 10 * 1.0 * 2.0 (score 10) = 20. Pet damage = 30. Total = 50.
+            // Player damage = 10 * 1.0 * 1.5 (score 10) = 15. Pet damage = 30 * 1.0 = 30. Total = 45.
             CombatResolution res = engine.ResolveCorrect(10, 1d);
-            Assert.That(res.FinalDamage, Is.EqualTo(50));
-            Assert.That(res.PlayerDamage, Is.EqualTo(20));
+            Assert.That(res.FinalDamage, Is.EqualTo(45));
+            Assert.That(res.PlayerDamage, Is.EqualTo(15));
             Assert.That(res.PetFollowUp, Is.Not.Null);
             Assert.That(res.PetFollowUp.Damage, Is.EqualTo(30));
             Assert.That(res.PetFollowUp.Carried, Is.False);
@@ -1201,6 +1201,109 @@ namespace PowerMath.Gameplay.Combat.Tests
                 new Uri("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
                 answer,
                 "dQw4w9WgXcQ");
+
+        [TestCase(30, 1.0d, 1.0d, false, 0d, 30)]
+        [TestCase(30, 1.0d, 1.25d, false, 0d, 38)]
+        [TestCase(30, 1.0d, 1.5d, false, 0d, 45)]
+        [TestCase(30, 1.0d, 1.5d, true, 50d, 68)]
+        public void PetCombatPolicy_CalculatesDamageWithRankMultiplier(
+            int effectivePetAttack,
+            double passiveMagnitude,
+            double rankMultiplier,
+            bool isCritical,
+            double criticalDamagePercent,
+            int expectedDamage)
+        {
+            int damage = PetCombatPolicy.CalculateDamage(
+                effectivePetAttack,
+                passiveMagnitude,
+                rankMultiplier,
+                isCritical,
+                criticalDamagePercent);
+
+            Assert.That(damage, Is.EqualTo(expectedDamage));
+        }
+
+        [TestCase(1.0d, 30)]
+        [TestCase(1.25d, 38)]
+        [TestCase(1.5d, 45)]
+        public void LocalRunEncounterEngine_PetFollowUp_ScalesWithRankMultiplier(
+            double rankMultiplier,
+            int expectedPetDamage)
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var resolver = new StageEncounterResolver(map);
+            var stats = new PlayerCombatStats(
+                effectiveAttack: 10,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                effectivePetAttack: 30,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:follow-up",
+                    PetPassiveEffectType.FollowUpAfterSuccessfulPlayerAttack,
+                    1d)));
+
+            var engine = new LocalRunEncounterEngine(
+                new StageId(1), "rank-followup-test",
+                resolver, new MinimumRandomSource(), 3, stats);
+
+            engine.CommitAttempt();
+            CombatResolution res = engine.ResolveCorrect(1, rankMultiplier);
+
+            Assert.That(res.PetFollowUp, Is.Not.Null);
+            Assert.That(res.PetFollowUp.Damage, Is.EqualTo(expectedPetDamage));
+        }
+
+        [TestCase(1.0d, 30)]
+        [TestCase(1.25d, 38)]
+        [TestCase(1.5d, 45)]
+        public void LocalRunEncounterEngine_PetCounterAttack_TriggersOnHeartLossWithRankMultiplier(
+            double rankMultiplier,
+            int expectedPetDamage)
+        {
+            StageMapData map = DevelopmentStageMapFactory.Create();
+            var resolver = new StageEncounterResolver(map);
+            var stats = new PlayerCombatStats(
+                effectiveAttack: 10,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                effectivePetAttack: 30,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:counter-attack",
+                    PetPassiveEffectType.CounterAttackAfterHeartLoss,
+                    1d)));
+
+            // Spawn enemy with cooldown 1 so the next attempt will trigger enemy attack
+            var selection = resolver.Resolve("counter-test", new StageId(1));
+            var snapshot = new CombatSnapshot(
+                new StageId(1), selection.EncounterId, selection.DisplayName,
+                100, 100,
+                enemyRemainingCooldown: 1,
+                enemyMaximumCooldown: 1,
+                playerCurrentHearts: 3,
+                playerMaximumHearts: 3,
+                phase: CombatPhase.EnemyReady,
+                isSimulation: false,
+                biomeId: selection.BiomeId,
+                biomeTitle: selection.BiomeTitle,
+                encounterKind: selection.Kind,
+                questionDocumentId: selection.QuestionDocumentId,
+                eventAttemptOrdinal: 0);
+
+            var engine = new LocalRunEncounterEngine(
+                snapshot, "counter-test",
+                resolver, new MinimumRandomSource(), stats);
+
+            engine.CommitAttempt();
+            // Resolve incorrect with timeout to let enemy attack
+            CombatResolution res = engine.ResolveIncorrect(true, rankMultiplier);
+
+            Assert.That(res.EnemyAttacked, Is.True);
+            Assert.That(res.Snapshot.PlayerCurrentHearts, Is.EqualTo(2));
+            Assert.That(res.PetFollowUp, Is.Not.Null);
+            Assert.That(res.PetFollowUp.Damage, Is.EqualTo(expectedPetDamage));
+            Assert.That(res.FinalDamage, Is.EqualTo(expectedPetDamage));
+        }
 
         private sealed class MinimumRandomSource : IRandomSource
         {

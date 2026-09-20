@@ -7,8 +7,8 @@ namespace PowerMath.Gameplay.Academic.Tests
     public sealed class AcademicCoreTests
     {
         [TestCase("Silver", AcademicRankTier.Silver, 1d)]
-        [TestCase("Gold", AcademicRankTier.Gold, 1.5d)]
-        [TestCase("Diamond", AcademicRankTier.Diamond, 2d)]
+        [TestCase("Gold", AcademicRankTier.Gold, 1.25d)]
+        [TestCase("Diamond", AcademicRankTier.Diamond, 1.5d)]
         public void AcademicRank_ParsesExactAndReturnsMultiplier(
             string value,
             AcademicRankTier expectedTier,

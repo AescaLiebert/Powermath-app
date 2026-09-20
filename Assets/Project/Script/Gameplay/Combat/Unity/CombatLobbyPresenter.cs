@@ -468,6 +468,14 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private IEnumerator RecoveryRoutine(AttemptPresentationReceipt receipt)
         {
+            if (receipt != null && receipt.Outcome == AttemptOutcomeKind.Timeout)
+            {
+                _view.SetResult("BATTLE RESUMED: UNFINISHED QUESTION TIMED OUT", false);
+            }
+            else
+            {
+                _view.SetResult("RECOVERING BATTLE...", true);
+            }
             yield return _feedback.PlayRecoveredBattle(receipt);
             while (!_feedback.AreActorsStable ||
                    !_view.IsEnemyActionQueueStable ||

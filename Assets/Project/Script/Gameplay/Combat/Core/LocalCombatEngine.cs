@@ -181,6 +181,11 @@ namespace PowerMath.Gameplay.Combat
 
         public CombatResolution ResolveIncorrect(bool timedOut)
         {
+            return ResolveIncorrect(timedOut, 1d);
+        }
+
+        public CombatResolution ResolveIncorrect(bool timedOut, double rankMultiplier)
+        {
             EnsureCommittedAttempt();
             return Resolve(0, 0, false, false, timedOut);
         }

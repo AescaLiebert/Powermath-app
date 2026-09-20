@@ -43,6 +43,7 @@ namespace PowerMath.Gameplay.Combat
         CombatSnapshot VoidContentFailure();
         CombatResolution ResolveCorrect(int responseScore, double rankMultiplier);
         CombatResolution ResolveIncorrect(bool timedOut);
+        CombatResolution ResolveIncorrect(bool timedOut, double rankMultiplier);
         CombatSnapshot CompletePresentation();
         void RefreshPlayerStats(PlayerCombatStats stats);
         void RefreshEventSchedule(EventScheduleSnapshot schedule);
@@ -147,7 +148,7 @@ namespace PowerMath.Gameplay.Combat
         {
             EnsureCommitted();
             ResponseDamagePolicy.GetMultiplier(responseScore);
-            if (_selection.IsEvent) return Resolve(responseScore, 1, true, false, false);
+            if (_selection.IsEvent) return Resolve(responseScore, 1, true, false, false, rankMultiplier);
 
             _stageAttackCount++;
             double buffMultiplier = ResolvePlayerAttackPassiveMultiplier();
@@ -158,14 +159,15 @@ namespace PowerMath.Gameplay.Combat
                 _stats.CriticalDamagePercent, critical, responseScore));
 
             bool petCritical = false;
-            int petDamage = CalculatePetFollowUpDamage(ref petCritical);
+            int petDamage = CalculatePetFollowUpDamage(rankMultiplier, ref petCritical);
             return ResolveSuccessfulAttack(
                 responseScore,
                 damage.FinalDamage,
                 critical,
                 damage.Breakdown,
                 petDamage,
-                petCritical);
+                petCritical,
+                rankMultiplier);
         }
 
         private CombatResolution ResolveSuccessfulAttack(
@@ -174,7 +176,8 @@ namespace PowerMath.Gameplay.Combat
             bool critical,
             DamageBreakdown damageBreakdown,
             int petDamage,
-            bool petCritical)
+            bool petCritical,
+            double rankMultiplier)
         {
             StageId resolvedStage = _stage;
             string previousBiome = _selection.BiomeId;
@@ -224,6 +227,30 @@ namespace PowerMath.Gameplay.Combat
             else
             {
                 ResolveEnemyTurn(out attacked, out playerDefeated);
+                if (attacked && !playerDefeated)
+                {
+                    bool counterCrit = false;
+                    int counterDamage = CalculatePetCounterAttackDamage(rankMultiplier, ref counterCrit);
+                    if (counterDamage > 0)
+                    {
+                        CombatSnapshot counterTarget = CreateSnapshot();
+                        hpAfter = _enemy.ApplyDamage(counterDamage);
+                        totalSourceDamage = checked(totalSourceDamage + counterDamage);
+                        defeated = hpAfter == 0;
+                        petFollowUp = new PetFollowUpResolution(
+                            counterDamage,
+                            counterCrit,
+                            counterTarget,
+                            hpAfter,
+                            defeated,
+                            defeated,
+                            false);
+                        if (defeated)
+                        {
+                            AdvanceAfterDefeat(ref advanced);
+                        }
+                    }
+                }
             }
 
             _attemptCommitted = false;
@@ -251,8 +278,13 @@ namespace PowerMath.Gameplay.Combat
 
         public CombatResolution ResolveIncorrect(bool timedOut)
         {
+            return ResolveIncorrect(timedOut, 1d);
+        }
+
+        public CombatResolution ResolveIncorrect(bool timedOut, double rankMultiplier)
+        {
             EnsureCommitted();
-            return Resolve(0, 0, false, false, timedOut);
+            return Resolve(0, 0, false, false, timedOut, rankMultiplier);
         }
 
         public CombatSnapshot CompletePresentation()
@@ -317,6 +349,7 @@ namespace PowerMath.Gameplay.Combat
 
         private CombatResolution Resolve(int score, int damage, bool correct,
             bool critical, bool timedOut,
+            double rankMultiplier = 1d,
             DamageBreakdown damageBreakdown = default)
         {
             StageId resolvedStage = _stage;
@@ -354,6 +387,30 @@ namespace PowerMath.Gameplay.Combat
             else
             {
                 ResolveEnemyTurn(out attacked, out playerDefeated);
+                if (attacked && !playerDefeated)
+                {
+                    bool counterCrit = false;
+                    int counterDamage = CalculatePetCounterAttackDamage(rankMultiplier, ref counterCrit);
+                    if (counterDamage > 0)
+                    {
+                        CombatSnapshot counterTarget = CreateSnapshot();
+                        hpAfter = _enemy.ApplyDamage(counterDamage);
+                        damage = checked(damage + counterDamage);
+                        defeated = hpAfter == 0;
+                        petFollowUp = new PetFollowUpResolution(
+                            counterDamage,
+                            counterCrit,
+                            counterTarget,
+                            hpAfter,
+                            defeated,
+                            defeated,
+                            false);
+                        if (defeated)
+                        {
+                            AdvanceAfterDefeat(ref advanced);
+                        }
+                    }
+                }
             }
 
             _attemptCommitted = false;
@@ -363,32 +420,40 @@ namespace PowerMath.Gameplay.Combat
                 damageBreakdown, fled, damage, hpAfter, petFollowUp);
         }
 
-        private int CalculatePetFollowUpDamage(ref bool critical)
+        private int CalculatePetFollowUpDamage(double rankMultiplier, ref bool critical)
         {
             double multiplier = _stats.PetPassives.SumMagnitude(
                 PetPassiveEffectType.FollowUpAfterSuccessfulPlayerAttack);
             if (multiplier <= 0d || _stats.EffectivePetAttack <= 0) return 0;
 
-            double rawDamage = _stats.EffectivePetAttack * multiplier;
-            if (rawDamage > int.MaxValue)
-                throw new OverflowException("Pet follow-up damage exceeds the supported range.");
-            int damage = Math.Max(1, (int)Math.Round(
-                rawDamage,
-                MidpointRounding.AwayFromZero));
             critical = _stats.PetPassives.HasEffect(
                     PetPassiveEffectType.EnablePetFollowUpCritical) &&
                 _random.NextUnit() < _stats.CriticalRate;
-            if (critical)
-            {
-                double criticalDamage = damage *
-                    (1d + _stats.CriticalDamagePercent / 100d);
-                if (criticalDamage > int.MaxValue)
-                    throw new OverflowException("Critical pet follow-up damage exceeds the supported range.");
-                damage = Math.Max(1, (int)Math.Round(
-                    criticalDamage,
-                    MidpointRounding.AwayFromZero));
-            }
-            return damage;
+
+            return PetCombatPolicy.CalculateDamage(
+                _stats.EffectivePetAttack,
+                multiplier,
+                rankMultiplier,
+                critical,
+                _stats.CriticalDamagePercent);
+        }
+
+        private int CalculatePetCounterAttackDamage(double rankMultiplier, ref bool critical)
+        {
+            double multiplier = _stats.PetPassives.SumMagnitude(
+                PetPassiveEffectType.CounterAttackAfterHeartLoss);
+            if (multiplier <= 0d || _stats.EffectivePetAttack <= 0) return 0;
+
+            critical = _stats.PetPassives.HasEffect(
+                    PetPassiveEffectType.EnablePetFollowUpCritical) &&
+                _random.NextUnit() < _stats.CriticalRate;
+
+            return PetCombatPolicy.CalculateDamage(
+                _stats.EffectivePetAttack,
+                multiplier,
+                rankMultiplier,
+                critical,
+                _stats.CriticalDamagePercent);
         }
 
         private PetFollowUpResolution ResolvePendingPetFollowUp(

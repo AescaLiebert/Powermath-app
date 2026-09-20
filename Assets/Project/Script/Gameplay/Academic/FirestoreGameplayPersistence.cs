@@ -236,11 +236,15 @@ namespace PowerMath.Gameplay.Academic
 
         private bool HasMatchingPendingPresentation(string presentationId)
         {
-            return !string.IsNullOrWhiteSpace(presentationId) &&
-                string.Equals(
-                    _player.activeRun?.pendingPresentation?.presentationId,
+            if (string.IsNullOrWhiteSpace(presentationId)) return false;
+            if (_player.activeRun?.pendingPresentation != null)
+            {
+                return string.Equals(
+                    _player.activeRun.pendingPresentation.presentationId,
                     presentationId,
                     StringComparison.Ordinal);
+            }
+            return !string.IsNullOrEmpty(_player.activeRun?.committedAttemptId);
         }
 
         private static PlayerSnapshot.AttemptPresentationData ToPlayer(

@@ -364,7 +364,7 @@ ResponseScore = 0
 
 ### Response Damage Multiplier
 
-Correct-answer Response Score multiplies the fully composed combat damage. To protect educational confidence and avoid penalizing thoughtful students who take time to calculate, **a correct answer never deals below 100% Effective ATK damage**. Faster response speed awards an upward bonus from +0% up to +100% (200% total):
+Correct-answer Response Score multiplies the fully composed combat damage. To protect educational confidence and avoid penalizing thoughtful students who take time to calculate, **a correct answer never deals below 100% Effective ATK damage**. Faster response speed awards an upward bonus from +0% up to +50% (150% total):
 
 ```text
 ResponseDamageMultiplier = ResponseDamagePolicy.GetMultiplier(ResponseScore)
@@ -372,18 +372,18 @@ ResponseDamageMultiplier = ResponseDamagePolicy.GetMultiplier(ResponseScore)
 
 | Response Score | Time Remaining Band | Response Damage Multiplier | Bonus Meaning |
 | ---: | :--- | ---: | :--- |
-| 10 | 10s / 1-sec Grace Period | 200% | Maximum speed bonus (+100%) |
-| 9 | 9s remaining | 180% | +80% bonus |
-| 8 | 8s remaining | 170% | +70% bonus |
-| 7 | 7s remaining | 160% | +60% bonus |
-| 6 | 6s remaining | 150% | +50% bonus |
-| 5 | 5s remaining | 140% | +40% bonus |
-| 4 | 4s remaining | 130% | +30% bonus |
-| 3 | 3s remaining | 120% | +20% bonus |
-| 2 | 2s remaining | 110% | +10% bonus |
+| 10 | 10s / 1-sec Grace Period | 150% | Maximum speed bonus (+50%) |
+| 9 | 9s remaining | 140% | +40% bonus |
+| 8 | 8s remaining | 135% | +35% bonus |
+| 7 | 7s remaining | 130% | +30% bonus |
+| 6 | 6s remaining | 125% | +25% bonus |
+| 5 | 5s remaining | 120% | +20% bonus |
+| 4 | 4s remaining | 115% | +15% bonus |
+| 3 | 3s remaining | 110% | +10% bonus |
+| 2 | 2s remaining | 105% | +5% bonus |
 | 1 | 1s or less remaining | 100% | Base hit; zero speed penalty (1.0×) |
 
-This combat multiplier is separate from the student-visible `Response Efficiency` educational metric. A score of 9 multiplies composed damage 50 by 180%, producing 90 Final Damage. A score of 1 multiplies composed damage 50 by 100%, guaranteeing the full 50 base damage.
+This combat multiplier is separate from the student-visible `Response Efficiency` educational metric. A score of 9 multiplies composed damage 50 by 140%, producing 70 Final Damage. A score of 1 multiplies composed damage 50 by 100%, guaranteeing the full 50 base damage.
 
 ### Five-Question Audit
 
@@ -412,10 +412,10 @@ Harder question pools provide a direct combat benefit:
 | Rank | Damage Multiplier |
 | --- | ---: |
 | Silver | ×1.0 |
-| Gold | ×1.5 |
-| Diamond | ×2.0 |
+| Gold | ×1.25 |
+| Diamond | ×1.5 |
 
-This lets stronger mathematics performance accelerate combat without attaching question difficulty to the visual stage.
+This lets stronger mathematics performance accelerate combat without attaching question difficulty to the visual stage. Both Player ATK and Pet ATK (Follow-Up and Counter-Attack) receive this active Rank multiplier.
 
 ---
 
@@ -961,8 +961,8 @@ CollectionPetATK = sum(MainStatATK × OwnedCopyCount)
 
 SSR passives use simple automatic triggers and never require a loadout screen:
 
-- **Follow-Up:** after a successful player attack resolves, the pet enters `attackState` and deals its defined follow-up damage. If the player's attack already defeated the current enemy, the pending follow-up is preserved, combines with any other pending follow-up value, and attacks the next valid combat target after it spawns. A pet-triggered hit cannot recursively trigger another Follow-Up.
-- **Counter-Attack:** after the player actually loses a heart and remains alive, the pet enters `attackState` and attacks the surviving current enemy. Shielded or prevented damage does not trigger it; reaching zero hearts proceeds to death settlement before a Counter-Attack can resolve.
+- **Follow-Up:** after a successful player attack resolves, the pet enters `attackState` and deals its defined follow-up damage scaled by the active Rank multiplier (`×1.0 / ×1.25 / ×1.5`). If the player's attack already defeated the current enemy, the pending follow-up is preserved, combines with any other pending follow-up value, and attacks the next valid combat target after it spawns. A pet-triggered hit cannot recursively trigger another Follow-Up.
+- **Counter-Attack:** after the player actually loses a heart and remains alive, the pet enters `attackState` and attacks the surviving current enemy with damage scaled by the active Rank multiplier (`×1.0 / ×1.25 / ×1.5`). Shielded or prevented damage does not trigger it; reaching zero hearts proceeds to death settlement before a Counter-Attack can resolve.
 - **Sustainability:** automatically improves survival or question forgiveness through a data-defined effect such as Shield, Lifesteal, increased maximum Hearts, or a Second-Chance Equation on screen. Each pet definition must specify its trigger, limit, and reset boundary; no hidden choice is required from the child.
 - When several unlocked SSR passives respond to the same trigger, the server combines same-family numeric values into one readable pet action/result sequence and saves the resolution once.
 - `PetEncounterChanceMultiplier` and `PetRunRewardMultiplier` are also account-wide pet QoL effects. Because they change behavior beyond flat Main Stat ATK, only an SSR passive definition may contribute to them.

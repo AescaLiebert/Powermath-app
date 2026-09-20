@@ -36,9 +36,9 @@ namespace PowerMath.Gameplay.Academic
                     case AcademicRankTier.Silver:
                         return 1d;
                     case AcademicRankTier.Gold:
-                        return 1.5d;
+                        return 1.25d;
                     case AcademicRankTier.Diamond:
-                        return 2d;
+                        return 1.5d;
                     default:
                         throw new InvalidOperationException("Unsupported academic Rank.");
                 }

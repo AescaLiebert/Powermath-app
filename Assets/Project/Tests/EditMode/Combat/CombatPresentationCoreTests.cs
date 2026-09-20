@@ -179,6 +179,104 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(result, Is.EqualTo(PresentationRecoveryKind.UnsupportedReceipt));
         }
 
+        [Test]
+        [TestCase(CombatPhase.Committed)]
+        [TestCase(CombatPhase.Preparation)]
+        [TestCase(CombatPhase.Answering)]
+        [TestCase(CombatPhase.Resolving)]
+        public void Recovery_UnfinishedAttemptPhasesWithoutReceipt_ResolvesAsInterruptedAttempt(CombatPhase phase)
+        {
+            PresentationRecoveryKind result = PresentationRecoveryResolver.Resolve(
+                phase, null, null);
+
+            Assert.That(result, Is.EqualTo(PresentationRecoveryKind.InterruptedAttempt));
+        }
+
+        [Test]
+        public void Recovery_HasCommittedAttemptFlagWithoutReceipt_ResolvesAsInterruptedAttempt()
+        {
+            PresentationRecoveryKind result = PresentationRecoveryResolver.Resolve(
+                CombatPhase.EnemyReady, null, null, hasCommittedAttempt: true);
+
+            Assert.That(result, Is.EqualTo(PresentationRecoveryKind.InterruptedAttempt));
+        }
+
+        [Test]
+        public void Recovery_NormalReadyWithoutAttempt_ResolvesAsNormal()
+        {
+            PresentationRecoveryKind result = PresentationRecoveryResolver.Resolve(
+                CombatPhase.EnemyReady, null, null, hasCommittedAttempt: false);
+
+            Assert.That(result, Is.EqualTo(PresentationRecoveryKind.Normal));
+        }
+
+        [Test]
+        public void InterruptedAttempt_ForfeitReceipt_PassesValidation()
+        {
+            var source = new CombatPresentationSnapshot(
+                new StageId(1), "biome-a", "enemy-a", StageEncounterKind.NormalMonster,
+                100, 100, 1, 2, 3, 3, CombatPhase.Committed);
+            var destination = new CombatPresentationSnapshot(
+                new StageId(1), "biome-a", "enemy-a", StageEncounterKind.NormalMonster,
+                100, 100, 2, 2, 2, 3, CombatPhase.PresentingResult);
+
+            var receipt = new AttemptPresentationReceipt(
+                "interrupted-attempt-test",
+                "attempt-123",
+                AttemptOutcomeKind.Timeout,
+                0,
+                0,
+                false,
+                source,
+                destination,
+                100,
+                false,
+                enemyAttacked: true,
+                playerDefeated: false,
+                stageAdvanced: false,
+                biomeChanged: false,
+                default,
+                AttemptPresentationReceipt.CurrentVersion);
+
+            Assert.That(receipt.TryValidate(out string error), Is.True, error);
+            Assert.That(receipt.Outcome, Is.EqualTo(AttemptOutcomeKind.Timeout));
+            Assert.That(receipt.EnemyAttacked, Is.True);
+            Assert.That(receipt.PlayerDefeated, Is.False);
+        }
+
+        [Test]
+        public void InterruptedAttempt_FatalForfeitReceipt_PassesValidation()
+        {
+            var source = new CombatPresentationSnapshot(
+                new StageId(1), "biome-a", "enemy-a", StageEncounterKind.NormalMonster,
+                100, 100, 1, 2, 1, 3, CombatPhase.Committed);
+            var destination = new CombatPresentationSnapshot(
+                new StageId(1), "biome-a", "enemy-a", StageEncounterKind.NormalMonster,
+                100, 100, 2, 2, 0, 3, CombatPhase.RunDefeat);
+
+            var receipt = new AttemptPresentationReceipt(
+                "interrupted-attempt-fatal",
+                "attempt-456",
+                AttemptOutcomeKind.Timeout,
+                0,
+                0,
+                false,
+                source,
+                destination,
+                100,
+                false,
+                enemyAttacked: true,
+                playerDefeated: true,
+                stageAdvanced: false,
+                biomeChanged: false,
+                default,
+                AttemptPresentationReceipt.CurrentVersion);
+
+            Assert.That(receipt.TryValidate(out string error), Is.True, error);
+            Assert.That(receipt.PlayerDefeated, Is.True);
+            Assert.That(receipt.Destination.Phase, Is.EqualTo(CombatPhase.RunDefeat));
+        }
+
         private static AttemptPresentationReceipt CreateReceipt(
             AttemptOutcomeKind outcome = AttemptOutcomeKind.Correct,
             int finalDamage = 0,
