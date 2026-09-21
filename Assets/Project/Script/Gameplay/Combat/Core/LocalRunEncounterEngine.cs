@@ -154,9 +154,12 @@ namespace PowerMath.Gameplay.Combat
             double buffMultiplier = ResolvePlayerAttackPassiveMultiplier();
 
             bool critical = _random.NextUnit() < _stats.CriticalRate;
+            double varianceMultiplier = AttackDamageVariancePolicy.GetMultiplier(
+                _random.NextUnit());
             DamageResult damage = _damageCalculator.Calculate(new DamageInput(
                 _stats.EffectiveAttack, rankMultiplier, buffMultiplier,
-                _stats.CriticalDamagePercent, critical, responseScore));
+                _stats.CriticalDamagePercent, critical, responseScore,
+                varianceMultiplier));
 
             bool petCritical = false;
             int petDamage = CalculatePetFollowUpDamage(rankMultiplier, ref petCritical);
@@ -435,7 +438,8 @@ namespace PowerMath.Gameplay.Combat
                 multiplier,
                 rankMultiplier,
                 critical,
-                _stats.CriticalDamagePercent);
+                _stats.CriticalDamagePercent,
+                AttackDamageVariancePolicy.GetMultiplier(_random.NextUnit()));
         }
 
         private int CalculatePetCounterAttackDamage(double rankMultiplier, ref bool critical)
@@ -453,7 +457,8 @@ namespace PowerMath.Gameplay.Combat
                 multiplier,
                 rankMultiplier,
                 critical,
-                _stats.CriticalDamagePercent);
+                _stats.CriticalDamagePercent,
+                AttackDamageVariancePolicy.GetMultiplier(_random.NextUnit()));
         }
 
         private PetFollowUpResolution ResolvePendingPetFollowUp(

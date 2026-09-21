@@ -21,6 +21,7 @@ namespace PowerMath.UI.MainMenu
         private readonly VisualElement _accentRight;
         private readonly VisualElement[] _squares;
         private readonly VisualElement[] _topTargets;
+        private readonly VisualElement[] _fixedTopTargets;
         private readonly VisualElement _playerMenu;
         private readonly VisualElement _dashboard;
         private Vector2 _topStartOffset;
@@ -52,6 +53,11 @@ namespace PowerMath.UI.MainMenu
                 Require<VisualElement>(root, "profile-panel"),
                 Require<VisualElement>(root, "combat-enemy-card"),
                 Require<VisualElement>(root, "main-navigator")
+            };
+            _fixedTopTargets = new[]
+            {
+                Require<VisualElement>(root, "Stage Status Shadow"),
+                Require<VisualElement>(root, "Stage Status")
             };
             _playerMenu = root.Q<VisualElement>(className:
                 "main-menu-transition-player-menu") ??
@@ -109,6 +115,7 @@ namespace PowerMath.UI.MainMenu
         public void ApplyTopProgress(float progress)
         {
             ApplyProgress(_topTargets, _topStartOffset, progress);
+            ApplyOpacity(_fixedTopTargets, progress);
         }
 
         public void ApplyPlayerMenuProgress(float progress)
@@ -176,6 +183,15 @@ namespace PowerMath.UI.MainMenu
         {
             for (int index = 0; index < targets.Length; index++)
                 ApplyProgress(targets[index], startOffset, progress);
+        }
+
+        private static void ApplyOpacity(
+            VisualElement[] targets,
+            float progress)
+        {
+            float normalized = Mathf.Clamp01(progress);
+            for (int index = 0; index < targets.Length; index++)
+                targets[index].style.opacity = normalized;
         }
 
         private void ApplyProgress(

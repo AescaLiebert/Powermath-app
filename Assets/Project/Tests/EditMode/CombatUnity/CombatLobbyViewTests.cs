@@ -451,12 +451,24 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 "pet-gacha-balance",
                 "pet-gacha-odds-list",
                 "pet-gacha-warning",
-                "pet-gacha-pull",
+                "pet-gacha-pull-1",
+                "pet-gacha-pull-10",
                 "pet-gacha-confirmation",
                 "pet-gacha-confirm",
+                "pet-gacha-open-curtain",
+                "pet-gacha-transition",
+                "pet-gacha-transition-tokens",
+                "pet-gacha-transition-skip",
                 "pet-gacha-result",
+                "pet-gacha-reveal",
+                "pet-gacha-results",
                 "pet-gacha-result-state",
-                "pet-gacha-continue"
+                "pet-gacha-result-silhouette",
+                "pet-gacha-reveal-progress",
+                "pet-gacha-reveal-skip",
+                "pet-gacha-reveal-tap-hint",
+                "pet-gacha-results-grid",
+                "pet-gacha-results-continue"
             })
             {
                 Assert.That(root.Q<VisualElement>(name), Is.Not.Null, name);
@@ -473,22 +485,40 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 root.Q<VisualElement>("pet-gacha-result")
                     .ClassListContains("is-hidden"),
                 Is.True);
+            Assert.That(
+                root.Q<VisualElement>("pet-gacha-transition")
+                    .ClassListContains("is-hidden"),
+                Is.True);
             VisualElement modal = root.Q<VisualElement>("pet-gacha-modal");
             Assert.That(modal.focusable, Is.True);
             Assert.That(modal.ClassListContains("pet-gacha-modal"), Is.True);
-            Assert.That(root.Q<VisualElement>(className: "pet-gacha-orbit"), Is.Not.Null);
-            Assert.That(root.Q<VisualElement>(className: "pet-gacha-result-copy"), Is.Not.Null);
-            Assert.That(root.Q<VisualElement>(className: "pet-gacha-result-showcase"), Is.Not.Null);
-
-            string[] unsupportedButtonText = root.Query<Button>().ToList()
-                .Select(button => button.text?.ToUpperInvariant() ?? string.Empty)
-                .Where(text => text.Contains("X10") || text.Contains("HISTORY") ||
-                    text.Contains("GUARANTEE") || text.Contains("DETAILS"))
-                .ToArray();
+            Assert.That(root.Q<VisualElement>(className: "gacha-banner-copy"), Is.Not.Null);
+            Assert.That(root.Q<VisualElement>(className: "gacha-featured-stage"), Is.Not.Null);
+            foreach (string className in new[]
+            {
+                "gacha-topbar",
+                "gacha-banner-copy",
+                "gacha-featured-stage",
+                "gacha-banner-footer"
+            })
+            {
+                Assert.That(
+                    root.Q<VisualElement>(className: className).style.opacity.value,
+                    Is.EqualTo(0f),
+                    $"{className} must default to alpha zero before its entrance begins.");
+            }
             Assert.That(
-                unsupportedButtonText,
-                Is.Empty,
-                "Slice 4 must remain the approved one-pull experience.");
+                root.Q<Button>("pet-gacha-continue"),
+                Is.Null,
+                "Reveal advances from the full-screen tap surface, not a Next button.");
+            Assert.That(
+                root.Q<VisualElement>("pet-gacha-open-curtain").style.opacity.value,
+                Is.EqualTo(0f),
+                "The Pet Gacha handoff curtain must default transparent.");
+            Assert.That(
+                root.Q<Button>("pet-gacha-pull-10").ClassListContains("hub-lock"),
+                Is.False,
+                "The all-pulls result flow requires the existing 10x command path to be reachable.");
         }
 
         [Test]

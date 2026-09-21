@@ -66,10 +66,10 @@ namespace PowerMath.Gameplay.Academic
                 using (UnityWebRequest request = UnityWebRequest.Get(url))
                 {
                     _activeRequest = request;
-                    request.timeout = Mathf.Min(3,
+                    request.timeout = Mathf.Max(3,
                         _settings.RequestTimeoutSeconds > 0
                             ? _settings.RequestTimeoutSeconds
-                            : 3);
+                            : 10);
                     request.SetRequestHeader("Accept", "application/json");
                     yield return request.SendWebRequest();
                     _activeRequest = null;

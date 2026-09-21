@@ -169,6 +169,9 @@ namespace PowerMath.PlayerData
                     bonusMultiplierBasisPoints = 10000
                 };
             }
+            s.activeRun.eventScheduleStages ??= Array.Empty<int>();
+            s.activeRun.challengeQuestions ??=
+                new PlayerSnapshot.ChallengeQuestionSequenceData();
 
             if (s.inventory == null)
             {
@@ -197,6 +200,8 @@ namespace PowerMath.PlayerData
             {
                 s.economy = new PlayerSnapshot.EconomyData();
             }
+            s.economy.lastPetGachaResults ??=
+                Array.Empty<PlayerSnapshot.PetGachaResultData>();
 
             if (s.lastRunSettlement == null)
             {

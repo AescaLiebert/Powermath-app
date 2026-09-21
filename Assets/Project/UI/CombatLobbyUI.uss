@@ -37,7 +37,7 @@
     background-color: rgb(31, 45, 78);
     transition-property: opacity, scale, translate;
     transition-duration: 0.22s;
-    transition-timing-function: ease-out-back;
+    transition-timing-function: ease-out;
 }
 
 .social-modal-header,

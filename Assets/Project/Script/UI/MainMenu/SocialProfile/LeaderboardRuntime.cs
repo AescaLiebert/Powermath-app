@@ -990,7 +990,8 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         {
             if (entry == null) return null;
             if (s_weaponCatalog == null)
-                s_weaponCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
+                s_weaponCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("Weapon/WeaponAscensionCatalog") ??
+                                  Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
             if (s_weaponCatalog == null) return null;
             WeaponAscensionCatalogDefinition.Tier tier = s_weaponCatalog.Resolve(entry.WeaponLevel);
             return tier?.icon;

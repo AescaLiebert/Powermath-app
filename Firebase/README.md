@@ -1,78 +1,106 @@
 # Direct Firestore prototype setup
 
-Unity is configured for Firebase project `tools-games-f4684`, database `(default)`, collection `competition`, and question collection `question`. Cloudflare only needs to host the static WebGL build.
+Unity is configured for Firebase project `tools-games-f4684`, database `(default)`,
+the three player collections `level-1`, `level-2`, and `level-3`, and the shared
+question collection `question`. Cloudflare only hosts the static WebGL build.
 
-## Expected hierarchy
+## Current hierarchy
 
 ```text
-competition                         collection
-  level1                            document -> Grade 4
-    {normalizedUsername}            dynamic map field
-      userdata                      map
-        username                    account username string
-        password                    exactly six ASCII digits, stored as string
-        admin                       optional boolean managed manually by the owner
-      gamedata                      map (direct fields)
-  level2                            document -> Grade 5
-  level3                            document -> Grade 6
+level-1                            collection -> Grade 4
+  {normalizedUsername}            one document per player
+    userdata                      map
+      username                    account username string
+      password                    exactly six ASCII digits, stored as string
+      admin                       optional owner-managed boolean
+    gamedata                      map (canonical player save)
 
-question                            collection
-  silver                            document -> Silver Rank questions
-  gold                              document -> Gold Rank questions
-  diamond                           document -> Diamond Rank questions
+level-2                            collection -> Grade 5
+  {normalizedUsername}            same document shape
 
-leaderboard-public                  sanitized projection collection
-  level1                            document -> Grade 4 public entries
-  level2                            document -> Grade 5 public entries
-  level3                            document -> Grade 6 public entries
+level-3                            collection -> Grade 6
+  {normalizedUsername}            same document shape
+
+question                           collection
+  silver                           Rank questions
+  gold
+  diamond
+  challenge-silver                 Challenge questions
+  challenge-gold
+  challenge-diamond
+
+leaderboard-public                 sanitized projection collection
+  level1                           Grade 4 entries
+  level2                           Grade 5 entries
+  level3                           Grade 6 entries
 ```
 
-The username note above means the account username is a string; it does not need to be numeric. Passwords such as `001234` must remain Firestore strings so leading zeroes survive.
+The username is a string and does not need to be numeric. Passwords such as
+`001234` must remain Firestore strings so leading zeroes survive. At login, Unity
+tries the configured level collections in order and reads only the document whose
+ID is the normalized username. The collection containing the player determines
+the Grade 4/5/6 band.
 
-Unity reads only `level-1`, `level-2`, and `level-3`. It searches those documents in order, finds the top-level field whose name equals the normalized username, then verifies `userdata.username` and `userdata.password`. The level containing the student determines the grade; Unity does not trust a separate grade field.
+## Canonical `gamedata`
 
-## `gamedata.game1` fields
+`gamedata` is stored directly beside `userdata`; there is no `game1` wrapper in
+the current layout. Missing optional fields are repaired additively by a masked
+PATCH. Existing values and unknown future feature maps are not replaced.
 
-An empty `game1` map is valid and opens Main Menu with safe defaults: the username as display name, the level-derived grade, a default avatar, Stage 1, and empty wallet/loadout/inventory presentation.
+The current save contains these major sections:
 
-These optional fields match the current Unity `PlayerSnapshot`:
+- `schemaVersion` and `revision`
+- `profile`, `preferences`, `onboarding`, `tutorial`, and `tutorialMap`
+- `progression`, `wallet`, `inventory`, and `loadout`
+- `activeRun`, including Event schedule state, Challenge reservation/cursors,
+  combat state, reward receipts, passive counters, and pending presentation
+- `economy`, including Weapon Ascend, Pet Gacha/equip receipts, pity state, and
+  the last multi-pull results
+- `academic`, `analytics`, `lastRunSettlement`, and optional `adminTuning`
 
-- `revision`: integer
-- `adminTuning`: optional map containing `combatOverrideEnabled`, integer `attack`,
-  integer `criticalRateBasisPoints`, integer `criticalDamageBasisPoints`, and
-  boolean `invincible`; Unity reads this only when `userdata.admin` is true
-- `profile`: map containing `displayName`, `iconId`, `publicPlayerId`, and integer `displayNameChangedAtUnixSeconds`
-- `progression`: map containing `currentStage`, lifetime `highestStage`, `activeRank`, `rankProgress`, `prestige`, `legacyAtkBonusBasisPoints`, `firstStage200Reached`, integer `firstStage200ReachedAtUnixSeconds`, and integer `totalDamage`
-- `wallet`: map containing integer `silver`, `gold`, `diamond`, and `powerCoins`
-- `inventory`: array of maps containing `itemId`, `owned`, and `upgradeLevel`
-- `loadout`: map containing `petId`, `weaponId`, and `avatarId`
-- `activeRun`: map containing `runId`, `currentStage`, biome/encounter identity, encounter kind and HP/cooldown state, Event question source/attempt ordinal, `committedAttemptId`, run-only `silverEarned`/`goldEarned`/`diamondEarned`, and `bonusMultiplierBasisPoints`
-- `economy`: last accepted Weapon Ascend transaction ID, resulting level, and cost receipt
-- `lastRunSettlement`: idempotency receipt containing the settled run ID, settlement type, Stage/rewards, and resulting Power Coin balance
-- `analytics`: map containing resolved outcome totals, response score/efficiency sums, play time, last applied attempt ID, and per-Rank aggregates
+Schema migrations are applied in memory and persisted through the same optimistic
+concurrency PATCH as the schema-version and revision update. This prevents a
+corrected value from being lost while the stored version advances.
 
-`game2` and `temp` remain out of scope.
+## Compatibility and rollback
 
-Admin access is data-driven. The project owner grants or revokes the Admin tab by
-manually setting the account's `userdata.admin` boolean in Firebase. The client
-does not infer admin authority from usernames or display names. Admin commands
-write the same account's canonical `gamedata`, reload it from Firebase after each
-successful patch, and use the refreshed revision for the next command.
+The checked-in rules retain the older `competition/{levelId}` document path as
+rollback compatibility only. The `competition-2` collection has been migrated
+and deleted; it is intentionally absent from the current rules. The current
+client does not read or write either legacy path.
 
 ## Public leaderboard projection
 
-Pre-create `leaderboard-public/level1`, `level2`, and `level3` with an immutable `_meta` map. Unity adds or replaces one map field keyed by the player's opaque `publicPlayerId`. Each player entry contains only `displayName`, avatar/pet/weapon IDs, current/highest stage, silver/gold/diamond balances, `weightedCurrencyScore`, `totalDamage`, and `entryRevision`. Never copy usernames, passwords, audit scores, or private analytics into this collection.
+Pre-create `leaderboard-public/level1`, `level2`, and `level3` with an immutable
+`_meta` map. Unity adds or replaces one map field keyed by the player's opaque
+`publicPlayerId`. Each player entry contains only display name, avatar/pet/weapon
+IDs, Weapon Ascend level, current/highest stage, silver/gold/diamond balances,
+weighted currency score, total damage, and entry revision. Never copy usernames,
+passwords, audit scores, or private analytics into this collection.
 
-Unity reads exactly the signed-in student's level document when the leaderboard opens or the student presses Refresh. It does not poll. Ranking orders highest stage first, then `silver*5 + gold*7 + diamond*10`, with shared competition ranks for exact score ties. The sanitized projection also includes Weapon Ascend level for the leaderboard loadout display.
+Unity reads the signed-in player's public cohort document only when the
+leaderboard opens or the player presses Refresh. Ranking orders highest stage
+first, then `silver*5 + gold*7 + diamond*10`, with shared competition ranks for
+exact score ties.
 
 ## Firestore rules
 
-Review and manually publish `Firebase/firestore.rules` in **Firestore Database > Rules**. This repository update does not publish rules. The rules allow unauthenticated GET requests for the three private grade documents and three sanitized leaderboard documents. Private grade updates may change only one existing student map. Public leaderboard updates may add or replace one public-player map while preserving `_meta`. Lists, document creates, and deletes remain denied.
+Review and manually publish `Firebase/firestore.rules` in **Firestore Database >
+Rules**. Repository changes do not publish rules.
 
-The update rule supports the ADR-006 missing-default repair and player persistence flow. It is still prototype-only authorization: because the client does not use Firebase Authentication and students are dynamic fields inside shared grade documents, Firestore rules cannot prove that an anonymous caller owns the one student map being changed.
+The current per-player rule permits unauthenticated GET for an exact player
+document and permits an update only when `gamedata` is the sole changed top-level
+field. List, create, and delete remain denied. The question rule permits GET for
+the three Rank documents and three Challenge documents. Legacy rules remain for
+rollback compatibility.
 
-This layout exposes every student map in a grade whenever that grade document is downloaded. The client-side password comparison is not secure authentication, and the API key does not provide authorization.
+This is prototype-only authorization. The client does not use Firebase
+Authentication, so Firestore cannot prove that an anonymous caller owns a player
+document. The API key identifies the Firebase project; it is not an authorization
+secret. Client-side password comparison is not secure authentication.
 
 ## Remember this device
 
-When enabled, Unity stores the username and plaintext six-digit password in WebGL PlayerPrefs/browser IndexedDB. It survives browser restarts until sign-out or site-data removal. When disabled, credentials survive Unity scene changes only.
+When enabled, Unity stores the username and plaintext six-digit password in
+WebGL PlayerPrefs/browser IndexedDB. It survives browser restarts until sign-out
+or site-data removal. When disabled, credentials survive Unity scene changes only.

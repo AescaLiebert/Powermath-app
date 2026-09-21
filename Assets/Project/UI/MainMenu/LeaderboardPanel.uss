@@ -14,14 +14,14 @@
     --color-gold-vip: rgb(232, 159, 24);
     --color-silver-vip: rgb(179, 128, 89);
     --color-muted-text: rgb(102, 123, 146);
-    -unity-font: url("project://database/Assets/Project/Resources/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
-    -unity-font-definition: url("project://database/Assets/Project/Resources/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
+    -unity-font: url("project://database/Assets/Project/Fonts/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
+    -unity-font-definition: url("project://database/Assets/Project/Fonts/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
 }
 
 .leaderboard-screen Label,
 .leaderboard-screen Button {
-    -unity-font: url("project://database/Assets/Project/Resources/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
-    -unity-font-definition: url("project://database/Assets/Project/Resources/Font/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
+    -unity-font: url("project://database/Assets/Project/Fonts/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
+    -unity-font-definition: url("project://database/Assets/Project/Fonts/zh-cn.ttf?fileID=12800000&guid=25d050ba013c6e74bbb3e2c20348ce97&type=3#zh-cn");
 }
 
 .leaderboard-screen {

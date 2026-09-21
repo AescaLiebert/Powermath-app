@@ -24,6 +24,9 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         private RenderTexture _output;
         private string _characterId;
         private bool _visible;
+        private long _lastFrame = -1;
+        private double _lastTime = -1.0;
+        private bool _hasRenderedFirstFrame;
 
         public void Bind(VisualElement root)
         {
@@ -68,19 +71,32 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             {
                 _visible = true;
                 _player.Play();
-                _target.image = _output;
+                if (_hasRenderedFirstFrame)
+                {
+                    _target.sprite = null;
+                    _target.image = _output;
+                }
+                else
+                {
+                    _target.image = null;
+                    _target.sprite = CharacterPlaceholderSprites.Resolve(definition?.hubSprite, characterId);
+                }
                 SetPlaceholder(false);
                 return;
             }
 
             StopVideo();
             _characterId = characterId;
+            const int TargetHeight = 540;
 #if UNITY_WEBGL && !UNITY_EDITOR
-            int width = 720;
-            int height = 1080;
+            int width = 360;
+            int height = TargetHeight;
 #else
-            int width = definition.hubVideo != null && definition.hubVideo.width > 0 ? (int)definition.hubVideo.width : 720;
-            int height = definition.hubVideo != null && definition.hubVideo.height > 0 ? (int)definition.hubVideo.height : 1080;
+            int rawWidth = definition.hubVideo != null && definition.hubVideo.width > 0 ? (int)definition.hubVideo.width : 720;
+            int rawHeight = definition.hubVideo != null && definition.hubVideo.height > 0 ? (int)definition.hubVideo.height : 1080;
+            float aspect = rawHeight > 0 ? (float)rawWidth / rawHeight : (2f / 3f);
+            int height = TargetHeight;
+            int width = Mathf.Max(1, Mathf.RoundToInt(height * aspect));
 #endif
             _source = CreateTexture(width, height, "Leaderboard Character Video Source");
             _output = CreateTexture(width, height, "Leaderboard Character Video Chroma");
@@ -107,8 +123,11 @@ namespace PowerMath.UI.MainMenu.SocialProfile
 #endif
             _player.errorReceived += OnVideoError;
             _player.skipOnDrop = true;
-            _target.sprite = null;
-            _target.image = _output;
+            _hasRenderedFirstFrame = false;
+            _lastFrame = -1;
+            _lastTime = -1.0;
+            _target.image = null;
+            _target.sprite = CharacterPlaceholderSprites.Resolve(definition?.hubSprite, characterId);
             SetPlaceholder(false);
             _visible = true;
             _player.Play();
@@ -128,17 +147,43 @@ namespace PowerMath.UI.MainMenu.SocialProfile
                 !_source.IsCreated() || !_output.IsCreated())
                 return;
 
-            RenderTexture previous = RenderTexture.active;
-            RenderTexture.active = _output;
-            GL.Clear(true, true, Color.clear);
+            long frame = _player.frame;
+            double time = _player.time;
+            if (frame >= 0)
+            {
+                if (frame == _lastFrame)
+                    return;
+                _lastFrame = frame;
+                _lastTime = time;
+            }
+            else
+            {
+                if (System.Math.Abs(time - _lastTime) < 0.001)
+                    return;
+                _lastTime = time;
+            }
+
             Graphics.Blit(_source, _output, _chromaMaterial);
-            RenderTexture.active = previous;
+
+            if (!_hasRenderedFirstFrame)
+            {
+                _hasRenderedFirstFrame = true;
+                if (_target != null)
+                {
+                    _target.sprite = null;
+                    _target.image = _output;
+                }
+            }
+
             _target?.MarkDirtyRepaint();
         }
 
         private void StopVideo()
         {
             _visible = false;
+            _hasRenderedFirstFrame = false;
+            _lastFrame = -1;
+            _lastTime = -1.0;
             if (_target != null && ReferenceEquals(_target.image, _output))
                 _target.image = null;
             if (_player != null)

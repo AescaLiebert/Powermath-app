@@ -1,38 +1,7 @@
 
 .main-menu-notification {
-    position: absolute;
-    left: 50%;
-    bottom: 30px;
-    width: 520px;
-    min-height: 58px;
-    margin-left: -260px;
-    padding: 13px 20px;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    translate: 0 18px;
-    background-color: rgba(20, 48, 91, 0.97);
-    border-left-width: 3px;
-    border-right-width: 3px;
-    border-top-width: 3px;
-    border-bottom-width: 3px;
-    border-left-color: rgb(95, 211, 225);
-    border-right-color: rgb(95, 211, 225);
-    border-top-color: rgb(95, 211, 225);
-    border-bottom-color: rgb(95, 211, 225);
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
-    border-bottom-left-radius: 18px;
-    border-bottom-right-radius: 18px;
-    transition-property: opacity, translate, scale, background-color, border-color;
-    transition-duration: 0.18s;
-    transition-timing-function: ease-out-back;
+    display: none;
 }
-
-.main-menu-notification.is-visible { opacity: 1; translate: 0 0; }
-.main-menu-notification.is-success { background-color: rgba(18, 99, 68, 0.98); border-left-color: rgb(128, 242, 171); border-right-color: rgb(128, 242, 171); border-top-color: rgb(128, 242, 171); border-bottom-color: rgb(128, 242, 171); }
-.main-menu-notification.is-warning { background-color: rgba(109, 70, 17, 0.98); border-left-color: rgb(255, 202, 84); border-right-color: rgb(255, 202, 84); border-top-color: rgb(255, 202, 84); border-bottom-color: rgb(255, 202, 84); }
-.main-menu-notification.is-error { background-color: rgba(128, 43, 51, 0.98); border-left-color: rgb(255, 148, 130); border-right-color: rgb(255, 148, 130); border-top-color: rgb(255, 148, 130); border-bottom-color: rgb(255, 148, 130); }
 
 .main-menu-notification__text {
     color: rgb(255, 249, 232);

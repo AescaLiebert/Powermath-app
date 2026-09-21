@@ -44,6 +44,32 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(result.FinalDamage, Is.EqualTo(8));
         }
 
+        [TestCase(0d, 0.90d, 90)]
+        [TestCase(0.5d, 1.00d, 100)]
+        [TestCase(1d, 1.10d, 110)]
+        public void DamageCalculator_AppliesAttackVariance(
+            double randomUnit,
+            double expectedMultiplier,
+            int expectedDamage)
+        {
+            double multiplier = AttackDamageVariancePolicy.GetMultiplier(randomUnit);
+            DamageResult result = new DamageCalculator().Calculate(
+                new DamageInput(100, 1d, 1d, 0d, false, 1, multiplier));
+
+            Assert.That(multiplier, Is.EqualTo(expectedMultiplier).Within(0.000001d));
+            Assert.That(result.FinalDamage, Is.EqualTo(expectedDamage));
+            Assert.That(result.Breakdown.VarianceMultiplier,
+                Is.EqualTo(expectedMultiplier).Within(0.000001d));
+        }
+
+        [TestCase(-0.000001d)]
+        [TestCase(1.000001d)]
+        public void AttackDamageVariancePolicy_RejectsOutOfRangeRoll(double randomUnit)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                AttackDamageVariancePolicy.GetMultiplier(randomUnit));
+        }
+
         [TestCase(1, 100, 50)]
         [TestCase(2, 105, 53)]
         [TestCase(3, 110, 55)]
@@ -876,7 +902,7 @@ namespace PowerMath.Gameplay.Combat.Tests
                 snapshot,
                 "auregriff-test-run",
                 resolver,
-                new MinimumRandomSource(),
+                new MidpointRandomSource(),
                 stats);
 
             // Hit 1: buffMultiplier 1.0 -> 10 * 1.0 * 1.5 (score 10) = 15 damage
@@ -1019,7 +1045,7 @@ namespace PowerMath.Gameplay.Combat.Tests
 
             var engine = new LocalRunEncounterEngine(
                 new StageId(1), "sapphire-test",
-                resolver, new MinimumRandomSource(), 3, stats);
+                resolver, new MidpointRandomSource(), 3, stats);
 
             engine.CommitAttempt();
             // Player damage = 10 * 1.0 * 1.5 (score 10) = 15. Pet damage = 30 * 1.0 = 30. Total = 45.
@@ -1050,7 +1076,7 @@ namespace PowerMath.Gameplay.Combat.Tests
                 new StageId(1),
                 runId,
                 resolver,
-                new MinimumRandomSource(),
+                new MidpointRandomSource(),
                 3,
                 stats);
 
@@ -1074,7 +1100,7 @@ namespace PowerMath.Gameplay.Combat.Tests
                 new StageId(1),
                 "pet-hot-reload",
                 new StageEncounterResolver(map),
-                new MinimumRandomSource(),
+                new MidpointRandomSource(),
                 3,
                 new PlayerCombatStats(10, 0d, 50d));
             var refreshed = new PlayerCombatStats(
@@ -1224,6 +1250,24 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(damage, Is.EqualTo(expectedDamage));
         }
 
+        [TestCase(0.90d, 27)]
+        [TestCase(1.00d, 30)]
+        [TestCase(1.10d, 33)]
+        public void PetCombatPolicy_AppliesAttackVariance(
+            double varianceMultiplier,
+            int expectedDamage)
+        {
+            int damage = PetCombatPolicy.CalculateDamage(
+                30,
+                1d,
+                1d,
+                false,
+                0d,
+                varianceMultiplier);
+
+            Assert.That(damage, Is.EqualTo(expectedDamage));
+        }
+
         [TestCase(1.0d, 30)]
         [TestCase(1.25d, 38)]
         [TestCase(1.5d, 45)]
@@ -1245,7 +1289,7 @@ namespace PowerMath.Gameplay.Combat.Tests
 
             var engine = new LocalRunEncounterEngine(
                 new StageId(1), "rank-followup-test",
-                resolver, new MinimumRandomSource(), 3, stats);
+                resolver, new MidpointRandomSource(), 3, stats);
 
             engine.CommitAttempt();
             CombatResolution res = engine.ResolveCorrect(1, rankMultiplier);
@@ -1292,7 +1336,7 @@ namespace PowerMath.Gameplay.Combat.Tests
 
             var engine = new LocalRunEncounterEngine(
                 snapshot, "counter-test",
-                resolver, new MinimumRandomSource(), stats);
+                resolver, new MidpointRandomSource(), stats);
 
             engine.CommitAttempt();
             // Resolve incorrect with timeout to let enemy attack
@@ -1315,6 +1359,14 @@ namespace PowerMath.Gameplay.Combat.Tests
         {
             public int NextInclusive(int minimum, int maximum) => maximum;
             public double NextUnit() => 1d;
+        }
+
+        private sealed class MidpointRandomSource : IRandomSource
+        {
+            public int NextInclusive(int minimum, int maximum) =>
+                minimum + (maximum - minimum) / 2;
+
+            public double NextUnit() => 0.5d;
         }
     }
 }

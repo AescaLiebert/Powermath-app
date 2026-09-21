@@ -27,7 +27,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstEnemySurvive.warning
     emotionId: scared
     spriteResourcePath: Character/Sticker_Power_Scared
-    audioCueId: tutorial-threat
+    audioCueId: S3_01_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -63,7 +63,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstEnemySurvive.actions
     emotionId: teach
     spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: tutorial-dialogue
+    audioCueId: S3_02_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -81,7 +81,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstEnemySurvive.encouragement
     emotionId: cheerful
     spriteResourcePath: Character/Sticker_Power_Cheerful
-    audioCueId: tutorial-success
+    audioCueId: S3_03_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0

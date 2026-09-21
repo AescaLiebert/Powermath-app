@@ -7,6 +7,15 @@
     display: none;
 }
 
+.pet-gacha-open-curtain {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgb(0, 0, 0);
+}
+
 .pet-gacha-backdrop {
     position: absolute;
 }
@@ -110,7 +119,7 @@
     -unity-font-style: bold;
     transition-property: scale, translate, background-color, border-color;
     transition-duration: 0.16s;
-    transition-timing-function: ease-out-back;
+    transition-timing-function: ease-out;
 }
 
 .pet-gacha-close:hover,
@@ -372,12 +381,7 @@
 }
 
 .pet-gacha-status {
-    min-height: 42px;
-    margin: 0 18px;
-    padding: 8px 12px;
-    color: rgb(20, 48, 91);
-    -unity-text-align: middle-center;
-    white-space: normal;
+    display: none;
 }
 
 .pet-gacha-overlay {
@@ -545,12 +549,6 @@
     -unity-font-style: bold;
 }
 
-.pet-gacha-continue {
-    align-self: flex-start;
-    min-width: 220px;
-    margin-top: 22px;
-}
-
 .pet-gacha-result--new .pet-gacha-result-state {
     color: white;
     background-color: rgb(244, 111, 83);
@@ -628,13 +626,13 @@
     border-color: rgb(218, 120, 38);
 }
 
-.pet-gacha-result-single {
+.pet-gacha-reveal {
     flex-direction: row;
     width: 100%;
     height: 100%;
 }
 
-.pet-gacha-result-multi {
+.pet-gacha-results {
     flex-direction: column;
     width: 100%;
     height: 100%;
@@ -1026,7 +1024,7 @@
     height: 134px;
     color: var(--gacha-color-text-navy);
     font-size: 128px;
-    -unity-font-definition: url("project://database/Assets/Project/Resources/Font/Genshin%20Impact%20DRIP%20FONT.ttf?fileID=12800000&guid=f6ed0ad71c0fb5d46a9f90baecd88532&type=3#Genshin Impact DRIP FONT");
+    -unity-font-definition: url("project://database/Assets/Project/Fonts/Genshin%20Impact%20DRIP%20FONT.ttf?fileID=12800000&guid=f6ed0ad71c0fb5d46a9f90baecd88532&type=3#Genshin Impact DRIP FONT");
     -unity-text-align: middle-center;
     white-space: nowrap;
 }
@@ -1266,18 +1264,7 @@
 }
 
 .gacha-screen--banner > .pet-gacha-status {
-    position: absolute;
-    left: 50%;
-    bottom: 12px;
-    width: 620px;
-    min-height: 28px;
-    margin-left: -310px;
-    padding: 3px 12px;
-    color: var(--gacha-color-text-navy);
-    background-color: rgba(255, 247, 231, 0.82);
-    border-radius: 14px;
-    font-size: 13px;
-    -unity-text-align: middle-center;
+    display: none;
 }
 
 .pet-gacha-details-drawer {
@@ -1736,7 +1723,7 @@
     background-color: rgba(0, 0, 0, 0);
     transition-property: scale, opacity, translate;
     transition-duration: 0.28s;
-    transition-timing-function: ease-out-back;
+    transition-timing-function: ease-out;
 }
 
 .pet-gacha-result--new .gacha-new-badge {
@@ -1759,5 +1746,650 @@
 
 .gacha-screen--banner.is-reduced-motion .gacha-showcase-pet,
 .gacha-screen--banner.is-reduced-motion .gacha-showcase-skip {
+    transition-duration: 0s;
+}
+
+/* Premium panel entrance: copy lifts in, featured pets slide in from the right. */
+.gacha-topbar,
+.gacha-banner-copy,
+.gacha-featured-stage,
+.gacha-banner-footer {
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.46s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-modal.is-panel-entering > .gacha-topbar,
+.pet-gacha-modal.is-panel-entering > .gacha-banner-main .gacha-banner-copy,
+.pet-gacha-modal.is-panel-entering > .gacha-banner-main .gacha-featured-stage,
+.pet-gacha-modal.is-panel-entering > .gacha-banner-footer {
+    opacity: 0;
+}
+
+.pet-gacha-modal.is-panel-entering > .gacha-topbar {
+    translate: 0 -28px;
+}
+
+.pet-gacha-modal.is-panel-entering > .gacha-banner-main .gacha-banner-copy,
+.pet-gacha-modal.is-panel-entering > .gacha-banner-footer {
+    translate: 0 34px;
+}
+
+.pet-gacha-modal.is-panel-entering > .gacha-banner-main .gacha-featured-stage {
+    translate: 96px 0;
+    scale: 0.96 0.96;
+}
+
+.pet-gacha-modal.is-panel-entering > .gacha-topbar.is-entered,
+.pet-gacha-modal.is-panel-entering > .gacha-banner-main .gacha-banner-copy.is-entered,
+.pet-gacha-modal.is-panel-entering > .gacha-banner-main .gacha-featured-stage.is-entered,
+.pet-gacha-modal.is-panel-entering > .gacha-banner-footer.is-entered {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+/* The resolved reward is immutable here; this stage only foreshadows rarity. */
+.pet-gacha-transition {
+    overflow: hidden;
+    background-color: rgb(17, 46, 105);
+}
+
+.pet-gacha-transition-vortex {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 760px;
+    height: 760px;
+    margin-left: -380px;
+    margin-top: -430px;
+    opacity: 0;
+    scale: 0.46 0.46;
+    transition-property: opacity, scale;
+    transition-duration: 0.72s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-transition-vortex-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    border-color: rgba(224, 244, 255, 0.62);
+}
+
+.pet-gacha-transition-vortex-ring--outer {
+    width: 720px;
+    height: 720px;
+    margin-left: -360px;
+    margin-top: -360px;
+    border-width: 22px;
+    rotate: 18deg;
+}
+
+.pet-gacha-transition-vortex-ring--inner {
+    width: 430px;
+    height: 430px;
+    margin-left: -215px;
+    margin-top: -215px;
+    border-width: 10px;
+    border-color: rgba(255, 255, 255, 0.82);
+    rotate: -26deg;
+}
+
+.pet-gacha-transition.is-vortex-active .pet-gacha-transition-vortex {
+    opacity: 0.9;
+    scale: 1 1;
+}
+
+.pet-gacha-transition-comet {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 760px;
+    height: 86px;
+    margin-left: -380px;
+    margin-top: 170px;
+    opacity: 0;
+    translate: -720px 310px;
+    rotate: -28deg;
+    transition-property: opacity, translate, scale;
+    transition-duration: 1.05s;
+    transition-timing-function: ease-in-out;
+}
+
+.pet-gacha-transition-comet-trail {
+    position: absolute;
+    left: 0;
+    top: 31px;
+    width: 690px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: rgba(211, 240, 255, 0.78);
+}
+
+.pet-gacha-transition-comet-core {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    background-color: white;
+    border-width: 12px;
+    border-color: rgb(185, 229, 255);
+}
+
+.pet-gacha-transition.rarity-sr .pet-gacha-transition-comet-trail {
+    background-color: rgba(188, 121, 255, 0.86);
+}
+
+.pet-gacha-transition.rarity-sr .pet-gacha-transition-comet-core {
+    border-color: rgb(190, 124, 255);
+}
+
+.pet-gacha-transition.rarity-ssr .pet-gacha-transition-comet-trail {
+    background-color: rgba(255, 202, 55, 0.9);
+}
+
+.pet-gacha-transition.rarity-ssr .pet-gacha-transition-comet-core {
+    border-color: rgb(255, 205, 65);
+}
+
+.pet-gacha-transition.is-comet-active .pet-gacha-transition-comet {
+    opacity: 1;
+    translate: 520px -370px;
+    scale: 0.72 0.72;
+}
+
+.pet-gacha-transition-flare {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1480px;
+    height: 1480px;
+    margin-left: -740px;
+    margin-top: -740px;
+    opacity: 0;
+    scale: 0.08 0.08;
+    border-radius: 50%;
+    background-color: white;
+    transition-property: opacity, scale;
+    transition-duration: 0.54s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-transition.is-burst-active .pet-gacha-transition-flare {
+    opacity: 0.92;
+    scale: 1 1;
+}
+
+.pet-gacha-transition.rarity-r {
+    background-color: rgb(77, 99, 129);
+}
+
+.pet-gacha-transition.rarity-sr {
+    background-color: rgb(74, 38, 129);
+}
+
+.pet-gacha-transition.rarity-ssr {
+    background-color: rgb(122, 79, 15);
+}
+
+.pet-gacha-transition-watermark {
+    position: absolute;
+    left: -40px;
+    top: 40px;
+    color: rgba(255, 255, 255, 0.07);
+    font-size: 220px;
+    -unity-font-style: bold;
+    letter-spacing: -8px;
+    opacity: 0;
+    translate: -36px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.5s;
+}
+
+.pet-gacha-transition-skip {
+    position: absolute;
+    right: 48px;
+    top: 38px;
+    width: 150px;
+    height: 64px;
+    color: var(--gacha-color-text-navy);
+    background-color: rgba(255, 247, 231, 0.94);
+    opacity: 0;
+    translate: 0 -18px;
+    transition-property: opacity, translate;
+    transition-duration: 0.36s;
+}
+
+.pet-gacha-transition-compass {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 360px;
+    height: 360px;
+    margin-left: -180px;
+    margin-top: -205px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    scale: 0.72 0.72;
+    transition-property: opacity, scale;
+    transition-duration: 0.58s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-transition.is-vortex-active .pet-gacha-transition-watermark,
+.pet-gacha-transition.is-vortex-active .pet-gacha-transition-skip,
+.pet-gacha-transition.is-vortex-active .pet-gacha-transition-compass {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+.pet-gacha-transition-compass-ring {
+    position: absolute;
+    width: 330px;
+    height: 330px;
+    border-radius: 50%;
+    border-width: 4px;
+    border-color: rgba(255, 255, 255, 0.48);
+}
+
+.pet-gacha-transition-compass-diamond {
+    width: 170px;
+    height: 170px;
+    rotate: 45deg;
+    background-color: rgba(255, 255, 255, 0.12);
+    border-width: 4px;
+    border-color: rgba(255, 255, 255, 0.76);
+}
+
+.pet-gacha-transition.rarity-sr .pet-gacha-transition-compass-diamond {
+    background-color: rgba(176, 105, 255, 0.28);
+    border-color: rgb(196, 145, 255);
+}
+
+.pet-gacha-transition.rarity-ssr .pet-gacha-transition-compass-diamond {
+    background-color: rgba(255, 203, 65, 0.3);
+    border-color: rgb(255, 213, 86);
+}
+
+.pet-gacha-transition-tokens {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 840px;
+    min-height: 104px;
+    margin-left: -420px;
+    margin-top: 42px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.pet-gacha-transition-token {
+    width: 66px;
+    height: 92px;
+    margin-left: 8px;
+    margin-right: 8px;
+    opacity: 0;
+    translate: 0 70px;
+    scale: 0.72 0.72;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.14);
+    border-radius: 33px;
+    border-width: 3px;
+    border-color: white;
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.34s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-transition-token.is-entered {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+.pet-gacha-transition-token.rarity-sr {
+    background-color: rgba(151, 83, 229, 0.74);
+    border-color: rgb(216, 176, 255);
+}
+
+.pet-gacha-transition-token.rarity-ssr {
+    background-color: rgba(239, 177, 32, 0.85);
+    border-color: rgb(255, 234, 157);
+}
+
+.pet-gacha-transition-token-core {
+    width: 24px;
+    height: 24px;
+    rotate: 45deg;
+    background-color: white;
+}
+
+.pet-gacha-transition-token.rarity-sr .pet-gacha-transition-token-core {
+    background-color: rgb(221, 188, 255);
+}
+
+.pet-gacha-transition-token.rarity-ssr .pet-gacha-transition-token-core {
+    background-color: rgb(255, 224, 103);
+}
+
+.pet-gacha-transition-headline {
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    bottom: 96px;
+    color: white;
+    font-size: 30px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: 4px;
+    opacity: 0;
+    translate: 0 28px;
+    transition-property: opacity, translate;
+    transition-duration: 0.38s;
+}
+
+.pet-gacha-transition-legend {
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    bottom: 58px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 15px;
+    -unity-text-align: middle-center;
+    letter-spacing: 6px;
+    opacity: 0;
+    translate: 0 22px;
+    transition-property: opacity, translate;
+    transition-duration: 0.38s;
+}
+
+.pet-gacha-transition.is-burst-active .pet-gacha-transition-headline,
+.pet-gacha-transition.is-burst-active .pet-gacha-transition-legend {
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* Individual reveal: silhouette drop, pet reveal, copy lift, then stars one by one. */
+.gacha-showcase-progress {
+    color: var(--gacha-color-text-navy);
+    font-size: 18px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+}
+
+.gacha-showcase-topbar-actions {
+    flex-grow: 1;
+    width: auto;
+}
+
+.gacha-showcase-skip-frame {
+    margin-left: 14px;
+}
+
+.gacha-showcase-pet--silhouette {
+    opacity: 0;
+    translate: 0 -118px;
+    scale: 1.76 1.76;
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.52s;
+    transition-timing-function: ease-out;
+}
+
+.gacha-reveal-burst {
+    position: absolute;
+    left: 0;
+    top: -19px;
+    width: 886px;
+    height: 886px;
+    opacity: 0;
+    scale: 0.18 0.18;
+    transition-property: opacity, scale;
+    transition-duration: 0.52s;
+    transition-timing-function: ease-out;
+}
+
+.gacha-reveal-shard {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 720px;
+    height: 18px;
+    margin-left: -360px;
+    margin-top: -9px;
+    background-color: rgba(244, 250, 255, 0.88);
+    border-radius: 9px;
+}
+
+.gacha-reveal-shard--0 {
+    rotate: 0deg;
+}
+
+.gacha-reveal-shard--30 {
+    rotate: 30deg;
+}
+
+.gacha-reveal-shard--60 {
+    rotate: 60deg;
+}
+
+.gacha-reveal-shard--90 {
+    rotate: 90deg;
+}
+
+.gacha-reveal-shard--120 {
+    rotate: 120deg;
+}
+
+.gacha-reveal-shard--150 {
+    rotate: 150deg;
+}
+
+.gacha-reveal-flash {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0;
+    background-color: white;
+    transition-property: opacity;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-reveal.is-reveal-sequencing .pet-gacha-result-icon {
+    opacity: 0;
+    scale: 0.78 0.78;
+}
+
+.pet-gacha-reveal.is-reveal-sequencing .gacha-showcase-copy {
+    opacity: 0;
+    translate: 0 44px;
+    transition-property: opacity, translate;
+    transition-duration: 0.34s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-reveal.is-reveal-drop .gacha-showcase-pet--silhouette {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+.pet-gacha-reveal.is-reveal-drop .gacha-reveal-burst {
+    opacity: 1;
+    scale: 1.08 1.08;
+}
+
+.pet-gacha-reveal.is-reveal-pet .gacha-showcase-pet--silhouette {
+    opacity: 0;
+    scale: 0.96 0.96;
+}
+
+.pet-gacha-reveal.is-reveal-pet .pet-gacha-result-icon {
+    opacity: 1;
+    scale: 1 1;
+}
+
+.pet-gacha-reveal.is-reveal-pet .gacha-reveal-burst {
+    opacity: 0.28;
+    scale: 1.34 1.34;
+}
+
+.pet-gacha-reveal.is-reveal-pet .gacha-reveal-flash {
+    opacity: 0.9;
+}
+
+.pet-gacha-reveal.is-reveal-flash-cleared .gacha-reveal-flash,
+.pet-gacha-reveal.is-reveal-flash-cleared .gacha-reveal-burst {
+    opacity: 0;
+}
+
+.pet-gacha-reveal.is-reveal-copy .gacha-showcase-copy {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.pet-gacha-result-star {
+    opacity: 0;
+    translate: 0 -34px;
+    scale: 1.35 1.35;
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.24s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-result-star.is-visible {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+.gacha-reveal-tap-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 34px;
+    width: 420px;
+    margin-left: -210px;
+    opacity: 0;
+    color: var(--gacha-color-text-navy);
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: 2px;
+    transition-property: opacity, translate;
+    transition-duration: 0.22s;
+    translate: 0 12px;
+}
+
+.gacha-reveal-tap-hint.is-visible {
+    opacity: 0.78;
+    translate: 0 0;
+}
+
+.pet-gacha-result-star {
+    -unity-background-image-tint-color: white;
+}
+
+.pet-gacha-reveal.rarity-r {
+    background-color: rgb(184, 198, 213);
+}
+
+.pet-gacha-reveal.rarity-r .gacha-showcase-gradient {
+    --figma-gradient-color-0: rgb(246, 248, 251);
+    --figma-gradient-color-1: rgb(221, 229, 237);
+    --figma-gradient-color-2: rgb(181, 197, 214);
+    --figma-gradient-color-3: rgb(228, 234, 240);
+}
+
+.pet-gacha-reveal.rarity-sr {
+    background-color: rgb(176, 151, 220);
+}
+
+.pet-gacha-reveal.rarity-sr .gacha-showcase-gradient {
+    --figma-gradient-color-0: rgb(93, 51, 153);
+    --figma-gradient-color-1: rgb(139, 83, 210);
+    --figma-gradient-color-2: rgb(205, 174, 241);
+    --figma-gradient-color-3: rgb(113, 66, 174);
+}
+
+.pet-gacha-reveal.rarity-ssr {
+    background-color: rgb(237, 205, 127);
+}
+
+.pet-gacha-reveal.rarity-ssr .gacha-showcase-gradient {
+    --figma-gradient-color-0: rgb(154, 96, 18);
+    --figma-gradient-color-1: rgb(229, 166, 39);
+    --figma-gradient-color-2: rgb(255, 226, 141);
+    --figma-gradient-color-3: rgb(196, 126, 23);
+}
+
+/* The final result is always a summary grid, including a 1x pull. */
+.pet-gacha-results {
+    background-color: rgb(28, 72, 145);
+}
+
+.pet-gacha-multi-title {
+    color: white;
+}
+
+.pet-gacha-multi-card {
+    opacity: 0;
+    translate: 0 42px;
+    scale: 0.86 0.86;
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+.pet-gacha-multi-card.is-entered {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+.pet-gacha-multi-card--r {
+    background-color: rgb(237, 242, 246);
+    border-color: white;
+}
+
+.pet-gacha-multi-card--sr {
+    background-color: rgb(239, 229, 255);
+    border-color: rgb(176, 105, 255);
+}
+
+.pet-gacha-multi-card--ssr {
+    background-color: rgb(255, 244, 207);
+    border-color: rgb(255, 202, 51);
+}
+
+.pet-gacha-modal.is-reduced-motion .gacha-topbar,
+.pet-gacha-modal.is-reduced-motion .gacha-banner-copy,
+.pet-gacha-modal.is-reduced-motion .gacha-featured-stage,
+.pet-gacha-modal.is-reduced-motion .gacha-banner-footer,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-vortex,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-comet,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-flare,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-watermark,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-skip,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-compass,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-headline,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-legend,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-transition-token,
+.pet-gacha-modal.is-reduced-motion .gacha-showcase-pet--silhouette,
+.pet-gacha-modal.is-reduced-motion .gacha-reveal-burst,
+.pet-gacha-modal.is-reduced-motion .gacha-reveal-flash,
+.pet-gacha-modal.is-reduced-motion .gacha-showcase-copy,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-result-star,
+.pet-gacha-modal.is-reduced-motion .gacha-reveal-tap-hint,
+.pet-gacha-modal.is-reduced-motion .pet-gacha-multi-card {
     transition-duration: 0s;
 }

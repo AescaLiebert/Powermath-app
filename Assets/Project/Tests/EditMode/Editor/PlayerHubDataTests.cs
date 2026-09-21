@@ -316,6 +316,15 @@ namespace PowerMath.Tests.EditMode
             Assert.That(coinText, Does.Not.StartWith("+"));
         }
 
+        [Test]
+        public void PlayerHub_PetJuiceProfile_ContainsPreviewEntranceConfiguration()
+        {
+            var profile = Resources.Load<PlayerHubJuiceProfileDefinition>("PlayerHubJuiceProfile");
+            Assert.That(profile, Is.Not.Null);
+            Assert.That(profile.PreviewEntranceSeconds, Is.GreaterThan(0.05f));
+            Assert.That(profile.PreviewEntranceSeconds, Is.EqualTo(0.28f).Within(0.01f));
+        }
+
         private static PlayerSnapshot CreatePlayer(bool owned, bool equipped)
         {
             return new PlayerSnapshot

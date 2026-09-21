@@ -6,6 +6,8 @@ using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
 using PowerMath.Localization;
+using PowerMath.PlayerLifecycle;
+using PowerMath.Session;
 using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -35,6 +37,7 @@ namespace PowerMath.UI.MainMenu
         private string _selectedPetId;
         private bool _busy;
         private int _lastRenderedStarCount = -1;
+        private string _renderedCharacterId;
 
         public PlayerHubPanelController(
             MonoBehaviour host,
@@ -80,6 +83,7 @@ namespace PowerMath.UI.MainMenu
             _view.CloseRequested += Close;
             _view.UpgradeRequested += Upgrade;
             _view.PetEquipRequested += SelectAndEquipPet;
+            _view.PetsSectionShown += OnPetsSectionShown;
             _panelHost.PanelClosed += OnPanelClosed;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
@@ -96,6 +100,7 @@ namespace PowerMath.UI.MainMenu
             _view.CloseRequested -= Close;
             _view.UpgradeRequested -= Upgrade;
             _view.PetEquipRequested -= SelectAndEquipPet;
+            _view.PetsSectionShown -= OnPetsSectionShown;
             _panelHost.PanelClosed -= OnPanelClosed;
             _feedback.Dispose();
             _view.Dispose();
@@ -107,6 +112,7 @@ namespace PowerMath.UI.MainMenu
         {
             if (player == null) return;
             _player = player;
+            RenderCharacterAvatar();
             try
             {
                 RenderSummary(ProjectStats());
@@ -177,8 +183,10 @@ namespace PowerMath.UI.MainMenu
         {
             if (panelId != MainMenuPanelId.PlayerHub) return;
             _feedback.StopIdle();
+            _feedback.StopPetPreviewTweens();
             _pendingWeaponTransactionId = string.Empty;
             _lastRenderedStarCount = -1;
+            _view.HidePetPreview();
             _view.Modal.style.display = DisplayStyle.None;
             _view.Modal.style.visibility = Visibility.Hidden;
             _view.Modal.EnableInClassList("is-hidden", true);
@@ -190,6 +198,7 @@ namespace PowerMath.UI.MainMenu
             _view.Balance.text = (_player?.wallet?.powerCoins ?? 0).ToString("N0");
             try
             {
+                RenderCharacterAvatar();
                 PlayerStatProjection stats = ProjectStats();
                 RenderStats(stats);
                 RenderWeapon(stats);
@@ -197,7 +206,7 @@ namespace PowerMath.UI.MainMenu
             }
             catch (Exception exception) when (IsProjectionFailure(exception))
             {
-                SetStatus("Player data is unavailable: " + exception.Message);
+                StatusMessageService.ShowError("Player data is unavailable: " + exception.Message);
                 _view.UpgradeButton.SetEnabled(false);
                 SetSemanticState("is-error");
             }
@@ -390,6 +399,8 @@ namespace PowerMath.UI.MainMenu
             {
                 _view.PetPreviewState.text = error;
                 _view.EquippedPet.sprite = null;
+                _view.HidePetPreview();
+                _feedback.StopPetPreviewTweens();
                 return;
             }
 
@@ -407,12 +418,19 @@ namespace PowerMath.UI.MainMenu
                 _selectedPetId,
                 _busy ? _pendingPetId : string.Empty);
             if (inventory.TryGetOwned(_selectedPetId, out OwnedPetEntry selected))
+            {
                 _view.RenderPetPreview(
                     selected,
                     _busy && string.Equals(
                         _pendingPetId,
                         _selectedPetId,
                         StringComparison.Ordinal));
+            }
+            else
+            {
+                _view.HidePetPreview();
+                _feedback.StopPetPreviewTweens();
+            }
             if (inventory.TryGetOwned(inventory.EquippedPetId, out OwnedPetEntry equipped))
                 _view.EquippedPet.sprite = equipped.Definition.Icon;
             else
@@ -508,10 +526,22 @@ namespace PowerMath.UI.MainMenu
             SetSemanticState("is-success");
             _feedback.PlayWeaponSuccess(milestone, newTier?.displayName);
             string name = newTier?.displayName ?? "Sword";
-            _sharedOverlay?.Publish(
+            StatusMessageService.ShowSuccess(
                 $"{name} reached Lv.{stats.Level} — ATK {stats.Attack:N0}",
-                MainMenuNoticeKind.Success,
                 milestone ? 3400 : 2200);
+        }
+
+        private void OnPetsSectionShown()
+        {
+            if (!string.IsNullOrEmpty(_selectedPetId))
+            {
+                _feedback.PlayPetPreviewEntrance();
+            }
+            else
+            {
+                _view.HidePetPreview();
+                _feedback.StopPetPreviewTweens();
+            }
         }
 
         private void SelectAndEquipPet(string petId)
@@ -519,7 +549,6 @@ namespace PowerMath.UI.MainMenu
             if (string.IsNullOrWhiteSpace(petId) || _busy) return;
             _selectedPetId = petId;
             _view.SetSection(true);
-            _feedback.PlayPetPressed();
             if (!CanMutate(out string reason))
             {
                 Warn(reason);
@@ -546,11 +575,17 @@ namespace PowerMath.UI.MainMenu
             }
 
             string previousPetId = _player.loadout?.petId ?? string.Empty;
+            if (string.Equals(previousPetId, petId, StringComparison.Ordinal))
+            {
+                RenderPets();
+                _feedback.PlayPetPreviewEntrance();
+                return;
+            }
+
             _player.loadout = _player.loadout ?? new PlayerSnapshot.LoadoutData();
             _player.loadout.petId = petId;
-            PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
             Render();
-            _sharedOverlay?.Publish("Pet equipped — saving…", MainMenuNoticeKind.Information);
+            _feedback.PlayPetPreviewEntrance();
 
             if (!string.Equals(_pendingPetId, petId, StringComparison.Ordinal) ||
                 string.IsNullOrEmpty(_pendingPetTransactionId))
@@ -565,15 +600,12 @@ namespace PowerMath.UI.MainMenu
         {
             string transactionId = _pendingPetTransactionId;
             string targetPetId = _pendingPetId;
-            SetBusy(true, "Saving equipped pet…");
-            RenderPets();
             bool success = false;
             PetEquipFailure failure = default;
             yield return _petEquipStore.Equip(
                 new PetEquipCommand(transactionId, targetPetId, previewRevision),
                 _ => success = true,
                 value => failure = value);
-            SetBusy(false);
             if (!success)
             {
                 _player.loadout = _player.loadout ?? new PlayerSnapshot.LoadoutData();
@@ -593,10 +625,10 @@ namespace PowerMath.UI.MainMenu
 
             _pendingPetId = string.Empty;
             _pendingPetTransactionId = string.Empty;
-            Render();
+            PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
+            RenderPets();
             SetSemanticState("is-success");
             _feedback.PlayPetSuccess();
-            _sharedOverlay?.Publish("Pet equipped and saved.", MainMenuNoticeKind.Success);
         }
 
         private IEnumerator PublishLeaderboard()
@@ -621,31 +653,30 @@ namespace PowerMath.UI.MainMenu
                 "RunDefeat",
                 StringComparison.Ordinal));
             _sharedOverlay?.SetBackEnabled(!busy);
-            if (!string.IsNullOrEmpty(message)) SetStatus(message);
         }
 
         private void Warn(string message)
         {
-            SetStatus(message);
             SetSemanticState("is-error");
-            _sharedOverlay?.Publish(
-                string.IsNullOrWhiteSpace(message) ? "Action unavailable." : message,
-                MainMenuNoticeKind.Warning);
+            StatusMessageService.ShowWarning(
+                string.IsNullOrWhiteSpace(message) ? "Action unavailable." : message);
         }
 
         private void SetStatus(string message)
         {
-            string value = message ?? string.Empty;
-            _view.Status.text = value;
-            _view.Status.style.display = string.IsNullOrWhiteSpace(value)
-                ? DisplayStyle.None
-                : DisplayStyle.Flex;
+            if (_view.Status != null)
+            {
+                _view.Status.text = string.Empty;
+                _view.Status.style.display = DisplayStyle.None;
+            }
         }
 
         private void HideInitially()
         {
             _view.Modal.EnableInClassList("is-hidden", true);
             _view.Modal.style.display = DisplayStyle.None;
+            _view.HidePetPreview();
+            _feedback.StopPetPreviewTweens();
         }
 
         private void SetSemanticState(string state = null)
@@ -653,6 +684,22 @@ namespace PowerMath.UI.MainMenu
             _view.Modal.EnableInClassList("is-busy", state == "is-busy");
             _view.Modal.EnableInClassList("is-success", state == "is-success");
             _view.Modal.EnableInClassList("is-error", state == "is-error");
+        }
+
+        private void RenderCharacterAvatar()
+        {
+            if (_view?.PlayerAvatar == null) return;
+            string id = _player?.profile?.characterId;
+            if (!PlayerLifecyclePolicy.IsCharacter(id)) id = "ricko";
+            if (string.Equals(_renderedCharacterId, id, StringComparison.Ordinal)) return;
+            var catalog = CharacterPresentationCatalog.Load();
+            var definition = catalog?.Find(id);
+            Sprite sprite = CharacterPlaceholderSprites.Resolve(definition?.hubSprite, id);
+            if (sprite != null)
+            {
+                _view.PlayerAvatar.style.backgroundImage = new StyleBackground(sprite);
+                _renderedCharacterId = id;
+            }
         }
 
         private static bool IsProjectionFailure(Exception exception)

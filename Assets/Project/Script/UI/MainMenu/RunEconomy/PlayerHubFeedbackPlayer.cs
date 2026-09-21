@@ -126,16 +126,75 @@ namespace PowerMath.UI.MainMenu
                 Pulse(_view.EquippedStarLabel, 0.6f, 1.35f, _profile.SuccessSeconds);
         }
 
+        public void PlayPetPreviewEntrance(bool immediate = false)
+        {
+            if (_view.PetPreviewInfo == null || _view.PetPreviewIcon == null) return;
+
+            StopPetPreviewTweens();
+            if (immediate || _motionDriver.ReducedMotion)
+            {
+                _view.ShowPetPreviewImmediate();
+                return;
+            }
+
+            _view.PrimePetPreviewEntrance();
+            float duration = Mathf.Max(0.08f, _profile.PreviewEntranceSeconds);
+
+            // Animate Info: Fade in & slide up (from Y: +20px to 0px)
+            Tween(
+                _view.PetPreviewInfo,
+                duration,
+                value =>
+                {
+                    _view.PetPreviewInfo.style.opacity = value;
+                    float y = Mathf.Lerp(20f, 0f, value);
+                    _view.PetPreviewInfo.style.translate = new Translate(0f, y, 0f);
+                },
+                () =>
+                {
+                    _view.PetPreviewInfo.style.opacity = 1f;
+                    _view.PetPreviewInfo.style.translate = new Translate(0f, 0f, 0f);
+                },
+                UiMotionEasing.OutCubic);
+
+            // Animate Pet sprite: Fade in & slide right (from X: -50px to 0px)
+            _view.PetPreviewIcon.style.scale = new Scale(Vector3.one);
+            Tween(
+                _view.PetPreviewIcon,
+                duration,
+                value =>
+                {
+                    _view.PetPreviewIcon.style.opacity = value;
+                    float x = Mathf.Lerp(-50f, 0f, value);
+                    _view.PetPreviewIcon.style.translate = new Translate(x, 0f, 0f);
+                },
+                () =>
+                {
+                    _view.PetPreviewIcon.style.opacity = 1f;
+                    _view.PetPreviewIcon.style.translate = new Translate(0f, 0f, 0f);
+                    _view.PetPreviewIcon.style.scale = new Scale(Vector3.one);
+                },
+                UiMotionEasing.OutCubic);
+        }
+
+        public void StopPetPreviewTweens()
+        {
+            if (_view.PetPreviewInfo != null)
+                _motionDriver.Cancel(_view.PetPreviewInfo, UiMotionChannel.Feedback);
+            if (_view.PetPreviewIcon != null)
+                _motionDriver.Cancel(_view.PetPreviewIcon, UiMotionChannel.Feedback);
+        }
+
         public void PlayPetPressed()
         {
-            Pulse(_view.PetPreviewIcon, 1f, 0.9f, _profile.PressSeconds);
+            // Do not punch PetPreviewIcon so entrance slide-in is never interrupted.
         }
 
         public void PlayPetSuccess()
         {
             PlayClip(_profile.PetEquipClip);
-            Pulse(_view.PetPreviewIcon, 0.88f, 1.16f, _profile.SuccessSeconds);
-            Pulse(_view.EquippedPet, 0.76f, 1.2f, _profile.SuccessSeconds);
+            // Pulse only the equipped badge on the player stance, preserving the preview sprite slide-in.
+            Pulse(_view.EquippedPet, 1f, 1.10f, _profile.SuccessSeconds);
         }
 
         public void PlayPetFailure()
@@ -205,7 +264,8 @@ namespace PowerMath.UI.MainMenu
             VisualElement target,
             float duration,
             Action<float> update,
-            Action complete = null)
+            Action complete = null,
+            UiMotionEasing easing = UiMotionEasing.OutBack)
         {
             UiMotionHandle tween = null;
             _tweens.RemoveAll(candidate =>
@@ -214,7 +274,7 @@ namespace PowerMath.UI.MainMenu
                 target,
                 UiMotionChannel.Feedback,
                 Mathf.Max(0.01f, duration),
-                UiMotionEasing.OutBack,
+                easing,
                 update,
                 () =>
                 {
@@ -245,6 +305,8 @@ namespace PowerMath.UI.MainMenu
                 _particles[index].style.opacity = 0f;
                 _particles[index].style.translate = new Translate(0f, 0f);
             }
+            StopPetPreviewTweens();
+            _view.HidePetPreview();
         }
 
         private void PlayClip(AudioClip clip)

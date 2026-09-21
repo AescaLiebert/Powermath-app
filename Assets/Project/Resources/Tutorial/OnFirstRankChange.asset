@@ -27,7 +27,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstRankChange.promotion
     emotionId: cheerful
     spriteResourcePath: Character/Sticker_Power_Congrat
-    audioCueId: tutorial-success
+    audioCueId: S2_01_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -63,7 +63,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstRankChange.openProfile
     emotionId: teach
     spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: tutorial-dialogue
+    audioCueId: S2_02_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -99,7 +99,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstRankChange.rankCurrency
     emotionId: proud
     spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: tutorial-dialogue
+    audioCueId: S2_03_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -135,7 +135,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstRankChange.closeProfile
     emotionId: teach
     spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: tutorial-dialogue
+    audioCueId: S2_04_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -171,7 +171,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstRankChange.openLeaderboard
     emotionId: confident
     spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: tutorial-dialogue
+    audioCueId: S2_05_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -207,7 +207,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstRankChange.leaderboardCurrency
     emotionId: confident
     spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: tutorial-dialogue
+    audioCueId: S2_06_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0
@@ -243,7 +243,7 @@ MonoBehaviour:
     textKey: tutorial.onFirstRankChange.final
     emotionId: cheerful
     spriteResourcePath: Character/Sticker_Power_Cheerful
-    audioCueId: tutorial-success
+    audioCueId: S2_07_VA
     targetId: 
     fallbackTargetId: 
     hidesPresentation: 0

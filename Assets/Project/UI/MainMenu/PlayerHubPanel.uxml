@@ -7,7 +7,7 @@
         <ui:VisualElement name="Player Hub / Weapon State" class="player-hub-screen">
             <ui:VisualElement name="1. Background &amp; Player Stance" picking-mode="Ignore" class="player-hub-background-stage">
                 <ui:VisualElement name="background_img" picking-mode="Ignore" class="player-hub-background-image"/>
-                <ui:VisualElement name="Hub_Stand_Stellar 1" picking-mode="Ignore" class="player-hub-player-sprite"/>
+                <ui:VisualElement name="player-hub-avatar" picking-mode="Ignore" class="player-hub-player-sprite"/>
                 <ui:VisualElement name="sprite_pet" picking-mode="Ignore" class="player-hub-pet-sprite-anchor">
                     <ui:Image name="player-hub-equipped-pet" picking-mode="Ignore" tooltip="Equipped pet" class="player-hub-pet-sprite"/>
                 </ui:VisualElement>
@@ -153,7 +153,7 @@
                                     </ui:VisualElement>
                                     <ui:VisualElement name="Pet Detail Panel" class="player-hub-pet-detail-panel">
                                         <ui:VisualElement name="player-hub-pet-preview" class="player-hub-pet-preview">
-                                            <ui:VisualElement name="Selected Pet Info" class="player-hub-pet-selected-info player-hub-pet-selected-info--metadata">
+                                            <ui:VisualElement name="Selected Pet Info" class="player-hub-pet-selected-info player-hub-pet-selected-info--metadata" style="opacity: 0; visibility: hidden;">
                                                 <ui:VisualElement name="Metadata" class="player-hub-pet-metadata">
                                                     <ui:Label name="player-hub-pet-preview-name" text="SELECT A PET" class="player-hub-pet-preview-name" style="display: flex;"/>
                                                     <ui:VisualElement name="Rarity" class="player-hub-pet-rarity">
@@ -176,7 +176,7 @@
                                             </ui:VisualElement>
                                             <ui:VisualElement name="Selected Pet Info" class="player-hub-pet-selected-info player-hub-pet-selected-info--artwork">
                                                 <ui:VisualElement name="sprite_pet" picking-mode="Ignore" class="player-hub-pet-preview-icon" style="height: 486px; width: 486px; background-image: none;">
-                                                    <ui:Image name="player-hub-pet-preview-icon" picking-mode="Ignore" class="player-hub-pet-preview-binding"/>
+                                                    <ui:Image name="player-hub-pet-preview-icon" picking-mode="Ignore" class="player-hub-pet-preview-binding" style="opacity: 0; visibility: hidden;"/>
                                                 </ui:VisualElement>
                                             </ui:VisualElement>
                                         </ui:VisualElement>

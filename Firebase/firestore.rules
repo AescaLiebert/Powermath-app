@@ -2,6 +2,21 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Current per-player prototype layout. Each level is a collection and each
+    // username is one document containing sibling userdata and gamedata maps.
+    match /{levelCollection}/{username} {
+      allow get: if levelCollection in ['level-1', 'level-2', 'level-3'];
+
+      // The public prototype client may repair or persist gamedata only. Account
+      // credentials and any other top-level fields must remain unchanged.
+      allow update: if levelCollection in ['level-1', 'level-2', 'level-3']
+        && request.resource.data.keys() == resource.data.keys()
+        && request.resource.data.diff(resource.data).affectedKeys().size() == 1
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['gamedata']);
+
+      allow list, create, delete: if false;
+    }
+
     // Competition grade documents (competition/level1, competition/level2, competition/level3)
     match /competition/{levelId} {
       allow get: if levelId in ['level1', 'level2', 'level3'];
@@ -25,21 +40,13 @@ service cloud.firestore {
       allow list, create, delete: if false;
     }
 
-    // Shared question catalog documents (question/silver, question/gold, question/diamond)
+    // Shared Rank and Event/Challenge question catalog documents.
     match /question/{questionId} {
-      allow get: if questionId in ['silver', 'gold', 'diamond'];
+      allow get: if questionId in [
+        'silver', 'gold', 'diamond',
+        'challenge-silver', 'challenge-gold', 'challenge-diamond'
+      ];
       allow list, create, update, delete: if false;
-    }
-
-    // Legacy competition-2 document rules
-    match /competition-2/{levelId} {
-      allow get: if levelId in ['level-1', 'level-2', 'level-3'];
-
-      allow update: if levelId in ['level-1', 'level-2', 'level-3']
-        && request.resource.data.keys() == resource.data.keys()
-        && request.resource.data.diff(resource.data).affectedKeys().size() == 1;
-
-      allow list, create, delete: if false;
     }
 
     match /{document=**} {

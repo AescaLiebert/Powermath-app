@@ -61,7 +61,6 @@ namespace PowerMath.Audio
         private float _duckProgress = 0f; // 0 = unducked (1.0), 1 = fully ducked (duckVolumeFactor / duckPitchFactor)
         private MusicTrackConfig _activeEncounterMusic;
         private MusicLibraryDefinition _preloadedLibrary;
-        private bool _wasBossDefeated;
 
         public float MasterVolume
         {
@@ -187,7 +186,6 @@ namespace PowerMath.Audio
             isBossActive = false;
             isEncounterOverrideActive = false;
             _activeEncounterMusic = null;
-            _wasBossDefeated = false;
 
             AudioClip loginClip = library.GetLoginClipWithFallback();
             float targetScale = library.LoginMusic?.VolumeScale ?? 0.85f;
@@ -228,7 +226,6 @@ namespace PowerMath.Audio
             bool shouldSuddenKickIn = isDifferentClip && suddenKickIn;
 
             currentBattleBiomeId = biomeId;
-            _wasBossDefeated = false;
 
             if (isDifferentClip || forceRestart)
             {
@@ -375,7 +372,6 @@ namespace PowerMath.Audio
             isBossActive = false;
             isEncounterOverrideActive = false;
             _activeEncounterMusic = null;
-            _wasBossDefeated = false;
             duckingRequestCount = 0;
             _duckProgress = 0f;
             _currentDuckMultiplier = 1f;
@@ -392,7 +388,6 @@ namespace PowerMath.Audio
             isBossActive = false;
             isEncounterOverrideActive = false;
             _activeEncounterMusic = null;
-            _wasBossDefeated = false;
 
             if (_battleSource != null)
             {
@@ -428,7 +423,6 @@ namespace PowerMath.Audio
             isBossActive = false;
             isEncounterOverrideActive = false;
             _activeEncounterMusic = null;
-            _wasBossDefeated = true;
 
             if (_battleChannel != null)
             {

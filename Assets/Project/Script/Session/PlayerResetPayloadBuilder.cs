@@ -108,6 +108,10 @@ namespace PowerMath.Session
             builder.AddInteger(Join(root, "activeRun", "goldEarned"), 0);
             builder.AddInteger(Join(root, "activeRun", "diamondEarned"), 0);
             builder.AddInteger(Join(root, "activeRun", "bonusMultiplierBasisPoints"), 10000);
+            builder.AddInteger(Join(root, "activeRun", "stageAttackCount"), 0);
+            builder.AddInteger(Join(root, "activeRun", "bigBossesDefeated"), 0);
+            builder.AddInteger(Join(root, "activeRun", "pendingPetFollowUpDamage"), 0);
+            builder.AddBoolean(Join(root, "activeRun", "wasTeleported"), false);
 
             // Economy
             builder.AddString(Join(root, "economy", "lastWeaponAscendTransactionId"), string.Empty);
@@ -125,6 +129,7 @@ namespace PowerMath.Session
             builder.AddEmptyArray(Join(root, "economy", "lastPetGachaResults"));
             builder.AddString(Join(root, "economy", "lastPetEquipTransactionId"), string.Empty);
             builder.AddString(Join(root, "economy", "lastPetEquipPetId"), string.Empty);
+            builder.AddBoolean(Join(root, "economy", "firstGachaPullCompleted"), false);
 
             // Run Settlement
             builder.AddString(Join(root, "lastRunSettlement", "runId"), string.Empty);

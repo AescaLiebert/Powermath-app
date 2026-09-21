@@ -226,7 +226,7 @@ namespace PowerMath.UI.MainMenu
                 generation,
                 duration,
                 _view.ApplySessionUiProgress,
-                reduced ? UiMotionEasing.OutCubic : UiMotionEasing.OutBack);
+                UiMotionEasing.OutCubic);
         }
 
         private IEnumerator AnimateCanvasEntrance(int generation)
@@ -250,7 +250,7 @@ namespace PowerMath.UI.MainMenu
                     playerArt,
                     UiMotionChannel.Lifecycle,
                     duration,
-                    settings.CharacterEase,
+                    UiMotionEasing.OutCubic,
                     ApplyPlayerCanvasSample,
                     () => playerComplete = true));
             }
@@ -261,7 +261,7 @@ namespace PowerMath.UI.MainMenu
                     enemyArt,
                     UiMotionChannel.Lifecycle,
                     duration,
-                    settings.CharacterEase,
+                    UiMotionEasing.OutCubic,
                     ApplyEnemyCanvasSample,
                     () => enemyComplete = true,
                     enemyDelay));

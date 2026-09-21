@@ -158,6 +158,8 @@ namespace PowerMath.Gameplay.Combat
             }
 
             bool isCritical = _random.NextUnit() < _criticalRate;
+            double varianceMultiplier = AttackDamageVariancePolicy.GetMultiplier(
+                _random.NextUnit());
             DamageResult damage = _damageCalculator.Calculate(
                 new DamageInput(
                     _effectiveAttack,
@@ -165,7 +167,8 @@ namespace PowerMath.Gameplay.Combat
                     1d,
                     _criticalDamagePercent,
                     isCritical,
-                    responseScore
+                    responseScore,
+                    varianceMultiplier
                 )
             );
 

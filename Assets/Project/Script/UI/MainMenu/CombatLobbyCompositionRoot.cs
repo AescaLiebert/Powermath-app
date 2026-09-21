@@ -132,7 +132,8 @@ namespace PowerMath.UI.MainMenu
                 runtimeSettings = Resources.Load<CombatRuntimeSettingsDefinition>(
                     "CombatRuntimeSettings");
             if (weaponAscensionCatalog == null)
-                weaponAscensionCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
+                weaponAscensionCatalog = Resources.Load<WeaponAscensionCatalogDefinition>("Weapon/WeaponAscensionCatalog") ??
+                                         Resources.Load<WeaponAscensionCatalogDefinition>("WeaponAscensionCatalog");
             if (petGachaCatalog == null)
                 petGachaCatalog = Resources.Load<PetGachaCatalogDefinition>("Pets/PetGachaCatalog") ??
                                   Resources.Load<PetGachaCatalogDefinition>("PetGachaCatalog");
@@ -476,10 +477,7 @@ namespace PowerMath.UI.MainMenu
                     {
                         PowerMath.Diagnostics.AppLog.Warning(
                             "Combat",
-                            $"Event question catalog fallback: {eventError}");
-                        eventCatalog = BuildDevelopmentEventQuestions(
-                            result.Catalog,
-                            map.EventQuestionDocumentIds);
+                            $"Event question catalog unavailable; event attempts will fail closed: {eventError}");
                     }
 
                     InitializeRuntime(snapshot, result.Catalog, eventCatalog,
@@ -501,7 +499,7 @@ namespace PowerMath.UI.MainMenu
             StageMapData map,
             GameApiSettings settings)
         {
-            const float maximumStartupWaitSeconds = 2.5f;
+            const float maximumStartupWaitSeconds = 12f;
             float configuredTimeout = settings == null
                 ? maximumStartupWaitSeconds
                 : Mathf.Max(1f, settings.RequestTimeoutSeconds);
@@ -526,7 +524,7 @@ namespace PowerMath.UI.MainMenu
             _eventQuestionRepository?.Cancel();
             PowerMath.Diagnostics.AppLog.Warning(
                 "Combat",
-                "Question catalog startup timed out. Activating development question catalog with live player persistence.");
+                "Question catalog startup timed out. Activating isolated practice questions; progress is not saved.");
             InitializeLiveQuestionFallback(snapshot, progressionStore, map);
         }
 
@@ -544,16 +542,16 @@ namespace PowerMath.UI.MainMenu
 
             PowerMath.Diagnostics.AppLog.Warning(
                 "Combat",
-                "Shared Question Firebase is unavailable. Using development question catalog with live player persistence.");
+                "Shared Question Firebase is unavailable. Using isolated practice questions; progress is not saved.");
             InitializeRuntime(
                 snapshot,
                 catalog,
                 BuildDevelopmentEventQuestions(catalog, map.EventQuestionDocumentIds),
-                CreateLiveQuestionPresentation(snapshot),
+                new SimulationQuestionPresentation(),
                 progressionStore,
                 map,
-                string.Empty,
-                isolateQuestionFallback: false
+                "PRACTICE QUESTIONS ACTIVE; PROGRESS IS NOT SAVED",
+                isolateQuestionFallback: true
             );
         }
 
@@ -1094,34 +1092,37 @@ namespace PowerMath.UI.MainMenu
             if (pendingPresentation == null)
                 StartCoroutine(PublishTutorialReadyWhenStable());
             GameApiSettings settings = GetComponent<MainMenuPresenter>()?.ApiSettings;
-            try
+            if (progressionStore != null && !isolateQuestionFallback)
             {
-                _runEconomyController = new RunEconomyPanelController(
-                    this,
-                    GetComponent<UIDocument>().rootVisualElement,
-                    settings,
-                    snapshot,
-                    catalog,
-                    weaponAscensionCatalog,
-                    petGachaCatalog,
-                    baseWeaponAttack,
-                    criticalRate,
-                    criticalDamage,
-                    source,
-                    runtimeSettings != null && runtimeSettings.ReducedMotion,
-                    _uiContext.MotionDriver,
-                    _panelHost,
-                    _interactionGate,
-                    _playerActor,
-                    _rewardMagnet,
-                    _floatingRewardText,
-                    RefreshCombatPresentationAfterEconomyPanelClosed);
-                _presenter.TerminalPresentationCompleted +=
-                    _runEconomyController.NotifyTerminalPresentationCompleted;
-            }
-            catch (System.Exception exception)
-            {
-                PowerMath.Diagnostics.AppLog.Error("Combat", $"Run progression controls could not start: {exception.Message}");
+                try
+                {
+                    _runEconomyController = new RunEconomyPanelController(
+                        this,
+                        GetComponent<UIDocument>().rootVisualElement,
+                        settings,
+                        snapshot,
+                        catalog,
+                        weaponAscensionCatalog,
+                        petGachaCatalog,
+                        baseWeaponAttack,
+                        criticalRate,
+                        criticalDamage,
+                        source,
+                        runtimeSettings != null && runtimeSettings.ReducedMotion,
+                        _uiContext.MotionDriver,
+                        _panelHost,
+                        _interactionGate,
+                        _playerActor,
+                        _rewardMagnet,
+                        _floatingRewardText,
+                        RefreshCombatPresentationAfterEconomyPanelClosed);
+                    _presenter.TerminalPresentationCompleted +=
+                        _runEconomyController.NotifyTerminalPresentationCompleted;
+                }
+                catch (System.Exception exception)
+                {
+                    PowerMath.Diagnostics.AppLog.Error("Combat", $"Run progression controls could not start: {exception.Message}");
+                }
             }
 
             if (pendingPresentation == null)

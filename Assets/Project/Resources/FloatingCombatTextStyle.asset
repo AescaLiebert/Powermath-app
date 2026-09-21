@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: FloatingCombatTextStyle
   m_EditorClassIdentifier: 
   poolCapacity: 8
-  fontAsset: {fileID: 11400000, guid: 0c66c71c8499efd40bcd6fe005f778b4, type: 2}
-  fontMaterial: {fileID: 0}
+  fontAsset: {fileID: 11400000, guid: d11ecd6dd5f180b4c970a7eddf080c9d, type: 2}
+  fontMaterial: {fileID: 2100000, guid: 0aedda3259e446eb97d825a51c2a5ba3, type: 2}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   criticalColor: {r: 1, g: 1, b: 1, a: 1}
   critIcon: {fileID: 21300000, guid: 0df151728f8d48b44890f08177517a91, type: 3}

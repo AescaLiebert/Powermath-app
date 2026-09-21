@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using PowerMath.Bootstrap;
 using PowerMath.PlayerData;
@@ -106,6 +107,44 @@ namespace PowerMath.Tests.EditMode
 
             Assert.That(result, Is.EqualTo(VersionCompatibilityResult.Compatible));
             Assert.That(message, Does.Contain("continuing"));
+        }
+
+        [Test]
+        public void VersionChecker_AcceptsPackagedReleaseWhenManifestMatches()
+        {
+            var manifest = new GameVersionManifest
+            {
+                clientVersion = "1.2.0.0",
+                minSupportedVersion = "1.1.0.0",
+                schemaVersion = 1
+            };
+
+            bool aligned = GameVersionChecker.ValidateReleaseAlignment(
+                "1.2",
+                manifest,
+                out string error);
+
+            Assert.That(aligned, Is.True);
+            Assert.That(error, Is.Empty);
+        }
+
+        [Test]
+        public void VersionChecker_RejectsPackagedReleaseWhenManifestTargetsAnotherBuild()
+        {
+            var manifest = new GameVersionManifest
+            {
+                clientVersion = "1.2.0.0",
+                minSupportedVersion = "1.2.0.0",
+                schemaVersion = 1
+            };
+
+            bool aligned = GameVersionChecker.ValidateReleaseAlignment(
+                "1.1",
+                manifest,
+                out string error);
+
+            Assert.That(aligned, Is.False);
+            Assert.That(error, Does.Contain("does not match"));
         }
 
         [Test]

@@ -35,7 +35,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             if (_style?.FontAsset == null)
             {
-                _defaultFont = Resources.Load<TMP_FontAsset>("Font/FDT-Font");
+                _defaultFont = Resources.Load<TMP_FontAsset>("Font/Genshin-Font");
             }
         }
 

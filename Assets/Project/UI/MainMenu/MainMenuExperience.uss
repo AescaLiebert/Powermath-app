@@ -125,7 +125,7 @@
     text-shadow: 0 6px 16px rgba(5, 12, 26, 0.85);
     transition-property: opacity, scale;
     transition-duration: 0.24s;
-    transition-timing-function: ease-out-back;
+    transition-timing-function: ease-out;
 }
 
 .battle-start-title.is-visible {
@@ -145,7 +145,7 @@
     border-color: rgb(255, 207, 79);
     transition-property: translate, opacity;
     transition-duration: 0.24s;
-    transition-timing-function: ease-out-back;
+    transition-timing-function: ease-out;
 }
 
 .battle-start-accent--left {

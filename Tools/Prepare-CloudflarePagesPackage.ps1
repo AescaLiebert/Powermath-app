@@ -82,6 +82,35 @@ if (-not $version.clientVersion -or -not $version.minSupportedVersion -or
     throw "version.json does not contain a valid release policy."
 }
 
+$projectSettingsPath = Join-Path $projectRoot "ProjectSettings\ProjectSettings.asset"
+if (-not (Test-Path -LiteralPath $projectSettingsPath -PathType Leaf)) {
+    throw "ProjectSettings.asset is required for WebGL release alignment: $projectSettingsPath"
+}
+
+$bundleVersionMatch = Select-String -LiteralPath $projectSettingsPath `
+    -Pattern '^\s*bundleVersion:\s*(\S+)\s*$' |
+    Select-Object -First 1
+if (-not $bundleVersionMatch) {
+    throw "ProjectSettings.asset does not declare bundleVersion."
+}
+
+$bundleVersion = $bundleVersionMatch.Matches[0].Groups[1].Value
+try {
+    $parsedBundleVersion = [System.Version]::Parse($bundleVersion)
+    $parsedClientVersion = [System.Version]::Parse([string]$version.clientVersion)
+    $parsedMinimumVersion = [System.Version]::Parse([string]$version.minSupportedVersion)
+} catch {
+    throw "WebGL release alignment requires numeric bundleVersion, clientVersion, and minSupportedVersion."
+}
+
+if ($parsedClientVersion -lt $parsedMinimumVersion) {
+    throw "version.json clientVersion ($($version.clientVersion)) is older than minSupportedVersion ($($version.minSupportedVersion))."
+}
+
+if ($parsedBundleVersion -ne $parsedClientVersion) {
+    throw "WebGL release alignment failed: bundleVersion ($bundleVersion) does not match version.json clientVersion ($($version.clientVersion))."
+}
+
 $migratorPath = Join-Path $projectRoot "Assets\Project\Script\PlayerData\PlayerSchemaMigrator.cs"
 if (Test-Path -LiteralPath $migratorPath -PathType Leaf) {
     $migratorContent = Get-Content -LiteralPath $migratorPath -Raw

@@ -65,23 +65,11 @@ namespace PowerMath.UI.MainMenu
             };
             PowerMath.UI.Core.StatusMessageService.Show(message, severity, durationMilliseconds);
 
-            int revision = ++_noticeRevision;
-            _noticeText.text = message.Trim();
-            _notice.EnableInClassList("is-success", kind == MainMenuNoticeKind.Success);
-            _notice.EnableInClassList("is-warning", kind == MainMenuNoticeKind.Warning);
-            _notice.EnableInClassList("is-error", kind == MainMenuNoticeKind.Error);
-            _notice.EnableInClassList("is-visible", true);
-            _notice.style.display = DisplayStyle.Flex;
-            _notice.schedule.Execute(() =>
+            // Keep local notice element hidden to prevent duplicate/competing notifications with global toast
+            if (_notice != null)
             {
-                if (revision != _noticeRevision) return;
-                _notice.EnableInClassList("is-visible", false);
-                _notice.schedule.Execute(() =>
-                {
-                    if (revision == _noticeRevision)
-                        _notice.style.display = DisplayStyle.None;
-                }).StartingIn(180);
-            }).StartingIn(Math.Max(800, durationMilliseconds));
+                _notice.style.display = DisplayStyle.None;
+            }
         }
 
         private void Initialize(VisualElement root, IMainMenuPanelHost panelHost)

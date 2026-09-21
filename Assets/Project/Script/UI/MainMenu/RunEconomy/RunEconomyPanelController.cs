@@ -163,6 +163,7 @@ namespace PowerMath.UI.MainMenu
                 publisher,
                 audioSource,
                 reducedMotion,
+                motionDriver,
                 unavailableReason,
                 panelHost);
             _panelHost.PanelClosed += OnPanelClosed;

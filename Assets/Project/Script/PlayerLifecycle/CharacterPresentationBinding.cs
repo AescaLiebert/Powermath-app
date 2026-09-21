@@ -36,7 +36,8 @@ namespace PowerMath.PlayerLifecycle
                 : (id == "stellar" ? "Stellar" : "Ricko");
             var name = _root.Q<Label>("CharacterName");
             if (name != null) { name.text = characterName; name.tooltip = characterName; }
-            Apply(_root.Q("player-hub-avatar"), CharacterPlaceholderSprites.Resolve(definition?.hubSprite, id), title);
+            var playerHubAvatar = _root.Q("player-hub-avatar") ?? _root.Q("Hub_Stand_Stellar 1") ?? _root.Q(className: "player-hub-player-sprite");
+            Apply(playerHubAvatar, CharacterPlaceholderSprites.Resolve(definition?.hubSprite, id), title);
             _root.Query(className: "hud-profile-picture").ForEach(element => Apply(element, CharacterPlaceholderSprites.Resolve(definition?.profileIcon, id), title));
             foreach (var actor in FindObjectsByType<PowerMath.Gameplay.Combat.Unity.ActorPresentationController>())
             {

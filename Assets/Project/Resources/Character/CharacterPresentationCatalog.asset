@@ -21,7 +21,7 @@ MonoBehaviour:
     overviewArt: {fileID: 21300000, guid: 85f0fc2d3c6854447ae9010d45b690df, type: 3}
     selectionArt: {fileID: 21300000, guid: 44ed86c23773e0d46bbbee86f9f214f8, type: 3}
     profileIcon: {fileID: 21300000, guid: 8e3df1040d7728449adcbc332174617e, type: 3}
-    hubSprite: {fileID: 21300000, guid: e856579001e6f2946951107dffee575d, type: 3}
+    hubSprite: {fileID: 21300000, guid: c8ed7182b9a22594ebfc2f8b3e3aaf40, type: 3}
     battleSprite: {fileID: 21300000, guid: e856579001e6f2946951107dffee575d, type: 3}
     battleAttackSprite: {fileID: 21300000, guid: ab5c9822fddf59c4b8c4ccd3df41875e, type: 3}
     battleHurtSprite: {fileID: 21300000, guid: e947686e0d922ee488aba45ac3de1a1f, type: 3}
@@ -31,7 +31,7 @@ MonoBehaviour:
     overviewArt: {fileID: 21300000, guid: ffad266a8ee944e49a9d7ba14dace9fe, type: 3}
     selectionArt: {fileID: 21300000, guid: 8385085309b050c45b839684d20742ff, type: 3}
     profileIcon: {fileID: 21300000, guid: ed841bbf1aae74445b75f6364aad3fd7, type: 3}
-    hubSprite: {fileID: 21300000, guid: 9751ccb8126656641ad24109fbca5b6c, type: 3}
+    hubSprite: {fileID: 21300000, guid: d46afb60fcb1f0c40b11fa463cbbddfb, type: 3}
     battleSprite: {fileID: 21300000, guid: 9751ccb8126656641ad24109fbca5b6c, type: 3}
     battleAttackSprite: {fileID: 21300000, guid: 7cdc08fcfe9b89e408dadd30e49c08bf, type: 3}
     battleHurtSprite: {fileID: 21300000, guid: 08ce6492ee65e4a4abf4315f7328bbe5, type: 3}

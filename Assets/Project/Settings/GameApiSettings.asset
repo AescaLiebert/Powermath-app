@@ -15,13 +15,8 @@ MonoBehaviour:
   projectId: tools-games-f4684
   databaseId: (default)
   apiKey: AIzaSyBVQek0x3j7rZbIIQKAWFk83-qjdtmxXMU
-  competitionCollection: competition-2
   leaderboardPublicCollection: leaderboard-public
   levelCollections:
-  - level-1
-  - level-2
-  - level-3
-  levelDocumentIds:
   - level-1
   - level-2
   - level-3
@@ -36,9 +31,9 @@ MonoBehaviour:
   goldChallengeDocument: challenge-gold
   diamondChallengeDocument: challenge-diamond
   gradeBands:
-  - Grade 1
-  - Grade 2
-  - Grade 3
+  - Grade 4
+  - Grade 5
+  - Grade 6
   requestTimeoutSeconds: 30
   versionManifestUrl: version.json
   enableVersionCheck: 1

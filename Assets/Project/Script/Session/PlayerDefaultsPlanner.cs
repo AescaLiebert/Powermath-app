@@ -23,6 +23,7 @@ namespace PowerMath.Session
 
             if (storedVersion < PowerMath.PlayerData.PlayerSchemaMigrator.CurrentSchemaVersion)
             {
+                ApplyDurableMigrations(builder, root, gameData, storedVersion);
                 builder.AddInteger(Combine(root, "schemaVersion"), PowerMath.PlayerData.PlayerSchemaMigrator.CurrentSchemaVersion);
                 if (gameData != null && gameData.TryGet("revision", out var revisionValue))
                 {
@@ -78,6 +79,20 @@ namespace PowerMath.Session
             AddInteger(builder, root, gameData, new[] { "activeRun", "questionId" }, 0);
             AddString(builder, root, gameData, new[] { "activeRun", "questionContentId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "activeRun", "eventAttemptOrdinal" }, 0);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "eventScheduleVersion" }, 0);
+            AddString(builder, root, gameData, new[] { "activeRun", "eventScheduleCatalogVersion" }, string.Empty);
+            AddString(builder, root, gameData, new[] { "activeRun", "eventScheduleEventId" }, string.Empty);
+            AddEmptyArray(builder, root, gameData, new[] { "activeRun", "eventScheduleStages" });
+            AddInteger(builder, root, gameData, new[] { "activeRun", "eventChanceBasisPoints" }, 0);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "petEventMultiplierBasisPoints" }, 10000);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "challengeQuestions", "silverCursor" }, 0);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "challengeQuestions", "goldCursor" }, 0);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "challengeQuestions", "diamondCursor" }, 0);
+            AddString(builder, root, gameData, new[] { "activeRun", "challengeQuestions", "reservedDocumentId" }, string.Empty);
+            AddString(builder, root, gameData, new[] { "activeRun", "challengeQuestions", "reservedQuestionId" }, string.Empty);
+            AddString(builder, root, gameData, new[] { "activeRun", "lastChallengeRewardAttemptId" }, string.Empty);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "lastChallengeRewardPowerCoins" }, 0);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "lastChallengeRewardResultingPowerCoins" }, 0);
             AddString(builder, root, gameData, new[] { "activeRun", "enemyId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "activeRun", "enemyCurrentHp" }, 0);
             AddInteger(builder, root, gameData, new[] { "activeRun", "enemyMaximumHp" }, 0);
@@ -90,6 +105,9 @@ namespace PowerMath.Session
             AddInteger(builder, root, gameData, new[] { "activeRun", "goldEarned" }, 0);
             AddInteger(builder, root, gameData, new[] { "activeRun", "diamondEarned" }, 0);
             AddInteger(builder, root, gameData, new[] { "activeRun", "bonusMultiplierBasisPoints" }, 10000);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "stageAttackCount" }, 0);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "bigBossesDefeated" }, 0);
+            AddInteger(builder, root, gameData, new[] { "activeRun", "pendingPetFollowUpDamage" }, 0);
             AddBoolean(builder, root, gameData, new[] { "activeRun", "wasTeleported" }, false);
             AddString(builder, root, gameData, new[] { "economy", "lastWeaponAscendTransactionId" }, string.Empty);
             AddInteger(builder, root, gameData, new[] { "economy", "lastWeaponAscendLevel" }, 0);
@@ -148,11 +166,66 @@ namespace PowerMath.Session
             return builder.Build();
         }
 
+        private static void ApplyDurableMigrations(
+            FirestorePatchDocumentBuilder builder,
+            string[] root,
+            JsonValue gameData,
+            int storedVersion)
+        {
+            if (storedVersion >= 6 || gameData == null ||
+                !gameData.TryGet("activeRun", out JsonValue activeRunValue) ||
+                !FirestoreJsonNavigator.TryGetMapFields(
+                    activeRunValue,
+                    out JsonValue activeRun))
+            {
+                return;
+            }
+
+            string encounterKind = ReadMigrationString(activeRun, "encounterKind");
+            string phase = ReadMigrationString(activeRun, "phase");
+            if (!string.Equals(encounterKind, "NormalMonster", StringComparison.Ordinal) ||
+                !string.Equals(phase, "Committed", StringComparison.Ordinal) ||
+                !activeRun.TryGet("enemyRemainingCooldown", out JsonValue remainingValue) ||
+                !activeRun.TryGet("enemyMaximumCooldown", out JsonValue maximumValue))
+            {
+                return;
+            }
+
+            if (!FirestoreJsonNavigator.TryReadInteger(remainingValue, out long remaining) ||
+                !FirestoreJsonNavigator.TryReadInteger(maximumValue, out long maximum) ||
+                remaining < 0 || maximum < 0 ||
+                remaining > int.MaxValue || maximum > int.MaxValue)
+            {
+                throw new FormatException("Invalid cooldown in player migration data.");
+            }
+
+            long corrected = Math.Min(maximum, remaining + 1L);
+            if (corrected != remaining)
+            {
+                builder.AddInteger(
+                    Combine(root, "activeRun", "enemyRemainingCooldown"),
+                    corrected);
+            }
+        }
+
+        private static string ReadMigrationString(JsonValue fields, string name)
+        {
+            if (!fields.TryGet(name, out JsonValue value)) return string.Empty;
+            if (!value.TryGet("stringValue", out JsonValue text) ||
+                text.Kind != JsonValueKind.String)
+            {
+                throw new FormatException("Invalid string in player migration data: " + name);
+            }
+            return text.Text ?? string.Empty;
+        }
+
         private static void AddString(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string name, string value) =>
             AddString(builder, root, fields, new[] { name }, value);
         private static void AddString(FirestorePatchDocumentBuilder builder, string[] root, JsonValue fields, string[] path, string value)
         {
             if (!HasPath(fields, path)) builder.AddString(Combine(root, path), value);
+            else if (FirestoreJsonNavigator.IsNull(ReadLeaf(fields, path)))
+                builder.AddString(Combine(root, path), value);
             else if (!ReadLeaf(fields, path).TryGet("stringValue", out var text) || text.Kind != JsonValueKind.String)
                 throw new FormatException("Invalid string in player data: " + string.Join(".", path));
         }

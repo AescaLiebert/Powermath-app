@@ -40,8 +40,8 @@ Shader "PowerMath/UI/Video Chroma Key"
         Cull Off
         Lighting Off
         ZWrite Off
-        ZTest [unity_GUIZTestMode]
-        Blend SrcAlpha OneMinusSrcAlpha
+        ZTest Always
+        Blend Off
         ColorMask [_ColorMask]
 
         Pass

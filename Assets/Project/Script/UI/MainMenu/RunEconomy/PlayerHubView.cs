@@ -48,6 +48,8 @@ namespace PowerMath.UI.MainMenu
         public readonly VisualElement NextCard;
         public readonly VisualElement ParticleLayer;
         public readonly VisualElement PetPreview;
+        public readonly VisualElement PetPreviewInfo;
+        public readonly VisualElement PetPreviewArtwork;
         public readonly Image PetPreviewIcon;
         public readonly Label PetPreviewRarity;
         public readonly Label PetPreviewName;
@@ -69,6 +71,7 @@ namespace PowerMath.UI.MainMenu
         public readonly VisualElement RowAttack;
         public readonly VisualElement RowCritRate;
         public readonly VisualElement RowCritDamage;
+        public readonly VisualElement PlayerAvatar;
 
         private readonly Button _weaponTab;
         private readonly Button _petTab;
@@ -122,6 +125,14 @@ namespace PowerMath.UI.MainMenu
             NextCard = Require<VisualElement>(root, "player-hub-next-card");
             ParticleLayer = Require<VisualElement>(root, "player-hub-particle-layer");
             PetPreview = Require<VisualElement>(root, "player-hub-pet-preview");
+            PetPreviewInfo = PetPreview.Q<VisualElement>(
+                className: "player-hub-pet-selected-info--metadata") ??
+                throw new InvalidOperationException(
+                    "PlayerHubView requires the pet preview metadata group.");
+            PetPreviewArtwork = PetPreview.Q<VisualElement>(
+                className: "player-hub-pet-selected-info--artwork") ??
+                throw new InvalidOperationException(
+                    "PlayerHubView requires the pet preview artwork group.");
             PetPreviewIcon = Require<Image>(root, "player-hub-pet-preview-icon");
             PetPreviewRarity = Require<Label>(root, "player-hub-pet-preview-rarity");
             PetPreviewName = Require<Label>(root, "player-hub-pet-preview-name");
@@ -143,6 +154,7 @@ namespace PowerMath.UI.MainMenu
             RowAttack = root.Q<VisualElement>("Weapon / Stat Comparison / Attack");
             RowCritRate = root.Q<VisualElement>("Weapon / Stat Comparison / Crit Rate");
             RowCritDamage = root.Q<VisualElement>("Weapon / Stat Comparison / Crit Damage");
+            PlayerAvatar = root.Q("player-hub-avatar") ?? root.Q("Hub_Stand_Stellar 1") ?? root.Q(className: "player-hub-player-sprite");
             _weaponTab = Require<Button>(root, "player-hub-tab-weapon");
             _petTab = Require<Button>(root, "player-hub-tab-pets");
             _weaponWorkspace = Require<VisualElement>(root, "player-hub-weapon-workspace");
@@ -156,6 +168,8 @@ namespace PowerMath.UI.MainMenu
             _petScrollPrevious = petScrollButtons[0];
             _petScrollNext = petScrollButtons[1];
             _weaponSprite = Require<Image>(root, "player-hub-weapon-sprite");
+
+            HidePetPreview();
 
             OpenButton.clicked += RaiseOpen;
             CloseButton.clicked += RaiseClose;
@@ -171,6 +185,9 @@ namespace PowerMath.UI.MainMenu
         public event Action CloseRequested;
         public event Action UpgradeRequested;
         public event Action<string> PetEquipRequested;
+        public event Action PetsSectionShown;
+
+        public bool IsPetSectionVisible { get; private set; }
 
         public void Dispose()
         {
@@ -185,6 +202,7 @@ namespace PowerMath.UI.MainMenu
 
         public void SetSection(bool pets)
         {
+            IsPetSectionVisible = pets;
             _weaponWorkspace.style.display = pets ? DisplayStyle.None : DisplayStyle.Flex;
             _petWorkspace.style.display = pets ? DisplayStyle.Flex : DisplayStyle.None;
             _weaponTab.EnableInClassList("is-selected", !pets);
@@ -208,8 +226,53 @@ namespace PowerMath.UI.MainMenu
             // A tile click can trigger multiple renders while the equip request begins.
             // Rebuild the tiles in place: do not schedule ScrollTo for a tile that may be
             // detached by the next render, and do not overwrite the player's scroll offset.
+            if (inventory == null)
+            {
+                _petGrid.Clear();
+                return;
+            }
+
+            if (_petGrid.childCount == inventory.Entries.Count && _petGrid.childCount > 0)
+            {
+                bool allMatch = true;
+                for (int i = 0; i < inventory.Entries.Count; i++)
+                {
+                    if (!(_petGrid[i] is Button existingTile) ||
+                        !string.Equals(existingTile.userData as string, inventory.Entries[i].Definition.PetId, StringComparison.Ordinal))
+                    {
+                        allMatch = false;
+                        break;
+                    }
+                }
+
+                if (allMatch)
+                {
+                    for (int i = 0; i < inventory.Entries.Count; i++)
+                    {
+                        OwnedPetEntry entry = inventory.Entries[i];
+                        Button tile = (Button)_petGrid[i];
+                        tile.EnableInClassList("is-equipped", entry.IsEquipped);
+                        bool isPending = string.Equals(pendingPetId, entry.Definition.PetId, StringComparison.Ordinal);
+                        tile.EnableInClassList("is-pending", isPending);
+                        bool isSelected = string.Equals(selectedPetId, entry.Definition.PetId, StringComparison.Ordinal);
+                        tile.EnableInClassList("is-selected", isSelected);
+                        var marker = tile.Q<VisualElement>("generic_selected");
+                        if (marker != null)
+                        {
+                            marker.style.display = isSelected ? DisplayStyle.Flex : DisplayStyle.None;
+                        }
+                        var countBadge = tile.Q<Label>(className: "player-hub-pet-tile-count");
+                        if (countBadge != null)
+                        {
+                            countBadge.text = entry.Count > 1 ? $"x{entry.Count}" : string.Empty;
+                            countBadge.style.display = entry.Count > 1 ? DisplayStyle.Flex : DisplayStyle.None;
+                        }
+                    }
+                    return;
+                }
+            }
+
             _petGrid.Clear();
-            if (inventory == null) return;
             foreach (OwnedPetEntry entry in inventory.Entries)
             {
                 OwnedPetEntry captured = entry;
@@ -307,6 +370,39 @@ namespace PowerMath.UI.MainMenu
             PetPreviewState.style.display = DisplayStyle.None;
         }
 
+        public void HidePetPreview()
+        {
+            PetPreviewInfo.style.visibility = Visibility.Hidden;
+            PetPreviewInfo.style.opacity = 0f;
+            PetPreviewInfo.style.translate = new Translate(0f, 20f, 0f);
+            PetPreviewIcon.style.visibility = Visibility.Hidden;
+            PetPreviewIcon.style.opacity = 0f;
+            PetPreviewIcon.style.scale = new Scale(Vector3.one);
+            PetPreviewIcon.style.translate = new Translate(-50f, 0f, 0f);
+        }
+
+        public void PrimePetPreviewEntrance()
+        {
+            PetPreviewInfo.style.visibility = Visibility.Visible;
+            PetPreviewInfo.style.opacity = 0f;
+            PetPreviewInfo.style.translate = new Translate(0f, 20f, 0f);
+            PetPreviewIcon.style.visibility = Visibility.Visible;
+            PetPreviewIcon.style.opacity = 0f;
+            PetPreviewIcon.style.scale = new Scale(Vector3.one);
+            PetPreviewIcon.style.translate = new Translate(-50f, 0f, 0f);
+        }
+
+        public void ShowPetPreviewImmediate()
+        {
+            PetPreviewInfo.style.visibility = Visibility.Visible;
+            PetPreviewInfo.style.opacity = 1f;
+            PetPreviewInfo.style.translate = new Translate(0f, 0f, 0f);
+            PetPreviewIcon.style.visibility = Visibility.Visible;
+            PetPreviewIcon.style.opacity = 1f;
+            PetPreviewIcon.style.scale = new Scale(Vector3.one);
+            PetPreviewIcon.style.translate = new Translate(0f, 0f, 0f);
+        }
+
         public void SetWeaponPresentation(
             WeaponAscensionCatalogDefinition.Tier tier)
         {
@@ -319,7 +415,11 @@ namespace PowerMath.UI.MainMenu
         private void RaiseClose() => CloseRequested?.Invoke();
         private void RaiseUpgrade() => UpgradeRequested?.Invoke();
         private void ShowWeapon() => SetSection(false);
-        private void ShowPets() => SetSection(true);
+        private void ShowPets()
+        {
+            SetSection(true);
+            PetsSectionShown?.Invoke();
+        }
 
         private void ScrollPetsPrevious() => ScrollPets(-PetTileStride);
         private void ScrollPetsNext() => ScrollPets(PetTileStride);

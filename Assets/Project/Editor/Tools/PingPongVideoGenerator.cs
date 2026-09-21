@@ -59,7 +59,7 @@ namespace PowerMath.Editor.Tools
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = ffmpegPath,
-                    Arguments = $"-y -i \"{fullInputPath}\" -vf reverse -an -c:v libx264 -crf 18 -preset fast -pix_fmt yuv420p \"{fullOutputPath}\"",
+                    Arguments = $"-nostdin -y -i \"{fullInputPath}\" -vf reverse -an -c:v libx264 -crf 24 -preset fast -r 30 -g 30 -keyint_min 30 -pix_fmt yuv420p -movflags +faststart \"{fullOutputPath}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,

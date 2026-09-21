@@ -222,9 +222,9 @@
     position: absolute;
     top: 24px;
     left: 50%;
-    translate: -50% -26px;
+    translate: -50% 24px;
     opacity: 0;
-    scale: 0.94 0.94;
+    scale: 1 1;
     min-width: 360px;
     max-width: 680px;
     min-height: 50px;
@@ -248,9 +248,8 @@
     border-top-right-radius: 18px;
     border-bottom-left-radius: 18px;
     border-bottom-right-radius: 18px;
-    transition-property: opacity, translate, scale, background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
-    transition-duration: 0.22s;
-    transition-timing-function: ease-out-back;
+    transition-property: background-color, border-left-color, border-right-color, border-top-color, border-bottom-color;
+    transition-duration: 0.15s;
 }
 
 .status-toast-banner.is-visible {

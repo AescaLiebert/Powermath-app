@@ -2,6 +2,21 @@ using System;
 
 namespace PowerMath.Gameplay.Combat
 {
+    public static class AttackDamageVariancePolicy
+    {
+        public const double MinimumMultiplier = 0.90d;
+        public const double MaximumMultiplier = 1.10d;
+
+        public static double GetMultiplier(double randomUnit)
+        {
+            if (randomUnit < 0d || randomUnit > 1d)
+                throw new ArgumentOutOfRangeException(nameof(randomUnit));
+
+            return MinimumMultiplier +
+                (MaximumMultiplier - MinimumMultiplier) * randomUnit;
+        }
+    }
+
     public static class ResponseDamagePolicy
     {
         public const int MinimumScore = 1;
@@ -48,7 +63,8 @@ namespace PowerMath.Gameplay.Combat
             double buffMultiplier,
             double criticalDamagePercent,
             bool isCritical,
-            int responseScore)
+            int responseScore,
+            double varianceMultiplier = 1d)
         {
             if (effectiveAttack < 0)
             {
@@ -56,7 +72,7 @@ namespace PowerMath.Gameplay.Combat
             }
 
             if (rankMultiplier < 0d || buffMultiplier < 0d ||
-                criticalDamagePercent < 0d)
+                criticalDamagePercent < 0d || varianceMultiplier < 0d)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(rankMultiplier),
@@ -72,6 +88,7 @@ namespace PowerMath.Gameplay.Combat
             ResponseScore = responseScore;
             ResponseDamageMultiplier =
                 ResponseDamagePolicy.GetMultiplier(responseScore);
+            VarianceMultiplier = varianceMultiplier;
         }
 
         public int EffectiveAttack { get; }
@@ -87,6 +104,8 @@ namespace PowerMath.Gameplay.Combat
         public int ResponseScore { get; }
 
         public double ResponseDamageMultiplier { get; }
+
+        public double VarianceMultiplier { get; }
     }
 
     public readonly struct DamageResult
@@ -123,6 +142,7 @@ namespace PowerMath.Gameplay.Combat
             double criticalMultiplier,
             int responseScore,
             double responseMultiplier,
+            double varianceMultiplier,
             double unroundedDamage,
             int finalDamage)
         {
@@ -132,6 +152,7 @@ namespace PowerMath.Gameplay.Combat
             CriticalMultiplier = criticalMultiplier;
             ResponseScore = responseScore;
             ResponseMultiplier = responseMultiplier;
+            VarianceMultiplier = varianceMultiplier;
             UnroundedDamage = unroundedDamage;
             FinalDamage = finalDamage;
             IsAvailable = true;
@@ -144,6 +165,7 @@ namespace PowerMath.Gameplay.Combat
         public double CriticalMultiplier { get; }
         public int ResponseScore { get; }
         public double ResponseMultiplier { get; }
+        public double VarianceMultiplier { get; }
         public double UnroundedDamage { get; }
         public int FinalDamage { get; }
     }
@@ -160,7 +182,8 @@ namespace PowerMath.Gameplay.Combat
                 input.RankMultiplier *
                 input.BuffMultiplier *
                 criticalMultiplier *
-                input.ResponseDamageMultiplier;
+                input.ResponseDamageMultiplier *
+                input.VarianceMultiplier;
 
             int rounded = (int)Math.Round(
                 unrounded,
@@ -175,6 +198,7 @@ namespace PowerMath.Gameplay.Combat
                 criticalMultiplier,
                 input.ResponseScore,
                 input.ResponseDamageMultiplier,
+                input.VarianceMultiplier,
                 unrounded,
                 finalDamage);
 
@@ -193,14 +217,19 @@ namespace PowerMath.Gameplay.Combat
             double passiveMagnitude,
             double rankMultiplier,
             bool isCritical,
-            double criticalDamagePercent)
+            double criticalDamagePercent,
+            double varianceMultiplier = 1d)
         {
             if (effectivePetAttack <= 0 || passiveMagnitude <= 0d || rankMultiplier <= 0d)
             {
                 return 0;
             }
 
-            double rawDamage = effectivePetAttack * passiveMagnitude * rankMultiplier;
+            if (varianceMultiplier < 0d)
+                throw new ArgumentOutOfRangeException(nameof(varianceMultiplier));
+
+            double rawDamage = effectivePetAttack * passiveMagnitude *
+                rankMultiplier * varianceMultiplier;
             if (rawDamage > int.MaxValue)
             {
                 throw new OverflowException("Pet damage exceeds the supported range.");

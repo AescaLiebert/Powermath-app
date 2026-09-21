@@ -11,11 +11,16 @@ namespace PowerMath.UI.Core
         public const string BadgeName = "status-toast-badge";
         public const string TextName = "status-toast-text";
 
+        private const float SlideUpDistancePixels = 24f;
+        private const float EnterDurationSeconds = 0.32f;
+        private const float ExitDurationSeconds = 0.22f;
+
         private readonly VisualElement _container;
         private readonly VisualElement _banner;
         private readonly Label _badge;
         private readonly Label _text;
         private int _activeRevision;
+        private int _tweenId;
         private bool _disposed;
 
         public VisualElement Container => _container;
@@ -115,15 +120,49 @@ namespace PowerMath.UI.Core
                     break;
             }
 
-            // Enter routine
+            CancelActiveTween();
             _banner.style.display = DisplayStyle.Flex;
-            _banner.schedule.Execute(() =>
+            _banner.EnableInClassList("is-visible", true);
+
+            if (Application.isPlaying)
             {
-                if (revision == _activeRevision)
-                {
-                    _banner.EnableInClassList("is-visible", true);
-                }
-            });
+                // Fade in and slide up with LeanTween ease-out
+                _banner.style.opacity = 0f;
+                _banner.style.translate = new Translate(
+                    new Length(-50, LengthUnit.Percent),
+                    new Length(SlideUpDistancePixels, LengthUnit.Pixel));
+
+                _tweenId = LeanTween.value(0f, 1f, EnterDurationSeconds)
+                    .setEase(LeanTweenType.easeOutCubic)
+                    .setIgnoreTimeScale(true)
+                    .setOnUpdate((float t) =>
+                    {
+                        if (revision != _activeRevision) return;
+                        _banner.style.opacity = t;
+                        float y = Mathf.Lerp(SlideUpDistancePixels, 0f, t);
+                        _banner.style.translate = new Translate(
+                            new Length(-50, LengthUnit.Percent),
+                            new Length(y, LengthUnit.Pixel));
+                    })
+                    .setOnComplete(() =>
+                    {
+                        if (revision == _activeRevision)
+                        {
+                            _tweenId = 0;
+                            _banner.style.opacity = 1f;
+                            _banner.style.translate = new Translate(
+                                new Length(-50, LengthUnit.Percent),
+                                new Length(0f, LengthUnit.Pixel));
+                        }
+                    }).id;
+            }
+            else
+            {
+                _banner.style.opacity = 1f;
+                _banner.style.translate = new Translate(
+                    new Length(-50, LengthUnit.Percent),
+                    new Length(0f, LengthUnit.Pixel));
+            }
 
             // Hold and Exit routine
             int holdTime = Math.Max(1000, durationMilliseconds);
@@ -131,31 +170,64 @@ namespace PowerMath.UI.Core
             {
                 if (revision != _activeRevision) return;
 
-                // Exit animation
-                _banner.EnableInClassList("is-visible", false);
-
-                // Hide after CSS transition concludes (240ms)
-                _banner.schedule.Execute(() =>
+                if (Application.isPlaying)
                 {
-                    if (revision == _activeRevision)
-                    {
-                        _banner.style.display = DisplayStyle.None;
-                    }
-                }).StartingIn(240);
+                    CancelActiveTween();
+                    _tweenId = LeanTween.value(1f, 0f, ExitDurationSeconds)
+                        .setEase(LeanTweenType.easeOutQuad)
+                        .setIgnoreTimeScale(true)
+                        .setOnUpdate((float t) =>
+                        {
+                            if (revision != _activeRevision) return;
+                            _banner.style.opacity = t;
+                        })
+                        .setOnComplete(() =>
+                        {
+                            if (revision == _activeRevision)
+                            {
+                                _tweenId = 0;
+                                _banner.EnableInClassList("is-visible", false);
+                                _banner.style.display = DisplayStyle.None;
+                            }
+                        }).id;
+                }
+                else
+                {
+                    _banner.EnableInClassList("is-visible", false);
+                    _banner.style.display = DisplayStyle.None;
+                }
             }).StartingIn(holdTime);
         }
 
         public void HideImmediate()
         {
+            CancelActiveTween();
             _activeRevision++;
             _banner.EnableInClassList("is-visible", false);
             _banner.style.display = DisplayStyle.None;
+            _banner.style.opacity = 0f;
+            _banner.style.translate = new Translate(
+                new Length(-50, LengthUnit.Percent),
+                new Length(SlideUpDistancePixels, LengthUnit.Pixel));
+        }
+
+        private void CancelActiveTween()
+        {
+            if (_tweenId != 0)
+            {
+                if (LeanTween.isTweening(_tweenId))
+                {
+                    LeanTween.cancel(_tweenId);
+                }
+                _tweenId = 0;
+            }
         }
 
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
+            CancelActiveTween();
             StatusMessageService.UnregisterOverlay(this);
             _container.RemoveFromHierarchy();
         }

@@ -149,6 +149,59 @@ namespace PowerMath.Bootstrap
             return VersionCompatibilityResult.Compatible;
         }
 
+        /// <summary>
+        /// Validates that a packaged player is the release identified by the
+        /// manifest copied into the same WebGL package. This is intentionally
+        /// stricter than runtime compatibility: a package must not advertise a
+        /// different client version from the one it actually contains.
+        /// </summary>
+        public static bool ValidateReleaseAlignment(
+            string currentAppVersion,
+            GameVersionManifest manifest,
+            out string error)
+        {
+            error = string.Empty;
+            if (manifest == null)
+            {
+                error = "Release manifest is missing.";
+                return false;
+            }
+
+            if (!TryParseVersion(currentAppVersion, out Version current))
+            {
+                error = $"Player version '{currentAppVersion}' is invalid.";
+                return false;
+            }
+
+            if (!TryParseVersion(manifest.clientVersion, out Version client))
+            {
+                error = $"Manifest clientVersion '{manifest.clientVersion}' is invalid.";
+                return false;
+            }
+
+            if (!TryParseVersion(manifest.minSupportedVersion, out Version minimum))
+            {
+                error = $"Manifest minSupportedVersion '{manifest.minSupportedVersion}' is invalid.";
+                return false;
+            }
+
+            if (client.CompareTo(minimum) < 0)
+            {
+                error = "Manifest clientVersion cannot be older than minSupportedVersion.";
+                return false;
+            }
+
+            if (current.CompareTo(client) != 0)
+            {
+                error =
+                    $"Packaged player version '{currentAppVersion}' does not match " +
+                    $"manifest clientVersion '{manifest.clientVersion}'.";
+                return false;
+            }
+
+            return true;
+        }
+
         public static bool IsVersionOlder(string currentVersion, string targetVersion)
         {
             if (string.IsNullOrWhiteSpace(currentVersion) || string.IsNullOrWhiteSpace(targetVersion))
@@ -163,6 +216,13 @@ namespace PowerMath.Bootstrap
             }
 
             throw new FormatException("Release versions must be numeric major.minor.patch versions.");
+        }
+
+        private static bool TryParseVersion(string value, out Version version)
+        {
+            version = null;
+            return !string.IsNullOrWhiteSpace(value) &&
+                Version.TryParse(NormalizeVersion(value), out version);
         }
 
         public static bool IsFeatureAvailable(GameFeature feature, GameVersionManifest manifest = null)

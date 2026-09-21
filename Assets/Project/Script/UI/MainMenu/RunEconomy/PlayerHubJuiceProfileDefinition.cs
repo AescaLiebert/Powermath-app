@@ -13,6 +13,7 @@ namespace PowerMath.UI.MainMenu
         [SerializeField, Min(0.2f)] private float idleSeconds = 1.6f;
         [SerializeField, Range(4, 24)] private int particleCount = 12;
         [SerializeField, Min(0.2f)] private float milestoneSeconds = 1.3f;
+        [SerializeField, Min(0.05f)] private float previewEntranceSeconds = 0.28f;
         [SerializeField] private AudioClip upgradeSuccessClip;
         [SerializeField] private AudioClip milestoneClip;
         [SerializeField] private AudioClip failureClip;
@@ -24,6 +25,7 @@ namespace PowerMath.UI.MainMenu
         public float IdleSeconds => idleSeconds;
         public int ParticleCount => particleCount;
         public float MilestoneSeconds => milestoneSeconds;
+        public float PreviewEntranceSeconds => previewEntranceSeconds;
         public AudioClip UpgradeSuccessClip => upgradeSuccessClip;
         public AudioClip MilestoneClip => milestoneClip;
         public AudioClip FailureClip => failureClip;

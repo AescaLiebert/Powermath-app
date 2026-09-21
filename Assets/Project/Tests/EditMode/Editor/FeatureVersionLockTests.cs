@@ -143,11 +143,11 @@ namespace PowerMath.Tests.EditMode
             {
                 LocalizationService.SetLocale("en");
                 string enMessage = LocalizationService.Get("menu.lockedFeatureUpdate");
-                Assert.That(enMessage, Is.EqualTo("Wait for 1.2 Update (16/09/26) sorry!"));
+                Assert.That(enMessage, Is.EqualTo("Wait for 1.3 Update (27/09/26) sorry!"));
 
                 LocalizationService.SetLocale("th");
                 string thMessage = LocalizationService.Get("menu.lockedFeatureUpdate");
-                Assert.That(thMessage, Is.EqualTo("รออัปเดต 1.2 (16/09/26) ขออภัยด้วยนะ!"));
+                Assert.That(thMessage, Is.EqualTo("รออัปเดต 1.3 (27/09/26) ขออภัยด้วยนะ!"));
             }
             finally
             {

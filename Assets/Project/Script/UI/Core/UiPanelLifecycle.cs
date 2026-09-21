@@ -72,9 +72,7 @@ namespace PowerMath.UI.Core
                 Root,
                 UiMotionChannel.Lifecycle,
                 duration,
-                _driver.ReducedMotion
-                    ? UiMotionEasing.OutCubic
-                    : UiMotionEasing.OutBack,
+                UiMotionEasing.OutCubic,
                 value =>
                 {
                     _opacity = Mathf.Lerp(startOpacity, 1f, value);

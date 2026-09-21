@@ -400,7 +400,18 @@ namespace PowerMath.Session
                     questionContentKind = ReadString(activeRun, "questionContentKind"),
                     questionDocumentId = ReadString(activeRun, "questionDocumentId"),
                     questionId = ReadLong(activeRun, "questionId"),
+                    questionContentId = ReadString(activeRun, "questionContentId"),
                     eventAttemptOrdinal = ReadInt(activeRun, "eventAttemptOrdinal"),
+                    eventScheduleVersion = ReadInt(activeRun, "eventScheduleVersion"),
+                    eventScheduleCatalogVersion = ReadString(activeRun, "eventScheduleCatalogVersion"),
+                    eventScheduleEventId = ReadString(activeRun, "eventScheduleEventId"),
+                    eventScheduleStages = ReadIntArray(activeRun, "eventScheduleStages"),
+                    eventChanceBasisPoints = ReadInt(activeRun, "eventChanceBasisPoints"),
+                    petEventMultiplierBasisPoints = ReadInt(activeRun, "petEventMultiplierBasisPoints"),
+                    challengeQuestions = MapChallengeQuestions(activeRun),
+                    lastChallengeRewardAttemptId = ReadString(activeRun, "lastChallengeRewardAttemptId"),
+                    lastChallengeRewardPowerCoins = ReadInt(activeRun, "lastChallengeRewardPowerCoins"),
+                    lastChallengeRewardResultingPowerCoins = ReadLong(activeRun, "lastChallengeRewardResultingPowerCoins"),
                     enemyId = ReadString(activeRun, "enemyId"),
                     enemyCurrentHp = ReadInt(activeRun, "enemyCurrentHp"),
                     enemyMaximumHp = ReadInt(activeRun, "enemyMaximumHp"),
@@ -414,7 +425,10 @@ namespace PowerMath.Session
                     diamondEarned = ReadLong(activeRun, "diamondEarned"),
                     bonusMultiplierBasisPoints = Math.Max(10000, ReadInt(activeRun, "bonusMultiplierBasisPoints")),
                     wasTeleported = ReadBool(activeRun, "wasTeleported"),
-                    pendingPresentation = MapAttemptPresentation(activeRun)
+                    pendingPresentation = MapAttemptPresentation(activeRun),
+                    stageAttackCount = ReadInt(activeRun, "stageAttackCount"),
+                    bigBossesDefeated = ReadInt(activeRun, "bigBossesDefeated"),
+                    pendingPetFollowUpDamage = ReadInt(activeRun, "pendingPetFollowUpDamage")
                 },
                 academic = MapAcademic(gameData),
                 analytics = MapAnalytics(gameData),
@@ -432,6 +446,7 @@ namespace PowerMath.Session
                     petGachaPullsSinceSsr = ReadInt(economy, "petGachaPullsSinceSsr"),
                     lastPetGachaPreviousPityCount = ReadInt(economy, "lastPetGachaPreviousPityCount"),
                     lastPetGachaResultingPityCount = ReadInt(economy, "lastPetGachaResultingPityCount"),
+                    lastPetGachaResults = MapPetGachaResults(economy),
                     lastPetEquipTransactionId = ReadString(economy, "lastPetEquipTransactionId"),
                     lastPetEquipPetId = ReadString(economy, "lastPetEquipPetId"),
                     firstGachaPullCompleted = ReadBool(economy, "firstGachaPullCompleted")
@@ -560,6 +575,7 @@ namespace PowerMath.Session
             {
                 auditScore = ReadInt(academic, "auditScore"),
                 auditResolvedCount = ReadInt(academic, "auditResolvedCount"),
+                auditCorrectCount = ReadInt(academic, "auditCorrectCount"),
                 silver = MapRankInventory(inventories, "silver"),
                 gold = MapRankInventory(inventories, "gold"),
                 diamond = MapRankInventory(inventories, "diamond")
@@ -591,6 +607,49 @@ namespace PowerMath.Session
                 diamond = MapRankAnalytics(byRank, "diamond"),
                 byQuestion = MapQuestionAnalytics(byQuestion)
             };
+        }
+
+        private static PlayerSnapshot.ChallengeQuestionSequenceData MapChallengeQuestions(
+            JsonValue activeRun)
+        {
+            TryGetMapFromFields(activeRun, "challengeQuestions", out JsonValue fields);
+            return new PlayerSnapshot.ChallengeQuestionSequenceData
+            {
+                silverCursor = ReadInt(fields, "silverCursor"),
+                goldCursor = ReadInt(fields, "goldCursor"),
+                diamondCursor = ReadInt(fields, "diamondCursor"),
+                reservedDocumentId = ReadString(fields, "reservedDocumentId"),
+                reservedQuestionId = ReadString(fields, "reservedQuestionId")
+            };
+        }
+
+        private static PlayerSnapshot.PetGachaResultData[] MapPetGachaResults(
+            JsonValue economy)
+        {
+            if (economy == null ||
+                !economy.TryGet("lastPetGachaResults", out JsonValue value) ||
+                !FirestoreJsonNavigator.TryGetArrayValues(
+                    value,
+                    out IReadOnlyList<JsonValue> rows))
+            {
+                return Array.Empty<PlayerSnapshot.PetGachaResultData>();
+            }
+
+            var results = new List<PlayerSnapshot.PetGachaResultData>(rows.Count);
+            foreach (JsonValue row in rows)
+            {
+                if (!FirestoreJsonNavigator.TryGetMapFields(row, out JsonValue fields))
+                    continue;
+                results.Add(new PlayerSnapshot.PetGachaResultData
+                {
+                    petId = ReadString(fields, "petId"),
+                    rarityId = ReadString(fields, "rarityId"),
+                    wasNew = ReadBool(fields, "wasNew"),
+                    previousCount = ReadInt(fields, "previousCount"),
+                    resultingCount = ReadInt(fields, "resultingCount")
+                });
+            }
+            return results.ToArray();
         }
 
         private static PlayerSnapshot.QuestionAnalyticsData[] MapQuestionAnalytics(JsonValue values)
@@ -657,6 +716,18 @@ namespace PowerMath.Session
             foreach (JsonValue item in values)
             {
                 if (FirestoreJsonNavigator.TryReadInteger(item, out long id)) result.Add(id);
+            }
+            return result.ToArray();
+        }
+
+        private static int[] ReadIntArray(JsonValue fields, string name)
+        {
+            long[] values = ReadIntegerArray(fields, name);
+            var result = new List<int>(values.Length);
+            foreach (long value in values)
+            {
+                if (value >= int.MinValue && value <= int.MaxValue)
+                    result.Add((int)value);
             }
             return result.ToArray();
         }
