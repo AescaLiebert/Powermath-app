@@ -151,6 +151,7 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             double time = _player.time;
             if (frame >= 0)
             {
+                // Desktop/Editor: VideoPlayer provides a real frame index.
                 if (frame == _lastFrame)
                     return;
                 _lastFrame = frame;
@@ -158,7 +159,17 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             }
             else
             {
-                if (System.Math.Abs(time - _lastTime) < 0.001)
+                // WebGL: the browser <video> element never exposes a frame index,
+                // so _player.frame is always –1. Use a time-based threshold matched
+                // to the video's expected frame interval (24 fps = ~41.7 ms).
+                // The previous 0.001 s (1 ms) threshold was effectively never true
+                // at 60 Hz, making the throttle a no-op on every WebGL build.
+#if UNITY_WEBGL && !UNITY_EDITOR
+                const double k_frameInterval = 1.0 / 24.0;
+#else
+                const double k_frameInterval = 1.0 / 60.0;
+#endif
+                if (System.Math.Abs(time - _lastTime) < k_frameInterval)
                     return;
                 _lastTime = time;
             }

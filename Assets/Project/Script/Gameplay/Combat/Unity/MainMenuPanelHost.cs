@@ -69,14 +69,13 @@ namespace PowerMath.UI.MainMenu
                 return false;
             }
 
-            bool terminalAllowed = _interactionGate == null ||
-                _interactionGate.IsAllowed(InteractionScope.TerminalAction);
             bool navAllowed = _interactionGate == null ||
                 _interactionGate.IsAllowed(InteractionScope.Navigation);
 
-            bool allowed = panelId == MainMenuPanelId.Rebirth
-                ? (navAllowed || terminalAllowed)
-                : navAllowed;
+            // Rebirth also hosts the mandatory defeat settlement. Its caller
+            // owns voluntary eligibility checks; rejecting this panel here can
+            // strand a defeated player behind a pre-existing tutorial lock.
+            bool allowed = panelId == MainMenuPanelId.Rebirth || navAllowed;
 
             if (!allowed)
             {

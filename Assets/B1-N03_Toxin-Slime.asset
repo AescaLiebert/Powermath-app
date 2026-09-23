@@ -17,7 +17,7 @@ MonoBehaviour:
   thaiDisplayName: "\u0E2A\u0E44\u0E25\u0E21\u0E4C\u0E1A\u0E2D\u0E23\u0E30\u0E40\u0E1E\u0E47\u0E14"
   biomeId: biome-1
   encounterKind: 0
-  baseHp: 30
+  baseHp: 25
   maximumCooldown: 5
   hpMultiplierBasisPoints: 10000
   enemySprite: {fileID: 21300000, guid: 1c7154d97c3a8254aae59092e813c43c, type: 3}

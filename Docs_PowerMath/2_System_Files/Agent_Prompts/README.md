@@ -10,6 +10,7 @@ Ready-to-use system prompts for each role. Run `/bootstrap-project` first to fil
 4. Load the current task card or artifact.
 5. Load the prompt for the current role only.
 6. Load the relevant GDD `@tag:` section, not the full GDD.
+7. For all automated Unity tests, use `unity test` rather than the Unity Editor Test Runner. See `RULES_AND_POLICY.md` §8; manual visual and play-feel checks remain Editor/device work.
 
 ## Agent Roster
 

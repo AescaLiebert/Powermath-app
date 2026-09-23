@@ -4,7 +4,10 @@
   "references": [
     "PowerMath.Gameplay.Combat.Core",
     "PowerMath.Gameplay.Combat.Unity",
-    "PowerMath.Diagnostics"
+    "PowerMath.Diagnostics",
+    "Unity.Addressables",
+    "Unity.Addressables.Editor",
+    "Unity.ResourceManager"
   ],
   "includePlatforms": [
     "Editor"

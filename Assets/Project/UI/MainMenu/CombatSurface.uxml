@@ -155,9 +155,9 @@
             <ui:VisualElement name="combat-boss-warning-band-top" picking-mode="Ignore" class="combat-boss-warning-band combat-boss-warning-band--top"/>
             <ui:VisualElement name="combat-boss-warning-band-bottom" picking-mode="Ignore" class="combat-boss-warning-band combat-boss-warning-band--bottom"/>
             <ui:VisualElement name="combat-boss-warning-content" picking-mode="Ignore" class="combat-boss-warning-content">
-                <ui:Label name="combat-boss-warning-kicker" text="WARNING" picking-mode="Ignore" class="loc-combat.warning combat-boss-warning-kicker" style="-unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
-                <ui:Label name="combat-boss-warning-title" text="DANGER!" picking-mode="Ignore" class="loc-combat.danger combat-boss-warning-title" style="-unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
-                <ui:Label name="combat-boss-warning-subtitle" text="APPROACHING" picking-mode="Ignore" class="loc-combat.approaching combat-boss-warning-subtitle" style="-unity-font-definition: resource(&quot;Font/Genshin-text-Font&quot;);"/>
+                <ui:Label name="combat-boss-warning-kicker" text="WARNING" picking-mode="Ignore" class="loc-combat.warning combat-boss-warning-kicker" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                <ui:Label name="combat-boss-warning-title" text="DANGER!" picking-mode="Ignore" class="loc-combat.danger combat-boss-warning-title" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                <ui:Label name="combat-boss-warning-subtitle" text="APPROACHING" picking-mode="Ignore" class="loc-combat.approaching combat-boss-warning-subtitle" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:Instance template="NavigatorPanel" picking-mode="Ignore" class="mw-template-fill"/>

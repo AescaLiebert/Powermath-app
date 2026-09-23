@@ -315,8 +315,9 @@ namespace PowerMath.Gameplay.Combat
             {
                 _challengeQuestions.Resolve(active.ChallengeQuestionId);
                 int biomeIndex = Math.Min(7, Math.Max(1, (source.Stage.Value - 1) / 30 + 1));
+                double bonusMultiplier = _combat.Stats.PowerCoinBonusMultiplier;
                 eventResult = new EventAttemptResult(active.EventId,
-                    active.QuestionDocumentId, active.ChallengeQuestionId, outcome, responseScore, biomeIndex);
+                    active.QuestionDocumentId, active.ChallengeQuestionId, outcome, responseScore, biomeIndex, bonusMultiplier);
                 _powerCoins = checked(_powerCoins + eventResult.PowerCoinsGranted);
             }
             _lastAttemptId = active.AttemptId;

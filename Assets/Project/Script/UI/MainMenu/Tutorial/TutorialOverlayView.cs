@@ -30,6 +30,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
         private IVisualElementScheduledItem _typingSchedule;
         private bool _focusPulseExpanded;
         private bool _isTyping;
+        private bool _musicDucked;
         private string _fullBodyText = string.Empty;
         private int _typedCharCount;
         private const int TypingIntervalMs = 24; // ~40 chars per second
@@ -142,10 +143,18 @@ namespace PowerMath.UI.MainMenu.Tutorial
 
             if (step.Kind == TutorialStepKind.Dialogue || !string.IsNullOrWhiteSpace(step.AudioCueId))
             {
+                // Duck biome/battle music while tutorial voice is playing.
+                // Guard against stacking: Show() is called per-step, not once.
+                if (!_musicDucked)
+                {
+                    PowerMath.Audio.MusicController.Instance?.SetDucking(true);
+                    _musicDucked = true;
+                }
                 PowerMath.Audio.VoiceController.Instance?.PlayVoiceCue(
                     step.AudioCueId,
                     step.SpeakerKey,
-                    step.EmotionId);
+                    step.EmotionId,
+                    volumeScale: 2.0f);
             }
         }
 
@@ -169,6 +178,12 @@ namespace PowerMath.UI.MainMenu.Tutorial
         {
             StopTyping();
             PowerMath.Audio.VoiceController.Instance?.StopVoice(true);
+            // Release music duck when the overlay closes.
+            if (_musicDucked)
+            {
+                PowerMath.Audio.MusicController.Instance?.SetDucking(false);
+                _musicDucked = false;
+            }
             _step = null;
             _target = default;
             _hasTarget = false;

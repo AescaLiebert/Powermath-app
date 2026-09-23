@@ -457,5 +457,60 @@ namespace PowerMath.Audio
             EnsureLibrary();
             PlayCueWithFallback(library.UiNavigationBack, "click");
         }
+
+        public void PlayGachaSkyOpening()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.GachaSkyOpening, "gacha_sky_opening", 0.65f);
+        }
+
+        public void PlayGachaFallingStar()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.GachaFallingStar, "gacha_falling_star", 0.75f);
+        }
+
+        public void PlayGachaStarToReveal()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.GachaStarToReveal, "gacha_star_to_reveal", 0.8f);
+        }
+
+        public void PlayGachaSilhouetteDrop()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.GachaSilhouetteDrop, "gacha_silhouette_drop", 0.75f);
+        }
+
+        public void PlayGachaPetReveal()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.GachaPetReveal, "gacha_pet_reveal", 0.85f);
+        }
+
+        public void PlayGachaRarityStarDrop(int starIndex)
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.GachaRarityStarDrop, "gacha_rarity_star_drop",
+                0.34f + starIndex * 0.05f);
+        }
+
+        public void PlayWeaponAscendSuccess()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.WeaponAscendSuccess, "weapon_ascend_success");
+        }
+
+        public void PlayPetEquipPress()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.PetEquipPress, "pet_equip_press");
+        }
+
+        public void PlayPetEquipSuccess()
+        {
+            EnsureLibrary();
+            PlayCueWithFallback(library.PetEquipSuccess, "pet_equip_success");
+        }
     }
 }

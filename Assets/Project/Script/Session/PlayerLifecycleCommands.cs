@@ -8,7 +8,15 @@ using PowerMath.PlayerData;
 
 namespace PowerMath.Session
 {
-    public enum PlayerLifecycleCommandKind { SetLocale, CompleteOpening, SelectCharacter, CompletePreparation, AdvanceTutorial }
+    public enum PlayerLifecycleCommandKind
+    {
+        SetLocale,
+        CompleteOpening,
+        SelectCharacter,
+        CompletePreparation,
+        AdvanceTutorial,
+        ClaimTutorialPowerCoinReward
+    }
 
     public sealed class PlayerLifecycleCommand
     {
@@ -29,6 +37,7 @@ namespace PowerMath.Session
         public string tutorialGuidedEncounterId;
         public string tutorialFirstAttemptOutcome;
         public string tutorialVariant;
+        public long tutorialPowerCoinReward;
     }
 
     public interface IPlayerLifecycleCommands
@@ -79,6 +88,8 @@ namespace PowerMath.Session
                     player.profile.displayName == command.displayName,
                 PlayerLifecycleCommandKind.AdvanceTutorial =>
                     TutorialProgressPolicy.IsAlreadyApplied(player, command),
+                PlayerLifecycleCommandKind.ClaimTutorialPowerCoinReward =>
+                    TutorialProgressPolicy.IsRewardClaimed(player, command),
                 _ => false
             };
             if (alreadyApplied) return builder.Build();
@@ -112,6 +123,10 @@ namespace PowerMath.Session
                 case PlayerLifecycleCommandKind.AdvanceTutorial:
                     TutorialProgressPolicy.AddPatch(builder, root: new[] { "gamedata" }, player, command);
                     break;
+                case PlayerLifecycleCommandKind.ClaimTutorialPowerCoinReward:
+                    TutorialProgressPolicy.AddRewardClaimPatch(
+                        builder, root: new[] { "gamedata" }, player, command);
+                    break;
                 default: throw new ArgumentException("Unsupported operation.");
             }
             builder.AddInteger(Path("revision"), checked(player.revision + 1));
@@ -129,6 +144,65 @@ namespace PowerMath.Session
             return entry != null && command != null &&
                 string.Equals(entry.lastOperationId, command.operationId,
                     StringComparison.Ordinal);
+        }
+
+        public static bool IsRewardClaimed(
+            PlayerSnapshot player,
+            PlayerLifecycleCommand command)
+        {
+            PlayerSnapshot.TutorialEntryData entry = Find(player, command?.value);
+            return entry != null && entry.rewardClaimed;
+        }
+
+        public static void AddRewardClaimPatch(
+            FirestorePatchDocumentBuilder builder,
+            IReadOnlyList<string> root,
+            PlayerSnapshot player,
+            PlayerLifecycleCommand command)
+        {
+            if (builder == null || root == null || player == null || command == null)
+                throw new ArgumentNullException();
+            if (!string.Equals(command.value, "OnFirstRebirth", StringComparison.Ordinal) ||
+                command.tutorialPowerCoinReward != 180)
+                throw new ArgumentException("Invalid tutorial reward.");
+
+            PlayerSnapshot.TutorialEntryData entry = Find(player, command.value);
+            if (entry == null || entry.rewardClaimed ||
+                (entry.status != TutorialStatus.Active.ToString() &&
+                 entry.status != TutorialStatus.Queued.ToString()))
+                throw new InvalidOperationException("Tutorial reward is unavailable.");
+            if (player.wallet == null)
+                throw new FormatException("Missing wallet state.");
+
+            string[] EntryPath(params string[] fields)
+            {
+                var result = new string[root.Count + fields.Length + 2];
+                for (int index = 0; index < root.Count; index++) result[index] = root[index];
+                result[root.Count] = "tutorialMap";
+                result[root.Count + 1] = command.value;
+                Array.Copy(fields, 0, result, root.Count + 2, fields.Length);
+                return result;
+            }
+
+            var walletPath = new string[root.Count + 2];
+            for (int index = 0; index < root.Count; index++) walletPath[index] = root[index];
+            walletPath[root.Count] = "wallet";
+            walletPath[root.Count + 1] = "powerCoins";
+            builder.AddInteger(walletPath, checked(player.wallet.powerCoins + command.tutorialPowerCoinReward));
+            builder.AddBoolean(EntryPath("rewardClaimed"), true);
+            builder.AddString(EntryPath("lastOperationId"), command.operationId);
+        }
+
+        public static void ApplyRewardClaimToSnapshot(
+            PlayerSnapshot player,
+            PlayerLifecycleCommand command)
+        {
+            PlayerSnapshot.TutorialEntryData entry = Find(player, command?.value);
+            if (entry == null || player?.wallet == null) return;
+            entry.rewardClaimed = true;
+            entry.lastOperationId = command.operationId;
+            player.wallet.powerCoins = checked(
+                player.wallet.powerCoins + command.tutorialPowerCoinReward);
         }
 
         public static void AddPatch(

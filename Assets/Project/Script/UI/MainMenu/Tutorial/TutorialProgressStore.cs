@@ -19,6 +19,9 @@ namespace PowerMath.UI.MainMenu.Tutorial
 
     public sealed class LifecycleTutorialProgressStore : ITutorialProgressStore
     {
+        // All tutorial directors write the same player revision. Serialize
+        // their writes so simultaneous tutorial triggers cannot lose a step.
+        private static bool _commandInFlight;
         private readonly IPlayerLifecycleCommands _commands;
 
         public LifecycleTutorialProgressStore(IPlayerLifecycleCommands commands)
@@ -37,26 +40,37 @@ namespace PowerMath.UI.MainMenu.Tutorial
         {
             if (progress == null || currentPlayer == null)
                 throw new ArgumentNullException();
-            var command = new PlayerLifecycleCommand
+            while (_commandInFlight) yield return null;
+            _commandInFlight = true;
+            try
             {
-                kind = PlayerLifecycleCommandKind.AdvanceTutorial,
-                operationId = operationId,
-                playerId = currentPlayer.playerId,
-                expectedRevision = currentPlayer.revision,
-                value = progress.TutorialId,
-                tutorialVersion = progress.Version,
-                tutorialStatus = progress.Status.ToString(),
-                tutorialStepId = progress.CurrentStepId,
-                tutorialTriggerRecordedAtUnixSeconds = progress.TriggerRecordedAt,
-                tutorialCompletedAtUnixSeconds = progress.CompletedAt,
-                tutorialRewardClaimed = progress.RewardClaimed,
-                tutorialLastTransactionId = progress.LastTransactionId,
-                tutorialLegacyPlayer = progress.LegacyPlayer,
-                tutorialGuidedEncounterId = progress.GuidedEncounterId,
-                tutorialFirstAttemptOutcome = progress.FirstAttemptOutcome.ToString(),
-                tutorialVariant = progress.Variant
-            };
-            yield return _commands.Execute(command, succeeded, failed);
+                // Capture the revision only after the previous tutorial write
+                // has merged its authoritative snapshot into this live object.
+                var command = new PlayerLifecycleCommand
+                {
+                    kind = PlayerLifecycleCommandKind.AdvanceTutorial,
+                    operationId = operationId,
+                    playerId = currentPlayer.playerId,
+                    expectedRevision = currentPlayer.revision,
+                    value = progress.TutorialId,
+                    tutorialVersion = progress.Version,
+                    tutorialStatus = progress.Status.ToString(),
+                    tutorialStepId = progress.CurrentStepId,
+                    tutorialTriggerRecordedAtUnixSeconds = progress.TriggerRecordedAt,
+                    tutorialCompletedAtUnixSeconds = progress.CompletedAt,
+                    tutorialRewardClaimed = progress.RewardClaimed,
+                    tutorialLastTransactionId = progress.LastTransactionId,
+                    tutorialLegacyPlayer = progress.LegacyPlayer,
+                    tutorialGuidedEncounterId = progress.GuidedEncounterId,
+                    tutorialFirstAttemptOutcome = progress.FirstAttemptOutcome.ToString(),
+                    tutorialVariant = progress.Variant
+                };
+                yield return _commands.Execute(command, succeeded, failed);
+            }
+            finally
+            {
+                _commandInFlight = false;
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Project/UI/MainMenu/PetGachaPanel.uss?fileID=7433441132597879392&amp;guid=3d40160347b7bcc449b9a900de6ae62a&amp;type=3#PetGachaPanel"/>
-    <ui:VisualElement name="pet-gacha-modal" enabled="true" focusable="true" class="social-modal pet-gacha-modal gacha-screen gacha-screen--banner is-hidden" style="display: flex; -unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);">
+    <ui:VisualElement name="pet-gacha-modal" enabled="true" focusable="true" class="social-modal pet-gacha-modal gacha-screen gacha-screen--banner is-hidden" style="display: flex; -unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);">
         <pm:FigmaGradientElement name="Gacha / Screen Gradient" class="gacha-screen-gradient" style="opacity: 1;"/>
         <ui:VisualElement name="BG" picking-mode="Ignore" class="gacha-bg" style="width: auto; height: auto; left: 0; top: 0; background-image: url(&quot;project://database/Assets/Project/Art/UI/illustration/Gacha%20Banner.png?fileID=2800000&amp;guid=4c27ff18d962de347a4ab3eabfd169e2&amp;type=3#Gacha Banner&quot;); right: 0; bottom: 0; opacity: 1;"/>
         <ui:VisualElement name="[UI] .gacha-topbar" class="gacha-topbar" style="opacity: 0;">
@@ -60,17 +60,17 @@
                 <ui:VisualElement name="Button / Rebirth" class="gacha-summon-frame">
                     <pm:FigmaShadowElement name="Gacha / Control Shadow" class="gacha-control-shadow gacha-control-shadow--summon"/>
                     <ui:Button name="pet-gacha-pull-1" text="" class="gacha-summon-button gacha-summon-button--single" style="display: flex; padding-right: 12px; padding-left: 12px;">
-                        <ui:Label name="pet-gacha-single-label" text="x1" picking-mode="Ignore" class="gacha-summon-count" style="position: absolute; align-items: flex-start; top: 18px; left: 24px; -unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                        <ui:Label name="pet-gacha-single-label" text="x1" picking-mode="Ignore" class="gacha-summon-count" style="position: absolute; align-items: flex-start; top: 18px; left: 24px; -unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
                         <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="gacha-summon-coin" style="position: absolute; top: 20px; left: 168px;"/>
-                        <ui:Label name="pet-gacha-single-cost" text="180" picking-mode="Ignore" class="gacha-summon-cost" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;); position: absolute; top: 18px; left: 237px;"/>
+                        <ui:Label name="pet-gacha-single-cost" text="180" picking-mode="Ignore" class="gacha-summon-cost" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;); position: absolute; top: 18px; left: 237px;"/>
                     </ui:Button>
                 </ui:VisualElement>
                 <ui:VisualElement name="Button / Rebirth" class="gacha-summon-frame">
                     <pm:FigmaShadowElement name="Gacha / Control Shadow" class="gacha-control-shadow gacha-control-shadow--summon"/>
                     <ui:Button name="pet-gacha-pull-10" text="" tooltip="Summon 10 pets" class="gacha-summon-button gacha-summon-button--multi">
-                        <ui:Label name="pet-gacha-multi-label" text="x10" picking-mode="Ignore" class="gacha-summon-count" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                        <ui:Label name="pet-gacha-multi-label" text="x10" picking-mode="Ignore" class="gacha-summon-count" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
                         <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="gacha-summon-coin"/>
-                        <ui:Label name="pet-gacha-multi-cost" text="1,800" picking-mode="Ignore" class="gacha-summon-cost" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                        <ui:Label name="pet-gacha-multi-cost" text="1,800" picking-mode="Ignore" class="gacha-summon-cost" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
                     </ui:Button>
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -168,6 +168,7 @@
                     <ui:VisualElement name="[PET] .gacha-showcase-stage" class="gacha-showcase-stage" style="display: flex;">
                         <ui:VisualElement name="SSR5_Lunamoth 1" class="gacha-showcase-pet-wrap" style="display: flex;">
                             <ui:VisualElement picking-mode="Ignore" class="gacha-reveal-burst">
+                                <ui:VisualElement picking-mode="Ignore" class="gacha-reveal-halo"/>
                                 <ui:VisualElement class="gacha-reveal-shard gacha-reveal-shard--0"/>
                                 <ui:VisualElement class="gacha-reveal-shard gacha-reveal-shard--30"/>
                                 <ui:VisualElement class="gacha-reveal-shard gacha-reveal-shard--60"/>

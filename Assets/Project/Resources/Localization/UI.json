@@ -1344,6 +1344,131 @@
       "key": "tutorial.onFirstEnemySurvive.encouragement",
       "en": "Don't give up, adventurer! With the power of mathematics, you can overcome any monster.",
       "th": "อย่ายอมแพ้นะ นักผจญภัย! ด้วยพลังแห่งคณิตศาสตร์ เธอเอาชนะมอนสเตอร์ทุกตัวได้แน่นอน"
+    },
+    {
+      "key": "tutorial.onFirstRebirthOpen.defeat",
+      "en": "Oh! Your hearts are gone... but it's all right, adventurer.",
+      "th": "โอ๊ะ! หัวใจหมดแล้ว... แต่ไม่เป็นไรนะ นักผจญภัย"
+    },
+    {
+      "key": "tutorial.onFirstRebirthOpen.rebirthExplanation",
+      "en": "When we can't keep fighting, we can Rebirth and inherit power to return stronger than before!",
+      "th": "เวลาสู้ต่อไม่ไหว เราสามารถ เกิดใหม่ และสืบทอดพลังเพื่อกลับมาแข็งแกร่งกว่าเดิมได้!"
+    },
+    {
+      "key": "tutorial.onFirstRebirthOpen.rebirthBenefits",
+      "en": "The farther you adventure, the more power and Power Coins you receive when you Rebirth!",
+      "th": "ยิ่งเธอผจญภัยมาไกล พอเกิดใหม่ก็จะได้รับพลังเพิ่มขึ้น และได้ Power Coin มากขึ้นด้วยนะ"
+    },
+    {
+      "key": "tutorial.onFirstRebirthOpen.rebirthPrompt",
+      "en": "When you're ready, press Rebirth!",
+      "th": "พร้อมแล้วก็กด เกิดใหม่ กันเลย"
+    },
+    {
+      "key": "tutorial.onFirstRebirthOpen.confirm",
+      "en": "Press Rebirth to continue.",
+      "th": "กด เกิดใหม่ เพื่อไปต่อ"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.rebirthResult",
+      "en": "You're stronger now—and you received Power Coins too!",
+      "th": "ตอนนี้เธอแข็งแกร่งขึ้นแล้ว แถมยังได้ Power Coin มาด้วยนะ!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.gachaInvite",
+      "en": "Hmm... what can Power Coins be used for? Follow me!",
+      "th": "อืม.. แล้ว Power Coin ใช้ทำอะไรได้บ้างน่ะเหรอ? ตามฉันมาเลย!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.openGacha",
+      "en": "Open Pet Gacha.",
+      "th": "เปิดเมนู สัตว์เลี้ยง"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.gachaIntroduction",
+      "en": "This is the Pet Summoning Altar! Pets will become your adventure companions!",
+      "th": "ที่นี่คือ แท่นอัญเชิญสัตว์เลี้ยง! เหล่าสัตว์เลี้ยงจะมาเป็นคู่หูผจญภัยของเธอ!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.petBenefits",
+      "en": "Pets increase your power, and some can even attack monsters too!",
+      "th": "สัตว์เลี้ยงจะช่วยเพิ่มพลังให้เธอ และบางตัวยังช่วยโจมตีมอนสเตอร์ได้ด้วยนะ!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.petRarity",
+      "en": "Pets range from Common and Rare to super Rare. The higher their rarity, the stronger they are!",
+      "th": "สัตว์เลี้ยงมีตั้งแต่ระดับ ธรรมดา หายาก ไปจนถึง หายากสุดๆ ยิ่งระดับสูงก็ยิ่งเก่ง!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.gachaGrant",
+      "en": "I'll give you a few more Power Coins. Let's summon your first partner!",
+      "th": "ฉันจะให้ Power Coin เพิ่มนิดหน่อย ลองอัญเชิญคู่หูตัวแรกของเธอกันเลย!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.pullOne",
+      "en": "Tap 1 Pull.",
+      "th": "กดสุ่ม 1 ครั้ง"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.confirmOne",
+      "en": "Confirm the summon.",
+      "th": "ยืนยันการอัญเชิญ"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.gachaResult",
+      "en": "Wow! You got a high-rarity pet! This partner will definitely make you stronger!",
+      "th": "ว้าว! เธอได้สัตว์เลี้ยงระดับสูงด้วยล่ะ คู่หูตัวนี้จะช่วยให้เธอแข็งแกร่งขึ้นแน่นอน!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.playerHubInvite",
+      "en": "There's another place that can help you get stronger. Let's go to the Player Hub!",
+      "th": "ยังมีอีกที่หนึ่งที่จะช่วยให้เธอเก่งขึ้นนะ ไปที่ Player Hub กัน!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.openHub",
+      "en": "Open the Player Hub.",
+      "th": "เปิด Player Hub"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.weaponAscendExplanation",
+      "en": "Here, you can use Power Coins to upgrade your sword and make it stronger.",
+      "th": "ตรงนี้เธอสามารถใช้ Power Coin เพื่ออัปเกรดดาบให้แข็งแกร่งขึ้นได้"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.weaponAscendPrompt",
+      "en": "Check the Power Coin cost, then press Upgrade.",
+      "th": "ดูจำนวน Power Coin ที่ต้องใช้ แล้วกด อัปเกรด ได้เลย"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.ascendWeapon",
+      "en": "Press Upgrade.",
+      "th": "กด อัปเกรด"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.weaponAscendResult",
+      "en": "Success! Your sword is stronger now. Fighting monsters will be easier for sure!",
+      "th": "สำเร็จ! ดาบของเธอแรงขึ้นแล้ว แบบนี้สู้มอนสเตอร์ได้ง่ายขึ้นแน่นอน!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.petTabPrompt",
+      "en": "And if you want to see your partner, press the Pets menu!",
+      "th": "แล้วก็ถ้าอยากดูคู่หูของเธอ ก็กดที่เมนู สัตว์เลี้ยง ได้เลยนะ!"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.showPets",
+      "en": "Open the Pets menu.",
+      "th": "เปิดเมนู สัตว์เลี้ยง"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.duplicatePetBenefit",
+      "en": "Duplicate pets you summon will help increase your stats too!",
+      "th": "สัตว์เลี้ยงที่สุ่มได้ซ้ำมาจะช่วยเพิ่มค่าสถานะให้ด้วยนะ"
+    },
+    {
+      "key": "tutorial.onFirstRebirth.final",
+      "en": "Feeling more ready now? Then let's get back out there, adventurer!",
+      "th": "พร้อมกว่าเดิมแล้วใช่ไหม? งั้นกลับไปลุยกันต่อเลย นักผจญภัย!"
     }
   ]
 }

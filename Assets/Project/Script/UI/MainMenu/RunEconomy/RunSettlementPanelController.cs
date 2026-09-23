@@ -13,6 +13,9 @@ namespace PowerMath.UI.MainMenu
 {
     public sealed class RunSettlementPanelController : IDisposable
     {
+        public event Action<bool> TutorialPanelOpened;
+        public event Func<string, IEnumerator> TutorialSettlementCommitted;
+
         private readonly MonoBehaviour _host;
         private readonly PlayerSnapshot _player;
         private readonly FirestoreProgressionCommandStore _store;
@@ -41,6 +44,7 @@ namespace PowerMath.UI.MainMenu
         private RunSettlementType? _pendingSettlement;
         private SettlementPreview _pendingPreview;
         private bool _busy;
+        private bool _settlementStarting;
         private readonly IMainMenuInteractionGate _interactionGate;
         private readonly ActorPresentationController _playerActor;
         private readonly bool _reducedMotion;
@@ -184,8 +188,59 @@ namespace PowerMath.UI.MainMenu
                 SetSemanticState("is-error");
                 return;
             }
+            // Death settlement is mandatory and must remain accessible before
+            // the voluntary Player Menu unlock at Stage 31. The terminal lock
+            // grants this panel its TerminalAction scope while navigation is
+            // intentionally unavailable during RunDefeat.
             AcquireTerminalLock();
-            _host.StartCoroutine(Settle(RunSettlementType.Death));
+            // A terminal defeat takes priority over any currently open optional
+            // menu. It cannot wait for the player-menu Rebirth unlock.
+            if (!Show(true, false, true)) return;
+            SetSemanticState();
+            RenderPreview(_pendingPreview, "RUN ENDED");
+            _status.text = "Your progress is safe. Let's prepare for a fresh start.";
+            SetConfirmText("Restart");
+            SetControls(true);
+            TutorialPanelOpened?.Invoke(true);
+        }
+
+        public bool TryOpenRebirthForTutorial()
+        {
+            if (_busy) return false;
+            OpenRebirth();
+            return _panelHost.OpenPanel == MainMenuPanelId.Rebirth;
+        }
+
+        public bool TryConfirmSettlementForTutorial()
+        {
+            if (_busy || _settlementStarting || !_pendingSettlement.HasValue) return false;
+            Confirm();
+            return true;
+        }
+
+        public IEnumerator PlayTutorialPowerCoinGrant(long amount)
+        {
+            if (amount <= 0) yield break;
+            Vector2 origin;
+            if (_playerActor != null && _playerActor.TryGetScreenCenter(out Vector2 actorCenter))
+                origin = actorCenter;
+            else
+                origin = new Vector2(UnityEngine.Screen.width * 0.5f,
+                    UnityEngine.Screen.height * 0.5f);
+
+            long resultingCoins = _player.wallet?.powerCoins ?? 0;
+            long startingCoins = Math.Max(0, resultingCoins - amount);
+            _floatingRewardText?.Spawn(RewardCurrencyKind.PowerCoin, amount, origin);
+            if (_rewardMagnet != null)
+            {
+                int iconCount = (int)Math.Min(amount, 200);
+                yield return _rewardMagnet.PlayRewardDropAndMagnet(
+                    RewardCurrencyKind.PowerCoin,
+                    startingCoins,
+                    amount,
+                    origin,
+                    iconCountOverride: iconCount);
+            }
         }
 
         private void OpenRebirth()
@@ -231,6 +286,7 @@ namespace PowerMath.UI.MainMenu
                 SetConfirmText("Locked");
             }
             _confirm.SetEnabled(canSettle);
+            TutorialPanelOpened?.Invoke(false);
         }
 
         private bool TryBuildPreview(
@@ -309,7 +365,7 @@ namespace PowerMath.UI.MainMenu
 
         private void Confirm()
         {
-            if (_busy || !_pendingSettlement.HasValue) return;
+            if (_busy || _settlementStarting || !_pendingSettlement.HasValue) return;
             if (_pendingSettlement == RunSettlementType.Rebirth &&
                 !RunSettlementPolicy.CanSettle(_player, RunSettlementType.Rebirth, out string reason))
             {
@@ -318,6 +374,7 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
             AcquireTerminalLock();
+            _settlementStarting = true;
             _host.StartCoroutine(Settle(_pendingSettlement.Value));
         }
 
@@ -325,6 +382,7 @@ namespace PowerMath.UI.MainMenu
         {
             if (_store == null)
             {
+                _settlementStarting = false;
                 _status.text = PowerMath.Localization.LocalizationService.Get("errors.rebirthOffline");
                 SetConfirmText("Offline");
                 Show(true, false);
@@ -333,6 +391,7 @@ namespace PowerMath.UI.MainMenu
             }
 
             _busy = true;
+            _settlementStarting = false;
             SetSemanticState("is-busy");
             _status.text = PowerMath.Localization.LocalizationService.Get("common.savingFirebase");
             SetControls(false);
@@ -354,6 +413,7 @@ namespace PowerMath.UI.MainMenu
             _busy = false;
             if (!success)
             {
+                _settlementStarting = false;
                 _status.text = failure;
                 SetConfirmText("Retry");
                 Show(true, false);
@@ -363,7 +423,8 @@ namespace PowerMath.UI.MainMenu
 
             yield return Publish();
             PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
-
+            // The tutorial settlement receipt must be persisted before a
+            // Rebirth scene reload can destroy its director.
             if (type == RunSettlementType.Rebirth)
             {
                 PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.RunComplete);
@@ -409,6 +470,9 @@ namespace PowerMath.UI.MainMenu
                     yield return new WaitForSecondsRealtime(0.25f);
                 }
 
+                // The authored result follows the complete actor/reward sequence.
+                // Persist it before reload so the new scene resumes at that step.
+                yield return NotifyTutorialSettlementCommitted(type.ToString());
                 string sourceRunId = _player.lastRunSettlement?.runId ?? string.Empty;
                 yield return AcknowledgeAndReloadRoutine(sourceRunId);
                 yield break;
@@ -420,11 +484,34 @@ namespace PowerMath.UI.MainMenu
                 RenderPreview(_pendingPreview, acceptedTitle);
             else
                 RenderAcceptedAward(award, acceptedTitle);
-            _status.text =
-                "Saved. Your Rank and lifetime leaderboard values were preserved.";
-            Show(false, true);
-            SetSemanticState("is-success");
-            RefreshButton();
+            _status.text = "Saved. Starting your new run…";
+            yield return NotifyTutorialSettlementCommitted(type.ToString());
+            string deathSourceRunId = _player.lastRunSettlement?.runId ?? string.Empty;
+            yield return AcknowledgeAndReloadRoutine(deathSourceRunId);
+        }
+
+        private IEnumerator NotifyTutorialSettlementCommitted(string settlementType)
+        {
+            Delegate[] handlers = TutorialSettlementCommitted?.GetInvocationList();
+            if (handlers == null) yield break;
+
+            for (int index = 0; index < handlers.Length; index++)
+            {
+                if (!(handlers[index] is Func<string, IEnumerator> handler))
+                    continue;
+                IEnumerator routine = null;
+                try
+                {
+                    routine = handler(settlementType);
+                }
+                catch (Exception exception)
+                {
+                    PowerMath.Diagnostics.AppLog.Error(
+                        "Tutorial",
+                        $"The settlement tutorial handoff could not start: {exception}");
+                }
+                if (routine != null) yield return routine;
+            }
         }
 
         private void RenderAcceptedAward(
@@ -459,16 +546,12 @@ namespace PowerMath.UI.MainMenu
 
         private void RefreshButton()
         {
-            bool canAccess = !_busy &&
-                !string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal) &&
-                string.IsNullOrEmpty(_player.activeRun?.committedAttemptId) &&
-                (_interactionGate == null || (_interactionGate.IsAllowed(InteractionScope.Lobby) && _interactionGate.IsAllowed(InteractionScope.Navigation)));
-            _rebirth.SetEnabled(canAccess);
-
-            int stage = Math.Min(200, Math.Max(1,
-                Math.Max(_player.progression?.currentStage ?? 1, _player.activeRun?.currentStage ?? 1)));
-            bool isReady = canAccess && stage >= RunSettlementPolicy.MinimumRebirthStage;
-            _rebirth.EnableInClassList("is-ready", isReady);
+            // The menu entry is always available so players can inspect the
+            // Stage 31 meter and trigger its first-open tutorial. Only the
+            // settlement confirmation is progression-gated.
+            _rebirth.SetEnabled(!_busy);
+            _rebirth.RemoveFromClassList("is-feature-locked");
+            _rebirth.RemoveFromClassList("is-ready");
         }
 
         private bool Show(

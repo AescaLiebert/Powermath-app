@@ -39,9 +39,9 @@ namespace PowerMath.Tests.EditMode
         }
 
         [Test]
-        public void CanSettle_RebirthUnderStage30_ReturnsFalseWithReason()
+        public void CanSettle_RebirthBeforeStage31_ReturnsFalse()
         {
-            PlayerSnapshot player = CreatePlayer(stage: 15);
+            PlayerSnapshot player = CreatePlayer(stage: 30);
 
             bool canSettle = RunSettlementPolicy.CanSettle(
                 player,
@@ -49,18 +49,30 @@ namespace PowerMath.Tests.EditMode
                 out string reason);
 
             Assert.That(canSettle, Is.False);
-            Assert.That(reason, Is.EqualTo("Rebirth unlocks at Stage 30."));
+            Assert.That(reason, Is.EqualTo("Rebirth unlocks at Stage 31."));
         }
 
         [Test]
-        public void CanSettle_RebirthAtStage30InValidPhase_ReturnsTrue()
+        public void CanSettle_RebirthAtStage31InValidPhase_ReturnsTrue()
         {
-            PlayerSnapshot player = CreatePlayer(stage: 30, phase: "EnemyReady");
+            PlayerSnapshot player = CreatePlayer(stage: 31, phase: "EnemyReady");
 
             bool canSettle = RunSettlementPolicy.CanSettle(
                 player,
                 RunSettlementType.Rebirth,
                 out string reason);
+
+            Assert.That(canSettle, Is.True);
+            Assert.That(reason, Is.Empty);
+        }
+
+        [Test]
+        public void CanSettle_DeathAtStage1_RemainsAvailable()
+        {
+            PlayerSnapshot player = CreatePlayer(stage: 1, phase: "RunDefeat");
+
+            bool canSettle = RunSettlementPolicy.CanSettle(
+                player, RunSettlementType.Death, out string reason);
 
             Assert.That(canSettle, Is.True);
             Assert.That(reason, Is.Empty);

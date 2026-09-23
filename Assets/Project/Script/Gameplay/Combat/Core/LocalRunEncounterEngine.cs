@@ -38,6 +38,7 @@ namespace PowerMath.Gameplay.Combat
     public interface ILocalEncounterEngine
     {
         CombatSnapshot Snapshot { get; }
+        PlayerCombatStats Stats { get; }
         event Action<HeartChangeArgs> HeartChanged;
         CombatSnapshot CommitAttempt();
         CombatSnapshot VoidContentFailure();
@@ -127,6 +128,7 @@ namespace PowerMath.Gameplay.Combat
         }
 
         public CombatSnapshot Snapshot => CreateSnapshot();
+        public PlayerCombatStats Stats => _stats;
 
         public CombatSnapshot CommitAttempt()
         {

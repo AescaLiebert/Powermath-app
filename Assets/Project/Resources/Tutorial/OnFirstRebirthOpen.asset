@@ -1,0 +1,184 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74ac30f645954fc385029912a9d513f4, type: 3}
+  m_Name: OnFirstRebirthOpen
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.MainMenu.Tutorial.TutorialSequenceDefinition
+  tutorialId: OnFirstRebirthOpen
+  version: 1
+  enabledForPlayers: 1
+  startStepId: death-opening
+  returningStartStepId: voluntary-explanation
+  prerequisiteTutorialIds:
+  - OnFirstCreate
+  steps:
+  - id: death-opening
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.defeat
+    emotionId: supportive
+    spriteResourcePath: Character/Sticker_Power_SoHard
+    audioCueId: S4_01_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: death-explanation
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: death-explanation
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthExplanation
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S4_02_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: death-benefits
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: death-benefits
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S4_03_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: death-benefits-focus
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: death-benefits-focus
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: rebirth.benefits
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 2
+      nextStepId: death-prompt
+      targetId: rebirth.benefits
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: death-prompt
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthPrompt
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S4_04_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: death-confirm
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: death-confirm
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.confirm
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: rebirth.confirm
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 2
+      nextStepId: 
+      targetId: rebirth.confirm
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 1
+  - id: voluntary-explanation
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthExplanation
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S4_02_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: voluntary-benefits
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: voluntary-benefits
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S4_03_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: voluntary-benefits-focus
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: voluntary-benefits-focus
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: rebirth.benefits
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 2
+      nextStepId: 
+      targetId: rebirth.benefits
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 1

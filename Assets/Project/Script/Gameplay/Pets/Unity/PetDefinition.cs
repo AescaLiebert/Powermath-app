@@ -13,6 +13,10 @@ namespace PowerMath.Gameplay.Pets
         [Header("Presentation")]
         [SerializeField] private Sprite icon;
         [SerializeField] private Sprite previewSprite;
+        [Tooltip("Optional Addressables key for icon streaming.")]
+        [SerializeField] private string iconAddressableKey;
+        [Tooltip("Optional Addressables key for preview sprite streaming.")]
+        [SerializeField] private string previewAddressableKey;
         [TextArea(2, 6)] [SerializeField] private string abilityRichText = string.Empty;
 
         [Header("Approved Runtime Stats")]
@@ -52,6 +56,12 @@ namespace PowerMath.Gameplay.Pets
         public string DisplayName => displayName?.Trim() ?? string.Empty;
         public Sprite Icon => icon;
         public Sprite PreviewSprite => previewSprite != null ? previewSprite : icon;
+        public string IconAddressableKey => !string.IsNullOrWhiteSpace(iconAddressableKey)
+            ? iconAddressableKey
+            : (icon != null && icon.texture != null ? icon.texture.name : (icon != null ? icon.name.Replace("_0", "") : petId));
+        public string PreviewAddressableKey => !string.IsNullOrWhiteSpace(previewAddressableKey)
+            ? previewAddressableKey
+            : (previewSprite != null && previewSprite.texture != null ? previewSprite.texture.name : (previewSprite != null ? previewSprite.name.Replace("_0", "") : IconAddressableKey));
         public string AbilityRichText => abilityRichText ?? string.Empty;
 
         public int PlayerAttackBonus => playerAttackBonus;

@@ -1323,17 +1323,6 @@
     translate: 0 0;
 }
 
-.hud-player-menu-button.is-feature-locked:hover,
-.hud-player-menu-button.is-feature-locked:focus {
-    scale: 1 1;
-    translate: 0 0;
-}
-
-.hud-player-menu-button.is-feature-locked:active {
-    scale: 0.97 0.97;
-    transition-duration: 0.06s;
-}
-
 .hud-player-menu-button.is-feature-locked .hud-player-menu-card-icon {
     opacity: 0.45;
 }
@@ -1342,26 +1331,17 @@
     opacity: 0.6;
 }
 
+.hud-player-menu-button.is-unlocking {
+    scale: 1.12 1.12;
+    transition-property: scale, opacity;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+
 .hud-player-menu-button:disabled {
     opacity: 0.5;
     scale: 1 1;
     translate: 0 0;
-}
-
-.hud-player-menu-button--rebirth:hover,
-.hud-player-menu-button--rebirth:focus {
-    scale: 1.04 1.04;
-    translate: 0 -2px;
-}
-
-.hud-player-menu-button--rebirth:active {
-    scale: 0.93 0.93;
-    translate: 0 2px;
-    transition-duration: 0.08s;
-}
-
-.hud-player-menu-button--rebirth.is-ready {
-    scale: 1.02 1.02;
 }
 
 .hud-session-status {

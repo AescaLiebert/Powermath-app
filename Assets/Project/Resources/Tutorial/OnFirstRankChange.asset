@@ -19,7 +19,6 @@ MonoBehaviour:
   returningStartStepId: demotion
   prerequisiteTutorialIds:
   - OnFirstCreate
-  - OnFirstEnemySurvive
   steps:
   - id: promotion
     kind: 0

@@ -121,6 +121,7 @@ namespace PowerMath.Gameplay.Combat
         }
 
         public CombatSnapshot Snapshot => CreateSnapshot();
+        public PlayerCombatStats Stats => new PlayerCombatStats(_effectiveAttack, _criticalRate, _criticalDamagePercent);
 
         public CombatSnapshot CommitAttempt()
         {

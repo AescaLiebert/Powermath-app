@@ -16,6 +16,9 @@
     <Style src="project://database/Assets/Project/UI/MainMenu/ProfileAnalyticsPanel.uss?fileID=7433441132597879392&amp;guid=6ee03a27eb16be44caacfddce5237c0f&amp;type=3#ProfileAnalyticsPanel"/>
     <Style src="project://database/Assets/Project/UI/MainMenu/MainMenuSharedOverlay.uss?fileID=7433441132597879392&amp;guid=0ab46313332b46e8a9fa5e40c123c9d5&amp;type=3#MainMenuSharedOverlay"/>
     <ui:VisualElement name="main-menu-screen" picking-mode="Ignore" class="mw-screen main-menu-root is-ready">
+        <ui:VisualElement name="pet-gacha-fullscreen-background" picking-mode="Ignore" class="pet-gacha-fullscreen-background is-hidden">
+            <ui:VisualElement name="Pet Gacha / Full Screen Art" picking-mode="Ignore" class="gacha-bg" style="width: auto; height: auto; left: 0; top: 0; right: 0; bottom: 0; opacity: 1; background-image: url(&quot;project://database/Assets/Project/Art/UI/illustration/Gacha%20Banner.png?fileID=2800000&amp;guid=4c27ff18d962de347a4ab3eabfd169e2&amp;type=3#Gacha Banner&quot;);"/>
+        </ui:VisualElement>
         <ui:VisualElement name="safe-area" picking-mode="Ignore" class="mw-safe-area main-menu-safe-area">
             <ui:Instance template="MainMenuShell" picking-mode="Ignore" class="mw-template-fill"/>
             <ui:Instance template="CombatSurface" picking-mode="Ignore" class="mw-template-fill"/>

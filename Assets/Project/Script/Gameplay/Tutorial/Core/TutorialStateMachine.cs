@@ -55,9 +55,11 @@ namespace PowerMath.Gameplay.Tutorial
 
             if (progress.Status == TutorialStatus.Queued)
             {
-                if (signal.Kind != TutorialSignalKind.SafeLobbyEntered ||
-                    !signal.IsStandardEncounter || string.IsNullOrWhiteSpace(signal.EncounterId))
-                    return false;
+                bool isLobbyStart = signal.Kind == TutorialSignalKind.SafeLobbyEntered &&
+                    signal.IsStandardEncounter && !string.IsNullOrWhiteSpace(signal.EncounterId);
+                bool isExternalStart = signal.Kind == TutorialSignalKind.ExternalEvent &&
+                    !string.IsNullOrWhiteSpace(signal.TargetId);
+                if (!isLobbyStart && !isExternalStart) return false;
                 next = progress.With(
                     status: TutorialStatus.Active,
                     currentStepId: string.Equals(progress.Variant, "demotion",
@@ -76,7 +78,7 @@ namespace PowerMath.Gameplay.Tutorial
             {
                 TutorialRule rule = step.Rules[index];
                 if (!Matches(rule, progress, signal)) continue;
-                string transactionId = signal.Kind == TutorialSignalKind.AttemptCommitted
+                string transactionId = !string.IsNullOrWhiteSpace(signal.TransactionId)
                     ? signal.TransactionId
                     : progress.LastTransactionId;
                 string encounterId = string.IsNullOrWhiteSpace(progress.GuidedEncounterId)

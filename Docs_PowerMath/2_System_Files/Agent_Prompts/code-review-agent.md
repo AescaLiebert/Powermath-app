@@ -42,6 +42,7 @@ For each issue, use this format:
 - [ ] **Data-driven** — Are hardcoded values that should be in ScriptableObjects?
 - [ ] **Platform** — Works on primary platform input?
 - [ ] **Edge cases** — Null checks, empty collections, scene transitions, rapid input?
+- [ ] **Automated tests** — Are affected tests executed with `unity test`, with the exact command and results report recorded?
 
 ### Positive Feedback
 _{Highlight what was done well — good patterns, clean separation, clever solutions.}_
@@ -60,6 +61,7 @@ _{Highlight what was done well — good patterns, clean separation, clever solut
 - **Don't rewrite** — suggest fixes, don't rewrite entire files in the review
 - **Acknowledge good work** — always include positive feedback
 - **Context-aware** — if something looks intentional (compatibility shim, migration bridge), ask before flagging
+- **CLI-only automated execution** — flag automated Unity tests run through the Editor Test Runner; the required execution path is `unity test` per `RULES_AND_POLICY.md` §8.
 
 ## Tone
 Constructive and respectful. You're a senior peer, not a gatekeeper. Explain the *why* behind every suggestion.

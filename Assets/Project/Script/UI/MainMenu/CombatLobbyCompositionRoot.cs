@@ -18,7 +18,9 @@ using PowerMath.UI.Core;
 using PowerMath.UI.Settings;
 using PowerMath.UI.MainMenu.Tutorial;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UIElements;
 using LegacyImage = UnityEngine.UI.Image;
 
@@ -103,11 +105,16 @@ namespace PowerMath.UI.MainMenu
         private InteractionShieldView _interactionShield;
         private UiSceneContext _uiContext;
         private Sprite _runtimeEnemySprite;
+        private AsyncOperationHandle<Sprite> _activeEnemySpriteHandle;
+        private Coroutine _enemySpriteLoadRoutine;
         private RewardMagnetFeedbackPlayer _rewardMagnet;
         private CombatAudioPlayer _combatAudio;
         private TutorialDirector _tutorialDirector;
         private TutorialDirector _rankTutorialDirector;
         private TutorialDirector _enemySurviveTutorialDirector;
+        private TutorialDirector _rebirthUnlockTutorialDirector;
+        private TutorialDirector _firstRebirthTutorialDirector;
+        private FirstRebirthTutorialAdapter _firstRebirthTutorialAdapter;
         private readonly List<ResultDrivenTutorialBinding> _resultDrivenTutorials =
             new List<ResultDrivenTutorialBinding>();
         private int _questionCatalogLoadGeneration;
@@ -230,6 +237,12 @@ namespace PowerMath.UI.MainMenu
             _rankTutorialDirector = null;
             _enemySurviveTutorialDirector?.Dispose();
             _enemySurviveTutorialDirector = null;
+            _firstRebirthTutorialAdapter?.Dispose();
+            _firstRebirthTutorialAdapter = null;
+            _rebirthUnlockTutorialDirector?.Dispose();
+            _rebirthUnlockTutorialDirector = null;
+            _firstRebirthTutorialDirector?.Dispose();
+            _firstRebirthTutorialDirector = null;
             PowerMath.Localization.LocalizationService.Changed -= OnLocaleChanged;
             if (PlayerSessionStore.Instance != null)
             {
@@ -276,6 +289,10 @@ namespace PowerMath.UI.MainMenu
             {
                 Destroy(_runtimeEnemySprite);
                 _runtimeEnemySprite = null;
+            }
+            if (_activeEnemySpriteHandle.IsValid())
+            {
+                Addressables.Release(_activeEnemySpriteHandle);
             }
             PowerMath.Audio.MusicController.Instance.SetBossBattleActive(false);
         }
@@ -1118,6 +1135,10 @@ namespace PowerMath.UI.MainMenu
                         RefreshCombatPresentationAfterEconomyPanelClosed);
                     _presenter.TerminalPresentationCompleted +=
                         _runEconomyController.NotifyTerminalPresentationCompleted;
+                    InitializeFirstRebirthTutorial(
+                        rootVisualElement,
+                        snapshot,
+                        runtimeSettings != null && runtimeSettings.ReducedMotion);
                 }
                 catch (System.Exception exception)
                 {
@@ -1260,6 +1281,103 @@ namespace PowerMath.UI.MainMenu
             if (_resultDrivenTutorials.Count > 0)
                 _presenter.TutorialAttemptPresentationCompleted +=
                     OnTutorialAttemptPresentationCompleted;
+        }
+
+        private void InitializeFirstRebirthTutorial(
+            VisualElement root,
+            PlayerSnapshot snapshot,
+            bool reducedMotion)
+        {
+            _firstRebirthTutorialAdapter?.Dispose();
+            _firstRebirthTutorialAdapter = null;
+            _rebirthUnlockTutorialDirector?.Dispose();
+            _rebirthUnlockTutorialDirector = null;
+            _firstRebirthTutorialDirector?.Dispose();
+            _firstRebirthTutorialDirector = null;
+
+            if (_runEconomyController == null || _presenter == null || root == null ||
+                snapshot == null || _interactionGate == null ||
+                PlayerLifecycleRuntime.Commands == null)
+                return;
+
+            TutorialCatalogDefinition catalog =
+                Resources.Load<TutorialCatalogDefinition>("Tutorial/TutorialCatalog");
+            if (catalog == null ||
+                !catalog.TryGet(TutorialDirector.OnFirstRebirthOpenId,
+                    out PowerMath.Gameplay.Tutorial.TutorialSequence unlockSequence) ||
+                !catalog.TryGet(TutorialDirector.OnFirstRebirthId,
+                    out PowerMath.Gameplay.Tutorial.TutorialSequence rebirthSequence))
+            {
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Tutorial",
+                    "First Rebirth tutorial content is unavailable; Rebirth remains playable.");
+                return;
+            }
+
+            bool IsRebirthPanelOpen() =>
+                _panelHost?.OpenPanel == MainMenuPanelId.Rebirth;
+            bool IsRebirthFlowPanelOpen() =>
+                _panelHost?.OpenPanel == MainMenuPanelId.PetGacha ||
+                _panelHost?.OpenPanel == MainMenuPanelId.PlayerHub;
+
+            VisualElement rebirthModal = root.Q<VisualElement>("run-settlement-modal");
+            var unlockTargets = new TutorialTargetRegistry()
+                .Register("rebirth.benefits",
+                    rebirthModal?.Q<VisualElement>("Rebirth / Comparison List"),
+                    () => true)
+                .Register("rebirth.confirm",
+                    rebirthModal?.Q<VisualElement>("Button / Rebirth"),
+                    () => true);
+            _rebirthUnlockTutorialDirector = new TutorialDirector(
+                this,
+                root,
+                unlockSequence,
+                new LifecycleTutorialProgressStore(PlayerLifecycleRuntime.Commands),
+                PlayerSessionStore.Instance,
+                _presenter,
+                _interactionGate,
+                unlockTargets,
+                reducedMotion,
+                autoQueueOnCreate: false,
+                ownsCombatCheckpoints: false,
+                allowExternalGate: IsRebirthPanelOpen,
+                allowNonCombatPresentation: IsRebirthPanelOpen);
+            _rebirthUnlockTutorialDirector.Initialize();
+
+            var rebirthTargets = new TutorialTargetRegistry()
+                .Register("gacha.open", root.Q<VisualElement>("pet-gacha-button"),
+                    () => _runEconomyController.PetGacha.TryOpenForTutorial())
+                .Register("gacha.pull-one", root.Q<VisualElement>("pet-gacha-pull-1"),
+                    () => _runEconomyController.PetGacha.TryRequestOnePullForTutorial())
+                .Register("gacha.confirm", root.Q<VisualElement>("pet-gacha-confirm"),
+                    () => _runEconomyController.PetGacha.CanConfirmOnePullForTutorial())
+                .Register("hub.open", root.Q<VisualElement>("player-hub-button"),
+                    () => _runEconomyController.PlayerHub.TryOpenForTutorial())
+                .Register("hub.ascend", root.Q<VisualElement>("player-hub-weapon-upgrade"),
+                    () => _runEconomyController.PlayerHub.TryAscendForTutorial())
+                .Register("hub.pets", root.Q<VisualElement>("player-hub-tab-pets"),
+                    () => _runEconomyController.PlayerHub.TryShowPetsForTutorial());
+            _firstRebirthTutorialDirector = new TutorialDirector(
+                this,
+                root,
+                rebirthSequence,
+                new LifecycleTutorialProgressStore(PlayerLifecycleRuntime.Commands),
+                PlayerSessionStore.Instance,
+                _presenter,
+                _interactionGate,
+                rebirthTargets,
+                reducedMotion,
+                autoQueueOnCreate: false,
+                ownsCombatCheckpoints: false,
+                allowExternalGate: IsRebirthFlowPanelOpen,
+                allowNonCombatPresentation: IsRebirthFlowPanelOpen);
+            _firstRebirthTutorialDirector.Initialize();
+
+            _firstRebirthTutorialAdapter = new FirstRebirthTutorialAdapter(
+                this,
+                _runEconomyController,
+                _rebirthUnlockTutorialDirector,
+                _firstRebirthTutorialDirector);
         }
 
         private void OnTutorialAttemptPresentationCompleted(
@@ -1995,11 +2113,17 @@ namespace PowerMath.UI.MainMenu
 
         private void RenderEncounterOnCanvas(string encounterId)
         {
+            if (_enemySpriteLoadRoutine != null)
+            {
+                StopCoroutine(_enemySpriteLoadRoutine);
+                _enemySpriteLoadRoutine = null;
+            }
+
             EnemyDefinition monster = stageMapDefinition?.FindMonster(encounterId);
             Sprite sprite = monster?.EnemySprite;
             EventDefinition eventDefinition = stageMapDefinition?.FindEvent(encounterId);
             if (sprite == null) sprite = eventDefinition?.EventSprite;
-            if (sprite == null) sprite = ResolveFallbackEnemySprite();
+
             StageEncounterKind kind = monster?.EncounterKind ??
                 StageEncounterKind.ChallengeEvent;
             bool isBigBoss = kind == StageEncounterKind.BigBoss ||
@@ -2007,17 +2131,76 @@ namespace PowerMath.UI.MainMenu
             PowerMath.Audio.MusicController.Instance.SetEncounterMusicOverride(
                 monster?.BattleMusic,
                 isBigBoss);
+            PowerMath.Audio.IEnemySfxProfile customProfile = (PowerMath.Audio.IEnemySfxProfile)monster ?? (PowerMath.Audio.IEnemySfxProfile)eventDefinition;
+
+            if (sprite != null)
+            {
+                ApplyEnemySprite(sprite, isBigBoss, kind, customProfile);
+            }
+            else
+            {
+                string addressKey = monster?.AddressableKey ?? eventDefinition?.AddressableKey;
+                if (!string.IsNullOrEmpty(addressKey))
+                {
+                    _enemySpriteLoadRoutine = StartCoroutine(LoadAddressableEnemySpriteRoutine(addressKey, isBigBoss, kind, customProfile));
+                }
+                else
+                {
+                    Sprite fallback = ResolveFallbackEnemySprite();
+                    if (fallback != null)
+                    {
+                        ApplyEnemySprite(fallback, isBigBoss, kind, customProfile);
+                    }
+                }
+            }
+        }
+
+        private void ApplyEnemySprite(Sprite sprite, bool isBigBoss, StageEncounterKind kind, PowerMath.Audio.IEnemySfxProfile customProfile)
+        {
             if (_sceneEnemy != null && sprite != null)
             {
                 _enemyActor?.ConfigureDeathProfile(isBigBoss);
-                PowerMath.Audio.IEnemySfxProfile customProfile = (PowerMath.Audio.IEnemySfxProfile)monster ?? (PowerMath.Audio.IEnemySfxProfile)eventDefinition;
                 _enemyActor?.ConfigureSfxProfile(customProfile, kind.ToString());
-                // Actor animation chooses its own state sprite and clears Image's
-                // override. Rebind the actor too so Appear/Idle retain this encounter.
                 _enemyActor?.ConfigureSprites(sprite);
                 _sceneEnemy.overrideSprite = sprite;
                 _sceneEnemy.gameObject.SetActive(true);
             }
+        }
+
+        private IEnumerator LoadAddressableEnemySpriteRoutine(string key, bool isBigBoss, StageEncounterKind kind, PowerMath.Audio.IEnemySfxProfile customProfile)
+        {
+            AsyncOperationHandle<Sprite> handle = default;
+            try
+            {
+                handle = Addressables.LoadAssetAsync<Sprite>(key);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[CombatLobby] Addressables.LoadAssetAsync failed for {key}: {ex.Message}");
+            }
+
+            if (handle.IsValid())
+            {
+                yield return handle;
+                if (handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
+                {
+                    if (_activeEnemySpriteHandle.IsValid() && _activeEnemySpriteHandle.Result != handle.Result)
+                    {
+                        Addressables.Release(_activeEnemySpriteHandle);
+                    }
+                    _activeEnemySpriteHandle = handle;
+                    ApplyEnemySprite(handle.Result, isBigBoss, kind, customProfile);
+                    _enemySpriteLoadRoutine = null;
+                    yield break;
+                }
+            }
+
+            Sprite fallback = ResolveFallbackEnemySprite();
+            if (fallback != null)
+            {
+                ApplyEnemySprite(fallback, isBigBoss, kind, customProfile);
+            }
+            _enemySpriteLoadRoutine = null;
         }
 
         private string ResolveLocalizedEnemyName(string encounterId)

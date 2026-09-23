@@ -78,7 +78,9 @@ This is the **critical step** for refactors. Verify:
 - [ ] No missing references in the Inspector (prefabs, scenes, ScriptableObjects)
 - [ ] No broken scene hierarchies
 - [ ] Performance is not degraded (check Profiler if touching hot paths)
-- [ ] All tests pass (if tests exist)
+- [ ] All applicable automated tests pass through `unity test` (if tests exist); record the command and results-report path
+
+Use the Unity CLI for automated test execution, not the Unity Editor Test Runner. Keep Profiler and visual checks as separate manual validation.
  
 ### 9. Write DevLog Entry
 Copy `Docs/1_Inputs_Templates/DevLog_Template.md` → `Docs/3_Outputs/DevLog/{YYYY-MM-DD}-{refactor}.md`

@@ -105,7 +105,7 @@ namespace PowerMath.UI.MainMenu
 
         public void PlayWeaponSuccess(bool milestone, string milestoneName)
         {
-            PlayClip(milestone ? _profile.MilestoneClip : _profile.UpgradeSuccessClip);
+            PowerMath.Audio.SfxController.Instance?.PlayWeaponAscendSuccess();
             Pulse(_view.WeaponIcon, 0.84f, milestone ? 1.32f : 1.2f,
                 _profile.SuccessSeconds);
             Pulse(_view.CurrentCard, 0.96f, 1.05f, _profile.SuccessSeconds);
@@ -187,12 +187,13 @@ namespace PowerMath.UI.MainMenu
 
         public void PlayPetPressed()
         {
+            PowerMath.Audio.SfxController.Instance?.PlayPetEquipPress();
             // Do not punch PetPreviewIcon so entrance slide-in is never interrupted.
         }
 
         public void PlayPetSuccess()
         {
-            PlayClip(_profile.PetEquipClip);
+            PowerMath.Audio.SfxController.Instance?.PlayPetEquipSuccess();
             // Pulse only the equipped badge on the player stance, preserving the preview sprite slide-in.
             Pulse(_view.EquippedPet, 1f, 1.10f, _profile.SuccessSeconds);
         }

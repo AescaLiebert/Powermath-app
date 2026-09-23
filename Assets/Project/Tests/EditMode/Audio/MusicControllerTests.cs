@@ -71,6 +71,21 @@ namespace PowerMath.Tests.EditMode.Audio
         }
 
         [Test]
+        public void MusicLibraryDefinition_ResolveBattleTrack_WithAddressableKey_ReturnsConfig()
+        {
+            var addressableBinding = new BiomeMusicBinding("glacier-peaks", MusicTrackConfig.FromAddressable("OST_B2-Theme", 0.75f, true));
+            var bindingsField = typeof(MusicLibraryDefinition).GetField("biomeBattleTracks", BindingFlags.NonPublic | BindingFlags.Instance);
+            bindingsField?.SetValue(_library, new[] { addressableBinding });
+
+            MusicTrackConfig resolved = _library.ResolveBattleTrack("glacier-peaks");
+            Assert.That(resolved, Is.Not.Null);
+            Assert.That(resolved.AddressableKey, Is.EqualTo("OST_B2-Theme"));
+            Assert.That(resolved.HasAddressableKey, Is.True);
+            Assert.That(resolved.Clip, Is.Null);
+            Assert.That(resolved.VolumeScale, Is.EqualTo(0.75f));
+        }
+
+        [Test]
         public void MusicController_PlayLoginMusic_SmoothlyFadesIn()
         {
             _controller.PlayLoginMusic();

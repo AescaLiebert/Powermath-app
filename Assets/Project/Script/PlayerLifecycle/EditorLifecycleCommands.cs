@@ -29,6 +29,8 @@ namespace PowerMath.PlayerLifecycle
                             player.onboarding.phase = "complete"; player.onboarding.completionOperationId = command.operationId; break;
                         case PlayerLifecycleCommandKind.AdvanceTutorial:
                             TutorialProgressPolicy.ApplyToSnapshot(player, command); break;
+                        case PlayerLifecycleCommandKind.ClaimTutorialPowerCoinReward:
+                            TutorialProgressPolicy.ApplyRewardClaimToSnapshot(player, command); break;
                     }
                     player.schemaVersion = PlayerSchemaMigrator.CurrentSchemaVersion;
                     player.revision++;

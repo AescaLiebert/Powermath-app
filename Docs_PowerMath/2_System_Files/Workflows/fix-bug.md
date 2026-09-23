@@ -44,6 +44,9 @@ Verify these are NOT broken by the fix:
 - [ ] No new console errors or warnings
 - [ ] Performance is not degraded
 - [ ] Works on primary platform
+- [ ] Affected automated tests pass through `unity test`; record the command and results-report path
+
+Do not run automated tests through the Unity Editor Test Runner. Manual visual and device checks remain separate validation work.
  
 ### 7. Edge Case Verification
 - [ ] Bug does not recur under similar conditions

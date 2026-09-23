@@ -25,6 +25,8 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         [Header("Presentation")]
         [SerializeField] private Sprite enemySprite;
+        [Tooltip("Optional Addressables key for remote streaming. Defaults to sprite asset name or enemyId.")]
+        [SerializeField] private string addressableKey;
 
         [Header("Audio Ownership (Optional Custom Overrides)")]
         [Tooltip("Custom battle music for this specific enemy. If unassigned, biome/default battle music is used; bosses fall back to the global boss battle music.")]
@@ -39,6 +41,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         [SerializeField] private SfxCueConfig customDieSfx;
 
         public Sprite EnemySprite => enemySprite;
+        public string AddressableKey => !string.IsNullOrWhiteSpace(addressableKey)
+            ? addressableKey
+            : (enemySprite != null && enemySprite.texture != null ? enemySprite.texture.name : (enemySprite != null ? enemySprite.name.Replace("_0", "") : enemyId));
         public string EnemyId => enemyId;
         public string DisplayName => displayName;
         public string ThaiDisplayName => thaiDisplayName;

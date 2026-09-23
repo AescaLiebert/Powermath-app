@@ -1,5 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace PowerMath.Audio
 {
@@ -61,6 +66,8 @@ namespace PowerMath.Audio
         private float _duckProgress = 0f; // 0 = unducked (1.0), 1 = fully ducked (duckVolumeFactor / duckPitchFactor)
         private MusicTrackConfig _activeEncounterMusic;
         private MusicLibraryDefinition _preloadedLibrary;
+        private Coroutine _activeLoadRoutine;
+        private readonly Dictionary<string, AsyncOperationHandle<AudioClip>> _addressableHandles = new();
 
         public float MasterVolume
         {
@@ -134,10 +141,9 @@ namespace PowerMath.Audio
             if (_preloadedLibrary != library)
             {
                 _preloadedLibrary = library;
-                foreach (AudioClip clip in library.ConfiguredClips)
-                {
-                    PreloadClip(clip);
-                }
+                // Preload only the initial login/theme track rather than forcing
+                // all biome battle and boss music tracks into audio memory at startup.
+                PreloadClip(library.LoginMusic?.Clip);
             }
         }
 
@@ -147,6 +153,117 @@ namespace PowerMath.Audio
             {
                 clip.LoadAudioData();
             }
+        }
+
+        private void TryLoadOnDemandTrack(MusicTrackConfig config, string trackingId, bool isBoss)
+        {
+            if (config == null || !config.HasAddressableKey || config.Clip != null) return;
+            if (!Application.isPlaying || !isActiveAndEnabled) return;
+
+            if (_activeLoadRoutine != null)
+            {
+                StopCoroutine(_activeLoadRoutine);
+            }
+
+            _activeLoadRoutine = StartCoroutine(LoadAddressableOrRemoteTrackRoutine(config, trackingId, isBoss));
+        }
+
+        private IEnumerator LoadAddressableOrRemoteTrackRoutine(MusicTrackConfig config, string trackingId, bool isBoss)
+        {
+            string key = config.AddressableKey;
+            AudioClip loadedClip = null;
+
+            // 1. Try Addressables first
+            bool addressablesSucceeded = false;
+            AsyncOperationHandle<AudioClip> handle = default;
+            try
+            {
+                handle = Addressables.LoadAssetAsync<AudioClip>(key);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[MusicController] Addressables.LoadAssetAsync failed for {key}: {ex.Message}");
+            }
+
+            if (handle.IsValid())
+            {
+                yield return handle;
+                if (handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
+                {
+                    loadedClip = handle.Result;
+                    _addressableHandles[key] = handle;
+                    addressablesSucceeded = true;
+                }
+            }
+
+            // 2. Fallback to Cloudflare R2 remote streaming if Addressables failed or not built
+            if (!addressablesSucceeded)
+            {
+                string remoteUrl = $"https://pub-1de297cf85f444a7b4ca56dd0fc5d4e5.r2.dev/Music/{key}.mp3";
+                using (UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip(remoteUrl, AudioType.MPEG))
+                {
+                    yield return req.SendWebRequest();
+                    if (req.result == UnityWebRequest.Result.Success)
+                    {
+                        loadedClip = DownloadHandlerAudioClip.GetContent(req);
+                        if (loadedClip != null)
+                        {
+                            loadedClip.name = key;
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[MusicController] Remote R2 music fetch failed ({req.responseCode}): {req.error}");
+                    }
+                }
+            }
+
+            if (loadedClip != null)
+            {
+                config.SetClip(loadedClip);
+                PreloadClip(loadedClip);
+
+                if (isBoss)
+                {
+                    if (isBossActive && _bossSource != null)
+                    {
+                        _bossSource.clip = loadedClip;
+                        _bossSource.loop = config.Loop;
+                        _bossSource.time = 0f;
+                        _bossSource.Play();
+                    }
+                }
+                else
+                {
+                    if (string.Equals(currentBattleBiomeId, trackingId, StringComparison.OrdinalIgnoreCase) && _battleSource != null)
+                    {
+                        _battleSource.clip = loadedClip;
+                        _battleSource.loop = config.Loop;
+                        _battleSource.time = 0f;
+                        _battleSource.Play();
+                    }
+                }
+            }
+
+            _activeLoadRoutine = null;
+        }
+
+        private void OnDestroy()
+        {
+            if (_activeLoadRoutine != null)
+            {
+                StopCoroutine(_activeLoadRoutine);
+                _activeLoadRoutine = null;
+            }
+
+            foreach (var kvp in _addressableHandles)
+            {
+                if (kvp.Value.IsValid())
+                {
+                    Addressables.Release(kvp.Value);
+                }
+            }
+            _addressableHandles.Clear();
         }
 
         private void InitializeChannels()
@@ -188,6 +305,7 @@ namespace PowerMath.Audio
             _activeEncounterMusic = null;
 
             AudioClip loginClip = library.GetLoginClipWithFallback();
+            PreloadClip(loginClip);
             float targetScale = library.LoginMusic?.VolumeScale ?? 0.85f;
 
             _themeChannel.TrackVolumeScale = targetScale;
@@ -220,6 +338,11 @@ namespace PowerMath.Audio
             MusicTrackConfig config = library.ResolveBattleTrack(biomeId);
             float targetScale = config?.VolumeScale ?? 0.85f;
             _battleChannel.TrackVolumeScale = targetScale;
+
+            if (config != null && config.HasAddressableKey && config.Clip == null)
+            {
+                TryLoadOnDemandTrack(config, biomeId, isBoss: false);
+            }
 
             bool isSameBiome = string.Equals(currentBattleBiomeId, biomeId, StringComparison.OrdinalIgnoreCase);
             bool isDifferentClip = (_battleSource.clip != battleClip);
@@ -290,7 +413,7 @@ namespace PowerMath.Audio
             InitializeChannels();
             EnsureLibrary();
 
-            bool hasCustomTrack = customTrack != null && customTrack.Clip != null;
+            bool hasCustomTrack = customTrack != null && (customTrack.Clip != null || customTrack.HasAddressableKey);
             bool shouldOverride = hasCustomTrack || isBossEncounter;
             MusicTrackConfig desiredTrack = hasCustomTrack ? customTrack :
                 (isBossEncounter ? library.BossBattleMusic : null);
@@ -301,10 +424,16 @@ namespace PowerMath.Audio
 
             if (shouldOverride)
             {
-                AudioClip overrideClip = hasCustomTrack
+                AudioClip overrideClip = hasCustomTrack && customTrack.Clip != null
                     ? customTrack.Clip
                     : library.GetBossClipWithFallback();
                 PreloadClip(overrideClip);
+
+                if (desiredTrack != null && desiredTrack.HasAddressableKey && desiredTrack.Clip == null)
+                {
+                    TryLoadOnDemandTrack(desiredTrack, "boss", isBoss: true);
+                }
+
                 float targetScale = desiredTrack?.VolumeScale ?? 0.95f;
                 bool trackChanged = _bossSource.clip != overrideClip;
 

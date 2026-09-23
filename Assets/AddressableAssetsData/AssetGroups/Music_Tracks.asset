@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Music_Tracks
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Music_Tracks
+  m_GUID: 2d1680f6f4f203f40aa021b5e5686261
+  m_SerializeEntries:
+  - m_GUID: 0c6db9cecdf964c4ea480addf637ea11
+    m_Address: OST_B8-Theme
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 11e650b05d3780144b8f3cd8d863e796
+    m_Address: OST_B8-Boss
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1e45ce02cc44fca45819f334214d4c83
+    m_Address: OST_LoginMusic
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b72be86b66f2934bad098c72afaa83b
+    m_Address: OST_B1-Theme
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b7fb530df19519499850c778b29d300
+    m_Address: OST_B4-Boss
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 442d62abc0a2dcd46a421cc5c4232a3c
+    m_Address: OST_B2-Theme
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4d8ba9d081547ad41a7a4fd81abecef5
+    m_Address: OST_B2-Boss
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4def68ebd3f37dd4d827bbbb513e89e3
+    m_Address: OST_B8-Boss 1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 63dd60d8afc3b644095dbbab175eb0de
+    m_Address: OST_B4-Theme
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 75c4e7fd03532aa488fe699740d8876a
+    m_Address: OST_B3-Boss
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9c49b8dbdcfd1b24f807c0393f007a2e
+    m_Address: OST_B6-Theme
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a03646de532234649bff2080ce5da89f
+    m_Address: OST_B3-Theme
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aabe634fed9b1df45a0a8a00f5912e96
+    m_Address: OST_B1-Boss
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 6e390e410e7fb464db999f73760cd2e8, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: b4e4a97d5c5b6534780440e95425ba85, type: 2}
+    - {fileID: 11400000, guid: 9cfe6f5f01e2bbc4e93c8f42d3d1cce0, type: 2}

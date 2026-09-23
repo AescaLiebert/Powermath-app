@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Globalization;
-using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
 using PowerMath.PlayerData;
@@ -16,6 +15,10 @@ namespace PowerMath.UI.MainMenu
 {
     public sealed class PlayerHubPanelController : IDisposable
     {
+        public event Action TutorialPanelOpened;
+        public event Action TutorialWeaponAscendSucceeded;
+        public event Action TutorialPetsSectionShown;
+
         private readonly MonoBehaviour _host;
         private PlayerSnapshot _player;
         private readonly FirestoreProgressionCommandStore _weaponStore;
@@ -38,6 +41,7 @@ namespace PowerMath.UI.MainMenu
         private bool _busy;
         private int _lastRenderedStarCount = -1;
         private string _renderedCharacterId;
+        private bool _wasPlayerMenuUnlocked;
 
         public PlayerHubPanelController(
             MonoBehaviour host,
@@ -126,14 +130,18 @@ namespace PowerMath.UI.MainMenu
                 "RunDefeat",
                 StringComparison.Ordinal);
 
-            bool hubAvailable = GameVersionChecker.IsFeatureAvailable(GameFeature.PlayerHub);
+            bool hubAvailable = PlayerMenuUnlockPolicy.IsHubAndGachaUnlocked(player);
             if (!hubAvailable)
             {
                 _view.OpenButton.SetEnabled(true);
                 _view.OpenButton.pickingMode = PickingMode.Position;
-                _view.OpenButton.tooltip = "Player Hub (Locked in v1.0)";
+                _view.OpenButton.tooltip =
+                    "Unlocks after reaching Stage 31 or completing a run settlement.";
                 _view.OpenButton.AddToClassList("is-feature-locked");
                 _view.LockOverlay?.RemoveFromClassList("is-hidden");
+                if (_view.LockOverlay != null)
+                    _view.LockOverlay.style.display = DisplayStyle.Flex;
+                _wasPlayerMenuUnlocked = false;
             }
             else
             {
@@ -142,6 +150,15 @@ namespace PowerMath.UI.MainMenu
                 _view.OpenButton.tooltip = "Player Hub";
                 _view.OpenButton.RemoveFromClassList("is-feature-locked");
                 _view.LockOverlay?.AddToClassList("is-hidden");
+                if (_view.LockOverlay != null)
+                    _view.LockOverlay.style.display = DisplayStyle.None;
+                if (!_wasPlayerMenuUnlocked)
+                {
+                    _view.OpenButton.AddToClassList("is-unlocking");
+                    _view.OpenButton.schedule.Execute(() =>
+                        _view.OpenButton.RemoveFromClassList("is-unlocking")).StartingIn(500);
+                }
+                _wasPlayerMenuUnlocked = true;
             }
 
             if (_panelHost.OpenPanel == MainMenuPanelId.PlayerHub && !_busy)
@@ -150,14 +167,16 @@ namespace PowerMath.UI.MainMenu
 
         private void Open()
         {
-            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PlayerHub))
+            if (!PlayerMenuUnlockPolicy.IsHubAndGachaUnlocked(_player))
             {
                 StatusMessageService.ShowWarning(
-                    LocalizationService.Get("menu.lockedFeatureUpdate"));
+                    "Reach Stage 31 or complete a run settlement to unlock Player Hub.");
                 return;
             }
 
-            if (_busy || !_panelHost.TryOpen(
+            if (_busy ||
+                !string.IsNullOrEmpty(_player.activeRun?.committedAttemptId) ||
+                !_panelHost.TryOpen(
                     MainMenuPanelId.PlayerHub,
                     _view.Modal,
                     _view.OpenButton)) return;
@@ -165,6 +184,34 @@ namespace PowerMath.UI.MainMenu
             SetStatus(string.Empty);
             Render();
             _feedback.StartIdle();
+            TutorialPanelOpened?.Invoke();
+        }
+
+        public bool TryOpenForTutorial()
+        {
+            if (_busy || _panelHost.OpenPanel != MainMenuPanelId.None) return false;
+            Open();
+            return _panelHost.OpenPanel == MainMenuPanelId.PlayerHub;
+        }
+
+        public bool TryAscendForTutorial()
+        {
+            if (_busy || _panelHost.OpenPanel != MainMenuPanelId.PlayerHub) return false;
+            if (!CanMutate(out _)) return false;
+            PlayerStatProjection current = ProjectStats();
+            if (current.Weapon.Level >= MaximumWeaponLevel) return false;
+            long cost = WeaponAscensionPolicy.GetNextCost(
+                current.Weapon.Level, MaximumWeaponLevel);
+            if ((_player.wallet?.powerCoins ?? 0) < cost) return false;
+            Upgrade();
+            return true;
+        }
+
+        public bool TryShowPetsForTutorial()
+        {
+            if (_busy || _panelHost.OpenPanel != MainMenuPanelId.PlayerHub) return false;
+            _view.SetSection(true);
+            return true;
         }
 
         private void Close()
@@ -432,7 +479,26 @@ namespace PowerMath.UI.MainMenu
                 _feedback.StopPetPreviewTweens();
             }
             if (inventory.TryGetOwned(inventory.EquippedPetId, out OwnedPetEntry equipped))
-                _view.EquippedPet.sprite = equipped.Definition.Icon;
+            {
+                if (equipped.Definition.Icon != null)
+                {
+                    _view.EquippedPet.sprite = equipped.Definition.Icon;
+                }
+                else if (!string.IsNullOrEmpty(equipped.Definition.IconAddressableKey))
+                {
+                    UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>(equipped.Definition.IconAddressableKey).Completed += handle =>
+                    {
+                        if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded && handle.Result != null)
+                        {
+                            if (_view?.EquippedPet != null) _view.EquippedPet.sprite = handle.Result;
+                        }
+                    };
+                }
+                else
+                {
+                    _view.EquippedPet.sprite = null;
+                }
+            }
             else
                 _view.EquippedPet.sprite = null;
         }
@@ -529,10 +595,12 @@ namespace PowerMath.UI.MainMenu
             StatusMessageService.ShowSuccess(
                 $"{name} reached Lv.{stats.Level} — ATK {stats.Attack:N0}",
                 milestone ? 3400 : 2200);
+            TutorialWeaponAscendSucceeded?.Invoke();
         }
 
         private void OnPetsSectionShown()
         {
+            TutorialPetsSectionShown?.Invoke();
             if (!string.IsNullOrEmpty(_selectedPetId))
             {
                 _feedback.PlayPetPreviewEntrance();
@@ -547,6 +615,7 @@ namespace PowerMath.UI.MainMenu
         private void SelectAndEquipPet(string petId)
         {
             if (string.IsNullOrWhiteSpace(petId) || _busy) return;
+            _feedback.PlayPetPressed();
             _selectedPetId = petId;
             _view.SetSection(true);
             if (!CanMutate(out string reason))

@@ -14,44 +14,52 @@ MonoBehaviour:
   m_EditorClassIdentifier: PowerMath.Audio::PowerMath.Audio.MusicLibraryDefinition
   loginMusic:
     clip: {fileID: 8300000, guid: 1e45ce02cc44fca45819f334214d4c83, type: 3}
+    addressableKey: OST_LoginMusic
     volumeScale: 0.5
     loop: 1
   defaultBattleMusic:
     clip: {fileID: 8300000, guid: 2b72be86b66f2934bad098c72afaa83b, type: 3}
+    addressableKey: OST_B1-Theme
     volumeScale: 0.6
     loop: 1
   bossBattleMusic:
     clip: {fileID: 8300000, guid: aabe634fed9b1df45a0a8a00f5912e96, type: 3}
+    addressableKey: OST_B1-Boss
     volumeScale: 0.8
     loop: 1
   biomeBattleTracks:
   - biomeId: biome-2
     track:
       clip: {fileID: 8300000, guid: 442d62abc0a2dcd46a421cc5c4232a3c, type: 3}
+      addressableKey: OST_B2-Theme
       volumeScale: 0.6
       loop: 1
   - biomeId: biome-3
     track:
       clip: {fileID: 8300000, guid: a03646de532234649bff2080ce5da89f, type: 3}
+      addressableKey: OST_B3-Theme
       volumeScale: 0.6
       loop: 1
   - biomeId: biome-4
     track:
-      clip: {fileID: 8300000, guid: 63dd60d8afc3b644095dbbab175eb0de, type: 3}
+      clip: {fileID: 0}
+      addressableKey: OST_B4-Theme
       volumeScale: 0.6
       loop: 1
   - biomeId: biome-5
     track:
       clip: {fileID: 8300000, guid: 9c49b8dbdcfd1b24f807c0393f007a2e, type: 3}
+      addressableKey: OST_B5-Theme
       volumeScale: 0.6
       loop: 1
   - biomeId: biome-6
     track:
       clip: {fileID: 8300000, guid: 0c6db9cecdf964c4ea480addf637ea11, type: 3}
+      addressableKey: OST_B6-Theme
       volumeScale: 0.6
       loop: 1
   defaultCrossfadeDuration: 1.2
   bossInterruptDuration: 0.8
-  duckVolumeFactor: 0.05
+  duckVolumeFactor: 0.1
   duckPitchFactor: 0.05
   duckFadeDuration: 0.75

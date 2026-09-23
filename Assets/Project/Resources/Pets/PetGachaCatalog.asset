@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30ec6029a921ef54fbc0e56a6815c59f, type: 3}
   m_Name: PetGachaCatalog
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   catalogVersion: prototype-v2
   rarities:
   - rarityId: rare
@@ -22,11 +22,18 @@ MonoBehaviour:
     showcaseStarCount: 3
     displayColor: {r: 0.74, g: 0.52, b: 0.28, a: 1}
     pets:
+    - {fileID: 11400000, guid: d5c971031a5af3c4d950a3bff0b7bb8e, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000001, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000002, type: 2}
+    - {fileID: 11400000, guid: 3f9a946a6eef75b44b7590c958c777a9, type: 2}
+    - {fileID: 11400000, guid: 1b17a44f38da3234793bbe7e404cdc7f, type: 2}
+    - {fileID: 11400000, guid: 6cda3ad10a12d8f4ba3c73ca3990b906, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000003, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000004, type: 2}
+    - {fileID: 11400000, guid: 9b7c7c6a625917d4f851d25ee440eea0, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000005, type: 2}
+    - {fileID: 11400000, guid: c6c0fab60812a0147960fb1d6202a72a, type: 2}
+    - {fileID: 11400000, guid: 0cee30b99ec6d3245bde9360e10d39ea, type: 2}
   - rarityId: super_rare
     displayName: Super Rare
     rateBasisPoints: 510
@@ -35,10 +42,14 @@ MonoBehaviour:
     showcaseStarCount: 4
     displayColor: {r: 0.55, g: 0.36, b: 0.9, a: 1}
     pets:
+    - {fileID: 11400000, guid: 987334d9672a27042a9a0acd1727e573, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000006, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000007, type: 2}
-    - {fileID: 11400000, guid: a1000000000000000000000000000008, type: 2}
+    - {fileID: 11400000, guid: 1e7d8a92c5ba8cb4f8b1c8af52373ed8, type: 2}
+    - {fileID: 11400000, guid: bd79f9269a64ce94c990e4499134415c, type: 2}
+    - {fileID: 11400000, guid: 24f5d40f3052eec47b7f436cab20db9e, type: 2}
     - {fileID: 11400000, guid: a1000000000000000000000000000009, type: 2}
+    - {fileID: 11400000, guid: a1000000000000000000000000000008, type: 2}
   - rarityId: ssr
     displayName: SSR
     rateBasisPoints: 60

@@ -25,7 +25,8 @@ namespace PowerMath.Gameplay.Tutorial
         TargetActivated,
         AttemptCommitted,
         AttemptPresentationCompleted,
-        EncounterReady
+        EncounterReady,
+        ExternalEvent
     }
 
     public enum TutorialAttemptOutcome

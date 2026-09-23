@@ -5,7 +5,7 @@
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldStates.uss?fileID=7433441132597879392&amp;guid=8aad1a0913b7bf744b3c0e064a10988e&amp;type=3#MathWorldStates"/>
     <Style src="project://database/Assets/Project/UI/Theme/MathWorldTypography.uss?fileID=7433441132597879392&amp;guid=a48c50e68101bf04b958cd4ba35225fa&amp;type=3#MathWorldTypography"/>
     <Style src="project://database/Assets/Project/UI/Authentication/AuthenticationScreen.uss?fileID=7433441132597879392&amp;guid=9f1b74330a223c54aaa2e321b93f1f97&amp;type=3#AuthenticationScreen"/>
-    <ui:VisualElement name="Authentication / Desktop / 1680x945" enabled="true" class="mw-screen auth-root is-ready" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Resources/Font/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;); background-image: none;">
+    <ui:VisualElement name="Authentication / Desktop / 1680x945" enabled="true" class="mw-screen auth-root is-ready" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;); background-image: none;">
         <ui:VisualElement name="Background Artwork / Reference" enabled="true" picking-mode="Ignore" class="auth-background" style="background-image: none;"/>
         <ui:VisualElement name="safe-area" class="mw-safe-area auth-safe-area" style="bottom: 0;">
             <ui:VisualElement name="Logo" picking-mode="Ignore" class="auth-logo" style="top: 13%; left: 50%; height: 190px; width: 564px;"/>

@@ -1233,7 +1233,7 @@
 
 .gacha-summon-count,
 .gacha-summon-cost {
-    color: var(--gacha-color-text-navy);
+    color: rgb(0, 0, 0);
     font-size: 32px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
@@ -1924,6 +1924,46 @@
     scale: 1 1;
 }
 
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-watermark,
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-vortex,
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-comet,
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-flare,
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-compass,
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-tokens,
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-headline,
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-legend {
+    display: none;
+}
+
+.pet-gacha-transition.is-cinematic > .pet-gacha-transition-skip {
+    opacity: 1;
+    translate: 0 0;
+    color: white;
+    background-color: rgba(15, 30, 55, 0.35);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.pet-gacha-transition.is-burst-cleared .pet-gacha-transition-flare {
+    opacity: 0;
+    scale: 1.5 1.5;
+    transition-duration: 0.3s;
+}
+
+.pet-gacha-transition.is-transition-exiting .pet-gacha-transition-flare {
+    opacity: 1;
+    scale: 2 2;
+    background-color: rgb(8, 12, 24);
+    transition-duration: 0.3s;
+}
+
+.pet-gacha-transition.is-transition-exiting .pet-gacha-transition-tokens,
+.pet-gacha-transition.is-transition-exiting .pet-gacha-transition-headline,
+.pet-gacha-transition.is-transition-exiting .pet-gacha-transition-legend {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.24s;
+}
+
 .pet-gacha-transition.rarity-r {
     background-color: rgb(77, 99, 129);
 }
@@ -2172,6 +2212,63 @@
     rotate: 0deg;
 }
 
+.gacha-reveal-halo {
+    position: absolute;
+    left: 15%;
+    top: 15%;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    border-width: 3px;
+    border-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.pet-gacha-reveal.rarity-sr .gacha-reveal-halo {
+    border-color: rgb(180, 108, 255);
+    background-color: rgba(145, 72, 240, 0.18);
+}
+
+.pet-gacha-reveal.rarity-ssr .gacha-reveal-halo {
+    border-color: rgb(255, 205, 65);
+    border-width: 5px;
+    background-color: rgba(255, 190, 35, 0.22);
+}
+
+.pet-gacha-reveal.rarity-sr .gacha-reveal-shard {
+    background-color: rgba(180, 108, 255, 0.94);
+}
+
+.pet-gacha-reveal.rarity-ssr .gacha-reveal-shard {
+    background-color: rgba(255, 205, 65, 0.98);
+}
+
+.pet-gacha-reveal.rarity-sr.is-reveal-drop .gacha-reveal-burst {
+    scale: 1.24 1.24;
+}
+
+.pet-gacha-reveal.rarity-ssr.is-reveal-drop .gacha-reveal-burst {
+    scale: 1.48 1.48;
+}
+
+.pet-gacha-reveal.rarity-sr .gacha-showcase-pet--silhouette {
+    transition-duration: 0.44s;
+}
+
+.pet-gacha-reveal.rarity-ssr .gacha-showcase-pet--silhouette {
+    transition-duration: 0.4s;
+}
+
+.pet-gacha-reveal.rarity-sr.is-reveal-pet .gacha-reveal-burst {
+    scale: 1.52 1.52;
+    opacity: 0.48;
+}
+
+.pet-gacha-reveal.rarity-ssr.is-reveal-pet .gacha-reveal-burst {
+    scale: 1.72 1.72;
+    opacity: 0.62;
+}
+
 .gacha-reveal-shard--30 {
     rotate: 30deg;
 }
@@ -2249,7 +2346,9 @@
 }
 
 .pet-gacha-reveal.is-reveal-flash-cleared .gacha-reveal-flash,
-.pet-gacha-reveal.is-reveal-flash-cleared .gacha-reveal-burst {
+.pet-gacha-reveal.is-reveal-flash-cleared .gacha-reveal-burst,
+.pet-gacha-reveal.rarity-sr.is-reveal-flash-cleared .gacha-reveal-burst,
+.pet-gacha-reveal.rarity-ssr.is-reveal-flash-cleared .gacha-reveal-burst {
     opacity: 0;
 }
 

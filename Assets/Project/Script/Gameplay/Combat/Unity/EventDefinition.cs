@@ -16,6 +16,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         private string instructions =
             "Solve one harder question. You have one attempt; failure makes it flee.";
         [SerializeField] private Sprite eventSprite;
+        [Tooltip("Optional Addressables key for remote streaming. Defaults to sprite asset name or eventId.")]
+        [SerializeField] private string addressableKey;
 
         [Header("Audio Ownership (Optional Custom Overrides)")]
         [SerializeField] private SfxCueConfig customAppearSfx;
@@ -32,6 +34,9 @@ namespace PowerMath.Gameplay.Combat.Unity
         public string ThaiName => thaiName;
         public string Instructions => instructions;
         public Sprite EventSprite => eventSprite;
+        public string AddressableKey => !string.IsNullOrWhiteSpace(addressableKey)
+            ? addressableKey
+            : (eventSprite != null && eventSprite.texture != null ? eventSprite.texture.name : (eventSprite != null ? eventSprite.name.Replace("_0", "") : eventId));
 
         public string GetDisplayName(string locale = "en") =>
             locale == "th" && !string.IsNullOrWhiteSpace(thaiName) ? thaiName : englishName;

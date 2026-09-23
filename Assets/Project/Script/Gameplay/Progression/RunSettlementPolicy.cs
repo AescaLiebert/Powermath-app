@@ -49,7 +49,7 @@ namespace PowerMath.Gameplay.Progression
 
     public static class RunSettlementPolicy
     {
-        public const int MinimumRebirthStage = 30;
+        public const int MinimumRebirthStage = 31;
         public const int DefaultBonusBasisPoints = 10000;
         public const double TeleportPenaltyMultiplier = 0.10d;
 
@@ -76,7 +76,7 @@ namespace PowerMath.Gameplay.Progression
             }
             if (type == RunSettlementType.Rebirth && stage < MinimumRebirthStage)
             {
-                reason = "Rebirth unlocks at Stage 30.";
+                reason = "Rebirth unlocks at Stage 31.";
                 return false;
             }
             if (type == RunSettlementType.Rebirth &&

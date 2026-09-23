@@ -376,6 +376,47 @@ namespace PowerMath.Tests.EditMode
         }
 
         [Test]
+        public void FirstRebirthRewardAddsPowerCoinsOnce()
+        {
+            PlayerSnapshot player = Ready();
+            player.wallet = new PlayerSnapshot.WalletData { powerCoins = 75 };
+            player.tutorialEntries = new[]
+            {
+                new PlayerSnapshot.TutorialEntryData
+                {
+                    tutorialId = "OnFirstRebirth",
+                    version = 1,
+                    status = TutorialStatus.Active.ToString(),
+                    currentStepId = "wait-power-coin-grant"
+                }
+            };
+            var command = new PlayerLifecycleCommand
+            {
+                kind = PlayerLifecycleCommandKind.ClaimTutorialPowerCoinReward,
+                operationId = Guid.NewGuid().ToString("N"),
+                playerId = player.playerId,
+                expectedRevision = player.revision,
+                value = "OnFirstRebirth",
+                tutorialPowerCoinReward = 180
+            };
+
+            FirestorePatchPlan plan = PlayerLifecyclePolicy.Plan(
+                player, "student", command);
+
+            Assert.That(plan.FieldPaths,
+                Does.Contain("gamedata.wallet.powerCoins"));
+            Assert.That(plan.FieldPaths,
+                Does.Contain("gamedata.tutorialMap.OnFirstRebirth.rewardClaimed"));
+            StringAssert.Contains("\"integerValue\":\"255\"", plan.ToJson());
+
+            TutorialProgressPolicy.ApplyRewardClaimToSnapshot(player, command);
+            player.revision++;
+            Assert.That(player.wallet.powerCoins, Is.EqualTo(255));
+            Assert.That(PlayerLifecyclePolicy.Plan(player, "student", command).IsEmpty,
+                Is.True);
+        }
+
+        [Test]
         public void CompletedTutorialCannotBeReopened()
         {
             PlayerSnapshot player = Ready();

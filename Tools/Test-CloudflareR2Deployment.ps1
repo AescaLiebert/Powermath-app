@@ -29,23 +29,33 @@ Write-Host ""
 $filesToCheck = @(
     @{
         Category = "Build"
-        Path = "Build/MathWorld-1.1.loader.js"
+        Path = "Build/MathWorld-1.2.loader.js"
         ExpectedType = "application/javascript"
     },
     @{
         Category = "Build"
-        Path = "Build/MathWorld-1.1.framework.js"
+        Path = "Build/MathWorld-1.2.framework.js"
         ExpectedType = "application/javascript"
     },
     @{
         Category = "Build"
-        Path = "Build/MathWorld-1.1.data"
+        Path = "Build/MathWorld-1.2.data"
         ExpectedType = "application/octet-stream"
     },
     @{
         Category = "Build"
-        Path = "Build/MathWorld-1.1.wasm"
+        Path = "Build/MathWorld-1.2.wasm"
         ExpectedType = "application/wasm"
+    },
+    @{
+        Category = "Addressables"
+        Path = "Addressables/WebGL/catalog_1.2.0.0.bin"
+        ExpectedType = "application/octet-stream"
+    },
+    @{
+        Category = "Addressables"
+        Path = "Addressables/WebGL/catalog_1.2.0.0.hash"
+        ExpectedType = "text/plain"
     },
     @{
         Category = "StreamingAssets (Video)"

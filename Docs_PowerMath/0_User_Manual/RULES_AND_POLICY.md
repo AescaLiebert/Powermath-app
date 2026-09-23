@@ -138,7 +138,31 @@ For multi-agent work:
 
 ---
 
-## 8. Token Budget Policy — AI Context Loading
+## 8. Automated Test Execution Policy
+
+### Rule
+
+Run every automated Unity test through the Unity CLI. Do not launch or operate the Unity Editor Test Runner to execute automated tests. The CLI starts the required Editor process in batch mode and produces a machine-readable results report.
+
+```powershell
+# Run the complete EditMode suite from the project root.
+unity test . --mode EditMode --output TestResults/editmode-results.xml
+
+# Run a focused test or the PlayMode suite when the task requires it.
+unity test . --mode EditMode --filter "Namespace.TestFixture"
+unity test . --mode PlayMode --output TestResults/playmode-results.xml
+```
+
+### Required Practice
+
+- State the exact `unity test` command and results-report path in the test plan, implementation summary, or review report.
+- Treat a non-zero CLI exit code or a failing results report as a failed test run; report it rather than claiming validation passed.
+- Use test filters only when the task calls for focused validation. Run the affected full mode before handoff when practical.
+- Manual visual, game-feel, device, and profiler checks still require the Unity Editor or a target device. Record those separately; they do not replace automated CLI test results.
+
+---
+
+## 9. Token Budget Policy — AI Context Loading
 
 ### Per-Agent Context Budget
 

@@ -4,8 +4,8 @@ namespace PowerMath.Gameplay.Combat
 {
     public static class AttackDamageVariancePolicy
     {
-        public const double MinimumMultiplier = 0.90d;
-        public const double MaximumMultiplier = 1.10d;
+        public const double MinimumMultiplier = 0.95d;
+        public const double MaximumMultiplier = 1.05d;
 
         public static double GetMultiplier(double randomUnit)
         {

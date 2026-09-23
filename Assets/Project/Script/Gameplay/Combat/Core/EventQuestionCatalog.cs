@@ -308,7 +308,7 @@ namespace PowerMath.Gameplay.Combat
     public static class ChallengeRewardPolicy
     {
         public const int MinimumPowerCoins = 10;
-        public const int MaximumPowerCoins = 200;
+        public const int MaximumPowerCoins = 100000;
 
         private static readonly int[] BaseByBiome = { 0, 10, 15, 25, 35, 50, 75, 100 };
 
@@ -318,13 +318,25 @@ namespace PowerMath.Gameplay.Combat
             return BaseByBiome[clamped];
         }
 
-        public static int Calculate(QuestionOutcome outcome, int responseScore, int biomeIndex = 1)
+        public static int Calculate(
+            QuestionOutcome outcome,
+            int responseScore,
+            int biomeIndex = 1,
+            double bonusMultiplier = 1d)
         {
+            if (bonusMultiplier < 0d)
+                throw new ArgumentOutOfRangeException(nameof(bonusMultiplier));
+
             int baseReward = GetBaseReward(biomeIndex);
-            if (outcome != QuestionOutcome.Correct)
-                return baseReward;
-            int score = Math.Max(0, Math.Min(10, responseScore));
-            return baseReward + (baseReward * score) / 10;
+            int rawCoins = outcome != QuestionOutcome.Correct
+                ? baseReward
+                : baseReward + (baseReward * Math.Max(0, Math.Min(10, responseScore))) / 10;
+
+            if (bonusMultiplier <= 1d)
+                return rawCoins;
+
+            long multiplied = (long)Math.Round(rawCoins * bonusMultiplier, MidpointRounding.AwayFromZero);
+            return (int)Math.Min(int.MaxValue, multiplied);
         }
     }
 }

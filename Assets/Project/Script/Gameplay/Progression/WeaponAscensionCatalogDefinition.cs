@@ -15,9 +15,15 @@ namespace PowerMath.Gameplay.Progression
             public string localizedDisplayNameKey;
             public string displayName = "Sword";
             public Sprite icon;
+            [Tooltip("Optional Addressables key for icon streaming.")]
+            public string iconAddressableKey;
             public string appearanceReference;
             public string milestoneFeedbackKey;
             [TextArea] public string childFriendlyDescription;
+
+            public string IconAddressableKey => !string.IsNullOrWhiteSpace(iconAddressableKey)
+                ? iconAddressableKey
+                : (icon != null && icon.texture != null ? icon.texture.name : (icon != null ? icon.name.Replace("_0", "") : tierId));
         }
 
         public const int DefaultLevelsPerTier = 5;

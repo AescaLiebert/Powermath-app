@@ -105,26 +105,43 @@ namespace PowerMath.Gameplay.Combat
     public sealed class StageMapData
     {
         private readonly Dictionary<int, EventData> _fixedEvents;
+        private readonly Dictionary<int, MonsterData> _fixedMonsters;
         private readonly Dictionary<string, EventData> _eventDefinitions;
-        public StageMapData(string catalogVersion, int normalHpBaseline,
+
+        public StageMapData(string catalogVersion,
             int growthBasisPoints, int variationBasisPoints,
-            IReadOnlyList<BiomeData> biomes, IReadOnlyDictionary<int, EventData> events,
+            IReadOnlyList<BiomeData> biomes,
+            IReadOnlyDictionary<int, EventData> fixedEvents,
             IReadOnlyList<EventData> chanceEvents = null,
-            int eventEncounterLuckBasisPoints = 0)
+            int eventEncounterLuckBasisPoints = 0,
+            IReadOnlyDictionary<int, MonsterData> fixedMonsters = null,
+            int phase2GrowthBasisPoints = 3500,
+            int phase3GrowthBasisPoints = 8000,
+            int phase4GrowthBasisPoints = 15000)
         {
             if (string.IsNullOrWhiteSpace(catalogVersion)) throw new ArgumentException("Catalog version is required.");
-            if (normalHpBaseline <= 0 || growthBasisPoints < 0 || variationBasisPoints < 0 || variationBasisPoints > 9999)
-                throw new ArgumentOutOfRangeException(nameof(normalHpBaseline));
+            if (growthBasisPoints < 0 || variationBasisPoints < 0 || variationBasisPoints > 9999)
+                throw new ArgumentOutOfRangeException(nameof(growthBasisPoints));
+            if (phase2GrowthBasisPoints < 0 || phase3GrowthBasisPoints < 0 || phase4GrowthBasisPoints < 0)
+                throw new ArgumentOutOfRangeException(nameof(phase2GrowthBasisPoints));
             if (biomes == null || biomes.Count != 7) throw new ArgumentException("Exactly seven biomes are required.");
-            if (eventEncounterLuckBasisPoints < 0 || eventEncounterLuckBasisPoints > 10000)
+            if (eventEncounterLuckBasisPoints < 0)
                 throw new ArgumentOutOfRangeException(nameof(eventEncounterLuckBasisPoints));
-            CatalogVersion = catalogVersion.Trim(); NormalHpBaseline = normalHpBaseline;
-            GrowthBasisPoints = growthBasisPoints; VariationBasisPoints = variationBasisPoints;
+            CatalogVersion = catalogVersion.Trim();
+            GrowthBasisPoints = growthBasisPoints;
+            Phase1GrowthBasisPoints = growthBasisPoints;
+            Phase2GrowthBasisPoints = phase2GrowthBasisPoints;
+            Phase3GrowthBasisPoints = phase3GrowthBasisPoints;
+            Phase4GrowthBasisPoints = phase4GrowthBasisPoints;
+            VariationBasisPoints = variationBasisPoints;
             Biomes = biomes.ToArray();
             EventEncounterLuckBasisPoints = eventEncounterLuckBasisPoints;
-            _fixedEvents = events == null
+            _fixedEvents = fixedEvents == null
                 ? new Dictionary<int, EventData>()
-                : new Dictionary<int, EventData>(events);
+                : new Dictionary<int, EventData>(fixedEvents);
+            _fixedMonsters = fixedMonsters == null
+                ? new Dictionary<int, MonsterData>()
+                : new Dictionary<int, MonsterData>(fixedMonsters);
             _eventDefinitions = new Dictionary<string, EventData>(StringComparer.Ordinal);
             foreach (EventData value in _fixedEvents.Values.Concat(chanceEvents ?? Array.Empty<EventData>()))
             {
@@ -138,9 +155,32 @@ namespace PowerMath.Gameplay.Combat
             }
             ChanceEvents = (chanceEvents ?? Array.Empty<EventData>()).ToArray();
         }
+
+        [Obsolete("normalHpBaseline is deprecated. Monster BaseHp is defined on EnemyDefinition / MonsterData.")]
+        public StageMapData(string catalogVersion, int normalHpBaseline,
+            int growthBasisPoints, int variationBasisPoints,
+            IReadOnlyList<BiomeData> biomes,
+            IReadOnlyDictionary<int, EventData> fixedEvents,
+            IReadOnlyList<EventData> chanceEvents = null,
+            int eventEncounterLuckBasisPoints = 0,
+            IReadOnlyDictionary<int, MonsterData> fixedMonsters = null,
+            int phase2GrowthBasisPoints = 3500,
+            int phase3GrowthBasisPoints = 8000,
+            int phase4GrowthBasisPoints = 15000)
+            : this(catalogVersion, growthBasisPoints, variationBasisPoints, biomes, fixedEvents,
+                chanceEvents, eventEncounterLuckBasisPoints, fixedMonsters,
+                phase2GrowthBasisPoints, phase3GrowthBasisPoints, phase4GrowthBasisPoints)
+        {
+        }
+
         public string CatalogVersion { get; }
-        public int NormalHpBaseline { get; }
+        [Obsolete("NormalHpBaseline is removed. Monster BaseHp is defined on EnemyDefinition / MonsterData.")]
+        public int NormalHpBaseline => 0;
         public int GrowthBasisPoints { get; }
+        public int Phase1GrowthBasisPoints { get; }
+        public int Phase2GrowthBasisPoints { get; }
+        public int Phase3GrowthBasisPoints { get; }
+        public int Phase4GrowthBasisPoints { get; }
         public int VariationBasisPoints { get; }
         public int EventEncounterLuckBasisPoints { get; }
         public IReadOnlyList<BiomeData> Biomes { get; }
@@ -149,9 +189,12 @@ namespace PowerMath.Gameplay.Combat
         public bool TryGetEvent(StageId stage, out EventData value) => TryGetFixedEvent(stage, out value);
         public bool TryGetFixedEvent(StageId stage, out EventData value) =>
             _fixedEvents.TryGetValue(stage.Value, out value);
+        public bool TryGetFixedMonster(StageId stage, out MonsterData monster) =>
+            _fixedMonsters.TryGetValue(stage.Value, out monster);
         public bool TryGetEventById(string eventId, out EventData value) =>
             _eventDefinitions.TryGetValue(eventId ?? string.Empty, out value);
         public IReadOnlyCollection<int> FixedEventStages => _fixedEvents.Keys.ToArray();
+        public IReadOnlyCollection<int> FixedMonsterStages => _fixedMonsters.Keys.ToArray();
         public IReadOnlyCollection<string> EventQuestionDocumentIds =>
             _eventDefinitions.Values.Any(value => value.Type == EventStageType.ChallengeMonster)
                 ? new[] { EventQuestionCatalog.DefaultDocumentId }
@@ -173,8 +216,7 @@ namespace PowerMath.Gameplay.Combat
                 throw new ArgumentException("Scheduled Event ID is required.", nameof(eventId));
             if (version != CurrentVersion)
                 throw new ArgumentOutOfRangeException(nameof(version));
-            if (baseChanceBasisPoints < 0 || baseChanceBasisPoints > 10000 ||
-                petMultiplierBasisPoints < 0)
+            if (baseChanceBasisPoints < 0 || petMultiplierBasisPoints < 0)
                 throw new ArgumentOutOfRangeException(nameof(baseChanceBasisPoints));
 
             int[] stages = (generatedStages ?? Array.Empty<int>()).OrderBy(value => value).ToArray();
@@ -203,6 +245,7 @@ namespace PowerMath.Gameplay.Combat
     public static class EventScheduleGenerator
     {
         public const int StagesPerBlock = 20;
+        public const int MaxEventsPerBlock = 5;
 
         public static EventScheduleSnapshot Create(
             string runId,
@@ -222,6 +265,9 @@ namespace PowerMath.Gameplay.Combat
             if (challenges.Length == 0)
                 throw new InvalidOperationException("At least one chance-based Challenge Monster Event is required.");
 
+            int petLuckBasisPoints = Math.Max(0, petMultiplierBasisPoints - 10000);
+            int totalLuckBasisPoints = checked(map.EventEncounterLuckBasisPoints + petLuckBasisPoints);
+
             var generated = new List<int>();
             for (int blockStart = StageId.First;
                  blockStart <= StageId.Final;
@@ -239,29 +285,44 @@ namespace PowerMath.Gameplay.Combat
                             fixedChallengeCount++;
                         continue;
                     }
+                    // Fixed-monster pins are also ineligible for random event placement.
+                    if (map.TryGetFixedMonster(stageId, out _)) continue;
                     if (!StageClassificationPolicy.IsProtected(stageId))
                         eligible.Add(stage);
                 }
 
-                if (fixedChallengeCount > 2)
+                if (fixedChallengeCount > MaxEventsPerBlock)
                     throw new InvalidOperationException(
-                        $"Stages {blockStart}-{blockEnd} contain more than two fixed Challenge Events.");
+                        $"Stages {blockStart}-{blockEnd} contain more than {MaxEventsPerBlock} fixed Challenge Events.");
 
                 int blockChallengeCount = fixedChallengeCount;
-                if (blockChallengeCount == 0)
+                if (blockChallengeCount == 0 && eligible.Count > 0)
                 {
                     generated.Add(TakeStage(eligible, runId, map.CatalogVersion,
                         blockStart, "guaranteed"));
                     blockChallengeCount++;
                 }
 
-                long effectiveChance = (long)map.EventEncounterLuckBasisPoints * petMultiplierBasisPoints / 10000L;
-                int clampedChance = (int)Math.Max(0L, Math.Min(10000L, effectiveChance));
-                ulong roll = StableHash64.Compute(runId, map.CatalogVersion,
-                    blockStart.ToString(), "event-bonus-roll") % 10000UL;
-                if (blockChallengeCount < 2 && eligible.Count > 0 && roll < (ulong)clampedChance)
+                int guaranteedBonus = totalLuckBasisPoints / 10000;
+                for (int i = 0; i < guaranteedBonus && blockChallengeCount < MaxEventsPerBlock && eligible.Count > 0; i++)
+                {
                     generated.Add(TakeStage(eligible, runId, map.CatalogVersion,
-                        blockStart, "bonus"));
+                        blockStart, $"bonus-guaranteed-{i + 1}"));
+                    blockChallengeCount++;
+                }
+
+                int remainderChance = totalLuckBasisPoints % 10000;
+                if (blockChallengeCount < MaxEventsPerBlock && eligible.Count > 0 && remainderChance > 0)
+                {
+                    ulong roll = StableHash64.Compute(runId, map.CatalogVersion,
+                        blockStart.ToString(), "event-bonus-roll") % 10000UL;
+                    if (roll < (ulong)remainderChance)
+                    {
+                        generated.Add(TakeStage(eligible, runId, map.CatalogVersion,
+                            blockStart, "bonus"));
+                        blockChallengeCount++;
+                    }
+                }
             }
 
             // EventId remains a valid pool anchor for persisted v1 schedules.
@@ -315,7 +376,7 @@ namespace PowerMath.Gameplay.Combat
                     stage >= blockStart && stage <= blockEnd &&
                     map.TryGetFixedEvent(new StageId(stage), out EventData fixedEvent) &&
                     fixedEvent.Type == EventStageType.ChallengeMonster);
-                int capacity = Math.Max(0, 2 - fixedCount);
+                int capacity = Math.Max(0, EventScheduleGenerator.MaxEventsPerBlock - fixedCount);
 
                 int[] preserved = current.GeneratedStages
                     .Where(stage => stage >= blockStart && stage <= blockEnd &&
@@ -441,8 +502,13 @@ namespace PowerMath.Gameplay.Combat
             MonsterData monster;
             if (kind == StageEncounterKind.NormalMonster)
             {
-                ulong hash = StableHash64.Compute(runId, _map.CatalogVersion, stage.Value.ToString(), "monster");
-                monster = biome.NormalMonsters[(int)(hash % (ulong)biome.NormalMonsters.Count)];
+                // 1. Authored pin: fixed stage binding overrides the random pool.
+                if (!_map.TryGetFixedMonster(stage, out monster))
+                {
+                    // 2. Hash-pick from the biome's normal monster pool.
+                    ulong hash = StableHash64.Compute(runId, _map.CatalogVersion, stage.Value.ToString(), "monster");
+                    monster = biome.NormalMonsters[(int)(hash % (ulong)biome.NormalMonsters.Count)];
+                }
             }
             else if (!biome.TryGetBoss(stage, out monster))
                 throw new InvalidOperationException($"Stage {stage.Value} has no {kind} binding.");
@@ -479,37 +545,47 @@ namespace PowerMath.Gameplay.Combat
 
     public static class StageHpPolicy
     {
-        public static long CalculateGrowthBasisPoints(int worldLevel, int earlyGrowthBasisPoints = 1500)
+        public static long CalculateGrowthBasisPoints(
+            int worldLevel,
+            int phase1GrowthBasisPoints = 1500,
+            int phase2GrowthBasisPoints = 3500,
+            int phase3GrowthBasisPoints = 8000,
+            int phase4GrowthBasisPoints = 15000)
         {
             if (worldLevel <= 12)
             {
-                // Phase 1: Early Game (WL 1-12, Stages 1-60): Standard growth (+15% per WorldLevel)
-                return 10000L + (long)(worldLevel - 1) * earlyGrowthBasisPoints;
+                // Phase 1: Early Game (WL 1-12, Stages 1-60): Standard growth (+15% per WorldLevel by default)
+                return 10000L + (long)(worldLevel - 1) * phase1GrowthBasisPoints;
             }
-            long baseEarly = 10000L + 11L * earlyGrowthBasisPoints;
+            long baseEarly = 10000L + 11L * phase1GrowthBasisPoints;
             if (worldLevel <= 24)
             {
-                // Phase 2: Mid Game (WL 13-24, Stages 61-120): Intermediate acceleration (+35% per WorldLevel)
-                return baseEarly + (long)(worldLevel - 12) * 3500L;
+                // Phase 2: Mid Game (WL 13-24, Stages 61-120): Intermediate acceleration (+35% per WorldLevel by default)
+                return baseEarly + (long)(worldLevel - 12) * phase2GrowthBasisPoints;
             }
-            long baseMid = baseEarly + 12L * 3500L;
+            long baseMid = baseEarly + 12L * phase2GrowthBasisPoints;
             if (worldLevel <= 30)
             {
-                // Phase 3: Transition Bridge (WL 25-30, Stages 121-150): Step-up ramp (+80% per WorldLevel)
-                return baseMid + (long)(worldLevel - 24) * 8000L;
+                // Phase 3: Transition Bridge (WL 25-30, Stages 121-150): Step-up ramp (+80% per WorldLevel by default)
+                return baseMid + (long)(worldLevel - 24) * phase3GrowthBasisPoints;
             }
-            // Phase 4: Late Game (WL 31-40, Stages 151-200): Watered-down +150% endgame growth (ramp up to ~26.7x)
-            long baseBridge = baseMid + 6L * 8000L;
-            return baseBridge + (long)(worldLevel - 30) * 20000L;
+            // Phase 4: Late Game (WL 31-40, Stages 151-200): Data-driven endgame growth (+150% or custom per WorldLevel)
+            long baseBridge = baseMid + 6L * phase3GrowthBasisPoints;
+            return baseBridge + (long)(worldLevel - 30) * phase4GrowthBasisPoints;
         }
 
         public static int Calculate(StageMapData map, MonsterData monster, string runId, StageId stage)
         {
-            long growth = CalculateGrowthBasisPoints(stage.WorldLevel, map.GrowthBasisPoints);
+            long growth = CalculateGrowthBasisPoints(
+                stage.WorldLevel,
+                map.Phase1GrowthBasisPoints,
+                map.Phase2GrowthBasisPoints,
+                map.Phase3GrowthBasisPoints,
+                map.Phase4GrowthBasisPoints);
             ulong hash = StableHash64.Compute(runId, map.CatalogVersion, stage.Value.ToString(), "hp");
             int span = map.VariationBasisPoints * 2 + 1;
             long variation = 10000L - map.VariationBasisPoints + (long)(hash % (ulong)span);
-            long baseline = monster.BaseHp > 0 ? (long)monster.BaseHp : (long)map.NormalHpBaseline;
+            long baseline = Math.Max(1, (long)monster.BaseHp);
             long numerator = checked(baseline * growth);
             numerator = checked(numerator * monster.HpMultiplierBasisPoints);
             numerator = checked(numerator * variation);
@@ -526,9 +602,12 @@ namespace PowerMath.Gameplay.Combat
             ulong hash = offset;
             foreach (string value in values ?? Array.Empty<string>())
             {
-                byte[] bytes = Encoding.UTF8.GetBytes(value ?? string.Empty);
-                foreach (byte item in bytes) { hash ^= item; hash *= prime; }
-                hash ^= 255; hash *= prime;
+                if (value == null) continue;
+                for (int i = 0; i < value.Length; i++)
+                {
+                    hash ^= value[i];
+                    hash *= prime;
+                }
             }
             return hash;
         }
@@ -574,11 +653,12 @@ namespace PowerMath.Gameplay.Combat
             }
             var challenge = new EventData("challenge-monster", "Challenge Monster",
                 EventStageType.ChallengeMonster);
-            return new StageMapData("development-stage-map-v1", 40, 1200, 500,
+            return new StageMapData("development-stage-map-v1", 1200, 500,
                 biomes, new Dictionary<int, EventData>
                 {
                     { 7, challenge }
-                }, new[] { challenge }, 0);
+                }, new[] { challenge }, 0,
+                null, 3500, 8000, 20000);
         }
     }
 }

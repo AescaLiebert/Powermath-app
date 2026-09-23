@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using PowerMath.Bootstrap;
 using PowerMath.Gameplay.Pets;
+using PowerMath.Gameplay.Progression;
 using PowerMath.Localization;
 using PowerMath.PlayerData;
 using PowerMath.UI.Core;
@@ -11,9 +12,254 @@ using UnityEngine.UIElements;
 
 namespace PowerMath.UI.MainMenu
 {
+    // Drawn in UI space so the cinematic shares the panel's clipping, scaling and skip input.
+    internal sealed class PetWishSky : VisualElement
+    {
+        public const float Duration = 6.4f;
+        private float _time;
+        private int _tier;
+        private int _count;
+        private bool _reduced;
+        private float _sx;
+        private float _sy;
+        private Painter2D _p;
+
+        public PetWishSky()
+        {
+            pickingMode = PickingMode.Ignore;
+            style.position = Position.Absolute;
+            style.left = style.right = style.top = style.bottom = 0;
+            generateVisualContent += Draw;
+        }
+
+        public void Configure(int tier, int count, bool reduced)
+        {
+            _tier = tier;
+            _count = Mathf.Clamp(count, 1, 10);
+            _reduced = reduced;
+            SetTime(0);
+        }
+
+        public void SetTime(float seconds)
+        {
+            _time = seconds;
+            MarkDirtyRepaint();
+        }
+
+        private Color RarityColor => _tier == 2
+            ? new Color(1f, 0.74f, 0.22f)
+            : _tier == 1 ? new Color(0.72f, 0.4f, 1f) : new Color(0.88f, 0.96f, 1f);
+
+        private Vector2 Point(float x, float y) => new Vector2(x * _sx, y * _sy);
+        private static float Ease(float value)
+        {
+            float t = Mathf.Clamp01(value);
+            return 1f - Mathf.Pow(1f - t, 3f);
+        }
+
+        private void Draw(MeshGenerationContext context)
+        {
+            if (contentRect.width < 1 || contentRect.height < 1) return;
+            _p = context.painter2D;
+            _sx = contentRect.width / 1600f;
+            _sy = contentRect.height / 900f;
+            float flight = Ease((_time - 1.45f) / 0.65f);
+            Color zenith = Color.Lerp(new Color(0.19f, 0.40f, 0.67f),
+                new Color(0.025f, 0.09f, 0.24f), flight);
+            Color horizon = Color.Lerp(new Color(0.76f, 0.88f, 0.94f),
+                new Color(0.12f, 0.39f, 0.65f), flight);
+            for (int band = 0; band < 32; band++)
+                Quad(0, band * 29, 1600, 30, Color.Lerp(zenith, horizon, band / 31f));
+
+            if (_reduced)
+            {
+                Glow(800, 420, 230, RarityColor, 0.6f);
+                Star(800, 420, 36, Color.white);
+                return;
+            }
+
+            // Soft overlapping cloud banks drift around the opening and past the flight camera.
+            for (int i = 0; i < 26; i++)
+            {
+                float seed = i * 2.39996f;
+                float x = (i * 193f + _time * (18f + flight * 75f)) % 1900f - 150f;
+                float y = 740 + Mathf.Sin(seed) * 125f;
+                Color cloud = Color.Lerp(new Color(0.8f, 0.9f, 0.98f),
+                    new Color(0.22f, 0.45f, 0.7f), flight);
+                Glow(x, y, 170 + 60 * Mathf.Sin(i), cloud, 0.16f);
+            }
+
+            if (_time < 2.05f) DrawPortal(1f - flight);
+            if (_time >= 1.5f) DrawFlight();
+
+            // Whiteout is held through the handoff, instead of cutting a moving comet away.
+            float flash = Ease((_time - 5.88f) / 0.34f);
+            if (flash > 0)
+                Quad(0, 0, 1600, 900, new Color(1, 1, 1, flash));
+        }
+
+        private void DrawPortal(float alpha)
+        {
+            float open = Ease(_time / 1.25f);
+            float radius = Mathf.Lerp(70, 205, open);
+            Glow(800, 320, radius * 2.1f, new Color(0.72f, 0.88f, 1f), alpha * 0.2f);
+            Disc(800, 320, radius, new Color(0.025f, 0.10f, 0.25f, alpha));
+            for (int arm = 0; arm < 7; arm++)
+            {
+                _p.BeginPath();
+                for (int step = 0; step <= 26; step++)
+                {
+                    float u = step / 26f;
+                    float angle = arm * Mathf.PI * 2 / 7 + u * 2.9f - _time * 0.75f;
+                    float r = radius * (0.5f + u * 1.9f);
+                    Vector2 point = Point(800 + Mathf.Cos(angle) * r,
+                        320 + Mathf.Sin(angle) * r * 0.55f);
+                    if (step == 0) _p.MoveTo(point); else _p.LineTo(point);
+                }
+                _p.strokeColor = new Color(0.86f, 0.95f, 1f, alpha * 0.48f);
+                _p.lineWidth = 26f * _sx;
+                _p.Stroke();
+            }
+            Glow(800, 320, 80 * open, Color.white, alpha * 0.8f);
+            Star(800, 320, 9 + 18 * open, new Color(1, 1, 1, alpha));
+        }
+
+        private void DrawFlight()
+        {
+            float travel = Mathf.Clamp01((_time - 1.5f) / 4.4f);
+            float colorBeat = Ease((_time - 3.0f) / 0.65f);
+            Color color = Color.Lerp(new Color(0.32f, 0.72f, 1f), RarityColor, colorBeat);
+            float x = Mathf.Lerp(420, 1090, Ease(travel));
+            float y = Mathf.Lerp(210, 520, travel);
+            float entrance = Ease((_time - 1.5f) / 0.45f);
+
+            // Long diagonal streaks sell camera velocity without moving the UI layout.
+            for (int i = 0; i < 28; i++)
+            {
+                float phase = (_time * (0.32f + i * 0.009f) + i * 0.137f) % 1f;
+                float px = 1900 - phase * 2300;
+                float py = (i * 97f) % 1050 - phase * 190;
+                Stroke(px, py, px - 160, py - 54, 1.2f,
+                    new Color(0.65f, 0.85f, 1f, entrance * 0.17f));
+            }
+            Comet(x, y, 560 + 300 * travel, color, entrance, 1f);
+
+            // Rarity bloom arrives mid-flight, followed by companion wishes on multi-pulls.
+            float ring = Mathf.Clamp01((_time - 3.1f) / 0.8f);
+            if (ring > 0 && ring < 1)
+            {
+                _p.BeginPath();
+                _p.Arc(Point(x, y), (45 + ring * 290) * _sx, 0, 360);
+                _p.strokeColor = new Color(color.r, color.g, color.b, (1 - ring) * 0.8f);
+                _p.lineWidth = 4 * _sx;
+                _p.Stroke();
+            }
+            for (int i = 1; i < _count; i++)
+            {
+                float arrive = Ease((_time - 3.9f - i * 0.08f) / 0.4f);
+                if (arrive <= 0) continue;
+                float lane = i - (_count - 1) * 0.5f;
+                Comet(x - 100 - i * 24, y + lane * 48, 300,
+                    new Color(0.52f, 0.78f, 1f), arrive * 0.8f, 0.4f);
+            }
+            float approach = Ease((_time - 5.15f) / 0.75f);
+            if (approach > 0)
+            {
+                Glow(x, y, 100 + approach * 850, color, approach * 0.75f);
+                Star(x, y, 30 + approach * 380, new Color(1, 1, 1, approach));
+            }
+        }
+
+        private void Comet(float x, float y, float length, Color color, float alpha, float size)
+        {
+            Vector2 head = Point(x, y);
+            Vector2 tail = Point(x - length, y - length * 0.36f);
+            for (int layer = 5; layer >= 1; layer--)
+            {
+                _p.BeginPath();
+                _p.MoveTo(tail);
+                _p.LineTo(Point(x, y - layer * 7 * size));
+                _p.LineTo(head);
+                _p.LineTo(Point(x, y + layer * 7 * size));
+                _p.ClosePath();
+                _p.fillColor = new Color(color.r, color.g, color.b, alpha * 0.10f);
+                _p.Fill();
+            }
+            Stroke(x - length * 0.82f, y - length * 0.295f, x, y,
+                3 * size, new Color(1, 1, 1, alpha * 0.9f));
+            Glow(x, y, 64 * size, color, alpha * 0.6f);
+            Star(x, y, 18 * size, new Color(1, 1, 1, alpha));
+        }
+
+        private void Glow(float x, float y, float radius, Color color, float alpha)
+        {
+            for (int i = 8; i >= 1; i--)
+                Disc(x, y, radius * i / 8f,
+                    new Color(color.r, color.g, color.b, alpha * (1f - i / 9f) * 0.25f));
+        }
+
+        private void Disc(float x, float y, float radius, Color color)
+        {
+            if (radius <= 0) return;
+            _p.BeginPath();
+            _p.Arc(Point(x, y), radius * _sx, 0, 360);
+            _p.ClosePath();
+            _p.fillColor = color;
+            _p.Fill();
+        }
+
+        private void Star(float x, float y, float radius, Color color)
+        {
+            _p.BeginPath();
+            for (int i = 0; i < 8; i++)
+            {
+                float angle = i * Mathf.PI / 4;
+                float r = i % 2 == 0 ? radius : radius * 0.18f;
+                Vector2 v = Point(x + Mathf.Cos(angle) * r, y + Mathf.Sin(angle) * r);
+                if (i == 0) _p.MoveTo(v); else _p.LineTo(v);
+            }
+            _p.ClosePath();
+            _p.fillColor = color;
+            _p.Fill();
+        }
+
+        private void Stroke(float x, float y, float x2, float y2, float width, Color color)
+        {
+            _p.BeginPath();
+            _p.MoveTo(Point(x, y));
+            _p.LineTo(Point(x2, y2));
+            _p.lineWidth = width * _sx;
+            _p.strokeColor = color;
+            _p.Stroke();
+        }
+
+        private void Quad(float x, float y, float width, float height, Color color)
+        {
+            _p.BeginPath();
+            _p.MoveTo(Point(x, y));
+            _p.LineTo(Point(x + width, y));
+            _p.LineTo(Point(x + width, y + height));
+            _p.LineTo(Point(x, y + height));
+            _p.ClosePath();
+            _p.fillColor = color;
+            _p.Fill();
+        }
+    }
+
     public sealed class PetGachaPanelController : IDisposable
     {
-        private const int TransitionDurationMilliseconds = 2200;
+        public event Action TutorialPanelOpened;
+        public event Action TutorialRevealCompleted;
+        public event Action TutorialReturnedToMainMenu;
+
+        private const int TransitionTokenStartMilliseconds = 1900;
+        private const int TransitionTokenStaggerMilliseconds = 90;
+        private const int TransitionTokenSettleMilliseconds = 340;
+        private const int TransitionLineupHoldMilliseconds = 850;
+        private const int TransitionExitMilliseconds = 300;
+        private float _silhouetteStartScale = 1.76f;
+        private PetWishSky _wishSky;
+        private IVisualElementScheduledItem _wishClock;
         private const int RevealDropMilliseconds = 60;
         private const int RevealPetPrimeLeadMilliseconds = 32;
         private const int RevealPetMilliseconds = 620;
@@ -59,6 +305,7 @@ namespace PowerMath.UI.MainMenu
         private readonly Button _open;
         private readonly VisualElement _lockOverlay;
         private readonly VisualElement _modal;
+        private readonly VisualElement _fullScreenBackground;
         private readonly Button _close;
         private readonly Label _balance;
         private readonly Label _cost;
@@ -126,6 +373,7 @@ namespace PowerMath.UI.MainMenu
         private int _visibleRevealStarCount;
         private int _openSequenceId;
         private bool _opening;
+        private bool _wasPlayerMenuUnlocked;
 
         public PetGachaPanelController(
             MonoBehaviour host,
@@ -156,6 +404,7 @@ namespace PowerMath.UI.MainMenu
             _open = Require<Button>(root, "pet-gacha-button");
             _lockOverlay = _open.Q<VisualElement>("pet-gacha-lock");
             _modal = Require<VisualElement>(root, "pet-gacha-modal");
+            _fullScreenBackground = root.Q<VisualElement>("pet-gacha-fullscreen-background");
             _close = Require<Button>(root, "pet-gacha-close");
             _balance = Require<Label>(root, "pet-gacha-balance");
             _cost = Require<Label>(root, "pet-gacha-cost");
@@ -269,6 +518,7 @@ namespace PowerMath.UI.MainMenu
             _resultsContinue.clicked -= Continue;
             CancelOpenSequence(true);
             InvalidateAnimationSequence();
+            SetFullScreenBackgroundVisible(false);
             if (_panelHost.OpenPanel == MainMenuPanelId.PetGacha)
                 _panelHost.TryClose(MainMenuPanelId.PetGacha, _open);
         }
@@ -299,32 +549,44 @@ namespace PowerMath.UI.MainMenu
             HideDetails();
             ResetPresentationVisuals();
             ResetPanelEnterAnimation();
+            SetFullScreenBackgroundVisible(false);
+            SetMainMenuExitProgress(0f);
+            TutorialReturnedToMainMenu?.Invoke();
         }
 
         private void RefreshAvailability()
         {
-            bool gachaAvailable = GameVersionChecker.IsFeatureAvailable(GameFeature.PetGacha);
-            if (!gachaAvailable)
+            bool playerMenuUnlocked = PlayerMenuUnlockPolicy.IsHubAndGachaUnlocked(_player);
+            if (!playerMenuUnlocked)
             {
                 _open.SetEnabled(true);
                 _open.pickingMode = PickingMode.Position;
-                _open.tooltip = "Pet Gacha (Locked in v1.0)";
+                _open.tooltip = "Unlocks after reaching Stage 31 or completing a run settlement.";
                 _open.AddToClassList("is-feature-locked");
                 _lockOverlay?.RemoveFromClassList("is-hidden");
+                if (_lockOverlay != null) _lockOverlay.style.display = DisplayStyle.Flex;
+                _wasPlayerMenuUnlocked = false;
                 return;
             }
 
             _open.RemoveFromClassList("is-feature-locked");
             _open.pickingMode = PickingMode.Position;
             _lockOverlay?.AddToClassList("is-hidden");
+            if (_lockOverlay != null) _lockOverlay.style.display = DisplayStyle.None;
+            if (!_wasPlayerMenuUnlocked)
+            {
+                _open.AddToClassList("is-unlocking");
+                _open.schedule.Execute(() =>
+                    _open.RemoveFromClassList("is-unlocking")).StartingIn(500);
+            }
+            _wasPlayerMenuUnlocked = true;
 
-            bool safe = string.IsNullOrEmpty(_player.activeRun?.committedAttemptId) &&
-                !string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal);
+            bool safe = !string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal);
             _open.SetEnabled(IsConfigured && safe && !_busy && !_opening);
             _open.tooltip = IsConfigured
                 ? safe
                     ? "Spend Power Coins on transparent 1x or 10x pet pulls."
-                    : "Finish the current question or run settlement first."
+                    : "Finish run settlement first."
                 : string.IsNullOrEmpty(_unavailableReason)
                     ? "Pet Gacha content is not configured."
                     : _unavailableReason;
@@ -332,14 +594,15 @@ namespace PowerMath.UI.MainMenu
 
         private void BeginOpenSequence()
         {
-            if (!GameVersionChecker.IsFeatureAvailable(GameFeature.PetGacha))
+            if (!PlayerMenuUnlockPolicy.IsHubAndGachaUnlocked(_player))
             {
                 StatusMessageService.ShowWarning(
-                    LocalizationService.Get("menu.lockedFeatureUpdate"));
+                    "Reach Stage 31 or complete a run settlement to unlock Pet Gacha.");
                 return;
             }
             if (!IsConfigured || _busy || _opening ||
-                _panelHost.OpenPanel != MainMenuPanelId.None) return;
+                _panelHost.OpenPanel != MainMenuPanelId.None ||
+                !string.IsNullOrEmpty(_player.activeRun?.committedAttemptId)) return;
 
             _opening = true;
             _open.SetEnabled(false);
@@ -399,8 +662,12 @@ namespace PowerMath.UI.MainMenu
         private void CompleteOpenBehindCurtain(int sequence)
         {
             if (sequence != _openSequenceId) return;
-            OpenPanelNow();
-            SetMainMenuExitProgress(0f);
+            if (!OpenPanelNow())
+            {
+                SetMainMenuExitProgress(0f);
+                CompleteCurtainFade(sequence);
+                return;
+            }
 
             if (_motionDriver == null)
             {
@@ -432,6 +699,7 @@ namespace PowerMath.UI.MainMenu
             if (!_panelHost.TryOpen(
                     MainMenuPanelId.PetGacha,
                     _modal, _open)) return false;
+            SetFullScreenBackgroundVisible(true);
             InvalidateAnimationSequence();
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
@@ -443,7 +711,38 @@ namespace PowerMath.UI.MainMenu
             SetSemanticState();
             RenderPreview();
             PlayPanelEnterAnimation();
+            TutorialPanelOpened?.Invoke();
             return true;
+        }
+
+        public bool TryOpenForTutorial()
+        {
+            if (!IsConfigured || _busy || _opening ||
+                _panelHost.OpenPanel != MainMenuPanelId.None) return false;
+            BeginOpenSequence();
+            return true;
+        }
+
+        public bool TryRequestOnePullForTutorial()
+        {
+            if (_busy || _committed || _panelHost.OpenPanel != MainMenuPanelId.PetGacha)
+                return false;
+            BeginConfirmation(1);
+            return _confirmation.resolvedStyle.display != DisplayStyle.None;
+        }
+
+        public bool TryConfirmOnePullForTutorial()
+        {
+            if (!CanConfirmOnePullForTutorial()) return false;
+            Confirm();
+            return _committed;
+        }
+
+        public bool CanConfirmOnePullForTutorial()
+        {
+            return !_busy && !_committed && _selectedPullCount == 1 &&
+                _confirmation.resolvedStyle.display != DisplayStyle.None &&
+                CanPull(out _);
         }
 
         private void SetMainMenuExitProgress(float progress)
@@ -499,6 +798,8 @@ namespace PowerMath.UI.MainMenu
                 _modal.EnableInClassList("is-hidden", true);
                 _modal.style.display = DisplayStyle.None;
             }
+            SetFullScreenBackgroundVisible(false);
+            SetMainMenuExitProgress(0f);
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
             _transition.style.display = DisplayStyle.None;
@@ -556,16 +857,15 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
 
-            bool canAfford1 = coins >= singleCost;
             if (_pull1 != null)
             {
                 if (_singlePullLabel == null) _pull1.text = $"1x PULL ({singleCost:N0})";
-                _pull1.SetEnabled(canAfford1);
+                _pull1.SetEnabled(true);
             }
             if (_pull10 != null)
             {
                 if (_multiPullLabel == null) _pull10.text = $"10x PULL ({multiCost:N0})";
-                _pull10.SetEnabled(_multiPullAvailable && coins >= multiCost);
+                _pull10.SetEnabled(_multiPullAvailable);
             }
 
             _status.text = string.Empty;
@@ -651,7 +951,8 @@ namespace PowerMath.UI.MainMenu
             long coins = Math.Max(0, _player.wallet?.powerCoins ?? 0);
             if (coins < totalCost)
             {
-                StatusMessageService.ShowWarning($"You need {totalCost - coins:N0} more Power Coins.");
+                StatusMessageService.ShowWarning(
+                    $"Summon failed: you need {totalCost - coins:N0} more Power Coins.");
                 _status.text = string.Empty;
                 RenderPreview();
                 Play(_definition?.ErrorClip);
@@ -691,6 +992,15 @@ namespace PowerMath.UI.MainMenu
             _pendingTransactionId = string.Empty;
             SetSemanticState();
             RenderPreview();
+        }
+
+        private void SetFullScreenBackgroundVisible(bool visible)
+        {
+            if (_fullScreenBackground == null) return;
+            _fullScreenBackground.EnableInClassList("is-hidden", !visible);
+            _fullScreenBackground.style.display = visible
+                ? DisplayStyle.Flex
+                : DisplayStyle.None;
         }
 
         private bool CanPull(out string reason)
@@ -799,7 +1109,7 @@ namespace PowerMath.UI.MainMenu
             Play(_definition?.ErrorClip);
             if (failure.Code == PetGachaFailureCode.InsufficientFunds)
             {
-                StatusMessageService.ShowWarning(failure.Message);
+                StatusMessageService.ShowWarning($"Summon failed: {failure.Message}");
             }
             else
             {
@@ -853,19 +1163,31 @@ namespace PowerMath.UI.MainMenu
                 : highest == RarityTier.Sr
                     ? "A RARE CALL RESONATES"
                     : "THE CALL RESONATES";
-            BuildTransitionTokens(receipt);
             ResetTransitionPhases();
-
+            if (_wishSky == null)
+            {
+                _wishSky = new PetWishSky();
+                _transition.Insert(0, _wishSky);
+            }
+            _transition.AddToClassList("is-cinematic");
+            _wishSky.Configure((int)highest, receipt.Results.Count, _reducedMotion);
+            PowerMath.Audio.SfxController.Instance?.PlayGachaSkyOpening();
+            double startedAt = Time.realtimeSinceStartupAsDouble;
             int sequence = _animationSequenceId;
-            Schedule(_transition, sequence, 40, () =>
-                _transition.AddToClassList("is-vortex-active"));
-            Schedule(_transition, sequence, 430, () =>
-                _transition.AddToClassList("is-comet-active"));
-            Schedule(_transition, sequence, 1540, () =>
-                _transition.AddToClassList("is-burst-active"));
-            Schedule(_transition, sequence,
-                _reducedMotion ? 180 : TransitionDurationMilliseconds,
-                BeginRevealQueue);
+            bool fallingStarPlayed = false;
+            _wishClock = _transition.schedule.Execute(() =>
+            {
+                if (sequence != _animationSequenceId) return;
+                float elapsed = (float)(Time.realtimeSinceStartupAsDouble - startedAt);
+                _wishSky.SetTime(elapsed);
+                if (!fallingStarPlayed && elapsed >= (_reducedMotion ? 0.05f : 1.5f))
+                {
+                    fallingStarPlayed = true;
+                    PowerMath.Audio.SfxController.Instance?.PlayGachaFallingStar();
+                }
+                if (elapsed >= (_reducedMotion ? 0.25f : PetWishSky.Duration))
+                    BeginRevealQueue();
+            }).Every(16);
         }
 
         private void BuildTransitionTokens(PetGachaReceipt receipt)
@@ -883,7 +1205,8 @@ namespace PowerMath.UI.MainMenu
                 _transitionTokens.Add(token);
 
                 int sequence = _animationSequenceId;
-                int delay = _reducedMotion ? 0 : 1680 + (i * 55);
+                int delay = _reducedMotion ? 0 :
+                    TransitionTokenStartMilliseconds + i * TransitionTokenStaggerMilliseconds;
                 Schedule(token, sequence, delay, () => token.AddToClassList("is-entered"));
             }
         }
@@ -925,13 +1248,19 @@ namespace PowerMath.UI.MainMenu
             ResetRevealPhases();
             PetGachaResult roll = _presentationReceipt.Results[index];
             RarityTier tier = ResolveRarityTier(roll.RarityId, roll.PetId);
+            _silhouetteStartScale = _reducedMotion ? 1f :
+                tier == RarityTier.Ssr ? 2.65f : tier == RarityTier.Sr ? 2.2f : 1.76f;
+            int anticipation = _reducedMotion ? 0 :
+                tier == RarityTier.Ssr ? 300 : tier == RarityTier.Sr ? 140 : 0;
             ApplyRarityClass(_reveal, tier);
             _revealProgress.text = $"REVEAL {index + 1} / {_presentationReceipt.Results.Count}";
             RenderReveal(roll, _presentationReceipt.ResultingPowerCoins);
             _reveal.Focus();
+            if (index == 0)
+                PowerMath.Audio.SfxController.Instance?.PlayGachaStarToReveal();
 
             int sequence = _animationSequenceId;
-            int starStart = _reducedMotion ? 20 : RevealStarsMilliseconds;
+            int starStart = _reducedMotion ? 20 : RevealStarsMilliseconds + anticipation;
             Schedule(_reveal, sequence,
                 _reducedMotion
                     ? 0
@@ -940,9 +1269,12 @@ namespace PowerMath.UI.MainMenu
             Schedule(_reveal, sequence, _reducedMotion ? 0 : RevealDropMilliseconds,
                 () =>
                 {
+                    PowerMath.Audio.SfxController.Instance?.PlayGachaSilhouetteDrop();
                     _reveal.AddToClassList("is-reveal-drop");
                     if (_resultSilhouette != null)
                     {
+                        _resultSilhouette.style.transitionDuration =
+                            new StyleList<TimeValue>(StyleKeyword.Null);
                         _resultSilhouette.style.opacity = 1f;
                         _resultSilhouette.style.translate =
                             new Translate(0f, 0f, 0f);
@@ -950,9 +1282,10 @@ namespace PowerMath.UI.MainMenu
                             new Scale(Vector3.one);
                     }
                 });
-            Schedule(_reveal, sequence, _reducedMotion ? 0 : RevealPetMilliseconds,
+            Schedule(_reveal, sequence, _reducedMotion ? 0 : RevealPetMilliseconds + anticipation,
                 () =>
                 {
+                    PowerMath.Audio.SfxController.Instance?.PlayGachaPetReveal();
                     _reveal.AddToClassList("is-reveal-pet");
                     if (_resultSilhouette != null)
                         _resultSilhouette.style.opacity = 0f;
@@ -966,9 +1299,9 @@ namespace PowerMath.UI.MainMenu
             Schedule(_reveal, sequence,
                 _reducedMotion
                     ? 0
-                    : RevealCopyMilliseconds - RevealCopyPrimeLeadMilliseconds,
+                    : RevealCopyMilliseconds + anticipation - RevealCopyPrimeLeadMilliseconds,
                 PrimeRevealCopy);
-            Schedule(_reveal, sequence, _reducedMotion ? 0 : RevealCopyMilliseconds,
+            Schedule(_reveal, sequence, _reducedMotion ? 0 : RevealCopyMilliseconds + anticipation,
                 () =>
                 {
                     _reveal.AddToClassList("is-reveal-copy");
@@ -978,15 +1311,19 @@ namespace PowerMath.UI.MainMenu
                         _revealCopy.style.translate = new Translate(0f, 0f, 0f);
                     }
                 });
-            Schedule(_reveal, sequence, _reducedMotion ? 0 : RevealFlashClearMilliseconds,
+            Schedule(_reveal, sequence, _reducedMotion ? 0 : RevealFlashClearMilliseconds + anticipation,
                 () => _reveal.AddToClassList("is-reveal-flash-cleared"));
 
             for (int i = 0; i < _visibleRevealStarCount; i++)
             {
                 int starIndex = i;
-                Schedule(_resultStars[starIndex], sequence,
+                Schedule(_reveal, sequence,
                     starStart + (_reducedMotion ? 0 : starIndex * RevealStarStaggerMilliseconds),
-                    () => _resultStars[starIndex].AddToClassList("is-visible"));
+                    () =>
+                    {
+                        _resultStars[starIndex].AddToClassList("is-visible");
+                        PowerMath.Audio.SfxController.Instance?.PlayGachaRarityStarDrop(starIndex);
+                    });
             }
 
             int readyAt = starStart +
@@ -1021,11 +1358,29 @@ namespace PowerMath.UI.MainMenu
                     _resultRarity.style.color = GetRarityColor(ResolveRarityTier(roll.RarityId, roll.PetId));
                 }
                 SetRevealStars(rarity.showcaseStarCount);
-                if (_resultIcon != null) _resultIcon.sprite = pet.PreviewSprite;
-                if (_resultSilhouette != null)
+                if (pet.PreviewSprite != null)
                 {
-                    _resultSilhouette.sprite = pet.PreviewSprite;
-                    _resultSilhouette.tintColor = Color.black;
+                    if (_resultIcon != null) _resultIcon.sprite = pet.PreviewSprite;
+                    if (_resultSilhouette != null)
+                    {
+                        _resultSilhouette.sprite = pet.PreviewSprite;
+                        _resultSilhouette.tintColor = Color.black;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(pet.PreviewAddressableKey))
+                {
+                    UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>(pet.PreviewAddressableKey).Completed += handle =>
+                    {
+                        if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded && handle.Result != null)
+                        {
+                            if (_resultIcon != null) _resultIcon.sprite = handle.Result;
+                            if (_resultSilhouette != null)
+                            {
+                                _resultSilhouette.sprite = handle.Result;
+                                _resultSilhouette.tintColor = Color.black;
+                            }
+                        }
+                    };
                 }
             }
             else
@@ -1106,6 +1461,7 @@ namespace PowerMath.UI.MainMenu
                 _close.SetEnabled(true);
             });
             _results.Focus();
+            TutorialRevealCompleted?.Invoke();
         }
 
         private VisualElement CreateResultCard(PetGachaResult roll)
@@ -1135,7 +1491,19 @@ namespace PowerMath.UI.MainMenu
             {
                 name.text = pet.DisplayName;
                 if (pet.Icon != null && pet.Icon.texture != null)
+                {
                     icon.style.backgroundImage = new StyleBackground(pet.Icon.texture);
+                }
+                else if (!string.IsNullOrEmpty(pet.IconAddressableKey))
+                {
+                    UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>(pet.IconAddressableKey).Completed += handle =>
+                    {
+                        if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded && handle.Result != null && handle.Result.texture != null)
+                        {
+                            icon.style.backgroundImage = new StyleBackground(handle.Result.texture);
+                        }
+                    };
+                }
             }
 
             card.Add(badge);
@@ -1256,6 +1624,8 @@ namespace PowerMath.UI.MainMenu
             _transition.RemoveFromClassList("is-vortex-active");
             _transition.RemoveFromClassList("is-comet-active");
             _transition.RemoveFromClassList("is-burst-active");
+            _transition.RemoveFromClassList("is-burst-cleared");
+            _transition.RemoveFromClassList("is-transition-exiting");
         }
 
         private void ResetRevealPhases()
@@ -1307,17 +1677,22 @@ namespace PowerMath.UI.MainMenu
         private void PrimeRevealPet()
         {
             if (_resultSilhouette == null) return;
+            // Prime the oversized pose without interpolating from the previous pet.
+            _resultSilhouette.style.transitionDuration =
+                new List<TimeValue> { new TimeValue(0f) };
             _resultSilhouette.tintColor = Color.black;
             _resultSilhouette.style.visibility = Visibility.Visible;
             _resultSilhouette.style.opacity = 0f;
             _resultSilhouette.style.translate =
                 new Translate(0f, -118f, 0f);
             _resultSilhouette.style.scale =
-                new Scale(new Vector3(1.76f, 1.76f, 1f));
+                new Scale(new Vector3(_silhouetteStartScale, _silhouetteStartScale, 1f));
         }
 
         private void InvalidateAnimationSequence()
         {
+            _wishClock?.Pause();
+            _wishClock = null;
             unchecked { _animationSequenceId++; }
         }
 

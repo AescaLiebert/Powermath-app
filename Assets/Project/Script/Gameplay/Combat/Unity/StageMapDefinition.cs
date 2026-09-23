@@ -8,21 +8,45 @@ namespace PowerMath.Gameplay.Combat.Unity
     [CreateAssetMenu(fileName = "StageMapDefinition", menuName = "PowerMath/Stage Map/Stage Map Definition")]
     public sealed class StageMapDefinition : ScriptableObject
     {
-        [Serializable] public sealed class FixedEventBinding
+        /// <summary>
+        /// Pins a specific stage to either a fixed monster encounter or a fixed event.
+        /// Exactly one of <see cref="monsterDefinition"/> / <see cref="eventDefinition"/> must be set.
+        /// Only non-protected normal stages (not multiples of 5) are eligible.
+        /// </summary>
+        [Serializable] public sealed class FixedStageBinding
         {
             [Min(1)] public int stage;
+            [Tooltip("Set this to pin a specific monster to this stage (mutually exclusive with Event).")]
+            public EnemyDefinition monsterDefinition;
+            [Tooltip("Set this to pin a specific event to this stage (mutually exclusive with Monster).")]
             public EventDefinition eventDefinition;
         }
+
         [SerializeField] private string catalogVersion = "stage-map-v1";
-        [Min(1), SerializeField] private int normalHpBaseline = 40;
+
+        [Header("World Level Growth By Phase (Basis Points: 10000 = 1.0x / 100%)")]
+        [Tooltip("Phase 1: Early Game (WL 1-12, Stages 1-60). Default 1500 (+15% per WL).")]
         [Min(0), SerializeField] private int worldLevelGrowthBasisPoints = 1200;
+        [Tooltip("Phase 2: Mid Game (WL 13-24, Stages 61-120). Default 3500 (+35% per WL).")]
+        [Min(0), SerializeField] private int phase2GrowthBasisPoints = 3500;
+        [Tooltip("Phase 3: Transition Bridge (WL 25-30, Stages 121-150). Default 8000 (+80% per WL).")]
+        [Min(0), SerializeField] private int phase3GrowthBasisPoints = 8000;
+        [Tooltip("Phase 4: Late Game (WL 31-40, Stages 151-200). Default 15000 (+150% per WL). Set to 50000 for +5.0x per WL.")]
+        [Min(0), SerializeField] private int phase4GrowthBasisPoints = 15000;
+
         [Range(0, 4999), SerializeField] private int hpVariationBasisPoints = 500;
         [Range(0f, 100f), SerializeField] private float eventEncounterLuckPercentage;
         [SerializeField] private BiomeDefinition[] biomes = Array.Empty<BiomeDefinition>();
         [SerializeField] private EventDefinition[] eventDefinitions = Array.Empty<EventDefinition>();
-        [SerializeField] private FixedEventBinding[] fixedEvents = Array.Empty<FixedEventBinding>();
+        [SerializeField] private FixedStageBinding[] fixedStages = Array.Empty<FixedStageBinding>();
+
+        public int WorldLevelGrowthBasisPoints => worldLevelGrowthBasisPoints;
+        public int Phase1GrowthBasisPoints => worldLevelGrowthBasisPoints;
+        public int Phase2GrowthBasisPoints => phase2GrowthBasisPoints > 0 ? phase2GrowthBasisPoints : 3500;
+        public int Phase3GrowthBasisPoints => phase3GrowthBasisPoints > 0 ? phase3GrowthBasisPoints : 8000;
+        public int Phase4GrowthBasisPoints => phase4GrowthBasisPoints > 0 ? phase4GrowthBasisPoints : 15000;
         public IReadOnlyList<BiomeDefinition> Biomes => biomes ?? Array.Empty<BiomeDefinition>();
-        public IReadOnlyList<FixedEventBinding> FixedEvents => fixedEvents ?? Array.Empty<FixedEventBinding>();
+        public IReadOnlyList<FixedStageBinding> FixedStages => fixedStages ?? Array.Empty<FixedStageBinding>();
 
         public bool TryMap(out StageMapData data, out string error)
         {
@@ -40,12 +64,28 @@ namespace PowerMath.Gameplay.Combat.Unity
                         biome.FirstStage, biome.LastStage,
                         biome.NormalMonsters.Select(value => value.ToMonsterData()).ToArray(), bosses));
                 }
-                var events = fixedEvents.ToDictionary(value => value.stage,
-                    value => value.eventDefinition.ToDomainData());
-                data = new StageMapData(catalogVersion, normalHpBaseline,
-                    worldLevelGrowthBasisPoints, hpVariationBasisPoints, mappedBiomes, events,
+
+                // Split fixedStages into two typed dictionaries.
+                var fixedEvents = (fixedStages ?? Array.Empty<FixedStageBinding>())
+                    .Where(b => b?.eventDefinition != null)
+                    .ToDictionary(b => b.stage, b => b.eventDefinition.ToDomainData());
+
+                var fixedMonsters = (fixedStages ?? Array.Empty<FixedStageBinding>())
+                    .Where(b => b?.monsterDefinition != null)
+                    .ToDictionary(b => b.stage, b => b.monsterDefinition.ToMonsterData());
+
+                int p1 = worldLevelGrowthBasisPoints > 0 ? worldLevelGrowthBasisPoints : 1200;
+                int p2 = phase2GrowthBasisPoints > 0 ? phase2GrowthBasisPoints : 3500;
+                int p3 = phase3GrowthBasisPoints > 0 ? phase3GrowthBasisPoints : 8000;
+                int p4 = phase4GrowthBasisPoints > 0 ? phase4GrowthBasisPoints : 15000;
+
+                data = new StageMapData(catalogVersion,
+                    p1, hpVariationBasisPoints, mappedBiomes,
+                    fixedEvents,
                     eventDefinitions.Select(value => value.ToDomainData()).ToArray(),
-                    Mathf.RoundToInt(eventEncounterLuckPercentage * 100f));
+                    Mathf.RoundToInt(eventEncounterLuckPercentage * 100f),
+                    fixedMonsters,
+                    p2, p3, p4);
                 return true;
             }
             catch (Exception exception) { error = exception.Message; return false; }
@@ -53,15 +93,22 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public BiomeDefinition FindBiome(string id) =>
             (biomes ?? Array.Empty<BiomeDefinition>()).FirstOrDefault(value => value != null && value.BiomeId == id);
+
         public EnemyDefinition FindMonster(string id) =>
+            // Search biome normal/boss pools first, then fixed stage monster pins.
             (biomes ?? Array.Empty<BiomeDefinition>()).Where(value => value != null)
-                .SelectMany(value => value.NormalMonsters.Concat(value.BossBindings.Where(x => x != null && x.monster != null).Select(x => x.monster)))
+                .SelectMany(value => value.NormalMonsters.Concat(
+                    value.BossBindings.Where(x => x != null && x.monster != null).Select(x => x.monster)))
+                .Concat((fixedStages ?? Array.Empty<FixedStageBinding>())
+                    .Where(b => b?.monsterDefinition != null)
+                    .Select(b => b.monsterDefinition))
                 .FirstOrDefault(value => value != null && value.EnemyId == id);
+
         public EventDefinition FindEvent(string id) =>
             (eventDefinitions ?? Array.Empty<EventDefinition>())
-                .Concat((fixedEvents ?? Array.Empty<FixedEventBinding>())
-                    .Where(value => value != null && value.eventDefinition != null)
-                    .Select(value => value.eventDefinition))
+                .Concat((fixedStages ?? Array.Empty<FixedStageBinding>())
+                    .Where(b => b?.eventDefinition != null)
+                    .Select(b => b.eventDefinition))
                 .FirstOrDefault(value => value != null && value.EventId == id);
 
         private void ValidateAuthoring()
@@ -99,19 +146,44 @@ namespace PowerMath.Gameplay.Combat.Unity
                 eventDefinitions.GroupBy(value => value.EventId).Any(group =>
                     string.IsNullOrWhiteSpace(group.Key) || group.Count() > 1))
                 throw new InvalidOperationException("Chance-based Event IDs must be present and unique.");
-            foreach (FixedEventBinding binding in fixedEvents ?? Array.Empty<FixedEventBinding>())
-                if (binding == null || binding.eventDefinition == null || binding.stage < 1 || binding.stage > StageId.Final ||
-                    StageClassificationPolicy.IsProtected(new StageId(binding.stage)))
-                    throw new InvalidOperationException("Events require unique eligible normal Stages.");
-            if ((fixedEvents ?? Array.Empty<FixedEventBinding>()).GroupBy(value => value.stage).Any(group => group.Count() > 1))
-                throw new InvalidOperationException("Only one Event may bind a Stage.");
+
+            // Validate fixed stage bindings.
+            var usedStages = new HashSet<int>();
+            int fixedChallengeCountPerBlock = 0; // reused per block below
+            foreach (FixedStageBinding binding in fixedStages ?? Array.Empty<FixedStageBinding>())
+            {
+                if (binding == null) throw new InvalidOperationException("Fixed stage binding cannot be null.");
+
+                bool hasMonster = binding.monsterDefinition != null;
+                bool hasEvent = binding.eventDefinition != null;
+
+                if (!hasMonster && !hasEvent)
+                    throw new InvalidOperationException($"Fixed stage binding at Stage {binding.stage} must have either a monster or an event assigned.");
+                if (hasMonster && hasEvent)
+                    throw new InvalidOperationException($"Fixed stage binding at Stage {binding.stage} cannot have both a monster and an event assigned — pick one.");
+                if (binding.stage < 1 || binding.stage > StageId.Final)
+                    throw new InvalidOperationException($"Fixed stage binding stage {binding.stage} is out of range.");
+                if (StageClassificationPolicy.IsProtected(new StageId(binding.stage)))
+                    throw new InvalidOperationException($"Stage {binding.stage} is a protected boss stage and cannot have a fixed stage binding.");
+                if (!usedStages.Add(binding.stage))
+                    throw new InvalidOperationException($"Stage {binding.stage} has more than one fixed stage binding.");
+
+                if (hasMonster)
+                {
+                    if (binding.monsterDefinition.EncounterKind != StageEncounterKind.NormalMonster)
+                        throw new InvalidOperationException(
+                            $"Fixed monster at Stage {binding.stage} must have EncounterKind NormalMonster (got {binding.monsterDefinition.EncounterKind}).");
+                }
+            }
+
+            // Per-block challenge event cap (counts both chance-scheduled and fixed).
             for (int blockStart = StageId.First; blockStart <= StageId.Final; blockStart += EventScheduleGenerator.StagesPerBlock)
             {
                 int blockEnd = Math.Min(StageId.Final, blockStart + EventScheduleGenerator.StagesPerBlock - 1);
-                int fixedChallenges = (fixedEvents ?? Array.Empty<FixedEventBinding>()).Count(value =>
-                    value != null && value.eventDefinition != null &&
-                    value.eventDefinition.EventStageType == EventStageType.ChallengeMonster &&
-                    value.stage >= blockStart && value.stage <= blockEnd);
+                int fixedChallenges = (fixedStages ?? Array.Empty<FixedStageBinding>()).Count(b =>
+                    b != null && b.eventDefinition != null &&
+                    b.eventDefinition.EventStageType == EventStageType.ChallengeMonster &&
+                    b.stage >= blockStart && b.stage <= blockEnd);
                 if (fixedChallenges > 2)
                     throw new InvalidOperationException(
                         $"Stages {blockStart}-{blockEnd} cannot contain more than two fixed Challenge Events.");

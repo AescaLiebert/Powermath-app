@@ -157,5 +157,18 @@ namespace PowerMath.Tests.EditMode.Audio
         {
             Assert.DoesNotThrow(() => _controller.PlayVoice(null));
         }
+
+        [Test]
+        public void VoiceController_PlayVoiceCue_ResolvesLocalVoiceClipInEditor()
+        {
+            _controller.PlayVoiceCue("S1_01_VA");
+
+            var activeSourceField = typeof(VoiceController).GetField("_activeSource", BindingFlags.NonPublic | BindingFlags.Instance);
+            var activeSource = activeSourceField?.GetValue(_controller) as AudioSource;
+
+            Assert.That(activeSource, Is.Not.Null);
+            Assert.That(activeSource.clip, Is.Not.Null);
+            Assert.That(activeSource.clip.name, Does.StartWith("S1_01_VA"));
+        }
     }
 }

@@ -20,10 +20,12 @@ MonoBehaviour:
   encounterKind: 2
   baseHp: 200
   maximumCooldown: 2
-  hpMultiplierBasisPoints: 10000
+  hpMultiplierBasisPoints: 12500
   enemySprite: {fileID: 21300000, guid: 5b6cff065dcf0de42a0e8a378f57a137, type: 3}
+  addressableKey: 
   customBattleMusic:
     clip: {fileID: 8300000, guid: 75c4e7fd03532aa488fe699740d8876a, type: 3}
+    addressableKey: 
     volumeScale: 1
     loop: 1
   customAppearSfx:

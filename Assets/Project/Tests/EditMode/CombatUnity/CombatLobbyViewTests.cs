@@ -448,6 +448,7 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             {
                 "pet-gacha-button",
                 "pet-gacha-modal",
+                "pet-gacha-fullscreen-background",
                 "pet-gacha-balance",
                 "pet-gacha-odds-list",
                 "pet-gacha-warning",
@@ -492,6 +493,12 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             VisualElement modal = root.Q<VisualElement>("pet-gacha-modal");
             Assert.That(modal.focusable, Is.True);
             Assert.That(modal.ClassListContains("pet-gacha-modal"), Is.True);
+            VisualElement fullScreenBackground = root.Q<VisualElement>(
+                "pet-gacha-fullscreen-background");
+            VisualElement safeArea = root.Q<VisualElement>("safe-area");
+            Assert.That(fullScreenBackground.ClassListContains("is-hidden"), Is.True);
+            Assert.That(fullScreenBackground.parent, Is.EqualTo(safeArea.parent),
+                "Only the Pet Gacha backdrop may extend outside the safe area.");
             Assert.That(root.Q<VisualElement>(className: "gacha-banner-copy"), Is.Not.Null);
             Assert.That(root.Q<VisualElement>(className: "gacha-featured-stage"), Is.Not.Null);
             foreach (string className in new[]

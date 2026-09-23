@@ -76,9 +76,18 @@ namespace PowerMath.UI.Core
             }
 
             Painter2D painter = context.painter2D;
+            // On WebGL each Painter2D call is a synchronous gl.drawArrays on the
+            // single JS thread. Cap passes to 6 to cut draw calls by ~60% with
+            // minimal visual difference at typical leaderboard UI sizes.
+#if UNITY_WEBGL && !UNITY_EDITOR
+            int passes = _blur <= 0.01f
+                ? 1
+                : Mathf.Clamp(Mathf.CeilToInt(_blur * 0.35f), 2, 6);
+#else
             int passes = _blur <= 0.01f
                 ? 1
                 : Mathf.Clamp(Mathf.CeilToInt(_blur), 2, 16);
+#endif
 
             // Paint outside-in. Multiple translucent shells approximate a soft
             // shadow while blur-zero Figma effects remain pixel-exact.
@@ -101,9 +110,15 @@ namespace PowerMath.UI.Core
 
         private void DrawInsetShadow(Painter2D painter, Rect bounds)
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            int passes = _blur <= 0.01f
+                ? 1
+                : Mathf.Clamp(Mathf.CeilToInt(_blur * 0.35f), 2, 6);
+#else
             int passes = _blur <= 0.01f
                 ? 1
                 : Mathf.Clamp(Mathf.CeilToInt(_blur), 2, 16);
+#endif
 
             for (int pass = 0; pass < passes; pass++)
             {

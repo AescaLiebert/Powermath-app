@@ -223,6 +223,50 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 70083fa423c330b45a9e7933eaa0f732, type: 3}
     volumeScale: 0.75
     pitchRange: {x: 0.97, y: 1.03}
+  gachaSkyOpening:
+    clips:
+    - {fileID: 8300000, guid: 76f9ea353ce89634197b2ccd10915c65, type: 3}
+    volumeScale: 1
+    pitchRange: {x: 0.98, y: 1.02}
+  gachaFallingStar:
+    clips:
+    - {fileID: 8300000, guid: 15f59fb60eab9b64680309e4343d993a, type: 3}
+    volumeScale: 1
+    pitchRange: {x: 0.98, y: 1.02}
+  gachaStarToReveal:
+    clips:
+    - {fileID: 8300000, guid: a11d0a5a8b0859547bcb8ab5a2d481d8, type: 3}
+    volumeScale: 1
+    pitchRange: {x: 0.98, y: 1.02}
+  gachaSilhouetteDrop:
+    clips:
+    - {fileID: 8300000, guid: b96dd12e99fa26e4a9ed751fc93755df, type: 3}
+    volumeScale: 1
+    pitchRange: {x: 0.7, y: 0.7}
+  gachaPetReveal:
+    clips:
+    - {fileID: 8300000, guid: 2a7903e6868d84e47aa24c067432445d, type: 3}
+    volumeScale: 1
+    pitchRange: {x: 1.9, y: 2}
+  gachaRarityStarDrop:
+    clips:
+    - {fileID: 8300000, guid: a11d0a5a8b0859547bcb8ab5a2d481d8, type: 3}
+    volumeScale: 1
+    pitchRange: {x: 0.97, y: 1.03}
+  weaponAscendSuccess:
+    clips:
+    - {fileID: 8300000, guid: 781dde52eb5ca3a4195a4dedcf743104, type: 3}
+    volumeScale: 1
+    pitchRange: {x: 0.98, y: 1.02}
+  petEquipPress:
+    clips: []
+    volumeScale: 0.55
+    pitchRange: {x: 0.97, y: 1.03}
+  petEquipSuccess:
+    clips:
+    - {fileID: 8300000, guid: f3f46d88a17391b488d5d9373447ad03, type: 3}
+    volumeScale: 0.8
+    pitchRange: {x: 0.98, y: 1.02}
   uiStyles:
   - styleClass: hud-player-menu-button--hub
     hoverSfx:
@@ -235,6 +279,20 @@ MonoBehaviour:
       - {fileID: 8300000, guid: e70e3b039744c584a999cf8edb0387ba, type: 3}
       volumeScale: 1
       pitchRange: {x: 0.98, y: 1.02}
+    animationSfx:
+      clips: []
+      volumeScale: 0
+      pitchRange: {x: 0, y: 0}
+  - styleClass: hud-player-menu-button--gacha
+    hoverSfx:
+      clips: []
+      volumeScale: 1
+      pitchRange: {x: 1.1, y: 1.2}
+    clickSfx:
+      clips:
+      - {fileID: 8300000, guid: 76f9ea353ce89634197b2ccd10915c65, type: 3}
+      volumeScale: 1
+      pitchRange: {x: 0.98, y: 1.03}
     animationSfx:
       clips: []
       volumeScale: 0

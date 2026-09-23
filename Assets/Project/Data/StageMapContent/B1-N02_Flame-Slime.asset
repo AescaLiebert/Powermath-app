@@ -23,6 +23,7 @@ MonoBehaviour:
   enemySprite: {fileID: 21300000, guid: 0a36524cbedff0f48969a5f98cede2b2, type: 3}
   customBattleMusic:
     clip: {fileID: 0}
+    addressableKey: 
     volumeScale: 1
     loop: 1
   customAppearSfx:

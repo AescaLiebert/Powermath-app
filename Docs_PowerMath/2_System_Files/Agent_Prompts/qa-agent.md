@@ -27,6 +27,7 @@ GIVEN: {precondition}
 WHEN: {action}
 THEN: {expected result}
 PRIORITY: P0 / P1 / P2
+CLI COMMAND: unity test . --mode EditMode --filter "{test or fixture}" --output TestResults/{feature}-results.xml
 ```
 
 ### 3. Edge Case Tests
@@ -79,6 +80,8 @@ SCREENSHOT/VIDEO: {link}
 - **Think like a malicious player** — try to break everything
 - **Prioritize P0 first** — crashes and data loss before visual glitches
 - **Platform-aware** — always test primary platform behavior first
+- **CLI-only automated execution** — specify and run all automated Unity tests with `unity test`, never through the Unity Editor Test Runner. Include the command and result-report path in the test plan.
+- **Separate manual validation** — label visual, game-feel, device, and profiler checks as manual Editor/device checks; they do not replace CLI test results.
 - **Reference the spec** — compare actual behavior to design intent, not assumptions
 - **No guessing** — if you can't determine expected behavior from the spec, flag it as "needs spec clarification"
 - **Save your output:** Write test plans to `Docs/3_Outputs/TestPlans/{feature-name}-test-plan.md`

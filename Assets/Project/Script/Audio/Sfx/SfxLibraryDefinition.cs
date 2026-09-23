@@ -93,6 +93,19 @@ namespace PowerMath.Audio
         [SerializeField] private SfxCueConfig rewardCurrencyRank = new SfxCueConfig(null, 0.70f, 0.02f);
         [SerializeField] private SfxCueConfig rewardCurrencyPowerCoin = new SfxCueConfig(null, 0.75f, 0.03f);
 
+        [Header("Pet Gacha SFX")]
+        [SerializeField] private SfxCueConfig gachaSkyOpening = new SfxCueConfig(null, 0.80f, 0.02f);
+        [SerializeField] private SfxCueConfig gachaFallingStar = new SfxCueConfig(null, 0.85f, 0.02f);
+        [SerializeField] private SfxCueConfig gachaStarToReveal = new SfxCueConfig(null, 0.85f, 0.02f);
+        [SerializeField] private SfxCueConfig gachaSilhouetteDrop = new SfxCueConfig(null, 0.80f, 0.02f);
+        [SerializeField] private SfxCueConfig gachaPetReveal = new SfxCueConfig(null, 0.85f, 0.02f);
+        [SerializeField] private SfxCueConfig gachaRarityStarDrop = new SfxCueConfig(null, 0.70f, 0.03f);
+
+        [Header("Player Hub SFX")]
+        [SerializeField] private SfxCueConfig weaponAscendSuccess = new SfxCueConfig(null, 0.80f, 0.02f);
+        [SerializeField] private SfxCueConfig petEquipPress = new SfxCueConfig(null, 0.55f, 0.03f);
+        [SerializeField] private SfxCueConfig petEquipSuccess = new SfxCueConfig(null, 0.80f, 0.02f);
+
         [Header("Generic UI Animation SFX (USS Styles)")]
         [SerializeField] private UiAnimationSfxStyle[] uiStyles = Array.Empty<UiAnimationSfxStyle>();
 
@@ -122,6 +135,15 @@ namespace PowerMath.Audio
         private static AudioClip _fbRewardMagnet;
         private static AudioClip _fbCurrencyRank;
         private static AudioClip _fbCurrencyCoin;
+        private static AudioClip _fbGachaSkyOpening;
+        private static AudioClip _fbGachaFallingStar;
+        private static AudioClip _fbGachaStarToReveal;
+        private static AudioClip _fbGachaSilhouetteDrop;
+        private static AudioClip _fbGachaPetReveal;
+        private static AudioClip _fbGachaRarityStarDrop;
+        private static AudioClip _fbWeaponAscendSuccess;
+        private static AudioClip _fbPetEquipPress;
+        private static AudioClip _fbPetEquipSuccess;
 
         public SfxCueConfig PlayerAttackSwing => playerAttackSwing;
         public SfxCueConfig PlayerAttackFail => playerAttackFail;
@@ -170,6 +192,15 @@ namespace PowerMath.Audio
         public SfxCueConfig RewardMagnetism => rewardMagnetism;
         public SfxCueConfig RewardCurrencyRank => rewardCurrencyRank;
         public SfxCueConfig RewardCurrencyPowerCoin => rewardCurrencyPowerCoin;
+        public SfxCueConfig GachaSkyOpening => gachaSkyOpening;
+        public SfxCueConfig GachaFallingStar => gachaFallingStar;
+        public SfxCueConfig GachaStarToReveal => gachaStarToReveal;
+        public SfxCueConfig GachaSilhouetteDrop => gachaSilhouetteDrop;
+        public SfxCueConfig GachaPetReveal => gachaPetReveal;
+        public SfxCueConfig GachaRarityStarDrop => gachaRarityStarDrop;
+        public SfxCueConfig WeaponAscendSuccess => weaponAscendSuccess;
+        public SfxCueConfig PetEquipPress => petEquipPress;
+        public SfxCueConfig PetEquipSuccess => petEquipSuccess;
 
         public IReadOnlyList<UiAnimationSfxStyle> UiStyles => uiStyles ?? Array.Empty<UiAnimationSfxStyle>();
 
@@ -291,6 +322,33 @@ namespace PowerMath.Audio
                 case "currency_coin":
                     if (_fbCurrencyCoin == null) _fbCurrencyCoin = CreateTone("SFX_FB_CurrencyCoin", 920f, 0.08f, 0.16f);
                     return _fbCurrencyCoin;
+                case "gacha_sky_opening":
+                    if (_fbGachaSkyOpening == null) _fbGachaSkyOpening = CreateSweep("SFX_GachaSkyOpening", 180f, 920f, 0.55f, 0.22f, 0.12f);
+                    return _fbGachaSkyOpening;
+                case "gacha_falling_star":
+                    if (_fbGachaFallingStar == null) _fbGachaFallingStar = CreateSweep("SFX_GachaFallingStar", 1200f, 280f, 0.72f, 0.22f, 0.15f);
+                    return _fbGachaFallingStar;
+                case "gacha_star_to_reveal":
+                    if (_fbGachaStarToReveal == null) _fbGachaStarToReveal = CreateSweep("SFX_GachaStarToReveal", 760f, 150f, 0.34f, 0.26f, 0.25f);
+                    return _fbGachaStarToReveal;
+                case "gacha_silhouette_drop":
+                    if (_fbGachaSilhouetteDrop == null) _fbGachaSilhouetteDrop = CreateTransient("SFX_GachaSilhouetteDrop", 95f, 0.26f, 0.24f, 0.42f);
+                    return _fbGachaSilhouetteDrop;
+                case "gacha_pet_reveal":
+                    if (_fbGachaPetReveal == null) _fbGachaPetReveal = CreateHarmonicChord("SFX_GachaPetReveal", new[] { 392f, 523.25f, 783.99f, 1046.50f }, 0.58f, 0.25f);
+                    return _fbGachaPetReveal;
+                case "gacha_rarity_star_drop":
+                    if (_fbGachaRarityStarDrop == null) _fbGachaRarityStarDrop = CreateTone("SFX_GachaRarityStarDrop", 1174.66f, 0.12f, 0.13f);
+                    return _fbGachaRarityStarDrop;
+                case "weapon_ascend_success":
+                    if (_fbWeaponAscendSuccess == null) _fbWeaponAscendSuccess = CreateHarmonicChord("SFX_WeaponAscendSuccess", new[] { 392f, 523.25f, 783.99f, 1046.50f }, 0.48f, 0.23f);
+                    return _fbWeaponAscendSuccess;
+                case "pet_equip_press":
+                    if (_fbPetEquipPress == null) _fbPetEquipPress = CreateTone("SFX_PetEquipPress", 660f, 0.07f, 0.10f);
+                    return _fbPetEquipPress;
+                case "pet_equip_success":
+                    if (_fbPetEquipSuccess == null) _fbPetEquipSuccess = CreateHarmonicChord("SFX_PetEquipSuccess", new[] { 523.25f, 659.25f, 1046.50f }, 0.34f, 0.18f);
+                    return _fbPetEquipSuccess;
                 default:
                     return GetFallbackClip("click");
             }

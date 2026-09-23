@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace PowerMath.Audio
 {
@@ -47,6 +50,14 @@ namespace PowerMath.Audio
         // Cached procedural fallback voice clips
         private readonly Dictionary<string, AudioClip> _proceduralClipCache =
             new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
+
+        // Remote R2 streaming voice cache (bounded LRU)
+        public const string RemoteVoiceBaseUrl = "https://pub-1de297cf85f444a7b4ca56dd0fc5d4e5.r2.dev/Voice/";
+        private const int MaxCachedStreamingClips = 8;
+        private readonly Dictionary<string, AudioClip> _streamingClipCache =
+            new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
+        private readonly Queue<string> _streamingClipKeys = new Queue<string>();
+        private Coroutine _streamingRoutine;
 
         public float MasterVolume
         {
@@ -180,7 +191,7 @@ namespace PowerMath.Audio
             // Cancel any pending fade-out on incoming source
             CancelFade(incomingSource);
 
-            float effectiveVolume = Mathf.Clamp01(volumeScale * voiceVolume * masterVolume);
+            float effectiveVolume = Mathf.Clamp(volumeScale * voiceVolume * masterVolume, 0f, 1.5f);
             incomingSource.clip = clip;
             incomingSource.pitch = Mathf.Clamp(pitch, 0.5f, 2f);
             incomingSource.volume = effectiveVolume;
@@ -193,16 +204,43 @@ namespace PowerMath.Audio
         {
             if (isMuted) return;
 
-            // 1. Check if an audio clip exists in Resources or SfxLibrary
-            AudioClip clip = null;
+            // 1. Check in-memory streaming cache
+            if (!string.IsNullOrWhiteSpace(cueId) &&
+                _streamingClipCache.TryGetValue(cueId, out AudioClip cachedClip) &&
+                cachedClip != null)
+            {
+                PlayVoice(cachedClip, volumeScale);
+                return;
+            }
 
+            // 2. Check if an audio clip exists in Resources or SfxLibrary
+            AudioClip clip = null;
             if (!string.IsNullOrWhiteSpace(cueId))
             {
                 clip = Resources.Load<AudioClip>("Voice/" + cueId) ??
                        Resources.Load<AudioClip>(cueId);
             }
 
-            // 2. Check SfxLibrary UiStyles if available
+#if UNITY_EDITOR
+            if (clip == null && !string.IsNullOrWhiteSpace(cueId))
+            {
+                string cleanId = cueId.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase)
+                    ? cueId.Substring(0, cueId.Length - 4)
+                    : cueId;
+                string localPath = $"Assets/Project/Art/Voice/{cleanId}.mp3";
+                clip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(localPath);
+                if (clip == null)
+                {
+                    string[] guids = UnityEditor.AssetDatabase.FindAssets($"{cleanId} t:AudioClip");
+                    if (guids != null && guids.Length > 0)
+                    {
+                        string foundPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                        clip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(foundPath);
+                    }
+                }
+            }
+#endif
+
             if (clip == null && !string.IsNullOrWhiteSpace(cueId) && SfxController.Instance?.Library != null)
             {
                 UiAnimationSfxStyle style = SfxController.Instance.Library.FindUiStyle(cueId);
@@ -212,13 +250,108 @@ namespace PowerMath.Audio
                 }
             }
 
-            // 3. Fall back to adaptive procedural speaker vocalization
-            if (clip == null)
+            if (clip != null)
             {
-                string key = ResolveProceduralKey(speakerKey, emotionId, cueId);
-                clip = GetOrCreateProceduralClip(key, emotionId);
+                PlayVoice(clip, volumeScale);
+                return;
             }
 
+            // 3. If cueId is specified and game is playing, stream asynchronously
+            if (!string.IsNullOrWhiteSpace(cueId) && Application.isPlaying)
+            {
+                if (_streamingRoutine != null)
+                {
+                    StopCoroutine(_streamingRoutine);
+                }
+                _streamingRoutine = StartCoroutine(StreamAndPlayVoiceRoutine(cueId, speakerKey, emotionId, volumeScale));
+                return;
+            }
+
+            // 4. Fall back to adaptive procedural speaker vocalization
+            PlayProceduralFallback(speakerKey, emotionId, cueId, volumeScale);
+        }
+
+        private IEnumerator StreamAndPlayVoiceRoutine(string cueId, string speakerKey, string emotionId, float volumeScale)
+        {
+            string cleanId = cueId.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase)
+                ? cueId.Substring(0, cueId.Length - 4)
+                : cueId;
+
+            // 1. Try Addressables first
+            AsyncOperationHandle<AudioClip> handle = default;
+            try
+            {
+                handle = Addressables.LoadAssetAsync<AudioClip>(cleanId);
+            }
+            catch { }
+
+            if (handle.IsValid())
+            {
+                yield return handle;
+                if (handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
+                {
+                    AudioClip downloadedClip = handle.Result;
+                    CacheStreamingClip(cueId, downloadedClip);
+                    PlayVoice(downloadedClip, volumeScale);
+                    yield break;
+                }
+            }
+
+            // 2. Fallback to Cloudflare R2 remote streaming
+            string fileName = cleanId + ".mp3";
+            string url = RemoteVoiceBaseUrl + fileName;
+
+            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.MPEG))
+            {
+                yield return uwr.SendWebRequest();
+
+                if (uwr.result == UnityWebRequest.Result.Success)
+                {
+                    AudioClip downloadedClip = DownloadHandlerAudioClip.GetContent(uwr);
+                    if (downloadedClip != null)
+                    {
+                        CacheStreamingClip(cueId, downloadedClip);
+                        PlayVoice(downloadedClip, volumeScale);
+                        yield break;
+                    }
+                }
+            }
+
+            // 3. If streaming failed or offline, fall back to procedural speech synthesis
+            PlayProceduralFallback(speakerKey, emotionId, cueId, volumeScale);
+        }
+
+        private void CacheStreamingClip(string key, AudioClip clip)
+        {
+            if (string.IsNullOrWhiteSpace(key) || clip == null) return;
+
+            if (_streamingClipCache.ContainsKey(key))
+            {
+                _streamingClipCache[key] = clip;
+                return;
+            }
+
+            if (_streamingClipKeys.Count >= MaxCachedStreamingClips)
+            {
+                string oldestKey = _streamingClipKeys.Dequeue();
+                if (_streamingClipCache.TryGetValue(oldestKey, out AudioClip oldClip))
+                {
+                    _streamingClipCache.Remove(oldestKey);
+                    if (oldClip != null)
+                    {
+                        Destroy(oldClip);
+                    }
+                }
+            }
+
+            _streamingClipKeys.Enqueue(key);
+            _streamingClipCache[key] = clip;
+        }
+
+        private void PlayProceduralFallback(string speakerKey, string emotionId, string cueId, float volumeScale)
+        {
+            string key = ResolveProceduralKey(speakerKey, emotionId, cueId);
+            AudioClip clip = GetOrCreateProceduralClip(key, emotionId);
             if (clip != null)
             {
                 PlayVoice(clip, volumeScale);

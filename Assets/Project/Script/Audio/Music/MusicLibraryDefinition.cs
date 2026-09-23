@@ -10,9 +10,9 @@ namespace PowerMath.Audio
         private const int SampleRate = 22050;
 
         [Header("Core Tracks")]
-        [SerializeField] private MusicTrackConfig loginMusic = new MusicTrackConfig(null, 0.85f, true);
-        [SerializeField] private MusicTrackConfig defaultBattleMusic = new MusicTrackConfig(null, 0.85f, true);
-        [SerializeField] private MusicTrackConfig bossBattleMusic = new MusicTrackConfig(null, 0.95f, true);
+        [SerializeField] private MusicTrackConfig loginMusic = new MusicTrackConfig((AudioClip)null, 0.85f, true);
+        [SerializeField] private MusicTrackConfig defaultBattleMusic = new MusicTrackConfig((AudioClip)null, 0.85f, true);
+        [SerializeField] private MusicTrackConfig bossBattleMusic = new MusicTrackConfig((AudioClip)null, 0.95f, true);
 
         [Header("Biome Tracks")]
         [Tooltip("Optional biome-specific battle themes.")]
@@ -29,11 +29,11 @@ namespace PowerMath.Audio
 
         [Range(0.05f, 0.5f)]
         [Tooltip("Target volume multiplier when ducked by Question Sequence / YouTube (-70% reduction = 0.30).")]
-        [SerializeField] private float duckVolumeFactor = 0.30f;
+        [SerializeField] private float duckVolumeFactor = 0.35f;
 
         [Range(0.01f, 1f)]
         [Tooltip("Target pitch/playback speed multiplier when ducked by Question Sequence (0.05 = slowed down by 95%).")]
-        [SerializeField] private float duckPitchFactor = 0.05f;
+        [SerializeField] private float duckPitchFactor = 1f;
 
         [Range(0.1f, 3f)]
         [Tooltip("Duration in seconds to smoothly lerp volume in and out of ducking.")]
@@ -96,7 +96,7 @@ namespace PowerMath.Audio
                     BiomeMusicBinding binding = biomeBattleTracks[i];
                     if (binding != null && string.Equals(binding.BiomeId, biomeId, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (binding.Track != null && binding.Track.Clip != null)
+                        if (binding.Track != null && (binding.Track.Clip != null || binding.Track.HasAddressableKey))
                         {
                             return binding.Track;
                         }

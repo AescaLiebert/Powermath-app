@@ -1,0 +1,508 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74ac30f645954fc385029912a9d513f4, type: 3}
+  m_Name: OnFirstRebirth
+  m_EditorClassIdentifier: Assembly-CSharp::PowerMath.UI.MainMenu.Tutorial.TutorialSequenceDefinition
+  tutorialId: OnFirstRebirth
+  version: 1
+  enabledForPlayers: 1
+  startStepId: rebirth-result
+  returningStartStepId: 
+  prerequisiteTutorialIds:
+  - OnFirstRebirthOpen
+  steps:
+  - id: rebirth-result
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.rebirthResult
+    emotionId: cheerful
+    spriteResourcePath: Character/Sticker_Power_Congrat
+    audioCueId: S4_05_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: gacha-invite
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: gacha-invite
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.gachaInvite
+    emotionId: curious
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S5_01_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: open-gacha
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: open-gacha
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.openGacha
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: gacha.open
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 2
+      nextStepId: wait-gacha-open
+      targetId: gacha.open
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-gacha-open
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 6
+      nextStepId: gacha-introduction
+      targetId: gacha.panel-open
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: gacha-introduction
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.gachaIntroduction
+    emotionId: cheerful
+    spriteResourcePath: Character/Sticker_Power_Cheerful
+    audioCueId: S5_02_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: pet-benefits
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: pet-benefits
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.petBenefits
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S5_03_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: pet-rarity
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: pet-rarity
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.petRarity
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S5_04_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: gacha-grant
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: gacha-grant
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.gachaGrant
+    emotionId: cheerful
+    spriteResourcePath: Character/Sticker_Power_Congrat
+    audioCueId: S5_05_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: wait-power-coin-grant
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-power-coin-grant
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 6
+      nextStepId: pull-one
+      targetId: gacha.power-coin-granted
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: pull-one
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.pullOne
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: gacha.pull-one
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 2
+      nextStepId: confirm-one
+      targetId: gacha.pull-one
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: confirm-one
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.confirmOne
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: gacha.confirm
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 2
+      nextStepId: wait-pet-reveal
+      targetId: gacha.confirm
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-pet-reveal
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 6
+      nextStepId: pet-result
+      targetId: gacha.reveal-complete
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: pet-result
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.gachaResult
+    emotionId: cheerful
+    spriteResourcePath: Character/Sticker_Power_Congrat
+    audioCueId: S5_06_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: wait-gacha-return
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-gacha-return
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 6
+      nextStepId: hub-invite
+      targetId: gacha.return-main-menu
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: hub-invite
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.playerHubInvite
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S6_01_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: open-hub
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: open-hub
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.openHub
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: hub.open
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 2
+      nextStepId: wait-hub-open
+      targetId: hub.open
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-hub-open
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 6
+      nextStepId: weapon-explanation
+      targetId: hub.panel-open
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: weapon-explanation
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.weaponAscendExplanation
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S6_02_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: weapon-prompt
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: weapon-prompt
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.weaponAscendPrompt
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S6_03_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: ascend-weapon
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: ascend-weapon
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.ascendWeapon
+    emotionId: confident
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: hub.ascend
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 2
+      nextStepId: wait-weapon-ascend
+      targetId: hub.ascend
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-weapon-ascend
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 6
+      nextStepId: weapon-result
+      targetId: hub.weapon-ascended
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: weapon-result
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.weaponAscendResult
+    emotionId: cheerful
+    spriteResourcePath: Character/Sticker_Power_Congrat
+    audioCueId: S6_04_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: pets-prompt
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: pets-prompt
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.petTabPrompt
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S6_05_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: show-pets
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: show-pets
+    kind: 1
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.showPets
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: 
+    targetId: hub.pets
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 2
+      nextStepId: wait-pets-shown
+      targetId: hub.pets
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: wait-pets-shown
+    kind: 2
+    speakerKey: 
+    textKey: 
+    emotionId: hidden
+    spriteResourcePath: 
+    audioCueId: 
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 1
+    rules:
+    - signal: 6
+      nextStepId: pet-duplicate-benefit
+      targetId: hub.pets-shown
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: pet-duplicate-benefit
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.duplicatePetBenefit
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S6_06_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: final-encouragement
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: final-encouragement
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirth.final
+    emotionId: cheerful
+    spriteResourcePath: Character/Sticker_Power_Cheerful
+    audioCueId: S6_07_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: 
+      targetId: 
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 1

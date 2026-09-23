@@ -21,6 +21,10 @@ namespace PowerMath.UI.MainMenu
         private readonly IMainMenuPanelHost _panelHost;
         private readonly Action _refreshCombatPresentation;
 
+        public RunSettlementPanelController Settlement => _settlement;
+        public PlayerHubPanelController PlayerHub => _playerHub;
+        public PetGachaPanelController PetGacha => _petGacha;
+
         public RunEconomyPanelController(
             MonoBehaviour host,
             VisualElement root,

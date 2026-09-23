@@ -296,6 +296,16 @@ namespace PowerMath.UI.MainMenu
                         entry.Definition.PetId,
                         StringComparison.Ordinal));
                 var icon = new Image { sprite = entry.Definition.Icon };
+                if (icon.sprite == null && !string.IsNullOrEmpty(entry.Definition.IconAddressableKey))
+                {
+                    UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>(entry.Definition.IconAddressableKey).Completed += handle =>
+                    {
+                        if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded && handle.Result != null)
+                        {
+                            icon.sprite = handle.Result;
+                        }
+                    };
+                }
                 icon.name = "Icon_pet";
                 icon.AddToClassList("player-hub-pet-tile-icon");
                 icon.pickingMode = PickingMode.Ignore;
@@ -335,9 +345,27 @@ namespace PowerMath.UI.MainMenu
         public void RenderPetPreview(OwnedPetEntry entry, bool pending)
         {
             PetDefinition definition = entry.Definition;
-            PetPreviewIcon.sprite = definition.PreviewSprite != null
+            Sprite petPreview = definition.PreviewSprite != null
                 ? definition.PreviewSprite
                 : definition.Icon;
+            if (petPreview != null)
+            {
+                PetPreviewIcon.sprite = petPreview;
+            }
+            else if (!string.IsNullOrEmpty(definition.PreviewAddressableKey))
+            {
+                UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>(definition.PreviewAddressableKey).Completed += handle =>
+                {
+                    if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded && handle.Result != null)
+                    {
+                        if (PetPreviewIcon != null) PetPreviewIcon.sprite = handle.Result;
+                    }
+                };
+            }
+            else
+            {
+                PetPreviewIcon.sprite = null;
+            }
             PetPreviewRarity.text = BuildRarityStars(entry);
             PetPreviewRarity.tooltip = entry.RarityName;
             PetPreviewRarity.style.color = entry.RarityColor;
@@ -407,8 +435,27 @@ namespace PowerMath.UI.MainMenu
             WeaponAscensionCatalogDefinition.Tier tier)
         {
             Sprite icon = tier?.icon;
-            _weaponSprite.sprite = icon;
-            EquippedWeapon.sprite = icon;
+            if (icon != null)
+            {
+                _weaponSprite.sprite = icon;
+                EquippedWeapon.sprite = icon;
+            }
+            else if (!string.IsNullOrEmpty(tier?.IconAddressableKey))
+            {
+                UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>(tier.IconAddressableKey).Completed += handle =>
+                {
+                    if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded && handle.Result != null)
+                    {
+                        if (_weaponSprite != null) _weaponSprite.sprite = handle.Result;
+                        if (EquippedWeapon != null) EquippedWeapon.sprite = handle.Result;
+                    }
+                };
+            }
+            else
+            {
+                _weaponSprite.sprite = null;
+                EquippedWeapon.sprite = null;
+            }
         }
 
         private void RaiseOpen() => OpenRequested?.Invoke();

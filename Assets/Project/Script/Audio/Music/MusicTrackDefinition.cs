@@ -9,8 +9,11 @@ namespace PowerMath.Audio
     [Serializable]
     public sealed class MusicTrackConfig
     {
-        [Tooltip("The audio clip to play. If unassigned, procedural synthesized audio will be used as fallback.")]
+        [Tooltip("The audio clip to play. If unassigned and an addressable key is set, the clip will be loaded on demand.")]
         [SerializeField] private AudioClip clip;
+
+        [Tooltip("Optional Addressable key or remote asset key for streaming on demand (e.g. 'OST_B2-Theme').")]
+        [SerializeField] private string addressableKey;
 
         [Range(0f, 1f)]
         [Tooltip("Volume multiplier specific to this track.")]
@@ -32,7 +35,16 @@ namespace PowerMath.Audio
             this.loop = loop;
         }
 
+        public static MusicTrackConfig FromAddressable(string addressableKey, float volumeScale = 1f, bool loop = true)
+        {
+            var config = new MusicTrackConfig(null, volumeScale, loop);
+            config.addressableKey = addressableKey;
+            return config;
+        }
+
         public AudioClip Clip => clip;
+        public string AddressableKey => addressableKey;
+        public bool HasAddressableKey => !string.IsNullOrEmpty(addressableKey);
         public float VolumeScale
         {
             get => volumeScale;
@@ -41,6 +53,7 @@ namespace PowerMath.Audio
         public bool Loop => loop;
 
         public void SetClip(AudioClip newClip) => clip = newClip;
+        public void SetAddressableKey(string key) => addressableKey = key;
     }
 
     /// <summary>

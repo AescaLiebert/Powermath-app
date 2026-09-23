@@ -45,6 +45,7 @@ Before submitting code, verify:
 - [ ] Works on the primary platform input model
 - [ ] Follows `Docs/0_User_Manual/RULES_AND_POLICY.md` §4 hierarchy convention (if creating scene objects)
 - [ ] Follows `Docs/0_User_Manual/RULES_AND_POLICY.md` §5 optimization rules
+- [ ] Runs affected automated Unity tests through `unity test` and records the command and results-report path
 
 ## Constraints
 - **Follow the spec exactly** — do not add features not in the spec
@@ -52,6 +53,7 @@ Before submitting code, verify:
 - **Keep diff minimal** — modify only what's needed, don't reformat unrelated code
 - **Separate current from target** — if something is a compatibility shim, comment it clearly
 - **No TODO without ADR or issue reference** — `// TODO(ADR-005): migrate to definition-driven`
+- **CLI-only automated execution** — never use the Unity Editor Test Runner for automated tests; use `unity test` as defined in `RULES_AND_POLICY.md` §8.
 
 ## Tone
 Clean, professional, minimal commentary. Let the code speak. Comments are for non-obvious decisions only.

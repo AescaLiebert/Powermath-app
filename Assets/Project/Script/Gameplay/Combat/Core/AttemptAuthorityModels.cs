@@ -120,7 +120,8 @@ namespace PowerMath.Gameplay.Combat
     public sealed class EventAttemptResult
     {
         public EventAttemptResult(string eventId, string questionDocumentId,
-            ChallengeQuestionId questionId, QuestionOutcome outcome, int responseScore, int biomeIndex = 1)
+            ChallengeQuestionId questionId, QuestionOutcome outcome, int responseScore, int biomeIndex = 1,
+            double bonusMultiplier = 1d)
         {
             if (string.IsNullOrWhiteSpace(eventId))
                 throw new ArgumentException("Event ID is required.", nameof(eventId));
@@ -131,7 +132,7 @@ namespace PowerMath.Gameplay.Combat
             QuestionId = questionId;
             Outcome = outcome;
             ResponseScore = Math.Max(0, Math.Min(10, responseScore));
-            PowerCoinsGranted = ChallengeRewardPolicy.Calculate(outcome, responseScore, biomeIndex);
+            PowerCoinsGranted = ChallengeRewardPolicy.Calculate(outcome, responseScore, biomeIndex, bonusMultiplier);
         }
 
         public string EventId { get; }

@@ -177,7 +177,7 @@ MonoBehaviour:
     - line: '|   loadStoreDebugModeEnabled: 0'
     - line: '|   visionOSBundleVersion: 1.0'
     - line: '|   tvOSBundleVersion: 1.0'
-    - line: '|   bundleVersion: 1.2'
+    - line: '|   bundleVersion: 1.2.0.0'
     - line: '|   preloadedAssets:'
     - line: '|   - {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100,
         type: 3}'
@@ -606,7 +606,7 @@ MonoBehaviour:
     - line: '|   blurSplashScreenBackground: 1'
     - line: '|   spritePackerPolicy: '
     - line: '|   webGLMemorySize: 512'
-    - line: '|   webGLExceptionSupport: 2'
+    - line: '|   webGLExceptionSupport: 1'
     - line: '|   webGLNameFilesAsHashes: 0'
     - line: '|   webGLShowDiagnostics: 0'
     - line: '|   webGLDataCaching: 1'
@@ -621,12 +621,12 @@ MonoBehaviour:
     - line: '|   webGLLinkerTarget: 1'
     - line: '|   webGLThreadsSupport: 0'
     - line: '|   webGLDecompressionFallback: 1'
-    - line: '|   webGLInitialMemorySize: 512'
-    - line: '|   webGLMaximumMemorySize: 2048'
+    - line: '|   webGLInitialMemorySize: 256'
+    - line: '|   webGLMaximumMemorySize: 1024'
     - line: '|   webGLMemoryGrowthMode: 2'
     - line: '|   webGLMemoryLinearGrowthStep: 16'
     - line: '|   webGLMemoryGeometricGrowthStep: 0.2'
-    - line: '|   webGLMemoryGeometricGrowthCap: 512'
+    - line: '|   webGLMemoryGeometricGrowthCap: 256'
     - line: '|   webGLPowerPreference: 2'
     - line: '|   webGLWebAssemblyTable: 0'
     - line: '|   webGLWebAssemblyBigInt: 0'
@@ -761,7 +761,7 @@ MonoBehaviour:
       type: {class: WebGLPlatformSettings, ns: UnityEditor.WebGL, asm: UnityEditor.WebGL.Extensions}
       data:
         m_Development: 0
-        m_ConnectProfiler: 0
+        m_ConnectProfiler: 1
         m_BuildWithDeepProfilingSupport: 0
         m_BuildWithCodeCoverage: 0
         m_AllowDebugging: 0

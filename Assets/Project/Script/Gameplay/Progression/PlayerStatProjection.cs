@@ -54,7 +54,8 @@ namespace PowerMath.Gameplay.Progression
                 CriticalDamagePercent,
                 effectivePetAttack: PetStats.EffectivePetAttack,
                 bonusMaxHearts: PetStats.TotalPlayerHeartBonus,
-                petPassives: PetStats.ActivePassives);
+                petPassives: PetStats.ActivePassives,
+                powerCoinBonusPercent: PetStats.TotalPowerCoinBonusPercent);
         }
     }
 

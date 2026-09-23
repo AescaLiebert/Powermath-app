@@ -44,9 +44,9 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(result.FinalDamage, Is.EqualTo(8));
         }
 
-        [TestCase(0d, 0.90d, 90)]
+        [TestCase(0d, 0.95d, 95)]
         [TestCase(0.5d, 1.00d, 100)]
-        [TestCase(1d, 1.10d, 110)]
+        [TestCase(1d, 1.05d, 105)]
         public void DamageCalculator_AppliesAttackVariance(
             double randomUnit,
             double expectedMultiplier,
@@ -629,14 +629,16 @@ namespace PowerMath.Gameplay.Combat.Tests
 
         [TestCase(0, 1)]
         [TestCase(10000, 2)]
-        public void EventSchedule_GuaranteesOneAndCapsEachBlockAtTwo(
+        [TestCase(20000, 3)]
+        [TestCase(40000, 5)]
+        [TestCase(50000, 5)]
+        public void EventSchedule_ScalesWithEncounterLuckAndCapsAtFive(
             int chanceBasisPoints,
             int expectedPerBlock)
         {
             StageMapData source = DevelopmentStageMapFactory.Create();
             var map = new StageMapData(
                 source.CatalogVersion,
-                source.NormalHpBaseline,
                 source.GrowthBasisPoints,
                 source.VariationBasisPoints,
                 source.Biomes,
@@ -649,7 +651,6 @@ namespace PowerMath.Gameplay.Combat.Tests
                     }),
                 source.ChanceEvents,
                 chanceBasisPoints);
-
             EventScheduleSnapshot schedule = EventScheduleGenerator.Create(
                 "event-schedule-test", map, 10000);
 
@@ -673,6 +674,36 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [Test]
+        public void EventSchedule_TwoHundredFiftyPercentLuck_GuaranteesTwoBonusWithFiftyPercentThirdChance()
+        {
+            StageMapData source = DevelopmentStageMapFactory.Create();
+            var map = new StageMapData(
+                source.CatalogVersion,
+                source.GrowthBasisPoints,
+                source.VariationBasisPoints,
+                source.Biomes,
+                new Dictionary<int, EventData>(),
+                source.ChanceEvents,
+                0);
+
+            // 250% luck via petMultiplierBasisPoints = 35000 (10000 base + 25000 bonus)
+            EventScheduleSnapshot schedule = EventScheduleGenerator.Create(
+                "luck-250-test", map, 35000);
+
+            for (int start = StageId.First;
+                 start <= StageId.Final;
+                 start += EventScheduleGenerator.StagesPerBlock)
+            {
+                int end = Math.Min(StageId.Final,
+                    start + EventScheduleGenerator.StagesPerBlock - 1);
+                int generatedCount = schedule.GeneratedStages.Count(value =>
+                    value >= start && value <= end);
+                // 1 guaranteed base + 2 guaranteed luck = 3 minimum; with 50% chance of 4th
+                Assert.That(generatedCount, Is.InRange(3, 4), $"Block {start}-{end}");
+            }
+        }
+
+        [Test]
         public void EventSchedule_SelectsDeterministicallyFromMultipleChallengeEvents()
         {
             StageMapData source = DevelopmentStageMapFactory.Create();
@@ -683,7 +714,6 @@ namespace PowerMath.Gameplay.Combat.Tests
             };
             var map = new StageMapData(
                 source.CatalogVersion,
-                source.NormalHpBaseline,
                 source.GrowthBasisPoints,
                 source.VariationBasisPoints,
                 source.Biomes,
@@ -794,6 +824,23 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(ChallengeRewardPolicy.Calculate(outcome, score, biomeIndex), Is.EqualTo(expected));
         }
 
+        [TestCase(QuestionOutcome.Correct, 10, 1, 1.0d, 20)]
+        [TestCase(QuestionOutcome.Correct, 10, 1, 1.15d, 23)]
+        [TestCase(QuestionOutcome.Correct, 10, 1, 1.50d, 30)]
+        [TestCase(QuestionOutcome.Correct, 10, 7, 1.25d, 250)]
+        [TestCase(QuestionOutcome.Incorrect, 0, 1, 1.50d, 15)]
+        public void ChallengeReward_AppliesBonusMultiplierAsFinalCalculation(
+            QuestionOutcome outcome,
+            int score,
+            int biomeIndex,
+            double bonusMultiplier,
+            int expected)
+        {
+            Assert.That(
+                ChallengeRewardPolicy.Calculate(outcome, score, biomeIndex, bonusMultiplier),
+                Is.EqualTo(expected));
+        }
+
         [Test]
         public void ChallengeFailure_FleesWithoutHeartLossAndAdvancesStage()
         {
@@ -861,6 +908,42 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(30, 1500), Is.EqualTo(116500L));
             Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(36, 1500), Is.EqualTo(206500L));
             Assert.That(StageHpPolicy.CalculateGrowthBasisPoints(40, 1500), Is.EqualTo(266500L));
+        }
+
+        [Test]
+        public void StageHpPolicy_ConfigurablePhaseRates_AppliesCustomPhase4Growth()
+        {
+            // WL 38 (Stage 190): 8 levels into Phase 4
+            // Default baseBridge (WL 30) = 116500L (11.65x)
+            // With Phase 4 = 50000L (+5.0x per WL):
+            // Growth = 116500L + 8 * 50000L = 516500L (51.65x)
+            long growth = StageHpPolicy.CalculateGrowthBasisPoints(
+                worldLevel: 38,
+                phase1GrowthBasisPoints: 1500,
+                phase2GrowthBasisPoints: 3500,
+                phase3GrowthBasisPoints: 8000,
+                phase4GrowthBasisPoints: 50000);
+            Assert.That(growth, Is.EqualTo(516500L));
+
+            // Fox Empress (baseHp: 1500) -> 1500 * 51.65 = 77,475 HP
+            StageMapData devMap = DevelopmentStageMapFactory.Create();
+            var customMap = new StageMapData(
+                devMap.CatalogVersion,
+                1500,
+                500, // +/- 5% variation
+                devMap.Biomes,
+                new Dictionary<int, EventData>(),
+                devMap.ChanceEvents,
+                0,
+                null,
+                3500, 8000, 50000);
+
+            var foxEmpress = new MonsterData(
+                "fox-empress", "Fox Empress",
+                StageEncounterKind.BigBoss, "biome-6", 2, 1500, 10000);
+            int hp = StageHpPolicy.Calculate(customMap, foxEmpress, "fox-run", new StageId(190));
+            // 77,475 +/- 5% variation -> [73,601, 81,348]
+            Assert.That(hp, Is.InRange(73600, 81400));
         }
 
         [Test]
@@ -1367,6 +1450,55 @@ namespace PowerMath.Gameplay.Combat.Tests
                 minimum + (maximum - minimum) / 2;
 
             public double NextUnit() => 0.5d;
+        }
+        [Test]
+        public void StageEncounterResolver_HonorsFixedMonsterBindingOnNormalStage()
+        {
+            // Arrange: build a map with a fixed monster pinned to Stage 1.
+            StageMapData source = DevelopmentStageMapFactory.Create();
+            var pinnedMonster = new MonsterData("pinned-mon", "Pinned Monster",
+                StageEncounterKind.NormalMonster, source.Biomes[0].Id, 3, 40, 10000);
+            var fixedMonsters = new Dictionary<int, MonsterData> { { 1, pinnedMonster } };
+            var map = new StageMapData(
+                source.CatalogVersion,
+                source.GrowthBasisPoints, source.VariationBasisPoints,
+                source.Biomes,
+                source.FixedEventStages.ToDictionary(
+                    s => s, s => { source.TryGetFixedEvent(new StageId(s), out EventData e); return e; }),
+                source.ChanceEvents, 0,
+                fixedMonsters);
+            var resolver = new StageEncounterResolver(map);
+
+            // Act
+            EncounterSelection result = resolver.Resolve("run-pin", new StageId(1));
+
+            // Assert: pinned monster is returned regardless of hash outcome.
+            Assert.That(result.Kind, Is.EqualTo(StageEncounterKind.NormalMonster));
+            Assert.That(result.EncounterId, Is.EqualTo("pinned-mon"));
+            Assert.That(result.DisplayName, Is.EqualTo("Pinned Monster"));
+        }
+
+        [Test]
+        public void EventScheduleGenerator_SkipsFixedMonsterStageForEventPlacement()
+        {
+            // Arrange: Stage 1 is a fixed monster — it must never appear in the generated event schedule.
+            StageMapData source = DevelopmentStageMapFactory.Create();
+            var pinnedMonster = new MonsterData("pinned-skip", "Skip Monster",
+                StageEncounterKind.NormalMonster, source.Biomes[0].Id, 3, 40, 10000);
+            var map = new StageMapData(
+                source.CatalogVersion,
+                source.GrowthBasisPoints, source.VariationBasisPoints,
+                source.Biomes,
+                new Dictionary<int, EventData>(),
+                source.ChanceEvents, 0,
+                new Dictionary<int, MonsterData> { { 1, pinnedMonster } });
+
+            // Act
+            EventScheduleSnapshot schedule = EventScheduleGenerator.Create("skip-test", map);
+
+            // Assert: Stage 1 must never be chosen for a random event.
+            Assert.That(schedule.GeneratedStages, Has.No.Member(1),
+                "A fixed-monster stage must not be selected for event placement.");
         }
     }
 }

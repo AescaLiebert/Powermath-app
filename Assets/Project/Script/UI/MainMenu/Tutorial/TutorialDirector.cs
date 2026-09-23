@@ -17,6 +17,8 @@ namespace PowerMath.UI.MainMenu.Tutorial
         public const string OnFirstCreateId = "OnFirstCreate";
         public const string OnFirstRankChangeId = "OnFirstRankChange";
         public const string OnFirstEnemySurviveId = "OnFirstEnemySurvive";
+        public const string OnFirstRebirthOpenId = "OnFirstRebirthOpen";
+        public const string OnFirstRebirthId = "OnFirstRebirth";
 
         private readonly MonoBehaviour _host;
         private readonly TutorialSequence _sequence;
@@ -30,15 +32,23 @@ namespace PowerMath.UI.MainMenu.Tutorial
         private readonly bool _autoQueueLegacyRankChange;
         private readonly bool _ownsCombatCheckpoints;
         private readonly Func<bool> _allowExternalGate;
+        private readonly Func<bool> _allowNonCombatPresentation;
         private TutorialProgress _progress;
         private IInteractionLock _tutorialLock;
         private bool _busy;
+        private bool _queueing;
         private bool _disposed;
         // Several state-machine directors share one physical overlay. Only the
         // director that rendered it may hide that shared surface.
         private bool _isPresenting;
         private bool _targetAccepted;
+        private bool _failOpenInFlight;
         private TutorialFocusTarget _activeTarget;
+
+        public event Action<TutorialStep> StepPresented;
+        public event Action SequenceCompleted;
+
+        public bool IsCompleted => _progress?.Status == TutorialStatus.Completed;
 
         public TutorialDirector(
             MonoBehaviour host,
@@ -53,7 +63,8 @@ namespace PowerMath.UI.MainMenu.Tutorial
             bool autoQueueOnCreate = true,
             bool autoQueueLegacyRankChange = false,
             bool ownsCombatCheckpoints = true,
-            Func<bool> allowExternalGate = null)
+            Func<bool> allowExternalGate = null,
+            Func<bool> allowNonCombatPresentation = null)
         {
             _host = host != null ? host : throw new ArgumentNullException(nameof(host));
             _sequence = sequence ?? throw new ArgumentNullException(nameof(sequence));
@@ -66,6 +77,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
             _autoQueueLegacyRankChange = autoQueueLegacyRankChange;
             _ownsCombatCheckpoints = ownsCombatCheckpoints;
             _allowExternalGate = allowExternalGate;
+            _allowNonCombatPresentation = allowNonCombatPresentation;
             _view = new TutorialOverlayView(root, reducedMotion);
         }
 
@@ -129,6 +141,14 @@ namespace PowerMath.UI.MainMenu.Tutorial
             }
             if (_progress != null && _progress.Status == TutorialStatus.Active)
             {
+                if (IsFailOpenTutorial)
+                {
+                    // Session 5 is optional guidance. If the player left while
+                    // it was active, never replay a partially consumed reward
+                    // flow that may no longer be actionable.
+                    yield return CompleteSafelyRoutine("scene-reload");
+                    yield break;
+                }
                 // Scene references and panel ownership do not survive an app exit.
                 // Restart the authored flow from its safe entry while preserving
                 // durable one-time reward state and the original trigger.
@@ -188,9 +208,26 @@ namespace PowerMath.UI.MainMenu.Tutorial
         private IEnumerator ActivateTargetRoutine(TutorialStep step)
         {
             HideAndRelease();
-            if (!_activeTarget.TryActivate())
+            bool activated = false;
+            try
+            {
+                activated = _activeTarget.TryActivate();
+            }
+            catch (Exception exception)
+            {
+                PowerMath.Diagnostics.AppLog.Exception(
+                    "Tutorial", exception,
+                    $"Tutorial target '{step.TargetId}' failed");
+            }
+            if (!activated)
             {
                 _targetAccepted = false;
+                if (IsFailOpenTutorial)
+                {
+                    yield return CompleteSafelyRoutine(
+                        "target-unavailable:" + step.TargetId);
+                    yield break;
+                }
                 RenderCurrent();
                 _view.ShowError("tutorial.actionUnavailable");
                 yield break;
@@ -264,34 +301,90 @@ namespace PowerMath.UI.MainMenu.Tutorial
 
         public IEnumerator QueueFromTrigger(
             long triggerRecordedAt,
-            string variant = "")
+            string variant = "",
+            bool useReturningStart = false)
         {
             TryReservePendingOwnership();
-            while (_busy && !_disposed) yield return null;
+            // Combat result callbacks can be delivered more than once in the
+            // same frame. Persist() has not set _busy until its child coroutine
+            // starts, so serialize admission here as well.
+            while ((_busy || _queueing) && !_disposed) yield return null;
             if (_disposed) yield break;
+            _queueing = true;
+            try
+            {
+                if (!TutorialProgressMapper.TryFind(
+                        _sessionStore.Snapshot,
+                        _sequence.Id,
+                        out _progress,
+                        out string error))
+                {
+                    ReleaseTutorialLock();
+                    StatusMessageService.ShowError(error);
+                    yield break;
+                }
+                if (_progress != null)
+                {
+                    if (_progress.Status != TutorialStatus.Active)
+                        ReleaseTutorialLock();
+                    yield break;
+                }
+                TutorialProgress queued = TutorialStateMachine.Queue(
+                    _sequence,
+                    useReturningStart,
+                    triggerRecordedAt,
+                    variant);
+                yield return Persist(queued);
+                if (!_busy && !_disposed) SynchronizeCurrentLobby();
+            }
+            finally
+            {
+                _queueing = false;
+            }
+        }
+
+        public IEnumerator NotifyExternalEvent(
+            string targetId,
+            string transactionId = "",
+            bool presentAfterPersist = true)
+        {
+            if (_disposed || string.IsNullOrWhiteSpace(targetId)) yield break;
+            while (_busy && !_disposed) yield return null;
+            if (_disposed || _progress == null) yield break;
+            if (_progress.Status == TutorialStatus.Queued &&
+                !CanActivateFromQueue()) yield break;
+            if (_progress.Status == TutorialStatus.Queued)
+                TryReservePendingOwnership();
+            yield return ReduceAndPersist(new TutorialSignal(
+                TutorialSignalKind.ExternalEvent,
+                targetId: targetId,
+                transactionId: transactionId),
+                presentAfterPersist);
+            if (!_busy && presentAfterPersist) SynchronizeCurrentLobby();
+        }
+
+        /// <summary>
+        /// Reloads this director's cached progress after an adjacent durable
+        /// operation (such as a tutorial-owned reward) updates the same entry.
+        /// </summary>
+        public bool RefreshProgressFromSession()
+        {
+            if (_disposed) return false;
             if (!TutorialProgressMapper.TryFind(
-                    _sessionStore.Snapshot,
-                    _sequence.Id,
-                    out _progress,
+                    _sessionStore.Snapshot, _sequence.Id, out TutorialProgress value,
                     out string error))
             {
-                ReleaseTutorialLock();
-                StatusMessageService.ShowError(error);
-                yield break;
+                if (!string.IsNullOrWhiteSpace(error)) StatusMessageService.ShowError(error);
+                return false;
             }
-            if (_progress != null)
-            {
-                if (_progress.Status != TutorialStatus.Active)
-                    ReleaseTutorialLock();
-                yield break;
-            }
-            TutorialProgress queued = TutorialStateMachine.Queue(
-                _sequence,
-                false,
-                triggerRecordedAt,
-                variant);
-            yield return Persist(queued);
-            if (!_busy && !_disposed) SynchronizeCurrentLobby();
+            _progress = value;
+            return true;
+        }
+
+        public IEnumerator CompleteSafely(string reason)
+        {
+            yield return CompleteSafelyRoutine(
+                string.IsNullOrWhiteSpace(reason) ? "unspecified" : reason);
         }
 
         /// <summary>
@@ -332,14 +425,20 @@ namespace PowerMath.UI.MainMenu.Tutorial
         {
             if (_busy || _disposed || _progress == null) return;
             CombatSnapshot snapshot = _combat.CurrentCombatSnapshot;
-            if (!_combat.IsStableForTutorial || !IsStandard(snapshot))
+            bool canPresentOutsideCombat = _allowNonCombatPresentation?.Invoke() == true;
+            if ((!_combat.IsStableForTutorial || !IsStandard(snapshot)) &&
+                !canPresentOutsideCombat)
             {
                 HideAndRelease();
                 return;
             }
             if (_progress.Status == TutorialStatus.Queued)
             {
-                OnLobbyStable(snapshot);
+                if (canPresentOutsideCombat)
+                {
+                    _host.StartCoroutine(NotifyExternalEvent("tutorial.external-ready"));
+                }
+                else OnLobbyStable(snapshot);
                 return;
             }
             if (_progress.Status == TutorialStatus.Active &&
@@ -352,7 +451,9 @@ namespace PowerMath.UI.MainMenu.Tutorial
             RenderCurrent();
         }
 
-        private IEnumerator ReduceAndPersist(TutorialSignal signal)
+        private IEnumerator ReduceAndPersist(
+            TutorialSignal signal,
+            bool presentAfterPersist = true)
         {
             if (_busy || _progress == null || _disposed) yield break;
             if (!TutorialStateMachine.TryReduce(
@@ -362,10 +463,12 @@ namespace PowerMath.UI.MainMenu.Tutorial
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 out TutorialProgress next))
                 yield break;
-            yield return Persist(next);
+            yield return Persist(next, presentAfterPersist);
         }
 
-        private IEnumerator Persist(TutorialProgress next)
+        private IEnumerator Persist(
+            TutorialProgress next,
+            bool presentAfterPersist = true)
         {
             if (_busy || _disposed) yield break;
             _busy = true;
@@ -384,6 +487,11 @@ namespace PowerMath.UI.MainMenu.Tutorial
             if (saved == null)
             {
                 _busy = false;
+                PowerMath.Diagnostics.AppLog.Warning(
+                    "Tutorial",
+                    $"Save failed for '{_sequence.Id}' at '{next.CurrentStepId}': " +
+                    $"{failure?.Kind.ToString() ?? "No failure response"} — " +
+                    (failure?.PlayerMessage ?? "No failure message."));
                 string key = failure?.Kind == FirestoreRestClient.FailureKind.Conflict
                     ? "errors.conflict"
                     : "errors.save";
@@ -405,7 +513,19 @@ namespace PowerMath.UI.MainMenu.Tutorial
             }
             _busy = false;
             _view.SetBusy(false);
-            RenderCurrent();
+            if (_progress.Status == TutorialStatus.Completed)
+                SequenceCompleted?.Invoke();
+            TutorialStep persistedWaitStep = null;
+            if (_progress.Status == TutorialStatus.Active &&
+                _sequence.TryGetStep(_progress.CurrentStepId, out TutorialStep activeStep) &&
+                activeStep.Kind == TutorialStepKind.Wait)
+                persistedWaitStep = activeStep;
+            if (presentAfterPersist) RenderCurrent();
+            else HideAndRelease();
+            // Clear the preceding focus proxy before wait-step side effects
+            // (reward animation, reveal listeners, etc.) begin.
+            if (persistedWaitStep != null)
+                StepPresented?.Invoke(persistedWaitStep);
         }
 
         private PlayerSnapshot MergeTutorialSaveIntoLiveSnapshot(
@@ -449,6 +569,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
 
             PlayerSnapshot player = _sessionStore.Snapshot;
             bool ownsGate = _tutorialLock != null && !_tutorialLock.IsReleased;
+            bool canPresentOutsideCombat = _allowNonCombatPresentation?.Invoke() == true;
             bool gateBlockedByOtherOwner = !ownsGate &&
                 _interactionGate.Snapshot.IsBlocked &&
                 !(_allowExternalGate?.Invoke() == true);
@@ -459,9 +580,10 @@ namespace PowerMath.UI.MainMenu.Tutorial
                 player?.activeRun?.pendingPresentation != null,
                 string.Equals(player?.lastRunSettlement?.presentationStatus,
                     "Pending", StringComparison.Ordinal),
-                _combat.CurrentCombatSnapshot?.Phase == CombatPhase.EnemyReady,
-                IsStandard(_combat.CurrentCombatSnapshot),
-                _combat.IsStableForTutorial || ownsGate,
+                canPresentOutsideCombat ||
+                    _combat.CurrentCombatSnapshot?.Phase == CombatPhase.EnemyReady,
+                canPresentOutsideCombat || IsStandard(_combat.CurrentCombatSnapshot),
+                canPresentOutsideCombat || _combat.IsStableForTutorial || ownsGate,
                 gateBlockedByOtherOwner,
                 false);
             if (!TutorialSafeStatePolicy.CanPresent(safeState))
@@ -475,6 +597,12 @@ namespace PowerMath.UI.MainMenu.Tutorial
                 !_targets.TryResolve(step.TargetId, step.FallbackTargetId, out target))
             {
                 HideAndRelease();
+                if (IsFailOpenTutorial)
+                {
+                    _host.StartCoroutine(CompleteSafelyRoutine(
+                        "target-missing:" + step.TargetId));
+                    return;
+                }
                 StatusMessageService.ShowError(
                     PowerMath.Localization.LocalizationService.Get(
                         "tutorial.targetUnavailable"));
@@ -510,6 +638,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
                 PowerMath.Diagnostics.AppLog.Info(
                     "Tutorial",
                     $"Showing '{_sequence.Id}' step '{step.Id}'.");
+                StepPresented?.Invoke(step);
             }
             catch (Exception exception)
             {
@@ -539,6 +668,27 @@ namespace PowerMath.UI.MainMenu.Tutorial
             IInteractionLock active = _tutorialLock;
             _tutorialLock = null;
             active?.Dispose();
+        }
+
+        private bool IsFailOpenTutorial => string.Equals(
+            _sequence.Id, OnFirstRebirthId, StringComparison.Ordinal);
+
+        private IEnumerator CompleteSafelyRoutine(string reason)
+        {
+            if (_failOpenInFlight || _disposed || _progress == null ||
+                _progress.Status == TutorialStatus.Completed)
+                yield break;
+            _failOpenInFlight = true;
+            HideAndRelease();
+            TutorialProgress completed = _progress.With(
+                status: TutorialStatus.Completed,
+                completedAt: DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            PowerMath.Diagnostics.AppLog.Warning(
+                "Tutorial",
+                $"Fail-open completed '{_sequence.Id}' at " +
+                $"'{_progress.CurrentStepId}' ({reason}).");
+            yield return Persist(completed, presentAfterPersist: false);
+            _failOpenInFlight = false;
         }
 
         private static bool IsStandard(CombatSnapshot snapshot) =>

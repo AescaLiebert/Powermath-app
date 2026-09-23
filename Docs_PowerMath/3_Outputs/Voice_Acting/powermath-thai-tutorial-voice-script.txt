@@ -2,9 +2,9 @@ POWER MATH — THAI TUTORIAL VOICE-ACTING SCRIPT
 
 Language: Thai (th)
 Source: Assets/Project/Resources/Localization/UI.json
-Scope: OnFirstCreate, OnFirstRankChange, and OnFirstEnemySurvive
+Scope: OnFirstCreate, OnFirstRankChange, OnFirstEnemySurvive, OnFirstRebirthUnlock, and OnFirstRebirth
 Speaker: Power / tutorial voice (confirm final casting)
-Revision: 2026-09-17
+Revision: 2026-09-22
 
 
 RECORDING NOTES
@@ -107,10 +107,99 @@ SESSION 03 — ONFIRSTENEMYSURVIVE
     Cue: Rallying encouragement; heroic, optimistic finish.
 
 
+SESSIONS 04 TO 06 — FIRST REBIRTH SEQUENCE
+
+Session 04 is the pre-settlement explanation. Sessions 05 and 06 start only after
+the authoritative settlement returns the player to Stage 1. The death route uses
+S4_01_VA through S4_05_VA. The voluntary Stage 30+ route reuses S4_02_VA and
+S4_03_VA when the Rebirth panel opens.
+
+SESSION 04 — ONFIRSTREBIRTHUNLOCK
+
+21. tutorial.onFirstRebirthUnlock.defeat | S4_01_VA
+    Thai: โอ๊ะ! หัวใจหมดแล้ว... แต่ไม่เป็นไรนะ นักผจญภัย
+    Cue: Rebirth/Die window only; before restart confirmation. Briefly startled, then bright and reassuring.
+
+22. tutorial.onFirstRebirthUnlock.rebirthExplanation | S4_02_VA
+    Thai: เวลาสู้ต่อไม่ไหว เราสามารถ เกิดใหม่ และสืบทอดพลังเพื่อกลับมาแข็งแกร่งกว่าเดิมได้!
+    Cue: Death route: after 21. Voluntary Stage 30+ route: first line on Rebirth-panel open. Hopeful teaching tone.
+
+23. tutorial.onFirstRebirthUnlock.rebirthBenefits | S4_03_VA
+    Thai: ยิ่งเธอผจญภัยมาไกล พอเกิดใหม่ก็จะได้รับพลังเพิ่มขึ้น และได้ Power Coin มากขึ้นด้วยนะ
+    Cue: Spotlight the complete Legacy ATK and Power Coin panel.
+
+24. tutorial.onFirstRebirthUnlock.rebirthPrompt | S4_04_VA
+    Thai: พร้อมแล้วก็กด เกิดใหม่ กันเลย
+    Cue: Focus RebirthBtn and accept only the valid Rebirth/restart command.
+
+25. tutorial.onFirstRebirthUnlock.rebirthResult | S4_05_VA
+    Thai: ตอนนี้เธอแข็งแกร่งขึ้นแล้ว แถมยังได้ Power Coin มาด้วยนะ!
+    Cue: Play only after the authoritative settlement has returned the player to Stage 1.
+
+
+SESSION 05 — ONFIRSTREBIRTH PET GACHA
+
+26. tutorial.onFirstRebirth.gachaInvite | S5_01_VA
+    Thai: อืม.. แล้ว Power Coin ใช้ทำอะไรได้บ้างน่ะเหรอ? ตามฉันมาเลย!
+    Cue: Focus PlayerMenu/Pet-GachaBtn and require Pet Gacha to open.
+
+27. tutorial.onFirstRebirth.gachaIntroduction | S5_02_VA
+    Thai: ที่นี่คือ แท่นอัญเชิญสัตว์เลี้ยง! เหล่าสัตว์เลี้ยงจะมาเป็นคู่หูผจญภัยของเธอ!
+    Cue: Play when the Pet Gacha panel opens.
+
+28. tutorial.onFirstRebirth.petBenefits | S5_03_VA
+    Thai: สัตว์เลี้ยงจะช่วยเพิ่มพลังให้เธอ และบางตัวยังช่วยโจมตีมอนสเตอร์ได้ด้วยนะ!
+    Cue: Teach warmly and clearly.
+
+29. tutorial.onFirstRebirth.petRarity | S5_04_VA
+    Thai: สัตว์เลี้ยงมีตั้งแต่ระดับ ธรรมดา หายาก ไปจนถึง หายากสุดๆ ยิ่งระดับสูงก็ยิ่งเก่ง!
+    Cue: Clearly separate each rarity band.
+
+30. tutorial.onFirstRebirth.gachaGrant | S5_05_VA
+    Thai: ฉันจะให้ Power Coin เพิ่มนิดหน่อย ลองอัญเชิญคู่หูตัวแรกของเธอกันเลย!
+    Cue: Trigger one-time +180 Power Coin animation, then focus one pull and confirmation.
+
+31. tutorial.onFirstRebirth.gachaResult | S5_06_VA
+    Thai: ว้าว! เธอได้สัตว์เลี้ยงระดับสูงด้วยล่ะ คู่หูตัวนี้จะช่วยให้เธอแข็งแกร่งขึ้นแน่นอน!
+    Cue: Wait for real Pet Reveal; then wait for the player to return to Main Menu.
+
+
+SESSION 06 — PLAYER HUB AND WEAPON ASCEND
+
+32. tutorial.onFirstRebirth.playerHubInvite | S6_01_VA
+    Thai: ยังมีอีกที่หนึ่งที่จะช่วยให้เธอเก่งขึ้นนะ ไปที่ Player Hub กัน!
+    Cue: Focus PlayerMenu/PlayerHubBtn and require Player Hub to open.
+
+33. tutorial.onFirstRebirth.weaponAscendExplanation | S6_02_VA
+    Thai: ตรงนี้เธอสามารถใช้ Power Coin เพื่ออัปเกรดดาบให้แข็งแกร่งขึ้นได้
+    Cue: Explain inside Player Hub.
+
+34. tutorial.onFirstRebirth.weaponAscendPrompt | S6_03_VA
+    Thai: ดูจำนวน Power Coin ที่ต้องใช้ แล้วกด อัปเกรด ได้เลย
+    Cue: Focus AscendBtn and permit the normal upgrade. No insufficient-funds branch is required.
+
+35. tutorial.onFirstRebirth.weaponAscendResult | S6_04_VA
+    Thai: สำเร็จ! ดาบของเธอแรงขึ้นแล้ว แบบนี้สู้มอนสเตอร์ได้ง่ายขึ้นแน่นอน!
+    Cue: Play only after authoritative upgrade success.
+
+36. tutorial.onFirstRebirth.petTabPrompt | S6_05_VA
+    Thai: แล้วก็ถ้าอยากดูคู่หูของเธอ ก็กดที่เมนู สัตว์เลี้ยง ได้เลยนะ!
+    Cue: Focus PetTabMenu and require the Pet tab to open.
+
+37. tutorial.onFirstRebirth.duplicatePetBenefit | S6_06_VA
+    Thai: สัตว์เลี้ยงที่สุ่มได้ซ้ำมาจะช่วยเพิ่มค่าสถานะให้ด้วยนะ
+    Cue: Explain the account-wide duplicate benefit.
+
+38. tutorial.onFirstRebirth.final | S6_07_VA
+    Thai: พร้อมกว่าเดิมแล้วใช่ไหม? งั้นกลับไปลุยกันต่อเลย นักผจญภัย!
+    Cue: Complete OnFirstRebirth only after the dialogue advances.
+
+
 PICKUP / QA CHECKLIST
 
 [ ] Player-name substitution is tested with a short and long Thai display name.
-[ ] All 20 keys resolve to Thai text in UI.json.
+[ ] All 20 existing keys resolve to Thai text in UI.json.
+[ ] All takes 21–38 resolve to exact approved Thai text and their imported S4–S6 voice cues.
 [ ] Correct, incorrect, timeout, abandoned, rank-change, and enemy-survive branches each have a distinct take.
 [ ] MOVE, ATTACK, and Math:World pronunciation is approved by the director.
 [ ] Final takes preserve the written pauses and do not add claims that change gameplay meaning.

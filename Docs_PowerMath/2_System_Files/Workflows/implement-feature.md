@@ -80,6 +80,9 @@ Using `2_System_Files/Agent_Prompts/qa-agent.md`, create:
 - Edge case tests
 - Platform-specific tests
 - Regression checklist
+- Exact `unity test` commands and results-report paths for every automated test
+
+Run automated Unity tests with the CLI, not the Unity Editor Test Runner. Keep manual visual and game-feel checks as separately recorded Editor/device validation.
  
 **Save to:** `Docs/3_Outputs/TestPlans/{feature-name}-test-plan.md`
  
