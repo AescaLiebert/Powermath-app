@@ -200,6 +200,12 @@ namespace PowerMath.Gameplay.Tutorial
                 ? ReturningStartStepId
                 : StartStepId;
 
+        public bool IsStartStep(string stepId) =>
+            !string.IsNullOrWhiteSpace(stepId) &&
+            (string.Equals(stepId, StartStepId, StringComparison.Ordinal) ||
+             (!string.IsNullOrWhiteSpace(ReturningStartStepId) &&
+              string.Equals(stepId, ReturningStartStepId, StringComparison.Ordinal)));
+
         private static IReadOnlyList<string> CopyPrerequisiteTutorialIds(
             IReadOnlyList<string> source)
         {

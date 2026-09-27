@@ -178,6 +178,32 @@ namespace PowerMath.Gameplay.Tutorial.Tests
                 new[] { "OnFirstEnemySurvive" }));
         }
 
+        [Test]
+        public void IsStartStep_ReturnsTrueForInitialAndReturningStepsOnly()
+        {
+            TutorialSequence sequence = BuildSequence();
+
+            Assert.That(sequence.IsStartStep("welcome"), Is.True);
+            Assert.That(sequence.IsStartStep("returning"), Is.True);
+            Assert.That(sequence.IsStartStep("attack"), Is.False);
+            Assert.That(sequence.IsStartStep("wait-result"), Is.False);
+            Assert.That(sequence.IsStartStep(null), Is.False);
+            Assert.That(sequence.IsStartStep(""), Is.False);
+            Assert.That(sequence.IsStartStep("unknown"), Is.False);
+        }
+
+        [Test]
+        public void IsStartStep_WithoutReturningStep_OnlyMatchesInitialStartStep()
+        {
+            var sequence = new TutorialSequence(
+                "Simple", 1, "start", string.Empty,
+                new[] { Step("start", TutorialStepKind.Dialogue) });
+
+            Assert.That(sequence.IsStartStep("start"), Is.True);
+            Assert.That(sequence.IsStartStep(""), Is.False);
+            Assert.That(sequence.IsStartStep(null), Is.False);
+        }
+
         private static TutorialSequence BuildSequence()
         {
             TutorialRule Advance(string next) =>

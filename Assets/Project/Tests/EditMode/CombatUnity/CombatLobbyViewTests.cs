@@ -79,6 +79,29 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
 
         [Test]
+        public void RecoverySettlement_ClearsUnfinishedUiTransitions()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml);
+            using var view = new CombatLobbyView(asset.CloneTree());
+            var destination = new CombatSnapshot(
+                new StageId(8), "enemy-2", "Enemy 2", 10, 10, 2, 2,
+                3, 3, CombatPhase.PresentingResult, false,
+                "biome-a", "Biome A", StageEncounterKind.NormalMonster,
+                string.Empty, 0);
+            view.ShowAttempt(true);
+            view.InitiateEnemyActions(destination);
+
+            Assert.That(view.IsBlockingUiStable, Is.False);
+            Assert.That(view.IsEnemyActionQueueStable, Is.False);
+
+            view.SettleRecoveredPresentation(destination);
+
+            Assert.That(view.IsBlockingUiStable, Is.True);
+            Assert.That(view.IsEnemyActionQueueStable, Is.True);
+        }
+
+        [Test]
         public void MainMenuAsset_SatisfiesCombatViewContract()
         {
             VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
@@ -254,6 +277,37 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
                 Is.False,
                 "A one-item action row must not reserve a trailing grid gap.");
             Assert.That(view.CanAttack, Is.True);
+        }
+
+        [Test]
+        public void PrepareEncounterPresentation_UpdatesStageWithIncomingEnemy()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                MainMenuUxml);
+            VisualElement root = asset.CloneTree();
+            using var view = new CombatLobbyView(root);
+            var source = new CombatSnapshot(
+                new StageId(67), "event-c10", "Challenge", 1, 1, 0, 1,
+                3, 3, CombatPhase.EventReady, false,
+                "biome-a", "Biome A", StageEncounterKind.ChallengeEvent,
+                string.Empty, 0);
+            var destination = new CombatSnapshot(
+                new StageId(68), "enemy-68", "Next Enemy", 12, 12, 2, 2,
+                3, 3, CombatPhase.PresentingResult, false,
+                "biome-b", "Biome B", StageEncounterKind.NormalMonster,
+                string.Empty, 0);
+
+            view.Render(source);
+            view.PrepareEncounterPresentation(destination);
+
+            Assert.That(root.Q<Label>("combat-stage-label").text,
+                Is.EqualTo("STAGE 68"));
+            Assert.That(root.Q<Label>("combat-enemy-name").text,
+                Is.EqualTo("Next Enemy"));
+            Assert.That(root.Q<Label>("combat-enemy-hp-label").text,
+                Is.EqualTo("12 / 12"));
+            Assert.That(root.Q<Label>("combat-biome-label").text,
+                Is.EqualTo("BIOME B"));
         }
 
         [Test]
@@ -903,6 +957,26 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             {
                 Assert.That(eqRow.style.display.value, Is.EqualTo(DisplayStyle.Flex));
             }
+        }
+
+        [Test]
+        public void CombatLobbyView_CloseWorldMap_HidesModalAndAppliesClass()
+        {
+            VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MainMenuUxml);
+            Assert.That(asset, Is.Not.Null);
+
+            VisualElement root = asset.CloneTree();
+            var view = new CombatLobbyView(root);
+            var mapModal = root.Q<VisualElement>("combat-map-modal");
+            Assert.That(mapModal, Is.Not.Null);
+
+            mapModal.style.display = DisplayStyle.Flex;
+            mapModal.RemoveFromClassList("is-hidden");
+
+            view.CloseWorldMap();
+
+            Assert.That(mapModal.style.display.value, Is.EqualTo(DisplayStyle.None));
+            Assert.That(mapModal.ClassListContains("is-hidden"), Is.True);
         }
     }
 }

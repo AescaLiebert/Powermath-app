@@ -750,6 +750,7 @@ namespace PowerMath.UI.MainMenu
             }
             var encounterResolver = new StageEncounterResolver(resolvedMap, eventSchedule);
             AttemptPresentationReceipt pendingPresentation = null;
+            bool interruptedAttemptResolved = false;
             if (!isolateQuestionFallback &&
                 snapshot.activeRun?.pendingPresentation != null &&
                 !TryMapPendingPresentation(
@@ -813,6 +814,7 @@ namespace PowerMath.UI.MainMenu
                         maximumHearts);
 
                     CombatResolution resolution = engine.ResolveIncorrect(timedOut: true);
+                    interruptedAttemptResolved = true;
 
                     string attemptId = !string.IsNullOrEmpty(snapshot.activeRun?.committedAttemptId)
                         ? snapshot.activeRun.committedAttemptId
@@ -821,7 +823,8 @@ namespace PowerMath.UI.MainMenu
                     bool isChallengeEvent = committedCombat.EncounterKind == StageEncounterKind.ChallengeEvent;
                     int challengeBiomeIndex = Math.Min(7, Math.Max(1, (committedCombat.Stage.Value - 1) / 30 + 1));
                     int eventCoinsGranted = isChallengeEvent
-                        ? ChallengeRewardPolicy.Calculate(QuestionOutcome.Timeout, 0, challengeBiomeIndex)
+                        ? ChallengeRewardPolicy.Calculate(QuestionOutcome.Timeout, 0,
+                            challengeBiomeIndex, combatStats.PowerCoinBonusMultiplier)
                         : 0;
                     long currentCoins = snapshot.wallet?.powerCoins ?? 0;
                     long resultingCoins = checked(currentCoins + eventCoinsGranted);
@@ -986,6 +989,31 @@ namespace PowerMath.UI.MainMenu
                     academicState = academicEngine.CreateInitialState(activeRank, balances);
                 }
             }
+            AcademicAttemptResult recoveredAcademicResult = null;
+            if (interruptedAttemptResolved && pendingPresentation != null &&
+                pendingPresentation.Source.EncounterKind != StageEncounterKind.ChallengeEvent &&
+                snapshot.activeRun?.questionId > 0)
+            {
+                try
+                {
+                    AcademicMutationResult mutation = academicEngine.ResolveInterruptedTimeout(
+                        academicState, activeRank,
+                        new QuestionId(snapshot.activeRun.questionId));
+                    academicState = mutation.State;
+                    recoveredAcademicResult = mutation.Attempt;
+                    pendingPresentation = WithRankTransition(pendingPresentation,
+                        new RankTransitionReceipt(
+                            mutation.Attempt.RankTransition.Previous,
+                            mutation.Attempt.RankTransition.Current));
+                }
+                catch (System.Exception exception) when (
+                    exception is System.ArgumentException ||
+                    exception is System.InvalidOperationException)
+                {
+                    PowerMath.Diagnostics.AppLog.Warning("Combat",
+                        $"Interrupted Rank question could not be scored: {exception.Message}");
+                }
+            }
             var clock = new UnityMonotonicClock();
             var transactionEngine = new LocalAttemptTransactionEngine(
                 engine,
@@ -1007,6 +1035,9 @@ namespace PowerMath.UI.MainMenu
                     ? snapshot.activeRun?.committedAttemptId
                     : string.Empty
             );
+            GameplaySaveRequest interruptedRecoveryRequest = interruptedAttemptResolved
+                ? transactionEngine.CreateInterruptedRecoverySaveRequest(recoveredAcademicResult)
+                : default;
             _transactionEngine = transactionEngine;
             var gateway = new LocalDevelopmentAttemptGateway(transactionEngine);
             var coordinator = new CombatAttemptCoordinator(gateway);
@@ -1090,7 +1121,8 @@ namespace PowerMath.UI.MainMenu
                 this,
                 persistence,
                 transactionEngine,
-                _interactionGate
+                _interactionGate,
+                interruptedAttemptResolved ? interruptedRecoveryRequest : (GameplaySaveRequest?)null
             );
             _presenter.Initialize();
             InitializeTutorial(
@@ -1201,7 +1233,8 @@ namespace PowerMath.UI.MainMenu
                 _presenter,
                 _interactionGate,
                 targets,
-                reducedMotion);
+                reducedMotion,
+                onFirstStepAboutToRun: ReturnToMainMenuIdle);
             _tutorialDirector.Initialize();
 
             SocialProfile.SocialProfileCompositionRoot social =
@@ -1240,7 +1273,8 @@ namespace PowerMath.UI.MainMenu
                     ownsCombatCheckpoints: false,
                     allowExternalGate: () => panelProvider?.Host?.OpenPanel ==
                             MainMenuPanelId.ProfileAnalytics ||
-                        panelProvider?.Host?.OpenPanel == MainMenuPanelId.Leaderboard);
+                        panelProvider?.Host?.OpenPanel == MainMenuPanelId.Leaderboard,
+                    onFirstStepAboutToRun: ReturnToMainMenuIdle);
                 _rankTutorialDirector.Initialize();
                 _resultDrivenTutorials.Add(new ResultDrivenTutorialBinding(
                     _rankTutorialDirector,
@@ -1269,7 +1303,8 @@ namespace PowerMath.UI.MainMenu
                     surviveTargets,
                     reducedMotion,
                     autoQueueOnCreate: false,
-                    ownsCombatCheckpoints: false);
+                    ownsCombatCheckpoints: false,
+                    onFirstStepAboutToRun: ReturnToMainMenuIdle);
                 _enemySurviveTutorialDirector.Initialize();
                 _resultDrivenTutorials.Add(new ResultDrivenTutorialBinding(
                     _enemySurviveTutorialDirector,
@@ -1341,7 +1376,8 @@ namespace PowerMath.UI.MainMenu
                 autoQueueOnCreate: false,
                 ownsCombatCheckpoints: false,
                 allowExternalGate: IsRebirthPanelOpen,
-                allowNonCombatPresentation: IsRebirthPanelOpen);
+                allowNonCombatPresentation: IsRebirthPanelOpen,
+                onFirstStepAboutToRun: ReturnToMainMenuIdle);
             _rebirthUnlockTutorialDirector.Initialize();
 
             var rebirthTargets = new TutorialTargetRegistry()
@@ -1354,7 +1390,7 @@ namespace PowerMath.UI.MainMenu
                 .Register("hub.open", root.Q<VisualElement>("player-hub-button"),
                     () => _runEconomyController.PlayerHub.TryOpenForTutorial())
                 .Register("hub.ascend", root.Q<VisualElement>("player-hub-weapon-upgrade"),
-                    () => _runEconomyController.PlayerHub.TryAscendForTutorial())
+                    () => _runEconomyController.PlayerHub.CanAscendForTutorial())
                 .Register("hub.pets", root.Q<VisualElement>("player-hub-tab-pets"),
                     () => _runEconomyController.PlayerHub.TryShowPetsForTutorial());
             _firstRebirthTutorialDirector = new TutorialDirector(
@@ -1370,7 +1406,8 @@ namespace PowerMath.UI.MainMenu
                 autoQueueOnCreate: false,
                 ownsCombatCheckpoints: false,
                 allowExternalGate: IsRebirthFlowPanelOpen,
-                allowNonCombatPresentation: IsRebirthFlowPanelOpen);
+                allowNonCombatPresentation: IsRebirthFlowPanelOpen,
+                onFirstStepAboutToRun: ReturnToMainMenuIdle);
             _firstRebirthTutorialDirector.Initialize();
 
             _firstRebirthTutorialAdapter = new FirstRebirthTutorialAdapter(
@@ -1406,6 +1443,30 @@ namespace PowerMath.UI.MainMenu
                 if (variant == null) continue;
                 yield return binding.Director.QueueFromTrigger(
                     triggerRecordedAt, variant);
+            }
+        }
+
+        public void ReturnToMainMenuIdle()
+        {
+            _panelHost?.ForceCloseAll();
+
+            if (_runEconomyController != null)
+            {
+                _runEconomyController.PetGacha?.CloseImmediate();
+                _runEconomyController.PlayerHub?.CloseImmediate();
+                _runEconomyController.Settlement?.CloseImmediate();
+            }
+
+            SocialProfile.SocialProfileCompositionRoot social =
+                GetComponent<SocialProfile.SocialProfileCompositionRoot>();
+            social?.CloseAll();
+
+            if (_view != null)
+            {
+                _view.CloseWorldMap();
+                _view.HideAnswerFeedback();
+                _view.HideBattleBanner();
+                _view.HideDamage();
             }
         }
 
@@ -1755,6 +1816,18 @@ namespace PowerMath.UI.MainMenu
                 fxRoot.offsetMax = Vector2.zero;
                 fxRoot.SetAsLastSibling();
             }
+
+            Canvas fxCanvas = fxRoot.GetComponent<Canvas>();
+            if (fxCanvas == null)
+                fxCanvas = fxRoot.gameObject.AddComponent<Canvas>();
+            fxCanvas.overrideSorting = true;
+            UIDocument document = GetComponent<UIDocument>();
+            if (document != null && document.sortingOrder >= 32000)
+            {
+                document.sortingOrder = 1000;
+            }
+            fxCanvas.sortingOrder = 32767;
+            fxRoot.SetAsLastSibling();
 
             _floatingText = GetComponent<FloatingCombatTextService>();
             if (_floatingText == null)
@@ -2476,6 +2549,20 @@ namespace PowerMath.UI.MainMenu
                 error = $"The saved combat presentation receipt failed validation: {ex.Message}";
                 return false;
             }
+        }
+
+        private static AttemptPresentationReceipt WithRankTransition(
+            AttemptPresentationReceipt source, RankTransitionReceipt rankTransition)
+        {
+            return new AttemptPresentationReceipt(
+                source.PresentationId, source.AttemptId, source.Outcome,
+                source.ResponseScore, source.FinalDamage, source.IsCritical,
+                source.Source, source.Destination, source.ResolvedEnemyHpAfter,
+                source.EnemyDefeated, source.EnemyAttacked, source.PlayerDefeated,
+                source.StageAdvanced, source.BiomeChanged, rankTransition,
+                source.Version, source.EnemyFled, source.PowerCoinsGranted,
+                source.ResultingPowerCoins, source.PlayerDamage,
+                source.PlayerEnemyHpAfter, source.PetFollowUp);
         }
 
         private static bool TryMapPresentationSnapshot(

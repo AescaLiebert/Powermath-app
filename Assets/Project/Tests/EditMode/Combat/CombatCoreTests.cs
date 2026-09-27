@@ -376,6 +376,53 @@ namespace PowerMath.Gameplay.Combat.Tests
         }
 
         [Test]
+        public void Transaction_PetAction_AwardsAdditionalRankCurrencyOfCurrentRank()
+        {
+            var map = DevelopmentStageMapFactory.Create();
+            var petStats = new PlayerCombatStats(
+                effectiveAttack: 5,
+                criticalRate: 0d,
+                criticalDamagePercent: 50d,
+                effectivePetAttack: 30,
+                petPassives: Passives(new PetPassiveDefinition(
+                    "test:follow-up",
+                    PetPassiveEffectType.FollowUpAfterSuccessfulPlayerAttack,
+                    1d)));
+            var combatEngine = new LocalRunEncounterEngine(
+                new StageId(1),
+                "run-pet-currency",
+                new StageEncounterResolver(map),
+                new MinimumRandomSource(),
+                3,
+                petStats);
+
+            QuestionCatalogLoadResult catalogResult = new QuestionDocumentMapper()
+                .MapCatalog(InMemoryQuestionCatalogRepository.CreateDefaultDocuments());
+            var academic = new AcademicProgressionEngine(catalogResult.Catalog);
+            AcademicProgressionState state = academic.CreateInitialState(
+                AcademicRank.Diamond,
+                new RankCurrencyBalances(0, 0, 0));
+            var clock = new ManualClock { NowSeconds = 10d };
+            var transaction = new LocalAttemptTransactionEngine(
+                combatEngine,
+                academic,
+                state,
+                clock,
+                1d,
+                10d);
+            var gateway = new LocalDevelopmentAttemptGateway(transaction);
+
+            AttemptCommit commit = gateway.CommitAttempt(new CombatCommandId("commit"));
+            gateway.OpenAnswerWindow(new CombatCommandId("window"), commit.Question.Id);
+            AttemptResolution result = gateway.SubmitAnswer(new CombatCommandId("submit"), "4");
+
+            Assert.That(result.Academic.Outcome, Is.EqualTo(QuestionOutcome.Correct));
+            Assert.That(result.Combat.PetFollowUp, Is.Not.Null);
+            Assert.That(result.Academic.CurrencyDelta, Is.EqualTo(2));
+            Assert.That(result.Snapshot.Academic.Balances.Diamond, Is.EqualTo(2));
+        }
+
+        [Test]
         public void Coordinator_ContentFailureRestoresQuestionCooldownAndReadyState()
         {
             GatewayFixture fixture = CreateGateway(maximumCooldown: 3);
@@ -895,6 +942,44 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(result.Snapshot.PowerCoins, Is.EqualTo(15));
             Assert.That(save.Academic.AuditResolvedCount, Is.Zero);
             Assert.That(result.Combat.EnemyFled, Is.True);
+        }
+
+        [Test]
+        public void InterruptedChallenge_RecoverySaveKeepsFleeRewardAndConsumesReservation()
+        {
+            const string runId = "interrupted-challenge-test";
+            var combat = new LocalRunEncounterEngine(
+                new StageId(7), runId,
+                new StageEncounterResolver(DevelopmentStageMapFactory.Create()),
+                new MinimumRandomSource(), 3, new PlayerCombatStats(5, 0d, 50d));
+            combat.CommitAttempt();
+            CombatPresentationSnapshot source = CombatPresentationSnapshot.From(combat.Snapshot);
+            CombatResolution result = combat.ResolveIncorrect(timedOut: true);
+            var receipt = new AttemptPresentationReceipt(
+                "interrupted-attempt-attempt-1", "attempt-1", AttemptOutcomeKind.Timeout,
+                0, 0, false, source, CombatPresentationSnapshot.From(result.Snapshot),
+                source.EnemyCurrentHp, false, false, false, result.StageAdvanced,
+                result.BiomeChanged, default, enemyFled: true,
+                powerCoinsGranted: 10, resultingPowerCoins: 15);
+            QuestionCatalogLoadResult rankCatalog = new QuestionDocumentMapper()
+                .MapCatalog(InMemoryQuestionCatalogRepository.CreateDefaultDocuments());
+            var academic = new AcademicProgressionEngine(rankCatalog.Catalog);
+            var transaction = new LocalAttemptTransactionEngine(
+                combat, academic, academic.CreateInitialState(AcademicRank.Silver,
+                    new RankCurrencyBalances(0, 0, 0)), new ManualClock(), 1d, 10d,
+                CreateChallengeCatalog(), runId, receipt,
+                new ChallengeQuestionSequenceSnapshot(0, 0, 0, "challenge", "cs1"),
+                powerCoins: 15);
+
+            GameplaySaveRequest save = transaction.CreateInterruptedRecoverySaveRequest();
+
+            Assert.That(save.SavePoint, Is.EqualTo(GameplaySavePoint.InterruptedAttemptResolved));
+            Assert.That(save.TransactionId, Is.EqualTo("attempt-1"));
+            Assert.That(save.RecoveryPresentation, Is.SameAs(receipt));
+            Assert.That(save.Snapshot.Combat.Stage.Value, Is.EqualTo(8));
+            Assert.That(save.Snapshot.PowerCoins, Is.EqualTo(15));
+            Assert.That(save.ChallengeQuestions.SilverCursor, Is.EqualTo(1));
+            Assert.That(save.ChallengeQuestions.ReservedQuestionId, Is.Empty);
         }
 
         [Test]

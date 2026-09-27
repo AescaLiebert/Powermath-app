@@ -143,6 +143,19 @@ namespace PowerMath.Gameplay.Academic
             return new AcademicMutationResult(next, result);
         }
 
+        public AcademicMutationResult ResolveInterruptedTimeout(
+            AcademicProgressionState source, AcademicRank rank, QuestionId questionId)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (!_catalog.TryGet(rank, questionId, out QuestionDefinition question))
+                throw new InvalidOperationException(
+                    "The interrupted Rank question is unavailable in the catalog.");
+            AcademicProgressionState restored = source.Clone();
+            restored.Inventories.Get(rank).RestoreInterruptedReservation(questionId);
+            return Resolve(restored, new QuestionReservation(question, rank),
+                QuestionOutcome.Timeout, 0);
+        }
+
         private static void EnsureReservationMatches(
             RankQuestionInventory inventory,
             QuestionId expected)

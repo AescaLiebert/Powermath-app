@@ -72,6 +72,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private FloatingRewardTextView SpawnInternal(RewardCurrencyKind kind, long amount, Vector2 point, int spawnOrdinal)
         {
             if (!_pool.TryAcquire(out FloatingRewardTextView view)) return null;
+            _overlayRoot.SetAsLastSibling();
 
             float overlap = _style == null ? 28f : _style.OverlapOffset;
             int lane = spawnOrdinal % 3 - 1;

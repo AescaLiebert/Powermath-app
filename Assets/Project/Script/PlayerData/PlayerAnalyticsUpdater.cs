@@ -8,8 +8,11 @@ namespace PowerMath.PlayerData
     {
         public static void Apply(PlayerSnapshot player, GameplaySaveRequest request)
         {
-            if (player == null || request.SavePoint != GameplaySavePoint.AttemptResolved ||
-                request.Resolution == null)
+            bool recovered = request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved &&
+                request.RecoveryAcademicResult != null;
+            bool resolved = request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                request.Resolution != null;
+            if (player == null || (!recovered && !resolved))
                 return;
 
             player.analytics = player.analytics ?? new PlayerSnapshot.AnalyticsData();
@@ -20,23 +23,26 @@ namespace PowerMath.PlayerData
                 return;
 
             AttemptResolution resolution = request.Resolution;
-            if (!resolution.IsAcademic)
+            if (!recovered && !resolution.IsAcademic)
             {
                 player.analytics.lastAppliedAttemptId = request.TransactionId;
                 return;
             }
-            bool correct = resolution.Academic.IsCorrect;
-            int score = Math.Max(0, Math.Min(10, resolution.Academic.ResponseScore));
+            AcademicAttemptResult academic = recovered
+                ? request.RecoveryAcademicResult : resolution.Academic;
+            int duration = recovered ? 0 : resolution.ResponseDurationMilliseconds;
+            bool correct = academic.IsCorrect;
+            int score = Math.Max(0, Math.Min(10, academic.ResponseScore));
             int efficiency = correct ? score * 10 : 0;
 
             player.analytics.totalQuestionsResolved++;
             if (correct) player.analytics.totalCorrect++;
-            else if (resolution.Academic.Outcome == QuestionOutcome.Timeout) player.analytics.totalTimeout++;
-            else if (resolution.Academic.Outcome == QuestionOutcome.Abandoned) player.analytics.totalAbandoned++;
+            else if (academic.Outcome == QuestionOutcome.Timeout) player.analytics.totalTimeout++;
+            else if (academic.Outcome == QuestionOutcome.Abandoned) player.analytics.totalAbandoned++;
             else player.analytics.totalIncorrect++;
             player.analytics.responseScoreSum += score;
             player.analytics.responseEfficiencySum += efficiency;
-            player.analytics.responseDurationMillisecondsSum += resolution.ResponseDurationMilliseconds;
+            player.analytics.responseDurationMillisecondsSum += duration;
             player.analytics.responseScoreHistogram = EnsureHistogram(player.analytics.responseScoreHistogram, 11);
             player.analytics.responseEfficiencyHistogram = EnsureHistogram(player.analytics.responseEfficiencyHistogram, 11);
             player.analytics.responseDuration100msHistogram = EnsureHistogram(
@@ -44,10 +50,10 @@ namespace PowerMath.PlayerData
             player.analytics.responseScoreHistogram[score]++;
             player.analytics.responseEfficiencyHistogram[efficiency / 10]++;
             player.analytics.responseDuration100msHistogram[Math.Min(
-                101, resolution.ResponseDurationMilliseconds / 100)]++;
+                101, duration / 100)]++;
             player.analytics.lastAppliedAttemptId = request.TransactionId;
 
-            PlayerSnapshot.RankAnalyticsData rank = ResolveRank(player.analytics, resolution.Academic.RankAtCommit);
+            PlayerSnapshot.RankAnalyticsData rank = ResolveRank(player.analytics, academic.RankAtCommit);
             rank.resolved++;
             if (correct) rank.correct++;
             rank.responseScoreSum += score;
@@ -55,14 +61,14 @@ namespace PowerMath.PlayerData
 
             PlayerSnapshot.QuestionAnalyticsData question = ResolveQuestion(
                 player.analytics,
-                resolution.Academic.QuestionId.Value);
+                academic.QuestionId.Value);
             question.resolved++;
             if (correct) question.correct++;
-            else if (resolution.Academic.Outcome == QuestionOutcome.Timeout) question.timeout++;
-            else if (resolution.Academic.Outcome == QuestionOutcome.Abandoned) question.abandoned++;
+            else if (academic.Outcome == QuestionOutcome.Timeout) question.timeout++;
+            else if (academic.Outcome == QuestionOutcome.Abandoned) question.abandoned++;
             else question.incorrect++;
             question.responseScoreSum += score;
-            question.responseDurationMillisecondsSum += resolution.ResponseDurationMilliseconds;
+            question.responseDurationMillisecondsSum += duration;
             question.responseEfficiencySum += efficiency;
 
         }

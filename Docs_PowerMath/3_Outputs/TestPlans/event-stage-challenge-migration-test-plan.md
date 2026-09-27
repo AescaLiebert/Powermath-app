@@ -65,6 +65,9 @@ The full Unity Test Runner was not started because this project is already open 
 - [ ] Submit an incorrect answer and allow a timeout; confirm `+10 PC`, no heart loss, no enemy attack, and Stage advance.
 - [ ] Retry an already accepted Firestore attempt after a simulated lost response; confirm wallet, Stage, question cursor, and analytics do not change twice.
 - [ ] Confirm Challenge attempts do not increment or reorder the five-question Rank audit.
+- [ ] For a saved committed Challenge question, refresh and verify the recovery first saves the Flee, reward, Stage advance, cleared reservation, and pending receipt together. Refresh again before its animation finishes; confirm the same receipt plays and no second reward or Stage advance occurs.
+- [ ] Simulate a failed recovery save and a failed presentation acknowledgement. Confirm a clear unavailable message appears, navigation is released, and another attack cannot begin against unsaved local state.
+- [ ] Refresh an ordinary Rank question before submission. Confirm its saved question counts once as a timeout in the Rank audit and analytics, including when it is the fifth audit result.
 
 ## 4. Presentation and Platform Scenarios
 

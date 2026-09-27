@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using PowerMath.UI.Shared;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -236,6 +236,21 @@ namespace PowerMath.UI.MainMenu
                     })
                     .StartingIn(260);
             }
+        }
+
+        public bool IsPlayerMenuOpen =>
+            _playerMenuContent != null && !_playerMenuContent.ClassListContains("is-collapsed");
+
+        public void ClosePlayerMenu()
+        {
+            if (_playerMenuContent == null || _playerMenuContent.ClassListContains("is-collapsed"))
+                return;
+            _playerMenuSettle?.Pause();
+            _playerMenuSettle = null;
+            SetPlayerMenuClass("is-follow-through", false);
+            SetPlayerMenuClass("is-collapsed", true);
+            if (_playerMenuToggle != null)
+                _playerMenuToggle.tooltip = "Open Player Menu";
         }
 
         private void SetPlayerMenuClass(string className, bool enabled)

@@ -111,7 +111,11 @@ namespace PowerMath.Gameplay.Progression
             long depthBonusBasisPoints = 10000L;
             if (stage > 100)
             {
-                depthBonusBasisPoints += (long)(stage - 100) * 150L;
+                depthBonusBasisPoints += 99L * 75L + (long)(stage - 100) * 150L;
+            }
+            else if (stage > 1)
+            {
+                depthBonusBasisPoints += (long)(stage - 1) * 75L;
             }
             long combinedMultiplier = checked((bonusBasisPoints * depthBonusBasisPoints) / 10000L);
             double petPowerCoinMultiplier = 1d;
@@ -144,7 +148,7 @@ namespace PowerMath.Gameplay.Progression
             }
 
             long numerator = checked(checked(checked(weightedTenths * stage) * stage) * combinedMultiplier);
-            long weightedCoins = numerator / 70000000L;
+            long weightedCoins = numerator / 180000000L;
             long flatStageCoins = checked(stage * 1L);
             long powerCoins = checked(flatStageCoins + weightedCoins);
             if (petPowerCoinMultiplier > 1d)
@@ -178,7 +182,7 @@ namespace PowerMath.Gameplay.Progression
                 legacyBasisPoints,
                 type == RunSettlementType.Rebirth ? 1 : 0,
                 Math.Round(
-                    Math.Max(0d, (totalPercentMultiplier - 1d) * 100d),
+                    Math.Max(0d, (petPowerCoinMultiplier - 1d) * 100d),
                     6,
                     MidpointRounding.AwayFromZero),
                 wasTeleported);

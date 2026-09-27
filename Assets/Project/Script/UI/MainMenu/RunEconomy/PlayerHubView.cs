@@ -102,6 +102,9 @@ namespace PowerMath.UI.MainMenu
             CompactPetAttack = Require<Label>(root, "player-hub-compact-pet-attack");
             CompactLuck = Require<Label>(root, "player-hub-compact-luck");
             CompactCoinBonus = Require<Label>(root, "player-hub-compact-coin-bonus");
+            CompactAttack.enableRichText = true;
+            CompactCritRate.enableRichText = true;
+            CompactCritDamage.enableRichText = true;
             WeaponName = Require<Label>(root, "player-hub-weapon-name");
             WeaponCurrent = Require<Label>(root, "player-hub-weapon-current");
             WeaponNext = Require<Label>(root, "player-hub-weapon-next");

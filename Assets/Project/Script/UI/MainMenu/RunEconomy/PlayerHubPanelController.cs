@@ -17,6 +17,7 @@ namespace PowerMath.UI.MainMenu
     {
         public event Action TutorialPanelOpened;
         public event Action TutorialWeaponAscendSucceeded;
+        public event Action<string> TutorialWeaponAscendFailed;
         public event Action TutorialPetsSectionShown;
 
         private readonly MonoBehaviour _host;
@@ -187,6 +188,8 @@ namespace PowerMath.UI.MainMenu
             TutorialPanelOpened?.Invoke();
         }
 
+        public bool IsBusy => _busy;
+
         public bool TryOpenForTutorial()
         {
             if (_busy || _panelHost.OpenPanel != MainMenuPanelId.None) return false;
@@ -194,7 +197,7 @@ namespace PowerMath.UI.MainMenu
             return _panelHost.OpenPanel == MainMenuPanelId.PlayerHub;
         }
 
-        public bool TryAscendForTutorial()
+        public bool CanAscendForTutorial()
         {
             if (_busy || _panelHost.OpenPanel != MainMenuPanelId.PlayerHub) return false;
             if (!CanMutate(out _)) return false;
@@ -202,7 +205,12 @@ namespace PowerMath.UI.MainMenu
             if (current.Weapon.Level >= MaximumWeaponLevel) return false;
             long cost = WeaponAscensionPolicy.GetNextCost(
                 current.Weapon.Level, MaximumWeaponLevel);
-            if ((_player.wallet?.powerCoins ?? 0) < cost) return false;
+            return (_player.wallet?.powerCoins ?? 0) >= cost;
+        }
+
+        public bool TryAscendForTutorial()
+        {
+            if (!CanAscendForTutorial()) return false;
             Upgrade();
             return true;
         }
@@ -212,6 +220,18 @@ namespace PowerMath.UI.MainMenu
             if (_busy || _panelHost.OpenPanel != MainMenuPanelId.PlayerHub) return false;
             _view.SetSection(true);
             return true;
+        }
+
+        public void CloseImmediate()
+        {
+            _feedback.StopIdle();
+            _feedback.StopPetPreviewTweens();
+            _pendingWeaponTransactionId = string.Empty;
+            _lastRenderedStarCount = -1;
+            _view.HidePetPreview();
+            _view.Modal.style.display = DisplayStyle.None;
+            _view.Modal.style.visibility = Visibility.Hidden;
+            _view.Modal.EnableInClassList("is-hidden", true);
         }
 
         private void Close()
@@ -288,9 +308,24 @@ namespace PowerMath.UI.MainMenu
                 $"REBIRTH +{stats.LegacyBasisPoints / 100d:0.0}%  -  +{stats.LegacyBonusAttack:N0} ATK";
             _view.PetStatus.text = string.Empty;
 
-            _view.CompactAttack.text = stats.EffectiveAttack.ToString("N0", CultureInfo.InvariantCulture);
-            _view.CompactCritRate.text = $"{stats.CriticalRate * 100d:0.##}%";
-            _view.CompactCritDamage.text = $"{stats.CriticalDamagePercent:0.##}%";
+            double additionalAtkPercent = Math.Max(0d, (stats.LegacyBasisPoints / 100d) + stats.PetMultiplierPercent);
+            double petBonusCritRatePercent = Math.Max(0d, stats.PetStats.TotalCritRatePercent);
+            double petBonusCritDamagePercent = Math.Max(0d, stats.PetStats.TotalCritDamagePercent);
+
+            string effectiveAtkText = stats.EffectiveAttack.ToString("N0", CultureInfo.InvariantCulture);
+            _view.CompactAttack.text = additionalAtkPercent > 0.001d
+                ? $"{effectiveAtkText} <size=12>(+{additionalAtkPercent:0.##}%)</size>"
+                : effectiveAtkText;
+
+            string critRateText = $"{stats.CriticalRate * 100d:0.##}%";
+            _view.CompactCritRate.text = petBonusCritRatePercent > 0.001d
+                ? $"{critRateText} <size=12>(+{petBonusCritRatePercent:0.##}%)</size>"
+                : critRateText;
+
+            string critDamageText = $"{stats.CriticalDamagePercent:0.##}%";
+            _view.CompactCritDamage.text = petBonusCritDamagePercent > 0.001d
+                ? $"{critDamageText} <size=12>(+{petBonusCritDamagePercent:0.##}%)</size>"
+                : critDamageText;
             _view.CompactPetAttack.text = stats.PetStats.EffectivePetAttack.ToString("N0", CultureInfo.InvariantCulture);
             _view.CompactLuck.text = $"{stats.PetStats.TotalEncounterLuckPercent:0.##}%";
             _view.CompactCoinBonus.text = $"{stats.PetStats.TotalPowerCoinBonusPercent:0.##}%";
@@ -576,6 +611,7 @@ namespace PowerMath.UI.MainMenu
                 Render();
                 Warn(failure);
                 _feedback.PlayInsufficient();
+                TutorialWeaponAscendFailed?.Invoke(failure);
                 yield break;
             }
 

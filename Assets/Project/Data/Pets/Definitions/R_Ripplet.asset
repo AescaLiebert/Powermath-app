@@ -18,10 +18,10 @@ MonoBehaviour:
   previewSprite: {fileID: 21300000, guid: 80454629fad8f8e45b99d0b57a00c0fd, type: 3}
   iconAddressableKey: 
   previewAddressableKey: 
-  abilityRichText: +2 Pet ATK
+  abilityRichText: +5 Pet ATK
   playerAttackBonus: 0
   playerAttackMultiplierPercent: 0
-  petAttackBonus: 2
+  petAttackBonus: 5
   petAttackMultiplierPercent: 0
   critRatePercent: 0
   critDamagePercent: 0

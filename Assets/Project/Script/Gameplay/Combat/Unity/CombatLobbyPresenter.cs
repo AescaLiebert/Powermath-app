@@ -58,6 +58,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly ICombatCoroutineRunner _runner;
         private readonly IGameplayPersistence _persistence;
         private readonly IGameplaySaveRequestFactory _saveRequests;
+        private readonly GameplaySaveRequest? _interruptedRecoveryRequest;
         private bool _bound;
         private bool _saveInFlight;
         private bool _presentationInFlight;
@@ -90,7 +91,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             ICombatCoroutineRunner runner,
             IGameplayPersistence persistence,
             IGameplaySaveRequestFactory saveRequests,
-            IMainMenuInteractionGate interactionGate = null)
+            IMainMenuInteractionGate interactionGate = null,
+            GameplaySaveRequest? interruptedRecoveryRequest = null)
         {
             _view = view;
             _academic = academic;
@@ -103,6 +105,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             _persistence = persistence ?? throw new ArgumentNullException(nameof(persistence));
             _saveRequests = saveRequests ?? throw new ArgumentNullException(nameof(saveRequests));
             _interactionGate = interactionGate;
+            _interruptedRecoveryRequest = interruptedRecoveryRequest;
         }
 
         public void Initialize()
@@ -162,7 +165,8 @@ namespace PowerMath.Gameplay.Combat.Unity
         public bool RecoverPendingPresentation()
         {
             AttemptPresentationReceipt receipt = _coordinator.PendingPresentation;
-            if (!_bound || receipt == null || _saveInFlight) return false;
+            if (!_bound || receipt == null || _saveInFlight ||
+                _presentationInFlight) return false;
             SetMusicDucked(false);
             _presentationInFlight = true;
             _resolutionLock = _interactionGate?.Acquire(
@@ -170,7 +174,14 @@ namespace PowerMath.Gameplay.Combat.Unity
                 InteractionScope.All);
             _view.SetAnswerInputEnabled(false);
             _view.ShowAttempt(false);
-            _runner.RunCombatRoutine(RecoveryRoutine(receipt));
+            if (_interruptedRecoveryRequest.HasValue)
+            {
+                _view.SetResult("SAVING INTERRUPTED BATTLE...", true);
+                Save(_interruptedRecoveryRequest.Value,
+                    () => _runner.RunCombatRoutine(RecoveryRoutine(receipt)));
+            }
+            else
+                _runner.RunCombatRoutine(RecoveryRoutine(receipt));
             return true;
         }
 
@@ -477,10 +488,11 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _view.SetResult("RECOVERING BATTLE...", true);
             }
             yield return _feedback.PlayRecoveredBattle(receipt);
-            while (!_feedback.AreActorsStable ||
-                   !_view.IsEnemyActionQueueStable ||
-                   !_view.IsBlockingUiStable)
-                yield return null;
+            // A UI Toolkit scheduled transition can pause while the page is hidden.
+            // Recovery has already saved the result, so settle the destination
+            // directly instead of retaining the interaction lock indefinitely.
+            _feedback.SettleRecoveredActors(_coordinator.Snapshot.Combat);
+            _view.SettleRecoveredPresentation(_coordinator.Snapshot.Combat);
             CombatTutorialResult tutorialResult = CreateTutorialResult(
                 receipt,
                 ToCombatSnapshot(receipt.Destination));
@@ -592,6 +604,9 @@ namespace PowerMath.Gameplay.Combat.Unity
                     _saveInFlight = false;
                     _attemptLock?.Dispose();
                     _attemptLock = null;
+                    _resolutionLock?.Dispose();
+                    _resolutionLock = null;
+                    _presentationInFlight = false;
                     if (_bound)
                     {
                         PowerMath.Diagnostics.AppLog.Warning(

@@ -55,8 +55,9 @@ namespace PowerMath.Gameplay.Progression
             if (baseWeaponAttack < 0)
                 throw new ArgumentOutOfRangeException(nameof(baseWeaponAttack));
             double progress = maxLevel > 0 ? (double)level / maxLevel : 0d;
+            double maxBonus = Math.Max(0d, 1000d - baseWeaponAttack);
             int attack = checked(baseWeaponAttack + (int)Math.Round(
-                1480d * (progress > 0d ? Math.Pow(progress, 1.4d) : 0d),
+                maxBonus * (progress > 0d ? Math.Pow(progress, 1.4d) : 0d),
                 MidpointRounding.AwayFromZero));
             int criticalRatePercent = (int)Math.Round((level / (double)DefaultLevelsPerTier) * 1.5d, MidpointRounding.AwayFromZero);
             int criticalDamagePercent = (level / DefaultLevelsPerTier) * 2;

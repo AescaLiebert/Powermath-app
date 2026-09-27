@@ -1,8 +1,10 @@
 using System.Reflection;
 using NUnit.Framework;
 using PowerMath.Gameplay.Academic;
+using PowerMath.Gameplay.Combat;
 using PowerMath.PlayerData;
 using PowerMath.Session;
+using UnityEngine;
 
 namespace PowerMath.Tests.EditMode
 {
@@ -77,6 +79,110 @@ namespace PowerMath.Tests.EditMode
         {
             Assert.That(FirestoreJsonNavigator.TryParse(json, out JsonValue document, out _), Is.True);
             Assert.That(Validate(document, 0, out _), Is.False);
+        }
+
+        [Test]
+        public void InterruptedChallengeRewardMustBeSavedBeforePresentationAcknowledgement()
+        {
+            var player = new PlayerSnapshot
+            {
+                wallet = new PlayerSnapshot.WalletData { powerCoins = 5 },
+                activeRun = new PlayerSnapshot.ActiveRunData
+                {
+                    runId = "run-1", committedAttemptId = "attempt-1",
+                    currentStage = 7, encounterId = "event-1"
+                }
+            };
+            var settings = ScriptableObject.CreateInstance<GameApiSettings>();
+            try
+            {
+                var store = new FirestoreAcademicProgressionStore(
+                    settings, "level-3", "test", player, null);
+                var source = new CombatPresentationSnapshot(
+                    new StageId(7), "biome-a", "event-1",
+                    StageEncounterKind.ChallengeEvent, 1, 1, 0, 0, 3, 3,
+                    CombatPhase.Committed);
+                var destination = new CombatPresentationSnapshot(
+                    new StageId(8), "biome-a", "enemy-2",
+                    StageEncounterKind.NormalMonster, 10, 10, 2, 2, 3, 3,
+                    CombatPhase.PresentingResult);
+                var receipt = new AttemptPresentationReceipt(
+                    "interrupted-attempt-attempt-1", "attempt-1",
+                    AttemptOutcomeKind.Timeout, 0, 0, false, source, destination,
+                    1, false, false, false, true, false, default,
+                    enemyFled: true, powerCoinsGranted: 10,
+                    resultingPowerCoins: 15);
+                var combat = new CombatSnapshot(
+                    new StageId(8), "enemy-2", "Enemy 2", 10, 10, 2, 2,
+                    3, 3, CombatPhase.PresentingResult, false, "biome-a", "Biome A",
+                    StageEncounterKind.NormalMonster, string.Empty, 0);
+                var snapshot = new GameplaySnapshot(combat, default, 15);
+                var emptyInventory = new RankQuestionInventorySnapshot(
+                    0, null, null, null, null);
+                var academic = new AcademicPersistenceSnapshot(
+                    AcademicRank.Silver, 0, 0, new RankCurrencyBalances(0, 0, 0),
+                    emptyInventory, emptyInventory, emptyInventory);
+                var resolved = new GameplaySaveRequest(
+                    GameplaySavePoint.InterruptedAttemptResolved, snapshot, academic,
+                    transactionId: "attempt-1", recoveryPresentation: receipt);
+                var acknowledged = new GameplaySaveRequest(
+                    GameplaySavePoint.PresentationCompleted, snapshot, academic,
+                    transactionId: "attempt-1", presentationId: receipt.PresentationId);
+
+                Assert.That(ValidatePowerCoins(store, resolved), Is.True);
+                Assert.That(ValidatePowerCoins(store, acknowledged), Is.False);
+                player.wallet.powerCoins = 15;
+                player.activeRun.lastChallengeRewardAttemptId = "attempt-1";
+                player.activeRun.lastChallengeRewardResultingPowerCoins = 15;
+                Assert.That(ValidatePowerCoins(store, acknowledged), Is.True);
+                Assert.That(ValidatePowerCoins(store, resolved), Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(settings);
+            }
+        }
+
+        [Test]
+        public void InterruptedRankTimeoutUpdatesAnalyticsOnlyOnce()
+        {
+            var player = new PlayerSnapshot();
+            var rank = AcademicRank.Silver;
+            var result = new AcademicAttemptResult(
+                new QuestionId(1), rank, QuestionOutcome.Timeout, 0, 0,
+                new RankTransition(rank, rank),
+                new AcademicProgressionProjection(rank,
+                    new RankCurrencyBalances(0, 0, 0), true));
+            var combat = new CombatSnapshot(
+                new StageId(1), "enemy-1", "Enemy 1", 10, 10,
+                2, 2, 3, 3, CombatPhase.PresentingResult, false);
+            var inventory = new RankQuestionInventorySnapshot(
+                0, null, null, null, null);
+            var request = new GameplaySaveRequest(
+                GameplaySavePoint.InterruptedAttemptResolved,
+                new GameplaySnapshot(combat, default),
+                new AcademicPersistenceSnapshot(rank, 1, 0,
+                    new RankCurrencyBalances(0, 0, 0),
+                    inventory, inventory, inventory),
+                transactionId: "attempt-1", recoveryAcademicResult: result);
+
+            PlayerAnalyticsUpdater.Apply(player, request);
+            PlayerAnalyticsUpdater.Apply(player, request);
+
+            Assert.That(player.analytics.totalQuestionsResolved, Is.EqualTo(1));
+            Assert.That(player.analytics.totalTimeout, Is.EqualTo(1));
+            Assert.That(player.analytics.silver.resolved, Is.EqualTo(1));
+            Assert.That(player.analytics.byQuestion[0].timeout, Is.EqualTo(1));
+        }
+
+        private static bool ValidatePowerCoins(
+            FirestoreAcademicProgressionStore store, GameplaySaveRequest request)
+        {
+            MethodInfo method = typeof(FirestoreAcademicProgressionStore).GetMethod(
+                "TryValidatePowerCoinChange", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.That(method, Is.Not.Null);
+            object[] arguments = { request, null };
+            return (bool)method.Invoke(store, arguments);
         }
 
         private static bool Validate(JsonValue document, long expectedRevision, out string error)

@@ -73,6 +73,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (!request.Target.TryGetLocalPoint(_overlayRoot, _uiCamera, out Vector2 point))
                 return null;
             if (!_pool.TryAcquire(out FloatingCombatTextView view)) return null;
+            _overlayRoot.SetAsLastSibling();
 
             float overlap = _style == null ? 24f : _style.OverlapOffset;
             int lane = request.SpawnOrdinal % 3 - 1;

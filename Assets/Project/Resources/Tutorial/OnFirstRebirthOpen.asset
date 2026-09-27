@@ -50,24 +50,6 @@ MonoBehaviour:
     hidesPresentation: 0
     rules:
     - signal: 1
-      nextStepId: death-benefits
-      targetId: 
-      requiredOutcome: 0
-      requireMatchingTransaction: 0
-      requireDifferentEncounter: 0
-      completesSequence: 0
-  - id: death-benefits
-    kind: 0
-    speakerKey: tutorial.speaker.power
-    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
-    emotionId: teach
-    spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: S4_03_VA
-    targetId: 
-    fallbackTargetId: 
-    hidesPresentation: 0
-    rules:
-    - signal: 1
       nextStepId: death-benefits-focus
       targetId: 
       requiredOutcome: 0
@@ -86,8 +68,26 @@ MonoBehaviour:
     hidesPresentation: 0
     rules:
     - signal: 2
-      nextStepId: death-prompt
+      nextStepId: death-benefits
       targetId: rebirth.benefits
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: death-benefits
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S4_03_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: death-prompt
+      targetId: 
       requiredOutcome: 0
       requireMatchingTransaction: 0
       requireDifferentEncounter: 0
@@ -140,24 +140,6 @@ MonoBehaviour:
     hidesPresentation: 0
     rules:
     - signal: 1
-      nextStepId: voluntary-benefits
-      targetId: 
-      requiredOutcome: 0
-      requireMatchingTransaction: 0
-      requireDifferentEncounter: 0
-      completesSequence: 0
-  - id: voluntary-benefits
-    kind: 0
-    speakerKey: tutorial.speaker.power
-    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
-    emotionId: teach
-    spriteResourcePath: Character/Sticker_Power_Teach
-    audioCueId: S4_03_VA
-    targetId: 
-    fallbackTargetId: 
-    hidesPresentation: 0
-    rules:
-    - signal: 1
       nextStepId: voluntary-benefits-focus
       targetId: 
       requiredOutcome: 0
@@ -176,8 +158,26 @@ MonoBehaviour:
     hidesPresentation: 0
     rules:
     - signal: 2
-      nextStepId: 
+      nextStepId: voluntary-benefits
       targetId: rebirth.benefits
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
+  - id: voluntary-benefits
+    kind: 0
+    speakerKey: tutorial.speaker.power
+    textKey: tutorial.onFirstRebirthOpen.rebirthBenefits
+    emotionId: teach
+    spriteResourcePath: Character/Sticker_Power_Teach
+    audioCueId: S4_03_VA
+    targetId: 
+    fallbackTargetId: 
+    hidesPresentation: 0
+    rules:
+    - signal: 1
+      nextStepId: 
+      targetId: 
       requiredOutcome: 0
       requireMatchingTransaction: 0
       requireDifferentEncounter: 0

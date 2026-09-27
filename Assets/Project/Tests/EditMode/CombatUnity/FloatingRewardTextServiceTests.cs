@@ -78,6 +78,26 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
 
         [Test]
+        public void Pool_Acquire_SetsViewAsLastSibling()
+        {
+            var rootGo = new GameObject("Root", typeof(RectTransform));
+            var root = rootGo.GetComponent<RectTransform>();
+            try
+            {
+                var pool = new FloatingRewardTextPool(root, null, 3);
+                Assert.That(pool.TryAcquire(out var view1), Is.True);
+                Assert.That(view1.transform.GetSiblingIndex(), Is.EqualTo(root.childCount - 1));
+
+                Assert.That(pool.TryAcquire(out var view2), Is.True);
+                Assert.That(view2.transform.GetSiblingIndex(), Is.EqualTo(root.childCount - 1));
+            }
+            finally
+            {
+                Object.DestroyImmediate(rootGo);
+            }
+        }
+
+        [Test]
         public void Service_Spawn_SetsTextFormatAndColor()
         {
             var hostGo = new GameObject("ServiceHost", typeof(RectTransform));

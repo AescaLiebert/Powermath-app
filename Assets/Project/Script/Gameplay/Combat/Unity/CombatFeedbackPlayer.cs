@@ -24,12 +24,46 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly MonoBehaviour _routineHost;
         private readonly FloatingRewardTextService _floatingRewardText;
 
-        // Per-monster accumulated rank currency — reset each time a new encounter begins.
-        // Allows the death-burst FRT to show the true total earned across all correct hits.
-        private long _accumulatedSilver;
-        private long _accumulatedGold;
-        private long _accumulatedDiamond;
-        private string _lastEncounterId = string.Empty;
+        private sealed class EncounterRankRewards
+        {
+            public long Silver;
+            public long Gold;
+            public long Diamond;
+
+            public bool HasAny => Silver > 0 || Gold > 0 || Diamond > 0;
+
+            public void Add(AcademicRankTier tier, long amount)
+            {
+                if (amount <= 0) return;
+                switch (tier)
+                {
+                    case AcademicRankTier.Silver:  Silver  += amount; break;
+                    case AcademicRankTier.Gold:    Gold    += amount; break;
+                    case AcademicRankTier.Diamond: Diamond += amount; break;
+                }
+            }
+
+            public void Clear()
+            {
+                Silver = 0;
+                Gold = 0;
+                Diamond = 0;
+            }
+        }
+
+        private readonly System.Collections.Generic.Dictionary<string, EncounterRankRewards> _accumulatedRewards =
+            new System.Collections.Generic.Dictionary<string, EncounterRankRewards>(StringComparer.Ordinal);
+
+        private EncounterRankRewards GetOrCreateRewards(string encounterId)
+        {
+            string key = encounterId ?? string.Empty;
+            if (!_accumulatedRewards.TryGetValue(key, out EncounterRankRewards rewards))
+            {
+                rewards = new EncounterRankRewards();
+                _accumulatedRewards[key] = rewards;
+            }
+            return rewards;
+        }
 
         public bool AreActorsStable =>
             (_playerActor == null || _playerActor.IsIdle ||
@@ -38,6 +72,15 @@ namespace PowerMath.Gameplay.Combat.Unity
              _enemyActor.State == ActorVisualState.Hidden) &&
             (_petActor == null || _petActor.IsIdle ||
              _petActor.State == ActorVisualState.Hidden);
+
+        public void SettleRecoveredActors(CombatSnapshot destination)
+        {
+            _playerActor?.CancelAndApply(destination.PlayerCurrentHearts == 0
+                ? ActorVisualState.Hidden : ActorVisualState.Idle);
+            _enemyActor?.CancelAndApply(destination.Phase == CombatPhase.RunComplete
+                ? ActorVisualState.Hidden : ActorVisualState.Idle);
+            _petActor?.CancelAndApply(ActorVisualState.Idle);
+        }
 
         public CombatFeedbackPlayer(
             CombatLobbyView view,
@@ -161,7 +204,7 @@ namespace PowerMath.Gameplay.Combat.Unity
 
                 _view.AddFeedbackStep(
                     "FINAL DAMAGE",
-                    resolution.FinalDamage.ToString(CultureInfo.InvariantCulture),
+                    resolution.PlayerDamage.ToString(CultureInfo.InvariantCulture),
                     true);
                 _audio?.PlayDamageMultiplying();
                 yield return new WaitForSecondsRealtime(
@@ -196,14 +239,21 @@ namespace PowerMath.Gameplay.Combat.Unity
                     PresentationActionKind.PlayerFailedAttack);
             }
 
-            IEnumerator rewardMagnetRoutine = CreateRewardMagnetRoutine(attempt);
+            AccumulateAttemptRewards(attempt);
+
+            string sourceEncounterId = receipt?.Source?.EncounterId
+                ?? attempt.Presentation?.Source?.EncounterId
+                ?? attempt.Combat.Snapshot?.EnemyId
+                ?? string.Empty;
+
             bool playerDefeatedSource = resolution.IsCorrect &&
                 resolution.PlayerEnemyHpAfter == 0;
             bool petDefeatedTarget = resolution.PetFollowUp?.EnemyDefeated == true;
 
             if (playerDefeatedSource)
             {
-                yield return PlayEnemyDefeat(receipt, rewardMagnetRoutine);
+                IEnumerator sourceReward = CreateRewardMagnetRoutine(attempt, sourceEncounterId);
+                yield return PlayEnemyDefeat(receipt, sourceReward);
 
                 if (resolution.PetFollowUp != null && resolution.PetFollowUp.Carried)
                 {
@@ -220,7 +270,9 @@ namespace PowerMath.Gameplay.Combat.Unity
                         resolution.PetFollowUp);
                     if (petDefeatedTarget)
                     {
-                        yield return PlayEnemyDefeat(null, null);
+                        string petEncounterId = petTarget?.EncounterId ?? string.Empty;
+                        IEnumerator petReward = CreateRewardMagnetRoutine(attempt, petEncounterId);
+                        yield return PlayEnemyDefeat(null, petReward);
                         if (resolution.PetFollowUp.StageAdvanced)
                             yield return PlayEncounterEntrance(
                                 resolution.Snapshot,
@@ -250,7 +302,8 @@ namespace PowerMath.Gameplay.Combat.Unity
                     resolution.PetFollowUp);
                 if (petDefeatedTarget)
                 {
-                    yield return PlayEnemyDefeat(receipt, rewardMagnetRoutine);
+                    IEnumerator sourceReward = CreateRewardMagnetRoutine(attempt, sourceEncounterId);
+                    yield return PlayEnemyDefeat(receipt, sourceReward);
                     if (resolution.PetFollowUp.StageAdvanced)
                         yield return PlayEncounterEntrance(
                             resolution.Snapshot,
@@ -278,6 +331,18 @@ namespace PowerMath.Gameplay.Combat.Unity
                         false);
                 }
             }
+            else if (resolution.EnemyDefeated)
+            {
+                IEnumerator sourceReward = CreateRewardMagnetRoutine(attempt, sourceEncounterId);
+                yield return PlayEnemyDefeat(receipt, sourceReward);
+                if (resolution.StageAdvanced)
+                {
+                    yield return PlayEncounterEntrance(
+                        resolution.Snapshot,
+                        resolution.BiomeChanged ||
+                        _view.RequiresBackgroundTransition(resolution.Snapshot));
+                }
+            }
             else if (resolution.EnemyFled)
             {
                 yield return RunConcurrent(
@@ -288,7 +353,7 @@ namespace PowerMath.Gameplay.Combat.Unity
                             EnemyActionTokenKind.Flee,
                             false),
                     _enemyActor?.Play(PresentationActionKind.EnemyFlee),
-                    rewardMagnetRoutine);
+                    CreateRewardMagnetRoutine(attempt, sourceEncounterId));
                 if (resolution.StageAdvanced)
                 {
                     yield return PlayEncounterEntrance(
@@ -768,19 +833,13 @@ namespace PowerMath.Gameplay.Combat.Unity
                 : 0.05f;
         }
 
-        private IEnumerator CreateRewardMagnetRoutine(AttemptResolution attempt)
+        private IEnumerator CreateRewardMagnetRoutine(AttemptResolution attempt, string encounterId)
         {
             if (attempt == null) return null;
 
             if (attempt.IsAcademic)
             {
-                // Accumulate rank currency on every academic answer (data awarded regardless).
-                // Only display the visual on the killing blow so the burst feels earned.
-                AccumulateRankCurrency(attempt);
-                if (!attempt.Combat.EnemyDefeated)
-                    return null;
-
-                return PlayAcademicDeathRewards(attempt);
+                return PlayAcademicDeathRewards(attempt, encounterId);
             }
 
             // Event (Power Coin) path — unchanged.
@@ -809,58 +868,51 @@ namespace PowerMath.Gameplay.Combat.Unity
                 enemyPosition);
         }
 
-        /// <summary>
-        /// Adds this answer's rank currency delta to the per-monster accumulator.
-        /// Resets when the encounter ID changes (new monster spawned).
-        /// NOTE: Uses Presentation.Source.EncounterId (pre-resolution) rather than
-        /// Combat.Snapshot.EnemyId because on a killing blow the engine calls
-        /// LoadSelection(next) before CreateSnapshot(), so Snapshot already carries
-        /// the next monster's ID and would incorrectly reset the accumulator.
-        /// </summary>
-        private void AccumulateRankCurrency(AttemptResolution attempt)
+        private void AccumulateAttemptRewards(AttemptResolution attempt)
         {
-            // Source = state BEFORE this resolution — always the monster we just hit.
-            string encounterId = attempt.Presentation?.Source.EncounterId
+            if (attempt == null || !attempt.IsAcademic) return;
+
+            string sourceEncounterId = attempt.Presentation?.Source?.EncounterId
                 ?? attempt.Combat.Snapshot?.EnemyId
                 ?? string.Empty;
 
-            if (encounterId != _lastEncounterId)
+            if (attempt.Academic.Outcome == QuestionOutcome.Correct)
             {
-                _accumulatedSilver = 0;
-                _accumulatedGold = 0;
-                _accumulatedDiamond = 0;
-                _lastEncounterId = encounterId;
+                GetOrCreateRewards(sourceEncounterId).Add(attempt.Academic.RankAtCommit.Tier, 1);
             }
 
-            long delta = attempt.Academic.CurrencyDelta;
-            if (delta <= 0) return;
-
-            switch (attempt.Academic.RankAtCommit.Tier)
+            if (attempt.Combat.PetFollowUp != null)
             {
-                case AcademicRankTier.Silver:  _accumulatedSilver  += delta; break;
-                case AcademicRankTier.Gold:    _accumulatedGold    += delta; break;
-                case AcademicRankTier.Diamond: _accumulatedDiamond += delta; break;
+                string targetEncounterId = attempt.Combat.PetFollowUp.Carried
+                    ? (attempt.Combat.PetFollowUp.Target?.EncounterId ?? string.Empty)
+                    : sourceEncounterId;
+
+                GetOrCreateRewards(targetEncounterId).Add(attempt.Academic.RankAtCommit.Tier, 1);
             }
         }
 
         /// <summary>
-        /// Fires one FRT + one magnet-icon drop for every rank tier earned during
-        /// this monster encounter. Concurrent drops, FRT pops staggered by 0.12 s.
+        /// Fires one FRT + one magnet-icon drop for every rank tier earned by attacks
+        /// performed against THIS monster encounter. Concurrent drops, FRT pops staggered by 0.12 s.
         /// </summary>
-        private IEnumerator PlayAcademicDeathRewards(AttemptResolution attempt)
+        private IEnumerator PlayAcademicDeathRewards(AttemptResolution attempt, string encounterId)
         {
+            string key = encounterId ?? string.Empty;
+            if (!_accumulatedRewards.TryGetValue(key, out EncounterRankRewards rewards) || !rewards.HasAny)
+            {
+                yield break;
+            }
+
             RankCurrencyBalances balances = attempt.Snapshot.Academic.Balances;
 
             // Collect every tier with a positive accumulated total (order: Silver→Gold→Diamond).
             var grants = new System.Collections.Generic.List<(RewardCurrencyKind kind, long total, long resulting)>();
-            if (_accumulatedSilver  > 0) grants.Add((RewardCurrencyKind.RankSilver,  _accumulatedSilver,  balances.Silver));
-            if (_accumulatedGold    > 0) grants.Add((RewardCurrencyKind.RankGold,    _accumulatedGold,    balances.Gold));
-            if (_accumulatedDiamond > 0) grants.Add((RewardCurrencyKind.RankDiamond, _accumulatedDiamond, balances.Diamond));
+            if (rewards.Silver  > 0) grants.Add((RewardCurrencyKind.RankSilver,  rewards.Silver,  balances.Silver));
+            if (rewards.Gold    > 0) grants.Add((RewardCurrencyKind.RankGold,    rewards.Gold,    balances.Gold));
+            if (rewards.Diamond > 0) grants.Add((RewardCurrencyKind.RankDiamond, rewards.Diamond, balances.Diamond));
 
             // Reset — they have been consumed by this visual burst.
-            _accumulatedSilver = 0;
-            _accumulatedGold   = 0;
-            _accumulatedDiamond = 0;
+            rewards.Clear();
 
             if (grants.Count == 0) yield break;
 

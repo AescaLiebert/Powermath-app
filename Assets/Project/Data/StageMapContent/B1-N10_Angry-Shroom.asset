@@ -18,9 +18,10 @@ MonoBehaviour:
   biomeId: biome-1
   encounterKind: 0
   baseHp: 30
-  maximumCooldown: 4
+  maximumCooldown: 5
   hpMultiplierBasisPoints: 10000
   enemySprite: {fileID: 21300000, guid: 5c61caf8377509f498b340afb7ac31d9, type: 3}
+  addressableKey: 
   customBattleMusic:
     clip: {fileID: 0}
     addressableKey: 

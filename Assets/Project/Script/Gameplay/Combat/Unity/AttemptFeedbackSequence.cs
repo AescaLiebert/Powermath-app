@@ -12,6 +12,9 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         public bool AreActorsStable => _combat.AreActorsStable;
 
+        public void SettleRecoveredActors(CombatSnapshot destination) =>
+            _combat.SettleRecoveredActors(destination);
+
         public AttemptFeedbackSequence(
             CombatFeedbackPlayer combat,
             AcademicProgressionPresenter academic,

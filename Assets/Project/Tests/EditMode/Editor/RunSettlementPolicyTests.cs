@@ -102,7 +102,7 @@ namespace PowerMath.Tests.EditMode
             Assert.That(award.StageReached, Is.EqualTo(12));
             Assert.That(award.LegacyBasisPoints, Is.EqualTo(600)); // 12 * 50
             Assert.That(award.Prestige, Is.EqualTo(1));
-            Assert.That(award.PowerCoins, Is.EqualTo(15)); // 12 flat + 3 weighted (weightedTenths=190)
+            Assert.That(award.PowerCoins, Is.EqualTo(13)); // 12 flat + 1 weighted (weightedTenths=190, combinedMultiplier=10825)
         }
 
         [Test]
@@ -115,7 +115,7 @@ namespace PowerMath.Tests.EditMode
             Assert.That(award.StageReached, Is.EqualTo(30));
             Assert.That(award.LegacyBasisPoints, Is.EqualTo(1500)); // 30 * 50
             Assert.That(award.Prestige, Is.EqualTo(1));
-            Assert.That(award.PowerCoins, Is.EqualTo(54)); // 30 flat + 24 weighted (weightedTenths=190)
+            Assert.That(award.PowerCoins, Is.EqualTo(41)); // 30 flat + 11 weighted (weightedTenths=190, combinedMultiplier=12175)
         }
 
         [Test]
@@ -131,8 +131,8 @@ namespace PowerMath.Tests.EditMode
             Assert.That(award.StageReached, Is.EqualTo(200));
             Assert.That(award.LegacyBasisPoints, Is.EqualTo(10000)); // 200 * 50
             Assert.That(award.Prestige, Is.EqualTo(1));
-            // 200 flat + 42857 weighted (weightedTenths=3000, combinedMultiplier=25000)
-            Assert.That(award.PowerCoins, Is.EqualTo(43057));
+            // 200 flat + 21616 weighted (weightedTenths=3000, combinedMultiplier=32425)
+            Assert.That(award.PowerCoins, Is.EqualTo(21816));
         }
 
         [Test]
@@ -202,8 +202,73 @@ namespace PowerMath.Tests.EditMode
                 RunSettlementType.Rebirth,
                 catalog);
 
-            Assert.That(award.PowerCoins, Is.EqualTo(239));
+            Assert.That(award.PowerCoins, Is.EqualTo(225));
             Assert.That(award.PowerCoinBonusPercent, Is.EqualTo(10d));
+        }
+
+        [Test]
+        public void Calculate_TwoTierDepthBonus_ScalesAcrossAllStages()
+        {
+            // Stage 1: 0% bonus (combinedMultiplier = 10000)
+            PlayerSnapshot p1 = CreatePlayer(stage: 1);
+            p1.activeRun.silverEarned = 100;
+            p1.activeRun.goldEarned = 0;
+            p1.activeRun.diamondEarned = 0;
+            RunSettlementAward a1 = RunSettlementPolicy.Calculate(p1, RunSettlementType.Rebirth);
+
+            // Stage 100: +74.25% bonus (combinedMultiplier = 17425)
+            PlayerSnapshot p100 = CreatePlayer(stage: 100);
+            p100.activeRun.silverEarned = 100;
+            p100.activeRun.goldEarned = 0;
+            p100.activeRun.diamondEarned = 0;
+            RunSettlementAward a100 = RunSettlementPolicy.Calculate(p100, RunSettlementType.Rebirth);
+
+            // Stage 101: +75.75% bonus (combinedMultiplier = 17575)
+            PlayerSnapshot p101 = CreatePlayer(stage: 101);
+            p101.activeRun.silverEarned = 100;
+            p101.activeRun.goldEarned = 0;
+            p101.activeRun.diamondEarned = 0;
+            RunSettlementAward a101 = RunSettlementPolicy.Calculate(p101, RunSettlementType.Rebirth);
+
+            Assert.That(a1.PowerCoins, Is.EqualTo(1));
+            Assert.That(a101.PowerCoins, Is.GreaterThan(a100.PowerCoins));
+        }
+
+        [Test]
+        public void Calculate_Rebirth_AtDeepStage_MaintainsConsistentPetPowerCoinBonusPercent()
+        {
+            PlayerSnapshot player = CreatePlayer(stage: 180);
+            player.inventory = new[]
+            {
+                new PlayerSnapshot.InventoryItemData
+                {
+                    itemId = "reward-pet",
+                    owned = true,
+                    count = 1
+                }
+            };
+            var pet = new PetGachaPet(
+                "reward-pet",
+                "Reward Pet",
+                powerCoinBonusPercent: 7d);
+            var catalog = new PetGachaCatalog(
+                "reward-test-v1",
+                new[]
+                {
+                    new PetGachaRarity(
+                        "ssr",
+                        "SSR",
+                        10000,
+                        new[] { pet })
+                });
+
+            RunSettlementAward award = RunSettlementPolicy.Calculate(
+                player,
+                RunSettlementType.Rebirth,
+                catalog);
+
+            // PowerCoinBonusPercent must match the player's pet coin bonus (7%), NOT ballooned by depth bonus.
+            Assert.That(award.PowerCoinBonusPercent, Is.EqualTo(7d));
         }
     }
 }

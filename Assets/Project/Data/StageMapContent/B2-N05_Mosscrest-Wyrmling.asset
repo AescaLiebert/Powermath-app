@@ -21,8 +21,10 @@ MonoBehaviour:
   maximumCooldown: 5
   hpMultiplierBasisPoints: 10000
   enemySprite: {fileID: 21300000, guid: 91163e109563f6345b1d99c6550b4c57, type: 3}
+  addressableKey: 
   customBattleMusic:
     clip: {fileID: 0}
+    addressableKey: 
     volumeScale: 1
     loop: 1
   customAppearSfx:

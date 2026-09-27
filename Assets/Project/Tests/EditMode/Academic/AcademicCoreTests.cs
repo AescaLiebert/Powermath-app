@@ -365,6 +365,34 @@ namespace PowerMath.Gameplay.Academic.Tests
         }
 
         [Test]
+        public void InterruptedRankAttempt_RecordsTimeoutFromCommittedQuestion()
+        {
+            var engine = new AcademicProgressionEngine(LoadCatalog());
+            AcademicProgressionState initial = engine.CreateInitialState(
+                AcademicRank.Silver, new RankCurrencyBalances(0, 0, 0));
+            QuestionReservationResult committed = engine.TryReserve(initial);
+            RankQuestionInventorySnapshot saved = committed.State.Inventories
+                .Get(AcademicRank.Silver).Export();
+            var withoutReservation = new RankQuestionInventorySnapshot(
+                saved.Cycle, saved.Pending.ToArray(), saved.Failed.ToArray(),
+                saved.Attempted.ToArray(), saved.Cleared.ToArray());
+            AcademicPersistenceSnapshot persistence = committed.State.ExportPersistence();
+            var rehydrated = engine.Rehydrate(new AcademicPersistenceSnapshot(
+                AcademicRank.Silver, 0, 0, persistence.Balances,
+                withoutReservation, persistence.Gold, persistence.Diamond));
+
+            AcademicMutationResult recovered = engine.ResolveInterruptedTimeout(
+                rehydrated, AcademicRank.Silver, committed.Reservation.Question.Id);
+
+            Assert.That(recovered.Attempt.Outcome, Is.EqualTo(QuestionOutcome.Timeout));
+            Assert.That(recovered.State.Audit.ResolvedCount, Is.EqualTo(1));
+            Assert.That(recovered.State.Inventories.Get(AcademicRank.Silver).FailedCount,
+                Is.EqualTo(1));
+            Assert.That(recovered.State.Inventories.Get(AcademicRank.Silver).HasReservation,
+                Is.False);
+        }
+
+        [Test]
         public void Progression_FourCorrectUnderFortyPointsMaintainsRank()
         {
             QuestionCatalog catalog = LoadCatalog();

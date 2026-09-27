@@ -138,8 +138,9 @@ MonoBehaviour:
     volumeScale: 0.8
     pitchRange: {x: 0.97, y: 1.03}
   battleBiomeTransition:
-    clips: []
-    volumeScale: 0.85
+    clips:
+    - {fileID: 8300000, guid: d07e2d1a9dfb182429fba15ecab120d4, type: 3}
+    volumeScale: 0.5
     pitchRange: {x: 0.98, y: 1.02}
   battleStageAdvance:
     clips: []

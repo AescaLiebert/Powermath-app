@@ -25,6 +25,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
         private bool _disposed;
         private bool _claimInFlight;
         private bool _gachaConfirmationInFlight;
+        private bool _weaponAscensionInFlight;
         private bool _confirmDeathSettlementAfterOpenTutorial;
 
         public FirstRebirthTutorialAdapter(
@@ -45,6 +46,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
             _economy.PetGacha.TutorialReturnedToMainMenu += OnReturnedToMainMenu;
             _economy.PlayerHub.TutorialPanelOpened += OnPlayerHubOpened;
             _economy.PlayerHub.TutorialWeaponAscendSucceeded += OnWeaponAscended;
+            _economy.PlayerHub.TutorialWeaponAscendFailed += OnWeaponAscendFailed;
             _economy.PlayerHub.TutorialPetsSectionShown += OnPetsSectionShown;
             _rebirth.StepPresented += OnRebirthStepPresented;
             _unlock.SequenceCompleted += OnOpenTutorialCompleted;
@@ -61,9 +63,11 @@ namespace PowerMath.UI.MainMenu.Tutorial
             _economy.PetGacha.TutorialReturnedToMainMenu -= OnReturnedToMainMenu;
             _economy.PlayerHub.TutorialPanelOpened -= OnPlayerHubOpened;
             _economy.PlayerHub.TutorialWeaponAscendSucceeded -= OnWeaponAscended;
+            _economy.PlayerHub.TutorialWeaponAscendFailed -= OnWeaponAscendFailed;
             _economy.PlayerHub.TutorialPetsSectionShown -= OnPetsSectionShown;
             _rebirth.StepPresented -= OnRebirthStepPresented;
             _unlock.SequenceCompleted -= OnOpenTutorialCompleted;
+            _weaponAscensionInFlight = false;
         }
 
         private void OnSettlementPanelOpened(bool isDeath)
@@ -112,6 +116,12 @@ namespace PowerMath.UI.MainMenu.Tutorial
         private void OnReturnedToMainMenu() => Notify(_rebirth, "gacha.return-main-menu");
         private void OnPlayerHubOpened() => Notify(_rebirth, "hub.panel-open");
         private void OnWeaponAscended() => Notify(_rebirth, "hub.weapon-ascended");
+        private void OnWeaponAscendFailed(string failure)
+        {
+            if (!_disposed)
+                _host.StartCoroutine(_rebirth.CompleteSafely(
+                    "weapon-ascend-failed:" + failure));
+        }
         private void OnPetsSectionShown() => Notify(_rebirth, "hub.pets-shown");
 
         private void Notify(TutorialDirector director, string eventId)
@@ -138,7 +148,16 @@ namespace PowerMath.UI.MainMenu.Tutorial
             }
             if (!_gachaConfirmationInFlight && string.Equals(
                     step.Id, "wait-pet-reveal", StringComparison.Ordinal))
+            {
                 _host.StartCoroutine(ConfirmGachaAfterCheckpointRoutine());
+                return;
+            }
+            if (!_weaponAscensionInFlight && string.Equals(
+                    step.Id, "wait-weapon-ascend", StringComparison.Ordinal))
+            {
+                _host.StartCoroutine(AscendWeaponAfterCheckpointRoutine());
+                return;
+            }
         }
 
         private IEnumerator ConfirmGachaAfterCheckpointRoutine()
@@ -152,6 +171,20 @@ namespace PowerMath.UI.MainMenu.Tutorial
                 yield return _rebirth.CompleteSafely(
                     "gacha-confirm-unavailable");
             _gachaConfirmationInFlight = false;
+        }
+
+        private IEnumerator AscendWeaponAfterCheckpointRoutine()
+        {
+            _weaponAscensionInFlight = true;
+            // The wait checkpoint now owns the latest player revision. Start
+            // the ascension only after that save, never concurrently with it.
+            yield return null;
+            while (!_disposed && _economy.PlayerHub.IsBusy) yield return null;
+            if (!_disposed &&
+                !_economy.PlayerHub.TryAscendForTutorial())
+                yield return _rebirth.CompleteSafely(
+                    "weapon-ascend-unavailable");
+            _weaponAscensionInFlight = false;
         }
 
         private IEnumerator ClaimFirstPetGrantRoutine()

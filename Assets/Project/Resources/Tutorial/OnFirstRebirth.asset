@@ -380,6 +380,13 @@ MonoBehaviour:
       requireMatchingTransaction: 0
       requireDifferentEncounter: 0
       completesSequence: 0
+    - signal: 6
+      nextStepId: weapon-result
+      targetId: hub.weapon-ascended
+      requiredOutcome: 0
+      requireMatchingTransaction: 0
+      requireDifferentEncounter: 0
+      completesSequence: 0
   - id: wait-weapon-ascend
     kind: 2
     speakerKey: 

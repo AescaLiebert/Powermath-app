@@ -143,6 +143,7 @@ namespace PowerMath.Gameplay.Pets
                     _catalog,
                     ownedPetCounts,
                     state.PullsSinceSsr,
+                    state.PullsSinceSr,
                     _random,
                     isFirstPull);
             }
@@ -233,11 +234,20 @@ namespace PowerMath.Gameplay.Pets
                 Join(root, "economy", "petGachaPullsSinceSsr"),
                 receipt.ResultingPityCount);
             builder.AddInteger(
+                Join(root, "economy", "petGachaPullsSinceSr"),
+                receipt.ResultingSrPityCount);
+            builder.AddInteger(
                 Join(root, "economy", "lastPetGachaPreviousPityCount"),
                 receipt.PreviousPityCount);
             builder.AddInteger(
                 Join(root, "economy", "lastPetGachaResultingPityCount"),
                 receipt.ResultingPityCount);
+            builder.AddInteger(
+                Join(root, "economy", "lastPetGachaPreviousSrPityCount"),
+                receipt.PreviousSrPityCount);
+            builder.AddInteger(
+                Join(root, "economy", "lastPetGachaResultingSrPityCount"),
+                receipt.ResultingSrPityCount);
             builder.AddPetGachaResultArray(
                 Join(root, "economy", "lastPetGachaResults"),
                 ToResultData(receipt.Results));
@@ -263,6 +273,7 @@ namespace PowerMath.Gameplay.Pets
             state.Inventory = nextInventory.ToArray();
             state.EquippedPetId = nextEquippedPetId;
             state.PullsSinceSsr = receipt.ResultingPityCount;
+            state.PullsSinceSr = receipt.ResultingSrPityCount;
             state.LastReceipt = receipt;
             state.FirstGachaPullCompleted = true;
             Apply(state, receipt);
@@ -406,6 +417,12 @@ namespace PowerMath.Gameplay.Pets
                 error = "Saved SSR pity progress is invalid.";
                 return false;
             }
+            long srPityValue = ReadInteger(economy, "petGachaPullsSinceSr");
+            if (srPityValue < 0 || srPityValue >= PetGachaTransactionPolicy.SrHardPityPulls)
+            {
+                error = "Saved SR pity progress is invalid.";
+                return false;
+            }
             long previousPityValue = ReadInteger(economy, "lastPetGachaPreviousPityCount");
             long resultingPityValue = ReadInteger(economy, "lastPetGachaResultingPityCount");
             if (previousPityValue < 0 || previousPityValue >= PetGachaTransactionPolicy.SsrHardPityPulls ||
@@ -414,8 +431,18 @@ namespace PowerMath.Gameplay.Pets
                 error = "Saved gacha receipt pity values are invalid.";
                 return false;
             }
+            long previousSrPityValue = ReadInteger(economy, "lastPetGachaPreviousSrPityCount");
+            long resultingSrPityValue = ReadInteger(economy, "lastPetGachaResultingSrPityCount");
+            if (previousSrPityValue < 0 || previousSrPityValue >= PetGachaTransactionPolicy.SrHardPityPulls ||
+                resultingSrPityValue < 0 || resultingSrPityValue >= PetGachaTransactionPolicy.SrHardPityPulls)
+            {
+                error = "Saved gacha receipt SR pity values are invalid.";
+                return false;
+            }
             int previousPity = (int)previousPityValue;
             int resultingPity = (int)resultingPityValue;
+            int previousSrPity = (int)previousSrPityValue;
+            int resultingSrPity = (int)resultingSrPityValue;
 
             PetGachaReceipt receipt = default;
             if (!string.IsNullOrEmpty(transactionId) &&
@@ -437,7 +464,7 @@ namespace PowerMath.Gameplay.Pets
                 {
                     receipt = new PetGachaReceipt(
                         transactionId, catalogVersion, results, cost, resulting,
-                        previousPity, resultingPity);
+                        previousPity, resultingPity, previousSrPity, resultingSrPity);
                 }
                 else
                 {
@@ -456,6 +483,7 @@ namespace PowerMath.Gameplay.Pets
                 Inventory = inventory,
                 EquippedPetId = ReadString(loadout, "petId"),
                 PullsSinceSsr = (int)pityValue,
+                PullsSinceSr = (int)srPityValue,
                 CommittedAttemptId = ReadString(activeRun, "committedAttemptId"),
                 RunPhase = ReadString(activeRun, "phase"),
                 LastReceipt = receipt,
@@ -582,8 +610,11 @@ namespace PowerMath.Gameplay.Pets
             _player.economy.lastPetGachaCost = receipt.Cost;
             _player.economy.lastPetGachaResultingPowerCoins = receipt.ResultingPowerCoins;
             _player.economy.petGachaPullsSinceSsr = receipt.ResultingPityCount;
+            _player.economy.petGachaPullsSinceSr = receipt.ResultingSrPityCount;
             _player.economy.lastPetGachaPreviousPityCount = receipt.PreviousPityCount;
             _player.economy.lastPetGachaResultingPityCount = receipt.ResultingPityCount;
+            _player.economy.lastPetGachaPreviousSrPityCount = receipt.PreviousSrPityCount;
+            _player.economy.lastPetGachaResultingSrPityCount = receipt.ResultingSrPityCount;
             _player.economy.lastPetGachaResults = ToResultData(receipt.Results);
             _player.economy.firstGachaPullCompleted = true;
         }
@@ -598,6 +629,7 @@ namespace PowerMath.Gameplay.Pets
             _player.loadout.petId = state.EquippedPetId;
             _player.economy = _player.economy ?? new PlayerSnapshot.EconomyData();
             _player.economy.petGachaPullsSinceSsr = state.PullsSinceSsr;
+            _player.economy.petGachaPullsSinceSr = state.PullsSinceSr;
         }
 
         private static PlayerSnapshot.InventoryItemData Clone(PlayerSnapshot.InventoryItemData item) =>
@@ -707,6 +739,7 @@ namespace PowerMath.Gameplay.Pets
             public PlayerSnapshot.InventoryItemData[] Inventory;
             public string EquippedPetId;
             public int PullsSinceSsr;
+            public int PullsSinceSr;
             public string CommittedAttemptId;
             public string RunPhase;
             public PetGachaReceipt LastReceipt;

@@ -348,6 +348,9 @@ namespace PowerMath.Gameplay.Progression
             _player.economy.lastWeaponAscendTransactionId = transactionId;
             _player.economy.lastWeaponAscendLevel = weapon.upgradeLevel;
             _player.economy.lastWeaponAscendCost = cost;
+            // Tutorial progress and gameplay commands share the player revision.
+            // Publish this successful command before listeners issue the next save.
+            PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
             completed?.Invoke(WeaponAscensionPolicy.GetStats(
                 weapon.upgradeLevel,
                 _baseWeaponAttack,

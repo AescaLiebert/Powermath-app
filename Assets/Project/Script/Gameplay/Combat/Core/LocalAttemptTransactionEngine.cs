@@ -116,6 +116,33 @@ namespace PowerMath.Gameplay.Combat
             );
         }
 
+        public GameplaySaveRequest CreateInterruptedRecoverySaveRequest(
+            AcademicAttemptResult recoveryAcademicResult = null)
+        {
+            if (_pendingPresentation == null ||
+                !_pendingPresentation.PresentationId.StartsWith(
+                    "interrupted-attempt-", StringComparison.Ordinal))
+                throw new InvalidOperationException("No interrupted attempt is pending recovery.");
+
+            if (_pendingPresentation.Source.EncounterKind == StageEncounterKind.ChallengeEvent &&
+                _challengeQuestions != null)
+            {
+                ChallengeQuestionSequenceSnapshot reserved = _challengeQuestions.Export();
+                if (ChallengeQuestionId.TryParse(reserved.ReservedQuestionId,
+                    out ChallengeQuestionId questionId))
+                    _challengeQuestions.Resolve(questionId);
+            }
+
+            return new GameplaySaveRequest(
+                GameplaySavePoint.InterruptedAttemptResolved,
+                CreateSnapshot(),
+                _academicState.ExportPersistence(),
+                transactionId: _pendingPresentation.AttemptId,
+                challengeQuestions: _challengeQuestions?.Export() ?? default,
+                recoveryPresentation: _pendingPresentation,
+                recoveryAcademicResult: recoveryAcademicResult);
+        }
+
         public AttemptCommit CommitAttempt()
         {
             if (_activeAttempt != null)
@@ -310,6 +337,21 @@ namespace PowerMath.Gameplay.Combat
                     _academicState, active.Reservation, outcome, responseScore);
                 _academicState = academic.State;
                 academicResult = academic.Attempt;
+
+                if (combat.PetFollowUp != null)
+                {
+                    _academicState.Balances = _academicState.Balances.Add(
+                        active.Reservation.RankAtCommit,
+                        1);
+                    academicResult = new AcademicAttemptResult(
+                        academicResult.QuestionId,
+                        academicResult.RankAtCommit,
+                        academicResult.Outcome,
+                        academicResult.ResponseScore,
+                        academicResult.CurrencyDelta + 1,
+                        academicResult.RankTransition,
+                        _academicState.ToProjection(true));
+                }
             }
             else
             {

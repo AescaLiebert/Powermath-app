@@ -19,7 +19,7 @@ MonoBehaviour:
   encounterKind: 2
   baseHp: 100
   maximumCooldown: 3
-  hpMultiplierBasisPoints: 10500
+  hpMultiplierBasisPoints: 13000
   enemySprite: {fileID: 21300000, guid: c26c7ea39f7a9174fa78b9e8899be25e, type: 3}
   addressableKey: 
   customBattleMusic:

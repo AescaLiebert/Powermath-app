@@ -380,6 +380,8 @@ namespace PowerMath.Gameplay.Pets
             _results = new[] { new PetGachaResult(petId, string.Empty, wasNew) };
             PreviousPityCount = 0;
             ResultingPityCount = 0;
+            PreviousSrPityCount = 0;
+            ResultingSrPityCount = 0;
         }
 
         public PetGachaReceipt(
@@ -389,7 +391,9 @@ namespace PowerMath.Gameplay.Pets
             long cost,
             long resultingPowerCoins,
             int previousPityCount = 0,
-            int resultingPityCount = 0)
+            int resultingPityCount = 0,
+            int previousSrPityCount = 0,
+            int resultingSrPityCount = 0)
         {
             TransactionId = transactionId ?? throw new ArgumentNullException(nameof(transactionId));
             CatalogVersion = catalogVersion ?? throw new ArgumentNullException(nameof(catalogVersion));
@@ -401,6 +405,10 @@ namespace PowerMath.Gameplay.Pets
                 throw new ArgumentOutOfRangeException(nameof(previousPityCount));
             if (resultingPityCount < 0 || resultingPityCount >= PetGachaTransactionPolicy.SsrHardPityPulls)
                 throw new ArgumentOutOfRangeException(nameof(resultingPityCount));
+            if (previousSrPityCount < 0 || previousSrPityCount >= PetGachaTransactionPolicy.SrHardPityPulls)
+                throw new ArgumentOutOfRangeException(nameof(previousSrPityCount));
+            if (resultingSrPityCount < 0 || resultingSrPityCount >= PetGachaTransactionPolicy.SrHardPityPulls)
+                throw new ArgumentOutOfRangeException(nameof(resultingSrPityCount));
             _results = new PetGachaResult[results.Count];
             bool anyNew = false;
             for (int i = 0; i < results.Count; i++)
@@ -414,6 +422,8 @@ namespace PowerMath.Gameplay.Pets
             ResultingPowerCoins = resultingPowerCoins;
             PreviousPityCount = previousPityCount;
             ResultingPityCount = resultingPityCount;
+            PreviousSrPityCount = previousSrPityCount;
+            ResultingSrPityCount = resultingSrPityCount;
         }
 
         public string TransactionId { get; }
@@ -424,6 +434,8 @@ namespace PowerMath.Gameplay.Pets
         public long ResultingPowerCoins { get; }
         public int PreviousPityCount { get; }
         public int ResultingPityCount { get; }
+        public int PreviousSrPityCount { get; }
+        public int ResultingSrPityCount { get; }
         public IReadOnlyList<PetGachaResult> Results => _results ?? Array.Empty<PetGachaResult>();
     }
 

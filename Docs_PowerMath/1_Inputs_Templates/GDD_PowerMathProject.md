@@ -905,8 +905,8 @@ WeightedRankCurrency =
     + (GoldEarnedThisRun × 1.2)
     + (DiamondEarnedThisRun × 1.5)
 
-DepthBonusMultiplier = 1.0 + (StageReached > 100 ? (StageReached - 100) × 0.015 : 0.0)
-CompletionFactor = (StageReached^2 / 7,000) × DepthBonusMultiplier
+DepthBonusMultiplier = 1.0 + (StageReached > 100 ? (0.7425 + (StageReached - 100) × 0.015) : (StageReached - 1) × 0.0075)
+CompletionFactor = (StageReached^2 / 18,000) × DepthBonusMultiplier
 FlatPCStage = StagesClearedThisRun × 1
 
 RunPowerCoins = FlatPCStage + floor(
@@ -918,7 +918,7 @@ RunPowerCoins = FlatPCStage + floor(
 
 - `StagesClearedThisRun` is clamped from 0 to 200. `StageReached` is clamped from 1 to 200.
 - **Flat Stage Bonus:** every cleared Stage grants `+1 Power Coin` upon settlement.
-- **Progressive Depth Scaling:** Early stages ($S \le 60$) yield modest Power Coins ($\sim 50\text{–}380\text{ PC}$) to eliminate low-stage suicide farming loops, while late stages ($S \ge 150$) receive deep run bonuses scaling to $\mathbf{28,000\text{–}43,000\text{ PC}}$ at Stage 200.
+- **Progressive Depth Scaling:** Early stages ($S \le 60$) yield modest Power Coins ($\sim 40\text{–}230\text{ PC}$) to eliminate low-stage suicide farming loops, while late stages ($S \ge 150$) receive deep run bonuses scaling to $\mathbf{19,000\text{–}22,000\text{ PC}}$ at Stage 200 (calibrated so $100\text{ Diamond} \approx 10,000\text{ PC}$ at endgame and multi-hit runs cap around $\sim 30,000\text{ PC}$ at Stage 190).
 - **Waypoint Skipped Stages ("No Free Reward"):** Skipped stages from a Waypoint teleport do NOT increment `StagesClearedThisRun`. Only encounters physically defeated during the active run award `FlatPCStage` and `LegacyATKGainBasisPoints`.
 - **Challenge Events (Scaled by Biome):** each one-trial Challenge Monster grants scaled Power Coins immediately when it resolves:
   - Biome 1: $10\text{–}20\text{ PC}$ (Base 10)

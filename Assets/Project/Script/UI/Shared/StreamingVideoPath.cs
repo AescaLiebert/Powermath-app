@@ -25,9 +25,16 @@ namespace PowerMath.UI.Shared
             string relativePath = value.TrimStart('/');
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-            // WebGL builds do not package large video files locally to keep initial payload small.
-            // Always stream videos directly from the remote Cloudflare R2 bucket.
-            url = RemoteStreamingAssetsBaseUrl.TrimEnd('/') + "/" + relativePath;
+            // Prioritize same-origin StreamingAssets path so browser requests have NO CORS restrictions
+            // and resolve directly against the deployed WebGL host where videos are uploaded.
+            string streamingPath = Application.streamingAssetsPath;
+            if (!string.IsNullOrWhiteSpace(streamingPath))
+            {
+                url = streamingPath.TrimEnd('/') + "/" + relativePath;
+                return true;
+            }
+
+            url = "StreamingAssets/" + relativePath;
             return true;
 #else
             string localPath = System.IO.Path.Combine(Application.streamingAssetsPath, relativePath);
@@ -42,6 +49,14 @@ namespace PowerMath.UI.Shared
             if (System.IO.File.Exists(backupPath))
             {
                 url = backupPath;
+                return true;
+            }
+
+            // Fallback to repository root folder (e.g. /Videos/ junction) for offline Editor playback
+            string rootPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "..", relativePath));
+            if (System.IO.File.Exists(rootPath))
+            {
+                url = rootPath;
                 return true;
             }
 

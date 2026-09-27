@@ -257,6 +257,9 @@ namespace PowerMath.UI.MainMenu
         private const int TransitionTokenSettleMilliseconds = 340;
         private const int TransitionLineupHoldMilliseconds = 850;
         private const int TransitionExitMilliseconds = 300;
+        private const int ResultGridStartDelayMilliseconds = 90;
+        private const int ResultGridStaggerMilliseconds = 90;
+        private const int ResultGridCardEnterDurationMilliseconds = 320;
         private float _silhouetteStartScale = 1.76f;
         private PetWishSky _wishSky;
         private IVisualElementScheduledItem _wishClock;
@@ -311,13 +314,21 @@ namespace PowerMath.UI.MainMenu
         private readonly Label _cost;
         private readonly Label _projectedBalance;
         private readonly Label _catalogStatus;
-        private readonly ScrollView _oddsList;
+        private readonly VisualElement _petGrid;
         private readonly Label _warning;
         private readonly Label _status;
         private readonly Button _detailsButton;
         private readonly Button _detailsClose;
         private readonly Button _historyButton;
         private readonly VisualElement _detailsDrawer;
+        private readonly VisualElement _inspectPopup;
+        private readonly Image _inspectIcon;
+        private readonly Label _inspectName;
+        private readonly Label _inspectRarity;
+        private readonly Label _inspectAttack;
+        private readonly VisualElement _inspectPassive;
+        private readonly Label _inspectPassiveDescription;
+        private readonly Button _inspectClose;
         private readonly Button _pull1;
         private readonly Button _pull10;
         private readonly Label _singlePullLabel;
@@ -345,7 +356,7 @@ namespace PowerMath.UI.MainMenu
         private readonly Label _revealTapHint;
         private readonly VisualElement _revealCopy;
         private readonly VisualElement _results;
-        private readonly Label _resultsBalance;
+        private readonly VisualElement _resultsViewport;
         private readonly VisualElement _resultsGrid;
         private readonly Button _resultsContinue;
         private readonly Image _resultIcon;
@@ -372,6 +383,8 @@ namespace PowerMath.UI.MainMenu
         private int _animationSequenceId;
         private int _visibleRevealStarCount;
         private int _openSequenceId;
+        private int _detailsAnimationSequenceId;
+        private int _inspectAnimationSequenceId;
         private bool _opening;
         private bool _wasPlayerMenuUnlocked;
 
@@ -407,10 +420,10 @@ namespace PowerMath.UI.MainMenu
             _fullScreenBackground = root.Q<VisualElement>("pet-gacha-fullscreen-background");
             _close = Require<Button>(root, "pet-gacha-close");
             _balance = Require<Label>(root, "pet-gacha-balance");
-            _cost = Require<Label>(root, "pet-gacha-cost");
-            _projectedBalance = Require<Label>(root, "pet-gacha-projected-balance");
+            _cost = root.Q<Label>("pet-gacha-cost");
+            _projectedBalance = root.Q<Label>("pet-gacha-projected-balance");
             _catalogStatus = Require<Label>(root, "pet-gacha-catalog-status");
-            _oddsList = Require<ScrollView>(root, "pet-gacha-odds-list");
+            _petGrid = Require<VisualElement>(root, "pet-gacha-pet-grid");
             _warning = Require<Label>(root, "pet-gacha-warning");
             _status = Require<Label>(root, "pet-gacha-status");
             _status.style.display = DisplayStyle.None;
@@ -418,6 +431,14 @@ namespace PowerMath.UI.MainMenu
             _detailsClose = root.Q<Button>("pet-gacha-details-close");
             _historyButton = root.Q<Button>("pet-gacha-history");
             _detailsDrawer = root.Q<VisualElement>("pet-gacha-details-drawer");
+            _inspectPopup = root.Q<VisualElement>("pet-gacha-inspect-popup");
+            _inspectIcon = root.Q<Image>("pet-gacha-inspect-icon");
+            _inspectName = root.Q<Label>("pet-gacha-inspect-name");
+            _inspectRarity = root.Q<Label>("pet-gacha-inspect-rarity");
+            _inspectAttack = root.Q<Label>("pet-gacha-inspect-attack");
+            _inspectPassive = _inspectPopup?.Q<VisualElement>("Passive");
+            _inspectPassiveDescription = root.Q<Label>("pet-gacha-inspect-passive");
+            _inspectClose = root.Q<Button>("pet-gacha-inspect-close");
             _pull1 = root.Q<Button>("pet-gacha-pull-1") ?? root.Q<Button>("pet-gacha-pull");
             _pull10 = root.Q<Button>("pet-gacha-pull-10");
             _singlePullLabel = root.Q<Label>("pet-gacha-single-label");
@@ -445,7 +466,7 @@ namespace PowerMath.UI.MainMenu
             _revealTapHint = Require<Label>(root, "pet-gacha-reveal-tap-hint");
             _revealCopy = root.Q<VisualElement>(className: "gacha-showcase-copy");
             _results = Require<VisualElement>(root, "pet-gacha-results");
-            _resultsBalance = Require<Label>(root, "pet-gacha-results-balance");
+            _resultsViewport = Require<VisualElement>(root, "pet-gacha-multi-viewport");
             _resultsGrid = Require<VisualElement>(root, "pet-gacha-results-grid");
             _resultsContinue = Require<Button>(root, "pet-gacha-results-continue");
             _resultIcon = root.Q<Image>("pet-gacha-result-icon");
@@ -472,6 +493,7 @@ namespace PowerMath.UI.MainMenu
             _close.clicked += Close;
             if (_detailsButton != null) _detailsButton.clicked += ShowDetails;
             if (_detailsClose != null) _detailsClose.clicked += HideDetails;
+            if (_inspectClose != null) _inspectClose.clicked += HidePetInspect;
             if (_historyButton != null) _historyButton.clicked += ShowHistoryUnavailable;
             if (_pull1 != null) _pull1.clicked += OnPull1Clicked;
             if (_multiPullAvailable) _pull10.clicked += OnPull10Clicked;
@@ -480,6 +502,7 @@ namespace PowerMath.UI.MainMenu
             _transitionSkip.clicked += SkipTransition;
             _revealSkip.clicked += SkipRevealQueue;
             _reveal.RegisterCallback<ClickEvent>(OnRevealClicked);
+            _resultsViewport.RegisterCallback<GeometryChangedEvent>(OnResultsViewportGeometryChanged);
             _resultsContinue.clicked += Continue;
             _panelHost.PanelClosed += OnPanelClosed;
             if (PlayerSessionStore.Instance != null)
@@ -507,6 +530,7 @@ namespace PowerMath.UI.MainMenu
             _close.clicked -= Close;
             if (_detailsButton != null) _detailsButton.clicked -= ShowDetails;
             if (_detailsClose != null) _detailsClose.clicked -= HideDetails;
+            if (_inspectClose != null) _inspectClose.clicked -= HidePetInspect;
             if (_historyButton != null) _historyButton.clicked -= ShowHistoryUnavailable;
             if (_pull1 != null) _pull1.clicked -= OnPull1Clicked;
             if (_multiPullAvailable) _pull10.clicked -= OnPull10Clicked;
@@ -515,6 +539,7 @@ namespace PowerMath.UI.MainMenu
             _transitionSkip.clicked -= SkipTransition;
             _revealSkip.clicked -= SkipRevealQueue;
             _reveal.UnregisterCallback<ClickEvent>(OnRevealClicked);
+            _resultsViewport.UnregisterCallback<GeometryChangedEvent>(OnResultsViewportGeometryChanged);
             _resultsContinue.clicked -= Continue;
             CancelOpenSequence(true);
             InvalidateAnimationSequence();
@@ -704,7 +729,7 @@ namespace PowerMath.UI.MainMenu
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
             _transition.style.display = DisplayStyle.None;
-            HideDetails();
+            HideDetailsImmediate();
             _status.text = string.Empty;
             _committed = false;
             _pendingTransactionId = string.Empty;
@@ -788,16 +813,14 @@ namespace PowerMath.UI.MainMenu
             CloseImmediate();
         }
 
-        private void CloseImmediate()
+        public void CloseImmediate()
         {
             InvalidateAnimationSequence();
             if (_panelHost.OpenPanel == MainMenuPanelId.PetGacha)
                 _panelHost.TryClose(MainMenuPanelId.PetGacha, _open);
-            else
-            {
-                _modal.EnableInClassList("is-hidden", true);
-                _modal.style.display = DisplayStyle.None;
-            }
+            _modal.EnableInClassList("is-hidden", true);
+            _modal.style.display = DisplayStyle.None;
+            _modal.style.visibility = Visibility.Hidden;
             SetFullScreenBackgroundVisible(false);
             SetMainMenuExitProgress(0f);
             _confirmation.style.display = DisplayStyle.None;
@@ -831,21 +854,25 @@ namespace PowerMath.UI.MainMenu
             if (_multiPullLabel != null)
                 _multiPullLabel.text = $"x{PetGachaTransactionPolicy.MultiPullCount}";
             if (_multiPullCost != null) _multiPullCost.text = multiCost.ToString("N0");
-            _cost.text = $"1x: {singleCost:N0} PC  |  10x: {multiCost:N0} PC";
-            _projectedBalance.text = coins >= singleCost
-                ? $"AFTER PULL: {coins - singleCost:N0} PC"
-                : $"NEED {singleCost - coins:N0} MORE";
+            if (_cost != null)
+                _cost.text = $"1x: {singleCost:N0} PC  |  10x: {multiCost:N0} PC";
+            if (_projectedBalance != null)
+            {
+                _projectedBalance.text = coins >= singleCost
+                    ? $"AFTER PULL: {coins - singleCost:N0} PC"
+                    : $"NEED {singleCost - coins:N0} MORE";
+            }
 
-            _catalogStatus.text = $"CURRENT ODDS - CATALOG {_catalog.Version}";
+            _catalogStatus.text = $"PET COLLECTION - CATALOG {_catalog.Version}";
             bool isFirst = IsFirstGachaPull;
+            int ssrPity = Math.Max(0, _player.economy?.petGachaPullsSinceSsr ?? 0);
+            int srPity = Math.Max(0, _player.economy?.petGachaPullsSinceSr ?? 0);
             _warning.text = isFirst
                 ? "FIRST PULL GUARANTEE: SSR Sapphire! " +
-                  "10x guarantees SR or better. SSR hard pity: " +
-                  $"{Math.Max(0, _player.economy?.petGachaPullsSinceSsr ?? 0)}/90. " +
-                  "Duplicate pets stack by count."
-                : "10x guarantees SR or better. SSR hard pity: " +
-                  $"{Math.Max(0, _player.economy?.petGachaPullsSinceSsr ?? 0)}/90. " +
-                  "Duplicate pets stack by count.";
+                  $"SR guarantee: {srPity}/10. SSR pity: {ssrPity}/90 (Soft pity after 74 pulls, +6%/pull). " +
+                  "Tap a pet to inspect it. Duplicates increase collection count."
+                : $"SR guarantee: {srPity}/10. SSR pity: {ssrPity}/90 (Soft pity after 74 pulls, +6%/pull). " +
+                  "Tap a pet to inspect it. Duplicates increase collection count.";
             RenderOdds(GetOwnedPetIds());
 
             bool canPull = CanPull(out string reason);
@@ -873,33 +900,184 @@ namespace PowerMath.UI.MainMenu
 
         private void RenderOdds(IReadOnlyCollection<string> ownedPetIds)
         {
-            _oddsList.Clear();
+            _petGrid.Clear();
             PetChance[] chances = _calculator.Calculate(_catalog, ownedPetIds);
+            var sectionGrids = new Dictionary<RarityTier, VisualElement>();
+            RarityTier[] displayOrder = { RarityTier.Ssr, RarityTier.Sr, RarityTier.R };
+            foreach (RarityTier tier in displayOrder)
+            {
+                var section = new VisualElement();
+                section.AddToClassList("pet-gacha-rarity-section");
+
+                var divider = new VisualElement();
+                divider.AddToClassList("pet-gacha-rarity-divider");
+                divider.AddToClassList("pet-gacha-rarity-divider--" + GetRarityClassSuffix(tier));
+                var leadingLine = new VisualElement();
+                leadingLine.AddToClassList("pet-gacha-rarity-divider-line");
+                var starLabel = new Label(new string('★', GetDefaultStarCount(tier)));
+                starLabel.AddToClassList("pet-gacha-rarity-divider-label");
+                var trailingLine = new VisualElement();
+                trailingLine.AddToClassList("pet-gacha-rarity-divider-line");
+                divider.Add(leadingLine);
+                divider.Add(starLabel);
+                divider.Add(trailingLine);
+                section.Add(divider);
+
+                var sectionGrid = new VisualElement();
+                sectionGrid.AddToClassList("pet-gacha-pet-grid");
+                section.Add(sectionGrid);
+                _petGrid.Add(section);
+                sectionGrids.Add(tier, sectionGrid);
+            }
+
             int chanceIndex = 0;
             foreach (PetGachaRarity rarity in _catalog.Rarities)
             {
-                var header = new Label(
-                    $"{rarity.DisplayName.ToUpperInvariant()} - " +
-                    $"{rarity.RateBasisPoints / 100m:0.##}% TOTAL");
-                header.AddToClassList("pet-gacha-rarity-header");
-                _oddsList.Add(header);
-
                 foreach (PetGachaPet pet in rarity.Pets)
                 {
                     PetChance chance = chances[chanceIndex++];
-                    var row = new VisualElement();
-                    row.AddToClassList("pet-gacha-odds-row");
-                    var identity = new Label(
-                        chance.IsOwned ? $"{pet.DisplayName}  OWNED" : pet.DisplayName);
-                    identity.AddToClassList(chance.IsOwned
-                        ? "pet-gacha-pet-owned"
-                        : "pet-gacha-pet-unowned");
-                    var probability = new Label(FormatPercent(chance.GetPercent()));
-                    probability.AddToClassList("pet-gacha-probability");
-                    row.Add(identity);
-                    row.Add(probability);
-                    _oddsList.Add(row);
+                    RarityTier tier = ResolveRarityTier(rarity.Id, pet.Id);
+                    PetDefinition definition = null;
+                    if (_definition != null)
+                        _definition.TryResolvePet(pet.Id, out definition, out _);
+
+                    var card = new Button { userData = pet.Id, tooltip = $"Inspect {pet.DisplayName}" };
+                    card.AddToClassList("pet-gacha-pet-card");
+                    card.AddToClassList("pet-gacha-pet-card--" + GetRarityClassSuffix(tier));
+                    var icon = new Image { scaleMode = ScaleMode.ScaleToFit };
+                    icon.AddToClassList("pet-gacha-pet-card-icon");
+                    if (definition != null) SetPetImage(icon, definition, usePreview: false);
+
+                    int starCount = 3;
+                    if (_definition != null && _definition.TryResolvePet(
+                            pet.Id, out _, out PetGachaCatalogDefinition.RarityContent content))
+                        starCount = Mathf.Clamp(content.showcaseStarCount, 1, 5);
+                    var rarityLabel = new Label(new string('★', starCount));
+                    rarityLabel.AddToClassList("pet-gacha-pet-card-rarity");
+                    rarityLabel.style.color = GetCollectionRarityColor(tier);
+                    var nameLabel = new Label(pet.DisplayName);
+                    nameLabel.AddToClassList("pet-gacha-pet-card-name");
+                    var probability = new Label($"{FormatPercent(chance.GetPercent())} chance");
+                    probability.AddToClassList("pet-gacha-pet-card-chance");
+
+                    card.Add(icon);
+                    card.Add(rarityLabel);
+                    card.Add(nameLabel);
+                    card.Add(probability);
+                    string petId = pet.Id;
+                    card.clicked += () => ShowPetInspect(petId);
+                    sectionGrids[tier].Add(card);
                 }
+            }
+
+            foreach (RarityTier tier in displayOrder)
+            {
+                VisualElement section = sectionGrids[tier].parent;
+                if (sectionGrids[tier].childCount == 0)
+                    section.RemoveFromHierarchy();
+            }
+        }
+
+        private void ShowPetInspect(string petId)
+        {
+            if (_inspectPopup == null || _busy || _committed ||
+                _definition == null || !_definition.TryResolvePet(
+                    petId, out PetDefinition pet, out PetGachaCatalogDefinition.RarityContent rarity))
+                return;
+
+            _inspectName.text = pet.DisplayName.ToUpperInvariant();
+            _inspectRarity.text = new string('★', Mathf.Clamp(rarity.showcaseStarCount, 1, 5));
+            _inspectRarity.style.color = GetCollectionRarityColor(
+                ResolveRarityTier(rarity.rarityId, pet.PetId));
+            _inspectAttack.text = FormatPetStat(pet);
+            bool hasPassive = pet.PassiveType != PetPassiveEffectType.None &&
+                              !string.IsNullOrWhiteSpace(pet.PassiveDescription);
+            if (_inspectPassive != null) _inspectPassive.style.display = hasPassive
+                ? DisplayStyle.Flex
+                : DisplayStyle.None;
+            if (_inspectPassiveDescription != null)
+                _inspectPassiveDescription.text = hasPassive ? pet.PassiveDescription.Trim() : string.Empty;
+            if (_inspectIcon != null)
+            {
+                _inspectIcon.scaleMode = ScaleMode.ScaleToFit;
+                SetPetImage(_inspectIcon, pet, usePreview: true);
+            }
+
+            _inspectPopup.RemoveFromClassList("is-hidden");
+            _inspectPopup.style.display = DisplayStyle.Flex;
+            _inspectPopup.pickingMode = PickingMode.Position;
+            int sequence = unchecked(++_inspectAnimationSequenceId);
+            _inspectPopup.schedule.Execute(() =>
+            {
+                if (sequence == _inspectAnimationSequenceId &&
+                    _inspectPopup.style.display == DisplayStyle.Flex)
+                    _inspectPopup.AddToClassList("is-open");
+            }).StartingIn(_reducedMotion ? 0 : 16);
+            _inspectPopup.Focus();
+        }
+
+        private void HidePetInspect()
+        {
+            if (_inspectPopup == null || _inspectPopup.style.display == DisplayStyle.None) return;
+            _inspectPopup.RemoveFromClassList("is-open");
+            int delay = _reducedMotion ? 0 : 240;
+            int sequence = unchecked(++_inspectAnimationSequenceId);
+            _inspectPopup.schedule.Execute(() =>
+            {
+                if (sequence != _inspectAnimationSequenceId) return;
+                _inspectPopup.AddToClassList("is-hidden");
+                _inspectPopup.style.display = DisplayStyle.None;
+                _inspectPopup.pickingMode = PickingMode.Ignore;
+            }).StartingIn(delay);
+        }
+
+        private static Color GetCollectionRarityColor(RarityTier tier)
+        {
+            if (tier == RarityTier.Ssr) return new Color(1f, 0.79f, 0.2f, 1f);
+            if (tier == RarityTier.Sr) return new Color(0.69f, 0.41f, 1f, 1f);
+            // R uses white in the reveal transition, but needs a visible warm star
+            // color on the light collection card background.
+            return new Color(0.84f, 0.58f, 0.08f, 1f);
+        }
+
+        private static string FormatPetStat(PetDefinition pet)
+        {
+            if (pet.PlayerAttackBonus > 0) return $"+{pet.PlayerAttackBonus} ATK";
+            if (pet.PlayerAttackMultiplierPercent > 0f) return $"+{pet.PlayerAttackMultiplierPercent:0.#}% ATK";
+            if (pet.PetAttackBonus > 0) return $"+{pet.PetAttackBonus} Pet ATK";
+            if (pet.PetAttackMultiplierPercent > 0f) return $"+{pet.PetAttackMultiplierPercent:0.#}% Pet ATK";
+            if (pet.CritRatePercent > 0f) return $"+{pet.CritRatePercent:0.#}% Crit Rate";
+            if (pet.CritDamagePercent > 0f) return $"+{pet.CritDamagePercent:0.#}% Crit Damage";
+            if (pet.EncounterLuckPercent > 0f) return $"+{pet.EncounterLuckPercent:0.#}% Encounter Chance";
+            if (pet.PowerCoinBonusPercent > 0f) return $"+{pet.PowerCoinBonusPercent:0.#}% Power Coins";
+            if (pet.PlayerHeartUnit > 0) return $"+{pet.PlayerHeartUnit} Heart";
+            return "Collection Pet";
+        }
+
+        private static void SetPetImage(Image image, PetDefinition pet, bool usePreview)
+        {
+            if (image == null || pet == null) return;
+            Sprite sprite = usePreview ? pet.PreviewSprite : pet.Icon;
+            string addressableKey = usePreview ? pet.PreviewAddressableKey : pet.IconAddressableKey;
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.style.visibility = Visibility.Visible;
+                image.style.opacity = 1f;
+                return;
+            }
+            image.sprite = null;
+            image.style.visibility = Visibility.Hidden;
+            if (!string.IsNullOrEmpty(addressableKey))
+            {
+                UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>(addressableKey).Completed += handle =>
+                {
+                    if (handle.Status != UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded ||
+                        handle.Result == null || image.panel == null) return;
+                    image.sprite = handle.Result;
+                    image.style.visibility = Visibility.Visible;
+                    image.style.opacity = 1f;
+                };
             }
         }
 
@@ -921,14 +1099,41 @@ namespace PowerMath.UI.MainMenu
             if (_detailsDrawer == null || _busy || _committed) return;
             _detailsDrawer.RemoveFromClassList("is-hidden");
             _detailsDrawer.style.display = DisplayStyle.Flex;
+            _detailsDrawer.SetEnabled(true);
+            int sequence = unchecked(++_detailsAnimationSequenceId);
+            _detailsDrawer.schedule.Execute(() =>
+            {
+                if (sequence == _detailsAnimationSequenceId &&
+                    _detailsDrawer.style.display == DisplayStyle.Flex)
+                    _detailsDrawer.AddToClassList("is-open");
+            }).StartingIn(_reducedMotion ? 0 : 16);
             _detailsDrawer.Focus();
         }
 
         private void HideDetails()
         {
             if (_detailsDrawer == null) return;
+            HidePetInspect();
+            _detailsDrawer.SetEnabled(false);
+            _detailsDrawer.RemoveFromClassList("is-open");
+            int sequence = unchecked(++_detailsAnimationSequenceId);
+            _detailsDrawer.schedule.Execute(() =>
+            {
+                if (sequence != _detailsAnimationSequenceId) return;
+                _detailsDrawer.AddToClassList("is-hidden");
+                _detailsDrawer.style.display = DisplayStyle.None;
+            }).StartingIn(_reducedMotion ? 0 : 240);
+        }
+
+        private void HideDetailsImmediate()
+        {
+            if (_detailsDrawer == null) return;
+            unchecked { _detailsAnimationSequenceId++; }
+            HidePetInspect();
+            _detailsDrawer.RemoveFromClassList("is-open");
             _detailsDrawer.AddToClassList("is-hidden");
             _detailsDrawer.style.display = DisplayStyle.None;
+            _detailsDrawer.SetEnabled(false);
         }
 
         private void ShowHistoryUnavailable()
@@ -1440,7 +1645,6 @@ namespace PowerMath.UI.MainMenu
             _reveal.style.display = DisplayStyle.None;
             _results.style.display = DisplayStyle.Flex;
             _results.RemoveFromClassList("is-hidden");
-            _resultsBalance.text = $"POWER COINS: {_presentationReceipt.ResultingPowerCoins:N0}";
             _resultsContinue.SetEnabled(false);
             _resultsGrid.Clear();
 
@@ -1449,12 +1653,17 @@ namespace PowerMath.UI.MainMenu
             {
                 VisualElement card = CreateResultCard(_presentationReceipt.Results[i]);
                 _resultsGrid.Add(card);
-                int delay = _reducedMotion ? 0 : 90 + (i * 70);
+                int delay = _reducedMotion ? 0 :
+                    ResultGridStartDelayMilliseconds + (i * ResultGridStaggerMilliseconds);
                 Schedule(card, sequence, delay, () => card.AddToClassList("is-entered"));
             }
+            FitResultsToViewport();
 
+            int lastCardIndex = Math.Max(0, _presentationReceipt.Results.Count - 1);
             int unlockAt = _reducedMotion ? 0 :
-                180 + (_presentationReceipt.Results.Count * 70);
+                ResultGridStartDelayMilliseconds +
+                (lastCardIndex * ResultGridStaggerMilliseconds) +
+                ResultGridCardEnterDurationMilliseconds;
             Schedule(_results, sequence, unlockAt, () =>
             {
                 _resultsContinue.SetEnabled(true);
@@ -1464,23 +1673,113 @@ namespace PowerMath.UI.MainMenu
             TutorialRevealCompleted?.Invoke();
         }
 
+        private void OnResultsViewportGeometryChanged(GeometryChangedEvent evt)
+        {
+            FitResultsToViewport();
+        }
+
+        private void FitResultsToViewport()
+        {
+            float viewportWidth = _resultsViewport.layout.width;
+            float viewportHeight = _resultsViewport.layout.height;
+            int resultCount = _resultsGrid.childCount;
+            if (viewportWidth <= 0f || viewportHeight <= 0f || resultCount == 0)
+                return;
+
+            const float maxCardSize = 240f;
+            const float cardMargin = 8f;
+            const float maxGridWidth = 1320f;
+            int columns = Mathf.Min(5, resultCount);
+            int rows = Mathf.CeilToInt(resultCount / (float)columns);
+            float gridWidth = Mathf.Min(viewportWidth, maxGridWidth);
+            float widthLimitedCardSize = (gridWidth - (columns * cardMargin * 2f)) / columns;
+            float heightLimitedCardSize =
+                (viewportHeight - (rows * cardMargin * 2f) - 8f) / rows;
+            float cardSize = Mathf.Max(1f, Mathf.Min(
+                maxCardSize,
+                widthLimitedCardSize,
+                heightLimitedCardSize));
+            float cardPadding = cardSize * 0.067f;
+
+            _resultsGrid.style.width = gridWidth;
+            for (int i = 0; i < resultCount; i++)
+            {
+                VisualElement card = _resultsGrid[i];
+                card.style.width = cardSize;
+                card.style.minWidth = cardSize;
+                card.style.height = cardSize;
+                card.style.minHeight = cardSize;
+                card.style.paddingLeft = cardPadding;
+                card.style.paddingRight = cardPadding;
+                card.style.paddingTop = cardPadding;
+                card.style.paddingBottom = cardPadding;
+
+                Image icon = card.Q<Image>(className: "pet-gacha-multi-card-icon");
+                if (icon != null)
+                {
+                    float iconSize = Mathf.Max(1f, cardSize - (cardPadding * 2f) - 4f);
+                    icon.style.width = iconSize;
+                    icon.style.height = iconSize;
+                }
+
+                Label name = card.Q<Label>(className: "pet-gacha-multi-card-name");
+                if (name != null)
+                {
+                    name.style.left = cardSize * 0.04f;
+                    name.style.top = cardSize * 0.04f;
+                    name.style.maxWidth = cardSize * 0.54f;
+                    name.style.fontSize = Mathf.Clamp(cardSize * 0.042f, 7f, 10f);
+                }
+
+                Label badge = card.Q<Label>(className: "pet-gacha-multi-card-badge");
+                if (badge != null)
+                {
+                    badge.style.top = cardSize * 0.04f;
+                    badge.style.right = cardSize * 0.04f;
+                    badge.style.fontSize = Mathf.Clamp(cardSize * 0.042f, 7f, 10f);
+                }
+
+                Label rarity = card.Q<Label>(className: "pet-gacha-multi-card-rarity");
+                if (rarity != null)
+                {
+                    rarity.style.left = cardSize * 0.04f;
+                    rarity.style.right = cardSize * 0.04f;
+                    rarity.style.bottom = cardSize * 0.03f;
+                    rarity.style.height = cardSize * 0.11f;
+                    rarity.style.fontSize = Mathf.Clamp(cardSize * 0.092f, 8f, 22f);
+                }
+            }
+        }
+
         private VisualElement CreateResultCard(PetGachaResult roll)
         {
             RarityTier tier = ResolveRarityTier(roll.RarityId, roll.PetId);
             var card = new VisualElement();
+            card.AddToClassList("player-hub-pet-tile");
             card.AddToClassList("pet-gacha-multi-card");
             card.AddToClassList("pet-gacha-multi-card--" + GetRarityClassSuffix(tier));
+            if (tier == RarityTier.Sr || tier == RarityTier.Ssr)
+            {
+                var glow = new FigmaShadowElement();
+                glow.AddToClassList("pet-gacha-result-glow");
+                glow.AddToClassList(tier == RarityTier.Ssr
+                    ? "pet-gacha-result-glow--ssr"
+                    : "pet-gacha-result-glow--sr");
+                card.Add(glow);
+            }
 
             var badge = new Label(roll.WasNew ? "NEW!" : "DUPE");
             badge.AddToClassList("pet-gacha-multi-card-badge");
             badge.AddToClassList(roll.WasNew
                 ? "pet-gacha-badge--new"
                 : "pet-gacha-badge--duplicate");
-            var icon = new VisualElement();
+            var icon = new Image { scaleMode = ScaleMode.ScaleToFit };
+            icon.AddToClassList("player-hub-pet-tile-icon");
             icon.AddToClassList("pet-gacha-multi-card-icon");
-            var rarityLabel = new Label(GetRarityLabel(tier));
+            var rarityLabel = new Label(new string('★', GetDefaultStarCount(tier)));
+            rarityLabel.AddToClassList("player-hub-pet-tile-rarity");
             rarityLabel.AddToClassList("pet-gacha-multi-card-rarity");
-            rarityLabel.style.color = GetRarityColor(tier);
+            rarityLabel.style.color = GetCollectionRarityColor(tier);
             var name = new Label(roll.PetId);
             name.AddToClassList("pet-gacha-multi-card-name");
 
@@ -1490,9 +1789,9 @@ namespace PowerMath.UI.MainMenu
                     out PetGachaCatalogDefinition.RarityContent rarity))
             {
                 name.text = pet.DisplayName;
-                if (pet.Icon != null && pet.Icon.texture != null)
+                if (pet.Icon != null)
                 {
-                    icon.style.backgroundImage = new StyleBackground(pet.Icon.texture);
+                    icon.sprite = pet.Icon;
                 }
                 else if (!string.IsNullOrEmpty(pet.IconAddressableKey))
                 {
@@ -1500,7 +1799,7 @@ namespace PowerMath.UI.MainMenu
                     {
                         if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded && handle.Result != null && handle.Result.texture != null)
                         {
-                            icon.style.backgroundImage = new StyleBackground(handle.Result.texture);
+                            icon.sprite = handle.Result;
                         }
                     };
                 }

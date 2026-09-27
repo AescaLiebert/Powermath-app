@@ -1,6 +1,6 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:pm="PowerMath.UI.Core" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Project/UI/MainMenu/PetGachaPanel.uss?fileID=7433441132597879392&amp;guid=3d40160347b7bcc449b9a900de6ae62a&amp;type=3#PetGachaPanel"/>
-    <ui:VisualElement name="pet-gacha-modal" enabled="true" focusable="true" class="social-modal pet-gacha-modal gacha-screen gacha-screen--banner is-hidden" style="display: flex; -unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);">
+    <ui:VisualElement name="pet-gacha-modal" enabled="true" focusable="true" class="social-modal pet-gacha-modal gacha-screen gacha-screen--banner is-hidden" style="display: flex;">
         <pm:FigmaGradientElement name="Gacha / Screen Gradient" class="gacha-screen-gradient" style="opacity: 1;"/>
         <ui:VisualElement name="BG" picking-mode="Ignore" class="gacha-bg" style="width: auto; height: auto; left: 0; top: 0; background-image: url(&quot;project://database/Assets/Project/Art/UI/illustration/Gacha%20Banner.png?fileID=2800000&amp;guid=4c27ff18d962de347a4ab3eabfd169e2&amp;type=3#Gacha Banner&quot;); right: 0; bottom: 0; opacity: 1;"/>
         <ui:VisualElement name="[UI] .gacha-topbar" class="gacha-topbar" style="opacity: 0;">
@@ -60,33 +60,62 @@
                 <ui:VisualElement name="Button / Rebirth" class="gacha-summon-frame">
                     <pm:FigmaShadowElement name="Gacha / Control Shadow" class="gacha-control-shadow gacha-control-shadow--summon"/>
                     <ui:Button name="pet-gacha-pull-1" text="" class="gacha-summon-button gacha-summon-button--single" style="display: flex; padding-right: 12px; padding-left: 12px;">
-                        <ui:Label name="pet-gacha-single-label" text="x1" picking-mode="Ignore" class="gacha-summon-count" style="position: absolute; align-items: flex-start; top: 18px; left: 24px; -unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                        <ui:Label name="pet-gacha-single-label" text="x1" picking-mode="Ignore" class="gacha-summon-count" style="position: absolute; align-items: flex-start; top: 18px; left: 24px;"/>
                         <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="gacha-summon-coin" style="position: absolute; top: 20px; left: 168px;"/>
-                        <ui:Label name="pet-gacha-single-cost" text="180" picking-mode="Ignore" class="gacha-summon-cost" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;); position: absolute; top: 18px; left: 237px;"/>
+                        <ui:Label name="pet-gacha-single-cost" text="180" picking-mode="Ignore" class="gacha-summon-cost" style="position: absolute; top: 18px; left: 237px;"/>
                     </ui:Button>
                 </ui:VisualElement>
                 <ui:VisualElement name="Button / Rebirth" class="gacha-summon-frame">
                     <pm:FigmaShadowElement name="Gacha / Control Shadow" class="gacha-control-shadow gacha-control-shadow--summon"/>
                     <ui:Button name="pet-gacha-pull-10" text="" tooltip="Summon 10 pets" class="gacha-summon-button gacha-summon-button--multi">
-                        <ui:Label name="pet-gacha-multi-label" text="x10" picking-mode="Ignore" class="gacha-summon-count" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                        <ui:Label name="pet-gacha-multi-label" text="x10" picking-mode="Ignore" class="gacha-summon-count"/>
                         <ui:VisualElement name="Power-Coin-Icon" picking-mode="Ignore" class="gacha-summon-coin"/>
-                        <ui:Label name="pet-gacha-multi-cost" text="1,800" picking-mode="Ignore" class="gacha-summon-cost" style="-unity-font-definition: url(&quot;project://database/Assets/Project/Fonts/Genshin-text-Font.asset?fileID=11400000&amp;guid=be35bd2da95a032498ece6b468888b91&amp;type=2#Genshin-text-Font&quot;);"/>
+                        <ui:Label name="pet-gacha-multi-cost" text="1,800" picking-mode="Ignore" class="gacha-summon-cost"/>
                     </ui:Button>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:Label name="pet-gacha-status" text="" class="social-status mw-status pet-gacha-status"/>
-        <ui:VisualElement name="pet-gacha-details-drawer" focusable="true" class="pet-gacha-overlay pet-gacha-details-drawer is-hidden" style="display: none;">
-            <ui:VisualElement class="pet-gacha-details-card">
+        <ui:VisualElement name="pet-gacha-details-drawer" focusable="true" class="pet-gacha-overlay pet-gacha-details-drawer is-hidden" style="display: flex;">
+            <ui:VisualElement class="pet-gacha-details-card" style="display: flex;">
                 <ui:VisualElement class="pet-gacha-details-header">
                     <ui:Label name="pet-gacha-catalog-status" text="CURRENT ODDS" class="pet-gacha-catalog-status"/>
                     <ui:Button name="pet-gacha-details-close" text="×" tooltip="Close details" class="pet-gacha-details-close"/>
                 </ui:VisualElement>
-                <ui:Label name="pet-gacha-warning" text="Owned pets stack in your inventory." class="pet-gacha-warning"/>
-                <ui:ScrollView name="pet-gacha-odds-list" class="pet-gacha-odds-list"/>
-                <ui:VisualElement class="pet-gacha-wallet-row">
-                    <ui:Label name="pet-gacha-cost" text="1x: 180 PC | 10x: 1,800 PC" class="pet-gacha-wallet pet-gacha-wallet--cost"/>
-                    <ui:Label name="pet-gacha-projected-balance" text="AFTER PULL: —" class="pet-gacha-wallet pet-gacha-wallet--projected"/>
+                <ui:Label name="pet-gacha-warning" text="Tap a pet to inspect its collection details." class="pet-gacha-warning"/>
+                <ui:ScrollView name="pet-gacha-odds-list" class="pet-gacha-odds-list pet-gacha-pet-grid-scroll">
+                    <ui:VisualElement name="pet-gacha-pet-grid" class="pet-gacha-pet-grid-list"/>
+                </ui:ScrollView>
+            </ui:VisualElement>
+            <ui:VisualElement name="pet-gacha-inspect-popup" focusable="true" class="pet-gacha-inspect-popup is-hidden" style="display: none;">
+                <ui:VisualElement name="pet-gacha-inspect-card" class="pet-gacha-inspect-card">
+                    <ui:VisualElement name="player-hub-pet-preview" class="player-hub-pet-preview pet-gacha-inspect-preview">
+                        <ui:VisualElement name="Selected Pet Info" class="player-hub-pet-selected-info player-hub-pet-selected-info--metadata pet-gacha-inspect-metadata">
+                            <ui:VisualElement name="Metadata" class="player-hub-pet-metadata">
+                                <ui:Label name="pet-gacha-inspect-name" text="SELECT A PET" class="player-hub-pet-preview-name"/>
+                                <ui:VisualElement name="Rarity" class="player-hub-pet-rarity">
+                                    <ui:Label name="pet-gacha-inspect-rarity" text="★ ★ ★" class="player-hub-pet-preview-rarity"/>
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                            <ui:VisualElement name="Stat/Passive" class="player-hub-pet-stat-passive">
+                                <ui:Label name="pet-gacha-inspect-stat-title" text="PET STAT" style="font-size: 22px;"/>
+                                <ui:VisualElement name="Compact Stat / Attack" class="player-hub-pet-attack-row">
+                                    <ui:VisualElement name="Icon_ATK" picking-mode="Ignore" class="player-hub-compact-icon player-hub-icon-atk"/>
+                                    <ui:Label name="pet-gacha-inspect-attack" text="—" class="player-hub-pet-preview-attack"/>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Passive" class="player-hub-pet-passive">
+                                    <ui:Label name="Passive Name" text="PASSIVE" class="player-hub-pet-passive-name"/>
+                                    <ui:Label name="pet-gacha-inspect-passive" text="" class="player-hub-pet-passive-description"/>
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="Selected Pet Info" class="player-hub-pet-selected-info player-hub-pet-selected-info--artwork">
+                            <ui:VisualElement name="sprite_pet" picking-mode="Ignore" class="player-hub-pet-preview-icon pet-gacha-inspect-artwork">
+                                <ui:Image name="pet-gacha-inspect-icon" picking-mode="Ignore" class="player-hub-pet-preview-binding" style="opacity: 0; visibility: hidden;"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Button name="pet-gacha-inspect-close" text="×" tooltip="Close pet preview" class="pet-gacha-details-close pet-gacha-inspect-close"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
@@ -123,7 +152,7 @@
             <ui:Label name="pet-gacha-transition-headline" text="THE CALL RESONATES" picking-mode="Ignore" class="pet-gacha-transition-headline"/>
             <ui:Label text="R • SR • SSR" picking-mode="Ignore" class="pet-gacha-transition-legend"/>
         </ui:VisualElement>
-        <ui:VisualElement name="pet-gacha-result" focusable="true" class="pet-gacha-overlay pet-gacha-result is-hidden" style="display: flex; opacity: 1;">
+        <ui:VisualElement name="pet-gacha-result" focusable="true" class="pet-gacha-overlay pet-gacha-result is-hidden" style="display: none; opacity: 1;">
             <ui:VisualElement name="pet-gacha-reveal" class="pet-gacha-reveal gacha-showcase-screen is-reveal-sequencing">
                 <pm:FigmaGradientElement name="Gacha / Showcase Gradient" class="gacha-showcase-gradient" style="display: flex;"/>
                 <ui:VisualElement name="BG" picking-mode="Ignore" class="gacha-showcase-bg" style="background-image: url(&quot;project://database/Assets/Project/Art/UI/illustration/Gacha%20Banner.png?fileID=6903241956423549783&amp;guid=4c27ff18d962de347a4ab3eabfd169e2&amp;type=3#Gacha Banner (1)_0&quot;);"/>
@@ -185,13 +214,13 @@
                 <ui:Label name="pet-gacha-reveal-tap-hint" text="TAP ANYWHERE TO CONTINUE" picking-mode="Ignore" class="gacha-reveal-tap-hint"/>
             </ui:VisualElement>
             <ui:VisualElement name="pet-gacha-results" class="pet-gacha-results is-hidden" style="display: none;">
+                <pm:FigmaGradientElement name="Gacha / Results Gradient" picking-mode="Ignore" class="gacha-showcase-gradient pet-gacha-results-gradient"/>
                 <ui:VisualElement class="pet-gacha-multi-header">
                     <ui:Label text="SUMMON RESULTS" class="pet-gacha-multi-title"/>
-                    <ui:Label name="pet-gacha-results-balance" text="POWER COINS: —" class="pet-gacha-multi-balance"/>
                 </ui:VisualElement>
-                <ui:ScrollView name="pet-gacha-multi-scroll" class="pet-gacha-multi-scroll">
+                <ui:VisualElement name="pet-gacha-multi-viewport" class="pet-gacha-multi-viewport">
                     <ui:VisualElement name="pet-gacha-results-grid" class="pet-gacha-multi-grid"/>
-                </ui:ScrollView>
+                </ui:VisualElement>
                 <ui:VisualElement class="pet-gacha-multi-footer">
                     <ui:Button name="pet-gacha-results-continue" text="CONTINUE" class="loc-common.continue pet-gacha-pull pet-gacha-multi-continue"/>
                 </ui:VisualElement>

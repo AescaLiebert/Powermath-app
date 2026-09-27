@@ -9,7 +9,8 @@ namespace PowerMath.Gameplay.Combat
         AnswerWindowOpened,
         AttemptResolved,
         ContentFailureVoided,
-        PresentationCompleted
+        PresentationCompleted,
+        InterruptedAttemptResolved
     }
 
     public readonly struct GameplaySaveRequest
@@ -23,7 +24,9 @@ namespace PowerMath.Gameplay.Combat
             AttemptResolution resolution = null,
             string transactionId = "",
             string presentationId = "",
-            ChallengeQuestionSequenceSnapshot challengeQuestions = default)
+            ChallengeQuestionSequenceSnapshot challengeQuestions = default,
+            AttemptPresentationReceipt recoveryPresentation = null,
+            AcademicAttemptResult recoveryAcademicResult = null)
         {
             TransactionId = string.IsNullOrWhiteSpace(transactionId)
                 ? Guid.NewGuid().ToString("N")
@@ -36,6 +39,8 @@ namespace PowerMath.Gameplay.Combat
             Resolution = resolution;
             PresentationId = presentationId ?? string.Empty;
             ChallengeQuestions = challengeQuestions;
+            RecoveryPresentation = recoveryPresentation;
+            RecoveryAcademicResult = recoveryAcademicResult;
         }
 
         public GameplaySavePoint SavePoint { get; }
@@ -47,6 +52,8 @@ namespace PowerMath.Gameplay.Combat
         public AttemptResolution Resolution { get; }
         public string PresentationId { get; }
         public ChallengeQuestionSequenceSnapshot ChallengeQuestions { get; }
+        public AttemptPresentationReceipt RecoveryPresentation { get; }
+        public AcademicAttemptResult RecoveryAcademicResult { get; }
     }
 
     public interface IGameplayPersistence

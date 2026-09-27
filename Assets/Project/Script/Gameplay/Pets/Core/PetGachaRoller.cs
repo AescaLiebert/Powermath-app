@@ -14,6 +14,12 @@ namespace PowerMath.Gameplay.Pets
             PetGachaCatalog catalog,
             IReadOnlyCollection<string> ownedPetIds,
             IPetGachaRandomSource random);
+
+        PetGachaResult Roll(
+            PetGachaCatalog catalog,
+            IReadOnlyCollection<string> ownedPetIds,
+            IPetGachaRandomSource random,
+            int pullsSinceSsr);
     }
 
     public sealed class PetGachaRoller : IPetGachaRoller
@@ -22,6 +28,15 @@ namespace PowerMath.Gameplay.Pets
             PetGachaCatalog catalog,
             IReadOnlyCollection<string> ownedPetIds,
             IPetGachaRandomSource random)
+        {
+            return Roll(catalog, ownedPetIds, random, 0);
+        }
+
+        public PetGachaResult Roll(
+            PetGachaCatalog catalog,
+            IReadOnlyCollection<string> ownedPetIds,
+            IPetGachaRandomSource random,
+            int pullsSinceSsr)
         {
             if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             if (random == null) throw new ArgumentNullException(nameof(random));
@@ -32,15 +47,70 @@ namespace PowerMath.Gameplay.Pets
             int categoryRoll = random.NextExclusive(PetGachaCatalog.TotalRateBasisPoints);
             PetGachaRarity selectedRarity = null;
             int boundary = 0;
-            foreach (PetGachaRarity rarity in catalog.Rarities)
+
+            if (pullsSinceSsr >= PetGachaTransactionPolicy.SsrSoftPityThreshold)
             {
-                boundary = checked(boundary + rarity.RateBasisPoints);
-                if (categoryRoll < boundary)
+                PetGachaRarity ssrRarity = catalog.GetSsrPityRarity();
+                int effectiveSsrRate = PetGachaTransactionPolicy.GetEffectiveSsrRateBasisPoints(
+                    ssrRarity.RateBasisPoints, pullsSinceSsr);
+                int extraRate = effectiveSsrRate - ssrRarity.RateBasisPoints;
+
+                int remainingDeduction = extraRate;
+                var effectiveRates = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                foreach (PetGachaRarity rarity in catalog.Rarities)
                 {
-                    selectedRarity = rarity;
-                    break;
+                    if (rarity.ResetsSsrPity)
+                    {
+                        effectiveRates[rarity.Id] = effectiveSsrRate;
+                    }
+                    else if (!rarity.CountsForTenPullGuarantee)
+                    {
+                        int deduction = Math.Min(rarity.RateBasisPoints, remainingDeduction);
+                        effectiveRates[rarity.Id] = rarity.RateBasisPoints - deduction;
+                        remainingDeduction -= deduction;
+                    }
+                    else
+                    {
+                        effectiveRates[rarity.Id] = rarity.RateBasisPoints;
+                    }
+                }
+
+                if (remainingDeduction > 0)
+                {
+                    foreach (PetGachaRarity rarity in catalog.Rarities)
+                    {
+                        if (rarity.ResetsSsrPity) continue;
+                        int current = effectiveRates[rarity.Id];
+                        int deduction = Math.Min(current, remainingDeduction);
+                        effectiveRates[rarity.Id] = current - deduction;
+                        remainingDeduction -= deduction;
+                        if (remainingDeduction <= 0) break;
+                    }
+                }
+
+                foreach (PetGachaRarity rarity in catalog.Rarities)
+                {
+                    boundary = checked(boundary + effectiveRates[rarity.Id]);
+                    if (categoryRoll < boundary)
+                    {
+                        selectedRarity = rarity;
+                        break;
+                    }
                 }
             }
+            else
+            {
+                foreach (PetGachaRarity rarity in catalog.Rarities)
+                {
+                    boundary = checked(boundary + rarity.RateBasisPoints);
+                    if (categoryRoll < boundary)
+                    {
+                        selectedRarity = rarity;
+                        break;
+                    }
+                }
+            }
+
             if (selectedRarity == null)
                 throw new InvalidOperationException("The rarity roll did not resolve against the catalog total.");
 
@@ -93,7 +163,22 @@ namespace PowerMath.Gameplay.Pets
         public const int MultiPullCount = 10;
         public const long MultiPullCost = PullCost * MultiPullCount;
         public const int SsrHardPityPulls = 90;
+        public const int SsrSoftPityThreshold = 74;
+        public const int SsrSoftPityStepBasisPoints = 600;
+        public const int SrHardPityPulls = 10;
         public const string FirstPullGuaranteedPetId = "sapphire";
+
+        public static int GetEffectiveSsrRateBasisPoints(int baseSsrRateBasisPoints, int pullsSinceSsr)
+        {
+            if (pullsSinceSsr < SsrSoftPityThreshold)
+                return baseSsrRateBasisPoints;
+            if (pullsSinceSsr >= SsrHardPityPulls - 1)
+                return PetGachaCatalog.TotalRateBasisPoints;
+
+            int steps = pullsSinceSsr - SsrSoftPityThreshold + 1;
+            int calculated = checked(baseSsrRateBasisPoints + steps * SsrSoftPityStepBasisPoints);
+            return Math.Min(PetGachaCatalog.TotalRateBasisPoints, calculated);
+        }
 
         public static long GetCost(int pullCount)
         {
@@ -140,7 +225,7 @@ namespace PowerMath.Gameplay.Pets
             var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (string petId in ownedPetIds ?? Array.Empty<string>())
                 counts[petId] = 1;
-            return CreateReceipt(command, currentPowerCoins, catalog, counts, 0, random, isFirstPull, firstPullPetId);
+            return CreateReceipt(command, currentPowerCoins, catalog, counts, 0, 0, random, isFirstPull, firstPullPetId);
         }
 
         public static PetGachaReceipt CreateReceipt(
@@ -149,6 +234,20 @@ namespace PowerMath.Gameplay.Pets
             PetGachaCatalog catalog,
             IReadOnlyDictionary<string, int> ownedPetCounts,
             int pullsSinceSsr,
+            IPetGachaRandomSource random,
+            bool isFirstPull = false,
+            string firstPullPetId = FirstPullGuaranteedPetId)
+        {
+            return CreateReceipt(command, currentPowerCoins, catalog, ownedPetCounts, pullsSinceSsr, 0, random, isFirstPull, firstPullPetId);
+        }
+
+        public static PetGachaReceipt CreateReceipt(
+            PetGachaCommand command,
+            long currentPowerCoins,
+            PetGachaCatalog catalog,
+            IReadOnlyDictionary<string, int> ownedPetCounts,
+            int pullsSinceSsr,
+            int pullsSinceSr,
             IPetGachaRandomSource random,
             bool isFirstPull = false,
             string firstPullPetId = FirstPullGuaranteedPetId)
@@ -162,6 +261,8 @@ namespace PowerMath.Gameplay.Pets
                 throw new InvalidOperationException("The gacha catalog version changed.");
             if (pullsSinceSsr < 0 || pullsSinceSsr >= SsrHardPityPulls)
                 throw new InvalidOperationException("Saved SSR pity progress is invalid.");
+            if (pullsSinceSr < 0 || pullsSinceSr >= SrHardPityPulls)
+                throw new InvalidOperationException("Saved SR pity progress is invalid.");
 
             var roller = new PetGachaRoller();
             var rollingCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -172,8 +273,8 @@ namespace PowerMath.Gameplay.Pets
                 rollingCounts[pair.Key] = pair.Value;
             }
             var results = new List<PetGachaResult>(pullCount);
-            bool hasSrOrBetter = false;
-            int pity = pullsSinceSsr;
+            int pitySsr = pullsSinceSsr;
+            int pitySr = pullsSinceSr;
 
             for (int i = 0; i < pullCount; i++)
             {
@@ -191,14 +292,13 @@ namespace PowerMath.Gameplay.Pets
                 }
                 else
                 {
-                    bool forceSsr = pity == SsrHardPityPulls - 1;
-                    bool forceSr = pullCount == MultiPullCount &&
-                        i == pullCount - 1 && !hasSrOrBetter;
+                    bool forceSsr = pitySsr == SsrHardPityPulls - 1;
+                    bool forceSr = pitySr == SrHardPityPulls - 1;
                     PetGachaRarity forcedRarity = forceSsr
                         ? catalog.GetSsrPityRarity()
                         : forceSr ? catalog.GetTenPullGuaranteeRarity() : null;
                     rolled = forcedRarity == null
-                        ? roller.Roll(catalog, rollingCounts.Keys, random)
+                        ? roller.Roll(catalog, rollingCounts.Keys, random, pitySsr)
                         : roller.RollFromRarity(forcedRarity, rollingCounts.Keys, random);
                     if (!catalog.TryGetRarity(rolled.RarityId, out rarity))
                         throw new InvalidOperationException("Rolled rarity is missing from the catalog.");
@@ -215,8 +315,9 @@ namespace PowerMath.Gameplay.Pets
                     previousCount == 0,
                     previousCount,
                     resultingCount));
-                if (rarity.CountsForTenPullGuarantee) hasSrOrBetter = true;
-                pity = rarity.ResetsSsrPity ? 0 : checked(pity + 1);
+
+                pitySsr = rarity.ResetsSsrPity ? 0 : checked(pitySsr + 1);
+                pitySr = rarity.CountsForTenPullGuarantee ? 0 : checked(pitySr + 1);
             }
 
             return new PetGachaReceipt(
@@ -226,7 +327,9 @@ namespace PowerMath.Gameplay.Pets
                 totalCost,
                 checked(currentPowerCoins - totalCost),
                 pullsSinceSsr,
-                pity);
+                pitySsr,
+                pullsSinceSr,
+                pitySr);
         }
     }
 }

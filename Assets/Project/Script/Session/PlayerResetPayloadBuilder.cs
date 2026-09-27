@@ -124,8 +124,11 @@ namespace PowerMath.Session
             builder.AddInteger(Join(root, "economy", "lastPetGachaCost"), 0);
             builder.AddInteger(Join(root, "economy", "lastPetGachaResultingPowerCoins"), 0);
             builder.AddInteger(Join(root, "economy", "petGachaPullsSinceSsr"), 0);
+            builder.AddInteger(Join(root, "economy", "petGachaPullsSinceSr"), 0);
             builder.AddInteger(Join(root, "economy", "lastPetGachaPreviousPityCount"), 0);
             builder.AddInteger(Join(root, "economy", "lastPetGachaResultingPityCount"), 0);
+            builder.AddInteger(Join(root, "economy", "lastPetGachaPreviousSrPityCount"), 0);
+            builder.AddInteger(Join(root, "economy", "lastPetGachaResultingSrPityCount"), 0);
             builder.AddEmptyArray(Join(root, "economy", "lastPetGachaResults"));
             builder.AddString(Join(root, "economy", "lastPetEquipTransactionId"), string.Empty);
             builder.AddString(Join(root, "economy", "lastPetEquipPetId"), string.Empty);

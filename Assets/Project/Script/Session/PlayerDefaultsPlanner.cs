@@ -119,8 +119,11 @@ namespace PowerMath.Session
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaCost" }, 0);
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaResultingPowerCoins" }, 0);
             AddInteger(builder, root, gameData, new[] { "economy", "petGachaPullsSinceSsr" }, 0);
+            AddInteger(builder, root, gameData, new[] { "economy", "petGachaPullsSinceSr" }, 0);
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaPreviousPityCount" }, 0);
             AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaResultingPityCount" }, 0);
+            AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaPreviousSrPityCount" }, 0);
+            AddInteger(builder, root, gameData, new[] { "economy", "lastPetGachaResultingSrPityCount" }, 0);
             AddEmptyArray(builder, root, gameData, new[] { "economy", "lastPetGachaResults" });
             AddString(builder, root, gameData, new[] { "economy", "lastPetEquipTransactionId" }, string.Empty);
             AddString(builder, root, gameData, new[] { "economy", "lastPetEquipPetId" }, string.Empty);

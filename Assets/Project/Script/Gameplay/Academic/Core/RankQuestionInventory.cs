@@ -150,6 +150,21 @@ namespace PowerMath.Gameplay.Academic
             ClearReservation();
         }
 
+        public void RestoreInterruptedReservation(QuestionId id)
+        {
+            if (HasReservation)
+            {
+                if (_reserved == id) return;
+                throw new InvalidOperationException("A different question is already reserved.");
+            }
+            if (!_canonical.Contains(id) || _pending.Contains(id) ||
+                _attemptedThisAudit.Contains(id))
+                throw new InvalidOperationException(
+                    "The interrupted question does not match the saved inventory.");
+            _reserved = id;
+            HasReservation = true;
+        }
+
         public void VoidReserved()
         {
             EnsureReservation();

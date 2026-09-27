@@ -254,19 +254,13 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void Render(CombatSnapshot snapshot)
         {
             _combatLayer.style.display = DisplayStyle.Flex;
-            _stageLabel.text = $"STAGE {snapshot.Stage.Value}";
-            if (_stageProgress != null)
-                _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
+            RenderEncounterHeader(snapshot);
             _lastEncounterId = snapshot.EnemyId;
             string enemyName = ResolveEnemyName(snapshot.EnemyId, snapshot.EnemyName);
             _enemyName.text = enemyName;
             if (_enemyNameShadow != null)
                 _enemyNameShadow.text = enemyName;
-            _biomeLabel.text = snapshot.BiomeTitle.ToUpperInvariant();
             ApplyEncounterVisuals(snapshot);
-            foreach (KeyValuePair<string, Label> pair in _mapNodes)
-                pair.Value.EnableInClassList("combat-map-node--current",
-                    string.Equals(pair.Key, snapshot.BiomeId, StringComparison.Ordinal));
             EnemyMaximumHp = snapshot.EnemyMaximumHp;
             SetEnemyHp(snapshot.EnemyCurrentHp);
             if (_cooldownLabel != null)
@@ -709,6 +703,16 @@ namespace PowerMath.Gameplay.Combat.Unity
             _feedbackLifecycle.IsStable && _bannerLifecycle.IsStable &&
             _biomeLifecycle.IsStable && (_bossWarningLifecycle == null || _bossWarningLifecycle.IsStable);
 
+        public void SettleRecoveredPresentation(CombatSnapshot destination)
+        {
+            _attemptLifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            _feedbackLifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            _bannerLifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            _biomeLifecycle.CancelAndApply(UiLifecycleState.Hidden);
+            _bossWarningLifecycle?.CancelAndApply(UiLifecycleState.Hidden);
+            _enemyActionQueue.CancelAndRebuild(destination);
+        }
+
         public void ArmEnemyAction(string presentationId)
         {
             _enemyActionQueue.ArmNext(presentationId);
@@ -731,6 +735,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void PrepareEncounterPresentation(CombatSnapshot snapshot)
         {
             if (snapshot == null) return;
+            RenderEncounterHeader(snapshot);
             ApplyEncounterVisuals(snapshot);
             _lastEncounterId = snapshot.EnemyId;
             string enemyName = ResolveEnemyName(snapshot.EnemyId, snapshot.EnemyName);
@@ -739,6 +744,17 @@ namespace PowerMath.Gameplay.Combat.Unity
                 _enemyNameShadow.text = enemyName;
             EnemyMaximumHp = snapshot.EnemyMaximumHp;
             SetEnemyHp(snapshot.EnemyCurrentHp);
+        }
+
+        private void RenderEncounterHeader(CombatSnapshot snapshot)
+        {
+            _stageLabel.text = $"STAGE {snapshot.Stage.Value}";
+            if (_stageProgress != null)
+                _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
+            _biomeLabel.text = snapshot.BiomeTitle.ToUpperInvariant();
+            foreach (KeyValuePair<string, Label> pair in _mapNodes)
+                pair.Value.EnableInClassList("combat-map-node--current",
+                    string.Equals(pair.Key, snapshot.BiomeId, StringComparison.Ordinal));
         }
 
         public void RebuildRecoveredEnemyActions(AttemptPresentationReceipt receipt)
@@ -917,6 +933,15 @@ namespace PowerMath.Gameplay.Combat.Unity
         private void OnHideMap()
         {
             _panelHost.TryClose(MainMenuPanelId.WorldMap, _mapButton);
+        }
+
+        public void CloseWorldMap()
+        {
+            if (_mapModal != null)
+            {
+                _mapModal.EnableInClassList("is-hidden", true);
+                _mapModal.style.display = DisplayStyle.None;
+            }
         }
 
         private void ApplyEncounterVisuals(CombatSnapshot snapshot)

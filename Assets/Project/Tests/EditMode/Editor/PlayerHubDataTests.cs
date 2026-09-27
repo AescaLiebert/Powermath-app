@@ -283,6 +283,13 @@ namespace PowerMath.Tests.EditMode
         }
 
         [Test]
+        public void WeaponAscensionPolicy_MaxLevelAttack_IsCappedAt1000()
+        {
+            WeaponAscensionStats maxStats = WeaponAscensionPolicy.GetStats(115, 20, 115);
+            Assert.That(maxStats.Attack, Is.EqualTo(1000));
+        }
+
+        [Test]
         public void PlayerHub_BaseWeaponAscendStats_ExcludesBonusFormatting()
         {
             WeaponAscensionStats current = WeaponAscensionPolicy.GetStats(5, 20, 115);
@@ -314,6 +321,124 @@ namespace PowerMath.Tests.EditMode
             Assert.That(luckText, Does.Not.StartWith("+"));
             Assert.That(coinText, Is.EqualTo("10%"));
             Assert.That(coinText, Does.Not.StartWith("+"));
+        }
+
+        [Test]
+        public void PlayerHub_CompactAggressiveStats_FormattedWithAdditionalPercent()
+        {
+            int weaponAttack = 20;
+            int petFlatAttack = 0;
+            double petMultiplierPercent = 0d;
+            long legacyBasisPoints = 605; // Rebirth +6.05%
+            double baseCritRate = 0.20;
+            double weaponCritRate = 0.05; // Lv.17 weapon gives +5% CR
+            double petCritRate = 0.05; // Pet collection gives +5% CR
+            double currentCritRate = baseCritRate + weaponCritRate + petCritRate; // 0.30 (30%)
+            double baseCritDamage = 50.0;
+            double weaponCritDamage = 10.0; // Lv.25 weapon gives +10% CD
+            double petCritDamage = 10.0; // Pet collection gives +10% CD
+            double currentCritDamage = baseCritDamage + weaponCritDamage + petCritDamage; // 70.0 (70%)
+
+            double additionalAtkPercent = Math.Max(0d, (legacyBasisPoints / 100d) + petMultiplierPercent);
+            double petBonusCritRatePercent = Math.Max(0d, petCritRate * 100d);
+            double petBonusCritDamagePercent = Math.Max(0d, petCritDamage);
+
+            double combinedMultiplier = 1d + (petMultiplierPercent / 100d) + (legacyBasisPoints / 10000d);
+            int effectiveAttack = (int)Math.Round((weaponAttack + petFlatAttack) * combinedMultiplier, MidpointRounding.AwayFromZero);
+
+            string attackText = additionalAtkPercent > 0.001d
+                ? $"{effectiveAttack.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)} <size=12>(+{additionalAtkPercent:0.##}%)</size>"
+                : effectiveAttack.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+            string critRateText = petBonusCritRatePercent > 0.001d
+                ? $"{currentCritRate * 100d:0.##}% <size=12>(+{petBonusCritRatePercent:0.##}%)</size>"
+                : $"{currentCritRate * 100d:0.##}%";
+            string critDamageText = petBonusCritDamagePercent > 0.001d
+                ? $"{currentCritDamage:0.##}% <size=12>(+{petBonusCritDamagePercent:0.##}%)</size>"
+                : $"{currentCritDamage:0.##}%";
+
+            // Compact stat displays (+6.05%) matching Rebirth (+6.05%), excluding weapon flat ATK
+            Assert.That(attackText, Is.EqualTo("21 <size=12>(+6.05%)</size>"));
+            // Weapon CR (+5%) is included in the total 30%, but excluded from (+additional_num%) which only shows pet (+5%)
+            Assert.That(critRateText, Is.EqualTo("30% <size=12>(+5%)</size>"));
+            // Weapon CD (+10%) is included in the total 70%, but excluded from (+additional_num%) which only shows pet (+10%)
+            Assert.That(critDamageText, Is.EqualTo("70% <size=12>(+10%)</size>"));
+        }
+
+        [Test]
+        public void PlayerHub_CompactAggressiveStats_AllowsDecimalsAndDisablesOnlyNonPositive()
+        {
+            int weaponAttack = 1000;
+            int petFlatAttack = 5; // Flat ATK does not inflate percentage multiplier
+            double petMultiplierPercent = 0.5d; // +0.5%
+            long legacyBasisPoints = 0;
+            double additionalAtkPercent = Math.Max(0d, (legacyBasisPoints / 100d) + petMultiplierPercent);
+
+            double baseCritRate = 0.20;
+            double petCritRatePercent = 0.8d; // +0.8%
+            double currentCritRate = baseCritRate + petCritRatePercent / 100d;
+            double petBonusCritRatePercent = Math.Max(0d, petCritRatePercent);
+
+            double baseCritDamage = 50.0;
+            double petCritDamagePercent = 0d; // 0% bonus (non-positive)
+            double currentCritDamage = 50.0;
+            double petBonusCritDamagePercent = Math.Max(0d, petCritDamagePercent);
+
+            double combinedMultiplier = 1d + (petMultiplierPercent / 100d) + (legacyBasisPoints / 10000d);
+            int effectiveAttack = (int)Math.Round((weaponAttack + petFlatAttack) * combinedMultiplier, MidpointRounding.AwayFromZero);
+
+            string attackText = additionalAtkPercent > 0.001d
+                ? $"{effectiveAttack.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)} <size=12>(+{additionalAtkPercent:0.##}%)</size>"
+                : effectiveAttack.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+            string critRateText = petBonusCritRatePercent > 0.001d
+                ? $"{currentCritRate * 100d:0.##}% <size=12>(+{petBonusCritRatePercent:0.##}%)</size>"
+                : $"{currentCritRate * 100d:0.##}%";
+            string critDamageText = petBonusCritDamagePercent > 0.001d
+                ? $"{currentCritDamage:0.##}% <size=12>(+{petBonusCritDamagePercent:0.##}%)</size>"
+                : $"{currentCritDamage:0.##}%";
+
+            // Decimal bonus (> 0%) is displayed with <size=12>
+            Assert.That(attackText, Is.EqualTo("1,010 <size=12>(+0.5%)</size>"));
+            Assert.That(critRateText, Is.EqualTo("20.8% <size=12>(+0.8%)</size>"));
+            // 0% bonus is disabled
+            Assert.That(critDamageText, Is.EqualTo("50%"));
+            Assert.That(critDamageText, Does.Not.Contain("(+"));
+        }
+
+        [Test]
+        public void PlayerStatProjection_AdditiveMultiplier_MatchesRebirthAndPreventsBloat()
+        {
+            var snapshot = new PlayerSnapshot
+            {
+                progression = new PlayerSnapshot.ProgressionData
+                {
+                    legacyAtkBonusBasisPoints = 31500 // +315%
+                },
+                inventory = new[]
+                {
+                    new PlayerSnapshot.InventoryItemData
+                    {
+                        itemId = WeaponAscensionPolicy.CanonicalItemId,
+                        owned = true,
+                        upgradeLevel = 50,
+                        count = 1
+                    }
+                }
+            };
+
+            // Weapon level 50 has 325 Attack
+            PlayerStatProjection projectionNoPet = PlayerStatProjectionFactory.Create(
+                snapshot,
+                WeaponAscensionPolicy.DefaultBaseWeaponAttack,
+                0.05d,
+                50.0d);
+
+            // Additive multiplier: 1 + 3.15 = 4.15
+            int expectedAtk = (int)Math.Round(projectionNoPet.Weapon.Attack * 4.15d, MidpointRounding.AwayFromZero);
+            Assert.That(projectionNoPet.EffectiveAttack, Is.EqualTo(expectedAtk));
+
+            // Legacy bonus matches Rebirth exactly (+315%)
+            double additionalAtkPercent = Math.Max(0d, (projectionNoPet.LegacyBasisPoints / 100d) + projectionNoPet.PetMultiplierPercent);
+            Assert.That(additionalAtkPercent, Is.EqualTo(315d));
         }
 
         [Test]

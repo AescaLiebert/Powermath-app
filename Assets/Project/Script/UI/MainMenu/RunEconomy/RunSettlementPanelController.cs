@@ -425,69 +425,64 @@ namespace PowerMath.UI.MainMenu
             PlayerSessionStore.Instance?.NotifyAuthoritativeUpdate();
             // The tutorial settlement receipt must be persisted before a
             // Rebirth scene reload can destroy its director.
-            if (type == RunSettlementType.Rebirth)
+            PowerMath.Audio.SfxController.Instance?.PlayBattle(
+                type == RunSettlementType.Rebirth
+                    ? PowerMath.Audio.BattleSfxState.RunComplete
+                    : PowerMath.Audio.BattleSfxState.RunDefeat);
+
+            // Close modal so that player and currency icons are fully visible during the reward sequence
+            _panelHost.ForceCloseAll();
+
+            if (_playerActor != null)
             {
-                PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.RunComplete);
-
-                // Close modal so that player and currency icons are fully visible during the reward sequence
-                _panelHost.ForceCloseAll();
-
-                if (_playerActor != null)
+                if (type == RunSettlementType.Rebirth)
                 {
                     if (_playerActor.State == ActorVisualState.Hidden)
                         _playerActor.CancelAndApply(ActorVisualState.Idle);
                     yield return _playerActor.Play(PresentationActionKind.PlayerRebirth);
                 }
-
-                if (award.PowerCoins > 0 && _rewardMagnet != null)
+                else
                 {
-                    long resultingCoins = _player.wallet?.powerCoins ?? 0;
-                    long startCoins = Math.Max(0, resultingCoins - award.PowerCoins);
-                    Vector2 origin;
-                    if (_playerActor != null && _playerActor.TryGetScreenCenter(out Vector2 actorCenter))
-                    {
-                        origin = actorCenter;
-                    }
-                    else
-                    {
-                        origin = new Vector2(UnityEngine.Screen.width * 0.5f, UnityEngine.Screen.height * 0.5f);
-                    }
-
-                    int iconCount = (int)Math.Min(award.PowerCoins, 200);
-                    if (_floatingRewardText != null && award.PowerCoins > 0)
-                    {
-                        _floatingRewardText.Spawn(
-                            RewardCurrencyKind.PowerCoin,
-                            award.PowerCoins,
-                            origin);
-                    }
-                    yield return _rewardMagnet.PlayRewardDropAndMagnet(
-                        RewardCurrencyKind.PowerCoin,
-                        startCoins,
-                        award.PowerCoins,
-                        origin,
-                        iconCountOverride: iconCount);
-                    yield return new WaitForSecondsRealtime(0.25f);
+                    _playerActor.CancelAndApply(ActorVisualState.Hidden);
                 }
-
-                // The authored result follows the complete actor/reward sequence.
-                // Persist it before reload so the new scene resumes at that step.
-                yield return NotifyTutorialSettlementCommitted(type.ToString());
-                string sourceRunId = _player.lastRunSettlement?.runId ?? string.Empty;
-                yield return AcknowledgeAndReloadRoutine(sourceRunId);
-                yield break;
             }
 
-            PowerMath.Audio.SfxController.Instance?.PlayBattle(PowerMath.Audio.BattleSfxState.RunDefeat);
-            string acceptedTitle = "RUN ENDED";
-            if (_pendingPreview.Award.StageReached == award.StageReached)
-                RenderPreview(_pendingPreview, acceptedTitle);
-            else
-                RenderAcceptedAward(award, acceptedTitle);
-            _status.text = "Saved. Starting your new run…";
+            if (award.PowerCoins > 0 && _rewardMagnet != null)
+            {
+                long resultingCoins = _player.wallet?.powerCoins ?? 0;
+                long startCoins = Math.Max(0, resultingCoins - award.PowerCoins);
+                Vector2 origin;
+                if (_playerActor != null && _playerActor.TryGetScreenCenter(out Vector2 actorCenter))
+                {
+                    origin = actorCenter;
+                }
+                else
+                {
+                    origin = new Vector2(UnityEngine.Screen.width * 0.5f, UnityEngine.Screen.height * 0.5f);
+                }
+
+                int iconCount = (int)Math.Min(award.PowerCoins, 200);
+                if (_floatingRewardText != null && award.PowerCoins > 0)
+                {
+                    _floatingRewardText.Spawn(
+                        RewardCurrencyKind.PowerCoin,
+                        award.PowerCoins,
+                        origin);
+                }
+                yield return _rewardMagnet.PlayRewardDropAndMagnet(
+                    RewardCurrencyKind.PowerCoin,
+                    startCoins,
+                    award.PowerCoins,
+                    origin,
+                    iconCountOverride: iconCount);
+                yield return new WaitForSecondsRealtime(0.25f);
+            }
+
+            // The authored result follows the complete actor/reward sequence.
+            // Persist it before reload so the new scene resumes at that step.
             yield return NotifyTutorialSettlementCommitted(type.ToString());
-            string deathSourceRunId = _player.lastRunSettlement?.runId ?? string.Empty;
-            yield return AcknowledgeAndReloadRoutine(deathSourceRunId);
+            string sourceRunId = _player.lastRunSettlement?.runId ?? string.Empty;
+            yield return AcknowledgeAndReloadRoutine(sourceRunId);
         }
 
         private IEnumerator NotifyTutorialSettlementCommitted(string settlementType)
@@ -584,6 +579,16 @@ namespace PowerMath.UI.MainMenu
             _confirm.SetEnabled(canConfirm);
             _close.SetEnabled(enabled);
             _continue.SetEnabled(enabled);
+        }
+
+        public void CloseImmediate()
+        {
+            HideInitially();
+            HideResetTransition();
+            _pendingSettlement = null;
+            _pendingPreview = default;
+            SetConfirmText("Rebirth");
+            SetSemanticState();
         }
 
         private void Close()

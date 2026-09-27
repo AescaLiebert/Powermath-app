@@ -109,3 +109,6 @@ InitTestScene*.unity*
 # IDE/Tool temporary files
 .codex-remote-attachments/
 
+# Local video junction/folder for offline editor playback
+/Videos/
+

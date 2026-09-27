@@ -146,10 +146,9 @@ namespace PowerMath.Gameplay.Progression
                 Math.Max(0, player?.progression?.legacyAtkBonusBasisPoints ?? 0) +
                 additionalLegacyBasisPoints);
 
-            // Formula: (WeaponATK + PetFlatATK) × (1 + PetMult%) × (1 + Legacy%)
-            double petMultiplier = 1d + petMultiplierPercent / 100d;
-            double legacyMultiplier = 1d + legacyBasisPoints / 10000d;
-            double effectiveAttack = checked(weapon.Attack + petFlatAttack) * petMultiplier * legacyMultiplier;
+            // Formula: (WeaponATK + PetFlatATK) × (1 + PetMult% + Legacy%)
+            double combinedMultiplier = 1d + (petMultiplierPercent / 100d) + (legacyBasisPoints / 10000d);
+            double effectiveAttack = checked(weapon.Attack + petFlatAttack) * combinedMultiplier;
             if (effectiveAttack > int.MaxValue)
                 throw new OverflowException("Projected player ATK exceeds the supported range.");
 

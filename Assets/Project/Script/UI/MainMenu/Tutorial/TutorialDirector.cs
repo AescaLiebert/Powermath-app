@@ -33,11 +33,13 @@ namespace PowerMath.UI.MainMenu.Tutorial
         private readonly bool _ownsCombatCheckpoints;
         private readonly Func<bool> _allowExternalGate;
         private readonly Func<bool> _allowNonCombatPresentation;
+        private readonly Action _onFirstStepAboutToRun;
         private TutorialProgress _progress;
         private IInteractionLock _tutorialLock;
         private bool _busy;
         private bool _queueing;
         private bool _disposed;
+        private bool _firstStepCleanedUp;
         // Several state-machine directors share one physical overlay. Only the
         // director that rendered it may hide that shared surface.
         private bool _isPresenting;
@@ -64,7 +66,8 @@ namespace PowerMath.UI.MainMenu.Tutorial
             bool autoQueueLegacyRankChange = false,
             bool ownsCombatCheckpoints = true,
             Func<bool> allowExternalGate = null,
-            Func<bool> allowNonCombatPresentation = null)
+            Func<bool> allowNonCombatPresentation = null,
+            Action onFirstStepAboutToRun = null)
         {
             _host = host != null ? host : throw new ArgumentNullException(nameof(host));
             _sequence = sequence ?? throw new ArgumentNullException(nameof(sequence));
@@ -78,6 +81,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
             _ownsCombatCheckpoints = ownsCombatCheckpoints;
             _allowExternalGate = allowExternalGate;
             _allowNonCombatPresentation = allowNonCombatPresentation;
+            _onFirstStepAboutToRun = onFirstStepAboutToRun;
             _view = new TutorialOverlayView(root, reducedMotion);
         }
 
@@ -113,6 +117,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
             if (_ownsCombatCheckpoints && _combat.TutorialResultCheckpoint == ResultCheckpoint)
                 _combat.TutorialResultCheckpoint = null;
             ReleaseTutorialLock();
+            _firstStepCleanedUp = false;
             _view.Dispose(_isPresenting);
         }
 
@@ -288,6 +293,7 @@ namespace PowerMath.UI.MainMenu.Tutorial
             if (_progress.Status == TutorialStatus.Queued)
             {
                 if (!CanActivateFromQueue()) return;
+                PrepareFirstStep();
                 if (!TryReservePendingOwnership()) return;
                 _host.StartCoroutine(ReduceAndPersist(new TutorialSignal(
                     TutorialSignalKind.SafeLobbyEntered,
@@ -297,6 +303,16 @@ namespace PowerMath.UI.MainMenu.Tutorial
             }
             if (_progress.Status != TutorialStatus.Active) return;
             _host.StartCoroutine(EncounterReadyRoutine(snapshot));
+        }
+
+        private void PrepareFirstStep()
+        {
+            if (_firstStepCleanedUp) return;
+            _firstStepCleanedUp = true;
+            if (!(_allowNonCombatPresentation?.Invoke() == true))
+            {
+                _onFirstStepAboutToRun?.Invoke();
+            }
         }
 
         public IEnumerator QueueFromTrigger(
@@ -354,7 +370,10 @@ namespace PowerMath.UI.MainMenu.Tutorial
             if (_progress.Status == TutorialStatus.Queued &&
                 !CanActivateFromQueue()) yield break;
             if (_progress.Status == TutorialStatus.Queued)
+            {
+                PrepareFirstStep();
                 TryReservePendingOwnership();
+            }
             yield return ReduceAndPersist(new TutorialSignal(
                 TutorialSignalKind.ExternalEvent,
                 targetId: targetId,
@@ -514,7 +533,10 @@ namespace PowerMath.UI.MainMenu.Tutorial
             _busy = false;
             _view.SetBusy(false);
             if (_progress.Status == TutorialStatus.Completed)
+            {
+                _firstStepCleanedUp = false;
                 SequenceCompleted?.Invoke();
+            }
             TutorialStep persistedWaitStep = null;
             if (_progress.Status == TutorialStatus.Active &&
                 _sequence.TryGetStep(_progress.CurrentStepId, out TutorialStep activeStep) &&
@@ -565,6 +587,11 @@ namespace PowerMath.UI.MainMenu.Tutorial
             {
                 HideAndRelease();
                 return;
+            }
+
+            if (!_firstStepCleanedUp && _sequence.IsStartStep(_progress.CurrentStepId))
+            {
+                PrepareFirstStep();
             }
 
             PlayerSnapshot player = _sessionStore.Snapshot;

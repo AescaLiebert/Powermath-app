@@ -45,6 +45,42 @@ namespace PowerMath.Gameplay.Academic
                     "Presentation acknowledgement does not match the pending result.");
                 return;
             }
+            if (request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved &&
+                (request.RecoveryPresentation == null ||
+                 !request.RecoveryPresentation.TryValidate(out _) ||
+                 request.RecoveryPresentation.Outcome != AttemptOutcomeKind.Timeout ||
+                 !request.RecoveryPresentation.PresentationId.StartsWith(
+                     "interrupted-attempt-", StringComparison.Ordinal) ||
+                 !string.Equals(request.TransactionId,
+                     request.RecoveryPresentation.AttemptId, StringComparison.Ordinal) ||
+                 (!string.IsNullOrEmpty(_player.activeRun?.committedAttemptId) &&
+                  !string.Equals(_player.activeRun.committedAttemptId,
+                      request.TransactionId, StringComparison.Ordinal)) ||
+                 _player.activeRun.currentStage !=
+                     request.RecoveryPresentation.Source.Stage.Value ||
+                 !string.Equals(
+                     string.IsNullOrWhiteSpace(_player.activeRun.encounterId)
+                         ? _player.activeRun.enemyId
+                         : _player.activeRun.encounterId,
+                     request.RecoveryPresentation.Source.EncounterId,
+                     StringComparison.Ordinal) ||
+                 request.Snapshot.Combat.Stage.Value !=
+                     request.RecoveryPresentation.Destination.Stage.Value ||
+                 !string.Equals(request.Snapshot.Combat.EnemyId,
+                     request.RecoveryPresentation.Destination.EncounterId,
+                     StringComparison.Ordinal) ||
+                 request.Snapshot.PowerCoins !=
+                     request.RecoveryPresentation.ResultingPowerCoins ||
+                 (request.RecoveryAcademicResult != null &&
+                  (request.RecoveryAcademicResult.Outcome != QuestionOutcome.Timeout ||
+                   request.RecoveryPresentation.Source.EncounterKind ==
+                       StageEncounterKind.ChallengeEvent ||
+                   _player.activeRun.questionId !=
+                        request.RecoveryAcademicResult.QuestionId.Value))))
+            {
+                failed?.Invoke("Interrupted attempt does not match the saved attempt. Reload before continuing.");
+                return;
+            }
             int generation = ++_generation;
             _operation = _host.StartCoroutine(SaveRoutine(generation, request, completed, failed));
         }
@@ -155,6 +191,12 @@ namespace PowerMath.Gameplay.Academic
                 _player.activeRun.pendingPresentation = ToPlayer(
                     request.Resolution.Presentation);
             }
+            else if (request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved &&
+                     request.RecoveryPresentation != null)
+            {
+                _player.activeRun.pendingPresentation = ToPlayer(
+                    request.RecoveryPresentation);
+            }
             else if (request.SavePoint == GameplaySavePoint.PresentationCompleted ||
                      request.SavePoint == GameplaySavePoint.AttemptCommitted)
             {
@@ -179,6 +221,17 @@ namespace PowerMath.Gameplay.Academic
                 _player.activeRun.lastChallengeRewardAttemptId = request.TransactionId;
                 _player.activeRun.lastChallengeRewardPowerCoins =
                     request.Resolution.Event.PowerCoinsGranted;
+                _player.activeRun.lastChallengeRewardResultingPowerCoins =
+                    request.Snapshot.PowerCoins;
+            }
+            else if (request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved &&
+                     request.RecoveryPresentation?.Source.EncounterKind == StageEncounterKind.ChallengeEvent &&
+                     !string.Equals(_player.activeRun.lastChallengeRewardAttemptId,
+                         request.TransactionId, StringComparison.Ordinal))
+            {
+                _player.activeRun.lastChallengeRewardAttemptId = request.TransactionId;
+                _player.activeRun.lastChallengeRewardPowerCoins =
+                    request.RecoveryPresentation.PowerCoinsGranted;
                 _player.activeRun.lastChallengeRewardResultingPowerCoins =
                     request.Snapshot.PowerCoins;
             }
@@ -244,7 +297,7 @@ namespace PowerMath.Gameplay.Academic
                     presentationId,
                     StringComparison.Ordinal);
             }
-            return !string.IsNullOrEmpty(_player.activeRun?.committedAttemptId);
+            return false;
         }
 
         private static PlayerSnapshot.AttemptPresentationData ToPlayer(

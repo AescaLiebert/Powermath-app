@@ -47,6 +47,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         public void Apply(string value, Color color, float fontSize, Vector2 position, float initialScale = 0.5f, Sprite icon = null)
         {
             CacheComponents();
+            transform.SetAsLastSibling();
             if (textComponent != null)
             {
                 textComponent.text = value ?? string.Empty;

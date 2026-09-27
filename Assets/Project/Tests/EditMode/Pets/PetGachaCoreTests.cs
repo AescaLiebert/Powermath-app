@@ -75,7 +75,7 @@ namespace PowerMath.Gameplay.Pets.Tests
         public void Roll_UsesCategoryBoundaryThenExactPetWeights()
         {
             PetGachaCatalog catalog = CreateCatalog();
-            var random = new SequenceRandomSource(7000, 0);
+            var random = new SequenceRandomSource(9700, 0);
 
             PetGachaResult result = new PetGachaRoller().Roll(
                 catalog,
@@ -233,6 +233,166 @@ namespace PowerMath.Gameplay.Pets.Tests
 
             Assert.That(receipt.Results[0].RarityId, Is.EqualTo("rare"));
             Assert.That(receipt.ResultingPityCount, Is.Zero);
+        }
+
+        [Test]
+        public void TransactionPolicy_GetEffectiveSsrRateBasisPoints_ImplementsSoftPityCurve()
+        {
+            const int baseRate = 60; // 0.6%
+
+            Assert.That(PetGachaTransactionPolicy.GetEffectiveSsrRateBasisPoints(baseRate, 0), Is.EqualTo(60));
+            Assert.That(PetGachaTransactionPolicy.GetEffectiveSsrRateBasisPoints(baseRate, 73), Is.EqualTo(60));
+            // 75th pull (pullsSinceSsr == 74) -> +6.0% (660 bps)
+            Assert.That(PetGachaTransactionPolicy.GetEffectiveSsrRateBasisPoints(baseRate, 74), Is.EqualTo(660));
+            // 76th pull (pullsSinceSsr == 75) -> +12.0% (1260 bps)
+            Assert.That(PetGachaTransactionPolicy.GetEffectiveSsrRateBasisPoints(baseRate, 75), Is.EqualTo(1260));
+            // 89th pull (pullsSinceSsr == 88) -> 60 + 15 * 600 = 9060 bps (90.6%)
+            Assert.That(PetGachaTransactionPolicy.GetEffectiveSsrRateBasisPoints(baseRate, 88), Is.EqualTo(9060));
+            // 90th pull (pullsSinceSsr == 89) -> hard pity capped at 10000 bps (100%)
+            Assert.That(PetGachaTransactionPolicy.GetEffectiveSsrRateBasisPoints(baseRate, 89), Is.EqualTo(10000));
+        }
+
+        [Test]
+        public void TransactionPolicy_SinglePulls_PersistentSrGuarantee_GuaranteesSrOnTenthPull()
+        {
+            PetGachaCatalog catalog = CreateCatalog();
+            int currentSrPity = 0;
+
+            // 9 consecutive single pulls that result in common
+            for (int pull = 1; pull <= 9; pull++)
+            {
+                PetGachaReceipt singleReceipt = PetGachaTransactionPolicy.CreateReceipt(
+                    new PetGachaCommand($"single-{pull}", catalog.Version, pull),
+                    180,
+                    catalog,
+                    new Dictionary<string, int>(),
+                    pullsSinceSsr: pull - 1,
+                    pullsSinceSr: currentSrPity,
+                    new SequenceRandomSource(0, 0));
+
+                Assert.That(singleReceipt.Results[0].RarityId, Is.EqualTo("common"));
+                Assert.That(singleReceipt.PreviousSrPityCount, Is.EqualTo(currentSrPity));
+                Assert.That(singleReceipt.ResultingSrPityCount, Is.EqualTo(pull));
+                currentSrPity = singleReceipt.ResultingSrPityCount;
+            }
+
+            Assert.That(currentSrPity, Is.EqualTo(9));
+
+            // 10th pull has pullsSinceSr == 9 -> guaranteed SR!
+            PetGachaReceipt tenthReceipt = PetGachaTransactionPolicy.CreateReceipt(
+                new PetGachaCommand("single-10", catalog.Version, 10),
+                180,
+                catalog,
+                new Dictionary<string, int>(),
+                pullsSinceSsr: 9,
+                pullsSinceSr: currentSrPity,
+                new SequenceRandomSource(0)); // forced SR consumes 1 random call for pet selection
+
+            Assert.That(tenthReceipt.Results[0].RarityId, Is.EqualTo("middle"));
+            Assert.That(tenthReceipt.PreviousSrPityCount, Is.EqualTo(9));
+            Assert.That(tenthReceipt.ResultingSrPityCount, Is.Zero);
+            Assert.That(tenthReceipt.ResultingPityCount, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void TransactionPolicy_SinglePulls_EarlySr_ResetsSrPity()
+        {
+            PetGachaCatalog catalog = CreateCatalog();
+
+            // Pull at SR pity 5 naturally rolling middle (SR)
+            PetGachaReceipt receipt = PetGachaTransactionPolicy.CreateReceipt(
+                new PetGachaCommand("early-sr", catalog.Version, 1),
+                180,
+                catalog,
+                new Dictionary<string, int>(),
+                pullsSinceSsr: 15,
+                pullsSinceSr: 5,
+                new SequenceRandomSource(7000, 0)); // 7000 falls in middle category
+
+            Assert.That(receipt.Results[0].RarityId, Is.EqualTo("middle"));
+            Assert.That(receipt.PreviousSrPityCount, Is.EqualTo(5));
+            Assert.That(receipt.ResultingSrPityCount, Is.Zero);
+            Assert.That(receipt.ResultingPityCount, Is.EqualTo(16)); // SSR pity still increments
+        }
+
+        [Test]
+        public void TransactionPolicy_NaturalSsr_ResetsBothSsrAndSrPity()
+        {
+            PetGachaCatalog catalog = CreateCatalog();
+
+            PetGachaReceipt receipt = PetGachaTransactionPolicy.CreateReceipt(
+                new PetGachaCommand("natural-ssr", catalog.Version, 1),
+                180,
+                catalog,
+                new Dictionary<string, int>(),
+                pullsSinceSsr: 40,
+                pullsSinceSr: 8,
+                new SequenceRandomSource(9999, 0)); // rolls rare (SSR in test catalog)
+
+            Assert.That(receipt.Results[0].RarityId, Is.EqualTo("rare"));
+            Assert.That(receipt.ResultingPityCount, Is.Zero);
+            Assert.That(receipt.ResultingSrPityCount, Is.Zero);
+        }
+
+        [Test]
+        public void ProbabilityCalculator_WithSoftPity_ReflectsBoostedOdds()
+        {
+            PetGachaCatalog catalog = CreateCatalog();
+            var calculator = new PetGachaProbabilityCalculator();
+
+            PetChance[] baseChances = calculator.Calculate(catalog, Array.Empty<string>(), 0);
+            PetChance[] softPityChances = calculator.Calculate(catalog, Array.Empty<string>(), 74);
+
+            decimal baseRareTotal = baseChances.Where(c => c.RarityId == "rare").Sum(c => c.GetPercent());
+            decimal softRareTotal = softPityChances.Where(c => c.RarityId == "rare").Sum(c => c.GetPercent());
+
+            // Base rare is 300 bps (3.0%). Soft pity at pull 75 adds +600 bps (+6.0%), so it becomes 900 bps (9.0%).
+            Assert.That(baseRareTotal, Is.EqualTo(3m));
+            Assert.That(softRareTotal, Is.EqualTo(9m));
+            Assert.That(softPityChances.Sum(c => c.GetPercent()), Is.EqualTo(100m));
+        }
+
+        [Test]
+        public void TransactionPolicy_TenPull_CanContainMultipleSrAndSsr_AndCorrectlyUpdatesCounters()
+        {
+            PetGachaCatalog catalog = CreateCatalog();
+            // 10 pulls:
+            // 0: common (0, 0)
+            // 1: middle (SR) (7000, 0)
+            // 2: common (0, 0)
+            // 3: middle (SR) (7000, 0)
+            // 4: rare (SSR) (9700, 0)
+            // 5..9: common (0, 0) x 5
+            var sequence = new List<int>
+            {
+                0, 0,
+                7000, 0,
+                0, 0,
+                7000, 0,
+                9700, 0,
+                0, 0,
+                0, 0,
+                0, 0,
+                0, 0,
+                0, 0
+            };
+
+            PetGachaReceipt receipt = PetGachaTransactionPolicy.CreateReceipt(
+                new PetGachaCommand("multi-double", catalog.Version, 1, 10),
+                1800,
+                catalog,
+                new Dictionary<string, int>(),
+                pullsSinceSsr: 20,
+                pullsSinceSr: 4,
+                random: new SequenceRandomSource(sequence.ToArray()));
+
+            Assert.That(receipt.Results.Count, Is.EqualTo(10));
+            Assert.That(receipt.Results[1].RarityId, Is.EqualTo("middle")); // 1st SR
+            Assert.That(receipt.Results[3].RarityId, Is.EqualTo("middle")); // 2nd SR
+            Assert.That(receipt.Results[4].RarityId, Is.EqualTo("rare"));   // SSR
+            // After SSR on pull 5 (index 4), 5 common pulls followed (indices 5..9)
+            Assert.That(receipt.ResultingPityCount, Is.EqualTo(5));
+            Assert.That(receipt.ResultingSrPityCount, Is.EqualTo(5));
         }
 
         [Test]

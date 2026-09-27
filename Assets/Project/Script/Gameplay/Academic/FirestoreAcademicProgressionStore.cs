@@ -162,6 +162,14 @@ namespace PowerMath.Gameplay.Academic
                 else
                     expected = checked(current + request.Resolution.Event.PowerCoinsGranted);
             }
+            else if (request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved &&
+                request.RecoveryPresentation?.Source.EncounterKind == StageEncounterKind.ChallengeEvent)
+            {
+                expected = string.Equals(_player.activeRun.lastChallengeRewardAttemptId,
+                    request.TransactionId, StringComparison.Ordinal)
+                    ? _player.activeRun.lastChallengeRewardResultingPowerCoins
+                    : checked(current + request.RecoveryPresentation.PowerCoinsGranted);
+            }
             if (request.Snapshot.PowerCoins != expected)
             {
                 error = "Challenge reward balance does not match the accepted attempt.";
@@ -341,6 +349,11 @@ namespace PowerMath.Gameplay.Academic
                 AddPendingPresentation(
                     builder, root, request.Resolution.Presentation);
             }
+            else if (request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved &&
+                     request.RecoveryPresentation != null)
+            {
+                AddPendingPresentation(builder, root, request.RecoveryPresentation);
+            }
             else if (request.SavePoint == GameplaySavePoint.PresentationCompleted ||
                      request.SavePoint == GameplaySavePoint.AttemptCommitted)
             {
@@ -394,6 +407,14 @@ namespace PowerMath.Gameplay.Academic
             {
                 attemptId = request.TransactionId;
                 granted = request.Resolution.Event.PowerCoinsGranted;
+                resulting = request.Snapshot.PowerCoins;
+            }
+            else if (request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved &&
+                request.RecoveryPresentation?.Source.EncounterKind == StageEncounterKind.ChallengeEvent &&
+                !string.Equals(attemptId, request.TransactionId, StringComparison.Ordinal))
+            {
+                attemptId = request.TransactionId;
+                granted = request.RecoveryPresentation.PowerCoinsGranted;
                 resulting = request.Snapshot.PowerCoins;
             }
             builder.AddString(Join(root, "activeRun", "lastChallengeRewardAttemptId"), attemptId);
@@ -503,34 +524,40 @@ namespace PowerMath.Gameplay.Academic
             var diamond = Copy(analytics.diamond);
             string[] analyticsRoot = Join(root, "analytics");
 
-            if (request.SavePoint == GameplaySavePoint.AttemptResolved &&
-                request.Resolution != null &&
-                request.Resolution.IsAcademic &&
+            AcademicAttemptResult academic = request.SavePoint ==
+                    GameplaySavePoint.InterruptedAttemptResolved
+                ? request.RecoveryAcademicResult
+                : request.SavePoint == GameplaySavePoint.AttemptResolved &&
+                  request.Resolution?.IsAcademic == true
+                    ? request.Resolution.Academic : null;
+            if (academic != null &&
                 !string.Equals(appliedId, request.TransactionId, StringComparison.Ordinal))
             {
-                AttemptResolution result = request.Resolution;
-                bool isCorrect = result.Academic.IsCorrect;
-                int score = Math.Max(0, Math.Min(10, result.Academic.ResponseScore));
+                int duration = request.SavePoint == GameplaySavePoint.InterruptedAttemptResolved
+                    ? 0 : request.Resolution.ResponseDurationMilliseconds;
+                bool isCorrect = academic.IsCorrect;
+                int score = Math.Max(0, Math.Min(10, academic.ResponseScore));
                 resolved++;
                 if (isCorrect) correct++;
-                else if (result.Academic.Outcome == QuestionOutcome.Timeout) timeout++;
-                else if (result.Academic.Outcome == QuestionOutcome.Abandoned) abandoned++;
+                else if (academic.Outcome == QuestionOutcome.Timeout) timeout++;
+                else if (academic.Outcome == QuestionOutcome.Abandoned) abandoned++;
                 else incorrect++;
                 scoreSum += score;
                 efficiencySum += isCorrect ? score * 10 : 0;
-                durationSum += result.ResponseDurationMilliseconds;
+                durationSum += duration;
                 scoreHistogram[score]++;
                 efficiencyHistogram[(isCorrect ? score * 10 : 0) / 10]++;
-                durationHistogram[Math.Min(101, result.ResponseDurationMilliseconds / 100)]++;
+                durationHistogram[Math.Min(101, duration / 100)]++;
                 appliedId = request.TransactionId;
-                PlayerSnapshot.RankAnalyticsData rank = result.Academic.RankAtCommit == AcademicRank.Gold
+                PlayerSnapshot.RankAnalyticsData rank = academic.RankAtCommit == AcademicRank.Gold
                     ? gold
-                    : result.Academic.RankAtCommit == AcademicRank.Diamond ? diamond : silver;
+                    : academic.RankAtCommit == AcademicRank.Diamond ? diamond : silver;
                 rank.resolved++;
                 if (isCorrect) rank.correct++;
                 rank.responseScoreSum += score;
                 rank.responseEfficiencySum += isCorrect ? score * 10 : 0;
-                AddQuestionAnalytics(builder, analyticsRoot, analytics, result, score, isCorrect);
+                AddQuestionAnalytics(builder, analyticsRoot, analytics,
+                    academic, duration, score, isCorrect);
             }
 
             builder.AddInteger(Join(analyticsRoot, "totalQuestionsResolved"), resolved);
@@ -588,11 +615,12 @@ namespace PowerMath.Gameplay.Academic
             FirestorePatchDocumentBuilder builder,
             string[] analyticsRoot,
             PlayerSnapshot.AnalyticsData analytics,
-            AttemptResolution result,
+            AcademicAttemptResult academic,
+            int duration,
             int score,
             bool correct)
         {
-            long questionId = result.Academic.QuestionId.Value;
+            long questionId = academic.QuestionId.Value;
             PlayerSnapshot.QuestionAnalyticsData source = (analytics.byQuestion ??
                 Array.Empty<PlayerSnapshot.QuestionAnalyticsData>()).FirstOrDefault(value =>
                     value != null && value.questionId == questionId);
@@ -612,11 +640,11 @@ namespace PowerMath.Gameplay.Academic
             value.questionId = questionId;
             value.resolved++;
             if (correct) value.correct++;
-            else if (result.Academic.Outcome == QuestionOutcome.Timeout) value.timeout++;
-            else if (result.Academic.Outcome == QuestionOutcome.Abandoned) value.abandoned++;
+            else if (academic.Outcome == QuestionOutcome.Timeout) value.timeout++;
+            else if (academic.Outcome == QuestionOutcome.Abandoned) value.abandoned++;
             else value.incorrect++;
             value.responseScoreSum += score;
-            value.responseDurationMillisecondsSum += result.ResponseDurationMilliseconds;
+            value.responseDurationMillisecondsSum += duration;
             value.responseEfficiencySum += correct ? score * 10 : 0;
             string[] prefix = Join(analyticsRoot, "byQuestion", "q" +
                 questionId.ToString(CultureInfo.InvariantCulture));

@@ -434,6 +434,17 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             _bound = false;
         }
 
+        public void CloseImmediate()
+        {
+            _characterVideo?.Hide();
+            if (_modal != null)
+            {
+                _modal.style.display = DisplayStyle.None;
+                _modal.style.visibility = Visibility.Hidden;
+                _modal.EnableInClassList("is-hidden", true);
+            }
+        }
+
         private void Open()
         {
             TryOpenFromTutorial();

@@ -21,6 +21,12 @@ namespace PowerMath.UI.MainMenu.SocialProfile
         public bool TryOpenLeaderboardForTutorial() =>
             _leaderboard?.TryOpenFromTutorial() == true;
 
+        public void CloseAll()
+        {
+            _leaderboard?.CloseImmediate();
+            _profile?.CloseImmediate();
+        }
+
         private void Start()
         {
             UIDocument document = GetComponent<UIDocument>();

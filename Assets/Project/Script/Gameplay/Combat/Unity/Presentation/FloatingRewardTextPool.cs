@@ -39,6 +39,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             }
             view = _available.Dequeue();
             _active.Add(view);
+            if (view != null) view.transform.SetAsLastSibling();
             return true;
         }
 

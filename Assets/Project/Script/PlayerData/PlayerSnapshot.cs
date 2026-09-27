@@ -255,8 +255,11 @@ namespace PowerMath.PlayerData
             public long lastPetGachaCost;
             public long lastPetGachaResultingPowerCoins;
             public int petGachaPullsSinceSsr;
+            public int petGachaPullsSinceSr;
             public int lastPetGachaPreviousPityCount;
             public int lastPetGachaResultingPityCount;
+            public int lastPetGachaPreviousSrPityCount;
+            public int lastPetGachaResultingSrPityCount;
             public PetGachaResultData[] lastPetGachaResults;
             public string lastPetEquipTransactionId;
             public string lastPetEquipPetId;

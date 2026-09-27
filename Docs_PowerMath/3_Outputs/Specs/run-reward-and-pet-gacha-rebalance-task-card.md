@@ -17,10 +17,10 @@ blocked_by: []
 ## Goal
 
 Rebalance the Power Coin economy by adjusting the run settlement payout formula and the pet gacha pull cost:
-1. Increase Pet Gacha pull cost from 25 PC to **180 PC**.
+1. Retain Pet Gacha pull cost at **180 PC**.
 2. Retain the flat stage reward upon run settlement at **1 PC per cleared stage**.
-3. Scale the non-linear / stageReached-dependent completion factor by **16.67×** (`numerator / 1,200,000L` instead of `numerator / 20,000,000L`), calibrated to keep Diamond runs at Stage 50 around 600 PC and Silver Stage 30 runs around 105 PC.
-4. Update `OnFirstRebirth` tutorial grant to **180 PC** so the guaranteed starter Follow-Up SSR pull remains affordable.
+3. Recalibrate the weighted completion factor with divisor **180,000,000L** (`numerator / 180000000L`), targeting an endgame ratio of **100 Diamond ≈ 10,000 PC** at Stage 190–200 and capping multi-hit boss runs (e.g. 334+ questions at Stage 190) around **~30,000 PC**.
+4. Retain `OnFirstRebirth` tutorial grant at **180 PC** so the guaranteed starter Follow-Up SSR pull remains affordable.
 
 ## Changes Implemented
 
@@ -29,18 +29,20 @@ Rebalance the Power Coin economy by adjusting the run settlement payout formula 
   - `PetGachaTransactionPolicy.PullCost = 180;`
 - `Assets/Project/Script/Gameplay/Progression/RunSettlementPolicy.cs`:
   - `flatStageCoins = checked(stage * 1L);`
-  - `weightedCoins = numerator / 1200000L;`
+  - `weightedCoins = numerator / 180000000L;`
 
 ### Unit Tests
 - `Assets/Project/Tests/EditMode/Pets/PetGachaCoreTests.cs`:
-  - Updated pull cost assertions and insufficient funds boundary checks to 180 PC.
+  - Pull cost assertions and insufficient funds boundary checks verified at 180 PC.
 - `Assets/Project/Tests/EditMode/Editor/RunSettlementPolicyTests.cs`:
-  - Updated Stage 12 expected settlement award to 33 PC (12 flat + 21 weighted).
-  - Updated Stage 30 expected settlement award to 83 PC (30 flat + 53 weighted with mock run inputs).
+  - Updated Stage 12 expected settlement award to 13 PC (12 flat + 1 weighted).
+  - Updated Stage 30 expected settlement award to 41 PC (30 flat + 11 weighted with mock run inputs).
+  - Updated Stage 30 pet collection test award to 225 PC (45 scaled base + 180 passive).
+  - Updated Stage 200 expected settlement award to 21,816 PC (200 flat + 21,616 weighted with 200 Diamond).
 
 ### Documentation
 - `Docs_PowerMath/1_Inputs_Templates/GDD_PowerMathProject.md`:
-  - Synchronized Pet Gacha cost, Run-Reward formula (CompletionFactor = StageReached / 12, Flat = 1 PC), tutorial grant, and guardrails.
+  - Synchronized Pet Gacha cost, Run-Reward formula (CompletionFactor divisor = 18,000, Flat = 1 PC, two-tier depth bonus), and late-stage target range (19k–22k PC).
 
 ## Checkpoints
 - [x] Domain policies updated and verified

@@ -26,7 +26,7 @@ namespace PowerMath.Gameplay.Academic
 
         public AcademicRank ActiveRank { get; internal set; }
         public AuditWindow Audit { get; internal set; }
-        public RankCurrencyBalances Balances { get; internal set; }
+        public RankCurrencyBalances Balances { get; set; }
         public RankQuestionInventorySet Inventories { get; }
 
         public AcademicProgressionState Clone()

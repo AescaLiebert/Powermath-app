@@ -270,6 +270,19 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             SetSemanticState();
             return true;
         }
+
+        public void CloseImmediate()
+        {
+            if (_modal != null)
+            {
+                _modal.style.display = DisplayStyle.None;
+                _modal.style.visibility = Visibility.Hidden;
+                _modal.EnableInClassList("is-hidden", true);
+            }
+            _save?.SetEnabled(true);
+            SetSemanticState();
+        }
+
         private void Close()
         {
             if (_busy) return;
