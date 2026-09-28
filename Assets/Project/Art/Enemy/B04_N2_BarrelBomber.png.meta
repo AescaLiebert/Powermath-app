@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: 9c4f0690f20633d4c80db8356ac4d080
 TextureImporter:
   internalIDToNameTable:
@@ -100,10 +100,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,10 +116,10 @@ TextureImporter:
       name: B04_N2_BarrelBomber_0
       rect:
         serializedVersion: 2
-        x: 135
-        y: 3
-        width: 506
-        height: 474
+        x: 211
+        y: 0
+        width: 646
+        height: 611
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

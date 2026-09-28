@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: 05db795194a5e434c9953701b6e44e8c
 TextureImporter:
   internalIDToNameTable:
@@ -100,10 +100,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,10 +116,10 @@ TextureImporter:
       name: B04_N4_PuffboomFish_0
       rect:
         serializedVersion: 2
-        x: 249
-        y: 11
-        width: 374
-        height: 348
+        x: 357
+        y: 12
+        width: 411
+        height: 383
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

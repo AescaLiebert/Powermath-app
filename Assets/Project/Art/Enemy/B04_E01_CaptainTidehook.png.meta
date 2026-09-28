@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: b222d0a06e930f946b389edb2138f940
 TextureImporter:
   internalIDToNameTable:
@@ -100,10 +100,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,10 +116,10 @@ TextureImporter:
       name: B04_E01_CaptainTidehook_0
       rect:
         serializedVersion: 2
-        x: 63
+        x: 113
         y: 0
-        width: 666
-        height: 736
+        width: 766
+        height: 871
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

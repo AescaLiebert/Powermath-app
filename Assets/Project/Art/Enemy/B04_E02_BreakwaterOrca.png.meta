@@ -1,10 +1,13 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: fe0ace41cd1e05f42baa752dcdc025b4
 TextureImporter:
   internalIDToNameTable:
   - first:
       213: -3411505032519807203
     second: B04_E02_BreakwaterOrca_0
+  - first:
+      213: -1394408523315556811
+    second: B04_E02_BreakwaterOrca_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,10 +103,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,10 +119,10 @@ TextureImporter:
       name: B04_E02_BreakwaterOrca_0
       rect:
         serializedVersion: 2
-        x: 121
-        y: 48
-        width: 539
-        height: 519
+        x: 463
+        y: 761
+        width: 6
+        height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -130,6 +133,28 @@ TextureImporter:
       bones: []
       spriteID: d1f03337f36e7a0d0800000000000000
       internalID: -3411505032519807203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E02_BreakwaterOrca_1
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 10
+        width: 789
+        height: 739
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53ecffff5d016ace0800000000000000
+      internalID: -1394408523315556811
       vertices: []
       indices: 
       edges: []
@@ -149,6 +174,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       B04_E02_BreakwaterOrca_0: -3411505032519807203
+      B04_E02_BreakwaterOrca_1: -1394408523315556811
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,13 +1,13 @@
-﻿fileFormatVersion: 2
-guid: f7b9817140eb0e442945d650911efade
+fileFormatVersion: 2
+guid: f208449a5726aa44e82956cef1702142
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1313527574856117228
-    second: B04_B01_DreadwakeMegalodon_0
+      213: -2494471918856437051
+    second: B05_E1_RoyalClockworkDame_0
   - first:
-      213: -7869637181464301199
-    second: B04_B01_DreadwakeMegalodon_1
+      213: -1112832924871572647
+    second: B05_E1_RoyalClockworkDame_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,10 +103,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,13 +116,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: B04_B01_DreadwakeMegalodon_0
+      name: B05_E1_RoyalClockworkDame_0
       rect:
         serializedVersion: 2
-        x: 40
+        x: 81
         y: 0
-        width: 943
-        height: 764
+        width: 846
+        height: 892
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,20 +131,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 414550a41a965cde0800000000000000
-      internalID: -1313527574856117228
+      spriteID: 5c2006e810bd16dd0800000000000000
+      internalID: -2494471918856437051
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: B04_B01_DreadwakeMegalodon_1
+      name: B05_E1_RoyalClockworkDame_1
       rect:
         serializedVersion: 2
-        x: 641
-        y: 761
-        width: 16
-        height: 7
+        x: 482
+        y: 0
+        width: 21
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +153,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1713d97bdae69c290800000000000000
-      internalID: -7869637181464301199
+      spriteID: 953cba2d95c6e80f0800000000000000
+      internalID: -1112832924871572647
       vertices: []
       indices: 
       edges: []
@@ -173,8 +173,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      B04_B01_DreadwakeMegalodon_0: -1313527574856117228
-      B04_B01_DreadwakeMegalodon_1: -7869637181464301199
+      B05_E1_RoyalClockworkDame_0: -2494471918856437051
+      B05_E1_RoyalClockworkDame_1: -1112832924871572647
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

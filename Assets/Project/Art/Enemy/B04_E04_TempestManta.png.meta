@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: c81770c20c3f5444496c2a53e31e83ff
 TextureImporter:
   internalIDToNameTable:
@@ -14,6 +14,18 @@ TextureImporter:
   - first:
       213: 2254403977509750175
     second: B04_E04_TempestManta_3
+  - first:
+      213: -6571984053530722335
+    second: B04_E04_TempestManta_4
+  - first:
+      213: -5601624415836658934
+    second: B04_E04_TempestManta_5
+  - first:
+      213: 9024737069434412310
+    second: B04_E04_TempestManta_6
+  - first:
+      213: -8798449683909553325
+    second: B04_E04_TempestManta_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -109,10 +121,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -125,10 +137,10 @@ TextureImporter:
       name: B04_E04_TempestManta_0
       rect:
         serializedVersion: 2
-        x: 144
-        y: 556
-        width: 28
-        height: 14
+        x: 165
+        y: 813
+        width: 8
+        height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,10 +159,10 @@ TextureImporter:
       name: B04_E04_TempestManta_1
       rect:
         serializedVersion: 2
-        x: 103
-        y: 105
-        width: 571
-        height: 443
+        x: 181
+        y: 804
+        width: 19
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -169,9 +181,9 @@ TextureImporter:
       name: B04_E04_TempestManta_2
       rect:
         serializedVersion: 2
-        x: 163
-        y: 539
-        width: 7
+        x: 159
+        y: 800
+        width: 8
         height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -191,10 +203,10 @@ TextureImporter:
       name: B04_E04_TempestManta_3
       rect:
         serializedVersion: 2
-        x: 233
-        y: 48
-        width: 338
-        height: 56
+        x: 187
+        y: 775
+        width: 10
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -205,6 +217,94 @@ TextureImporter:
       bones: []
       spriteID: f9542b32970494f10800000000000000
       internalID: 2254403977509750175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E04_TempestManta_4
+      rect:
+        serializedVersion: 2
+        x: 829
+        y: 780
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1eff4cbb25f9bc4a0800000000000000
+      internalID: -6571984053530722335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E04_TempestManta_5
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 386
+        width: 10
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a03a6e0c5480342b0800000000000000
+      internalID: -5601624415836658934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E04_TempestManta_6
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 136
+        width: 833
+        height: 639
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61d10feac8e4e3d70800000000000000
+      internalID: 9024737069434412310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E04_TempestManta_7
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 52
+        width: 497
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3535c60f0a0a5e580800000000000000
+      internalID: -8798449683909553325
       vertices: []
       indices: 
       edges: []
@@ -227,6 +327,10 @@ TextureImporter:
       B04_E04_TempestManta_1: 2443275985799551137
       B04_E04_TempestManta_2: -1214167235713696564
       B04_E04_TempestManta_3: 2254403977509750175
+      B04_E04_TempestManta_4: -6571984053530722335
+      B04_E04_TempestManta_5: -5601624415836658934
+      B04_E04_TempestManta_6: 9024737069434412310
+      B04_E04_TempestManta_7: -8798449683909553325
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

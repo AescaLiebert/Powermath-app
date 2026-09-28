@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: e8c7bbfce6ffc5243b3f645dedb8c1d5
 TextureImporter:
   internalIDToNameTable:
@@ -103,10 +103,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -119,10 +119,10 @@ TextureImporter:
       name: B04_N5_BluegemAngelfish_0
       rect:
         serializedVersion: 2
-        x: 241
-        y: 113
+        x: 339
+        y: 122
         width: 7
-        height: 6
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,10 +141,10 @@ TextureImporter:
       name: B04_N5_BluegemAngelfish_1
       rect:
         serializedVersion: 2
-        x: 255
-        y: 10
-        width: 345
-        height: 416
+        x: 354
+        y: 11
+        width: 373
+        height: 450
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

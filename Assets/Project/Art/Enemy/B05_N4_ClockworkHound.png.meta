@@ -1,0 +1,442 @@
+fileFormatVersion: 2
+guid: a915fbfe314862a43b766b0d78ee0b78
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6156833206313141411
+    second: B05_N4_ClockworkHound_0
+  - first:
+      213: -459263686412958853
+    second: B05_N4_ClockworkHound_1
+  - first:
+      213: -4921630370081669406
+    second: B05_N4_ClockworkHound_2
+  - first:
+      213: -5734542953372911308
+    second: B05_N4_ClockworkHound_3
+  - first:
+      213: -8321642902395169752
+    second: B05_N4_ClockworkHound_4
+  - first:
+      213: -3618455696365125622
+    second: B05_N4_ClockworkHound_5
+  - first:
+      213: -2111740727087405660
+    second: B05_N4_ClockworkHound_6
+  - first:
+      213: 2483264929108844013
+    second: B05_N4_ClockworkHound_7
+  - first:
+      213: -3901587932702055835
+    second: B05_N4_ClockworkHound_8
+  - first:
+      213: 2264909388766095871
+    second: B05_N4_ClockworkHound_9
+  - first:
+      213: 9222139273115887564
+    second: B05_N4_ClockworkHound_10
+  - first:
+      213: 8706491153648960508
+    second: B05_N4_ClockworkHound_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 7
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 1024
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 1024
+    resizeAlgorithm: 0
+    textureFormat: 29
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_0
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 0
+        width: 680
+        height: 504
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a4cf9b4e27717550800000000000000
+      internalID: 6156833206313141411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_1
+      rect:
+        serializedVersion: 2
+        x: 846
+        y: 194
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b738e194c1e50a9f0800000000000000
+      internalID: -459263686412958853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_2
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 11
+        width: 53
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2eef18b114bd2bbb0800000000000000
+      internalID: -4921630370081669406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_3
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 13
+        width: 12
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 439fcfa119fca60b0800000000000000
+      internalID: -5734542953372911308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_4
+      rect:
+        serializedVersion: 2
+        x: 459
+        y: 13
+        width: 42
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 824d517ced5938c80800000000000000
+      internalID: -8321642902395169752
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_5
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 0
+        width: 134
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a000bae27b9a8cdc0800000000000000
+      internalID: -3618455696365125622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_6
+      rect:
+        serializedVersion: 2
+        x: 659
+        y: 3
+        width: 68
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a5ea384ff691b2e0800000000000000
+      internalID: -2111740727087405660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_7
+      rect:
+        serializedVersion: 2
+        x: 663
+        y: 0
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dedd7becb44567220800000000000000
+      internalID: 2483264929108844013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_8
+      rect:
+        serializedVersion: 2
+        x: 688
+        y: 0
+        width: 6
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 562e75b5276cad9c0800000000000000
+      internalID: -3901587932702055835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_9
+      rect:
+        serializedVersion: 2
+        x: 691
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff9a9ddc6139e6f10800000000000000
+      internalID: 2264909388766095871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_10
+      rect:
+        serializedVersion: 2
+        x: 708
+        y: 1
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc76043dece9bff70800000000000000
+      internalID: 9222139273115887564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B05_N4_ClockworkHound_11
+      rect:
+        serializedVersion: 2
+        x: 722
+        y: 0
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf3c355439ba3d870800000000000000
+      internalID: 8706491153648960508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      B05_N4_ClockworkHound_0: 6156833206313141411
+      B05_N4_ClockworkHound_1: -459263686412958853
+      B05_N4_ClockworkHound_10: 9222139273115887564
+      B05_N4_ClockworkHound_11: 8706491153648960508
+      B05_N4_ClockworkHound_2: -4921630370081669406
+      B05_N4_ClockworkHound_3: -5734542953372911308
+      B05_N4_ClockworkHound_4: -8321642902395169752
+      B05_N4_ClockworkHound_5: -3618455696365125622
+      B05_N4_ClockworkHound_6: -2111740727087405660
+      B05_N4_ClockworkHound_7: 2483264929108844013
+      B05_N4_ClockworkHound_8: -3901587932702055835
+      B05_N4_ClockworkHound_9: 2264909388766095871
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

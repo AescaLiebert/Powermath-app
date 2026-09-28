@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: 7ed7c5ea84576f94db248ab11a5f9209
 TextureImporter:
   internalIDToNameTable:
@@ -100,10 +100,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,10 +116,10 @@ TextureImporter:
       name: B04_N11_CoralChan_0
       rect:
         serializedVersion: 2
-        x: 52
-        y: 10
-        width: 615
-        height: 625
+        x: 95
+        y: 0
+        width: 732
+        height: 741
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

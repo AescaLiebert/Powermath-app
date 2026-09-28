@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: 1ed36740edc9c104390b8251ee17fb14
 TextureImporter:
   internalIDToNameTable:
@@ -100,10 +100,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,10 +116,10 @@ TextureImporter:
       name: B04_N10_BubblecapJelly_0
       rect:
         serializedVersion: 2
-        x: 212
-        y: 18
-        width: 370
-        height: 386
+        x: 348
+        y: 20
+        width: 409
+        height: 426
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

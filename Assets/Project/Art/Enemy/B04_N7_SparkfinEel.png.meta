@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: 10a389ba5d088a844b3d5f49bb7f85c9
 TextureImporter:
   internalIDToNameTable:
@@ -106,10 +106,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -122,10 +122,10 @@ TextureImporter:
       name: B04_N7_SparkfinEel_0
       rect:
         serializedVersion: 2
-        x: 204
-        y: 19
-        width: 396
-        height: 346
+        x: 299
+        y: 23
+        width: 468
+        height: 409
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -144,10 +144,10 @@ TextureImporter:
       name: B04_N7_SparkfinEel_1
       rect:
         serializedVersion: 2
-        x: 487
-        y: 324
-        width: 9
-        height: 8
+        x: 633
+        y: 384
+        width: 11
+        height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,10 +166,10 @@ TextureImporter:
       name: B04_N7_SparkfinEel_2
       rect:
         serializedVersion: 2
-        x: 498
-        y: 331
-        width: 13
-        height: 25
+        x: 647
+        y: 392
+        width: 15
+        height: 29
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

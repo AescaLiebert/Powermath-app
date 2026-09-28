@@ -42,13 +42,13 @@ MonoBehaviour:
       loop: 1
   - biomeId: biome-4
     track:
-      clip: {fileID: 0}
+      clip: {fileID: 8300000, guid: 63dd60d8afc3b644095dbbab175eb0de, type: 3}
       addressableKey: OST_B4-Theme
       volumeScale: 0.6
       loop: 1
   - biomeId: biome-5
     track:
-      clip: {fileID: 8300000, guid: 9c49b8dbdcfd1b24f807c0393f007a2e, type: 3}
+      clip: {fileID: 8300000, guid: b7b447ed926532c4f915e5e764db1fb2, type: 3}
       addressableKey: OST_B5-Theme
       volumeScale: 0.6
       loop: 1

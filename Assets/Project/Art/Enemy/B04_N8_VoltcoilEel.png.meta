@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: 8c55f40c17f54174ebbc714a325b931b
 TextureImporter:
   internalIDToNameTable:
@@ -14,6 +14,9 @@ TextureImporter:
   - first:
       213: -3879316906899271611
     second: B04_N8_VoltcoilEel_3
+  - first:
+      213: 8987498662811751355
+    second: B04_N8_VoltcoilEel_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -109,10 +112,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -125,10 +128,10 @@ TextureImporter:
       name: B04_N8_VoltcoilEel_0
       rect:
         serializedVersion: 2
-        x: 186
-        y: 74
-        width: 445
-        height: 314
+        x: 551
+        y: 367
+        width: 11
+        height: 50
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,10 +150,10 @@ TextureImporter:
       name: B04_N8_VoltcoilEel_1
       rect:
         serializedVersion: 2
-        x: 239
-        y: 8
-        width: 328
-        height: 68
+        x: 300
+        y: 80
+        width: 477
+        height: 278
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -169,10 +172,10 @@ TextureImporter:
       name: B04_N8_VoltcoilEel_2
       rect:
         serializedVersion: 2
-        x: 214
-        y: 14
-        width: 21
-        height: 35
+        x: 356
+        y: 9
+        width: 352
+        height: 73
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -191,10 +194,10 @@ TextureImporter:
       name: B04_N8_VoltcoilEel_3
       rect:
         serializedVersion: 2
-        x: 216
-        y: 40
-        width: 6
-        height: 10
+        x: 329
+        y: 15
+        width: 22
+        height: 38
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -205,6 +208,28 @@ TextureImporter:
       bones: []
       spriteID: 5401a11a3d5e92ac0800000000000000
       internalID: -3879316906899271611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_N8_VoltcoilEel_4
+      rect:
+        serializedVersion: 2
+        x: 331
+        y: 43
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb351308a620abc70800000000000000
+      internalID: 8987498662811751355
       vertices: []
       indices: 
       edges: []
@@ -227,6 +252,7 @@ TextureImporter:
       B04_N8_VoltcoilEel_1: 2882606351812234254
       B04_N8_VoltcoilEel_2: 5184272496532088460
       B04_N8_VoltcoilEel_3: -3879316906899271611
+      B04_N8_VoltcoilEel_4: 8987498662811751355
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,28 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: fc6f39504943acc44952b17ce8626819
 TextureImporter:
   internalIDToNameTable:
   - first:
       213: 41026049068775459
     second: B04_E05_RiptideMako_0
+  - first:
+      213: 4491905856897960110
+    second: B04_E05_RiptideMako_1
+  - first:
+      213: -739943620621187924
+    second: B04_E05_RiptideMako_2
+  - first:
+      213: 8834293364208532706
+    second: B04_E05_RiptideMako_3
+  - first:
+      213: 7194417472736328709
+    second: B04_E05_RiptideMako_4
+  - first:
+      213: -5288630588650986568
+    second: B04_E05_RiptideMako_5
+  - first:
+      213: -7123788586610587773
+    second: B04_E05_RiptideMako_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,10 +118,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -116,10 +134,10 @@ TextureImporter:
       name: B04_E05_RiptideMako_0
       rect:
         serializedVersion: 2
-        x: 124
-        y: 46
-        width: 539
-        height: 533
+        x: 100
+        y: 24
+        width: 839
+        height: 803
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -130,6 +148,138 @@ TextureImporter:
       bones: []
       spriteID: 328384969f0c19000800000000000000
       internalID: 41026049068775459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E05_RiptideMako_1
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 480
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea846e4e394765e30800000000000000
+      internalID: 4491905856897960110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E05_RiptideMako_2
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 32
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca4ce0b82313bb5f0800000000000000
+      internalID: -739943620621187924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E05_RiptideMako_3
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 36
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ec7d373207b99a70800000000000000
+      internalID: 8834293364208532706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E05_RiptideMako_4
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 0
+        width: 545
+        height: 87
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50cff44e294b7d360800000000000000
+      internalID: 7194417472736328709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E05_RiptideMako_5
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 32
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b3613fff720b96b0800000000000000
+      internalID: -5288630588650986568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: B04_E05_RiptideMako_6
+      rect:
+        serializedVersion: 2
+        x: 878
+        y: 0
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38708102608332d90800000000000000
+      internalID: -7123788586610587773
       vertices: []
       indices: 
       edges: []
@@ -149,6 +299,12 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       B04_E05_RiptideMako_0: 41026049068775459
+      B04_E05_RiptideMako_1: 4491905856897960110
+      B04_E05_RiptideMako_2: -739943620621187924
+      B04_E05_RiptideMako_3: 8834293364208532706
+      B04_E05_RiptideMako_4: 7194417472736328709
+      B04_E05_RiptideMako_5: -5288630588650986568
+      B04_E05_RiptideMako_6: -7123788586610587773
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

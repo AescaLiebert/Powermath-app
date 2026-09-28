@@ -61,7 +61,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0b267f4d58e449e45a77c7c101d1ed1e
-    m_Address: B05_N6_Viperfish
+    m_Address: B055_N6_Viperfish
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -116,12 +116,17 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2aa4046ad4514e3499b7fbe88a123eee
-    m_Address: B05_N3_AbyssShark
+    m_Address: B055_N3_AbyssShark
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2d50d28d585f5a64088c071925a5d715
+    m_Address: B05_N7_ValveCrab
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2e19fe43a94a5d14dbcd810a33fc3fdc
-    m_Address: B05_N5_AbyssJelly
+    m_Address: B055_N5_AbyssJelly
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -145,8 +150,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 32fffe830359a5042935176da29270fd
+    m_Address: B05_N2_Bubblefin
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3357234739f416840946cb4d9d1a9251
     m_Address: B01_N6_ArcherGoblin
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35a9a5115094e5645b1d32234641815c
+    m_Address: B05_N5_ClockworkLancer
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -156,12 +171,17 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3c78e0b1ea68b23449783deaffd4d805
-    m_Address: B05_E5_Kraken
+    m_Address: B055_E5_Kraken
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3e41d5f39af6e414daedbaaaa3dca6c8
     m_Address: B01_E1_BeserkGoblin
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3f9d3e9dd9b5edf46ae796740408b098
+    m_Address: B05_B1_HydroDeity The Tragic Performer
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -201,7 +221,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5b3aa2881e73aae4db33a3ebc88684a6
-    m_Address: B05_N1_BoneMask
+    m_Address: B055_N1_BoneMask
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -211,7 +231,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5c18e4e84f806a147b18c0038d27ee3c
-    m_Address: B05_N9_IronCrab
+    m_Address: B055_N9_IronCrab
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -225,8 +245,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5d8d6e22fbd25b34b92232c8dd82002a
+    m_Address: B05_E5_HydroDragonArbiter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6001ad048403c43419c0a7f1e6e0df7d
     m_Address: B04_N3_CoralSlingScout
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 605e31cef9d77bc48b646f6a7f543527
+    m_Address: B05_N3_HydroFloater
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -250,8 +280,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 677fc6069aff99d4cab8b869d1c9e420
+    m_Address: B05_N10_HydroWisp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69b1f238eed859d4fb17feb0245ff068
-    m_Address: B05_N10_ChestMaw
+    m_Address: B055_N10_ChestMaw
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -271,7 +306,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6e5fbf06291e96f48a4ef84a58894c57
-    m_Address: B05_N4_Angler
+    m_Address: B055_N4_Angler
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -296,7 +331,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 74d2773692d36ad44be5b3a390cc2cb4
-    m_Address: B05_N7_GloomJelly
+    m_Address: B055_N7_GloomJelly
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7633f024a8f783f4981e3b75805d9618
+    m_Address: B05_E2_HydroTitan
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -306,7 +346,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7a296b0b8efab2144a3b06ac678dd9ee
-    m_Address: B05_E2_DreadAngler
+    m_Address: B055_E2_DreadAngler
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -337,6 +377,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 82b987035cadd8442a61aaebe092c5ad
     m_Address: B06_E3_WingedQilin
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 85d3b2ef20080a84f8a5a179ec2bf8e0
+    m_Address: B05_E3_Clockwork Pas de Deux
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87fbc9eeda3a7764583026a992d83358
+    m_Address: B05_N9_ClockworkButler
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -385,8 +435,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 945bcaeaf0b9aac42be00032069a3bed
+    m_Address: B05_N8_AquaCourier
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 94934b1f86348174a82cfef1dd6f2b3f
-    m_Address: B05_B1_Leviathan
+    m_Address: B055_B1_Leviathan
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -405,13 +460,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a5694a830cf195478f4841984c208c2
+    m_Address: B05_N1_HydroBlob
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9c4f0690f20633d4c80db8356ac4d080
     m_Address: B04_N2_BarrelBomber
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9d131f14cfd72fb4385ed1b2525aa218
-    m_Address: B05_N11_Mirelle
+    m_Address: B055_N11_Mirelle
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9d6a5b71b5567134faed6f4f6f5a3029
+    m_Address: B04_B1_DreadwakeMegalodon
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -435,8 +500,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a915fbfe314862a43b766b0d78ee0b78
+    m_Address: B05_N4_ClockworkHound
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: aa9e03583d7896f48ba997e1ac7c5465
     m_Address: B03_N8_Shardreaper
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ab2263fa377d96949a37a1e630ec5eb9
+    m_Address: B05_N6_PressureAutomaton
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -476,12 +551,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bc67b6b1116071548bba0cb5c7eb1a65
-    m_Address: B05_N8_Nautilus
+    m_Address: B055_N8_Nautilus
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bfb1d598bb41b3c4d90cb161cd7e50a1
-    m_Address: B05_E3_SeaSerpent
+    m_Address: B055_E3_SeaSerpent
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -516,12 +591,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: da30b5d1db5be9945a113fd0e84640ee
-    m_Address: B05_N12_Coraline
+    m_Address: B055_N12_Coraline
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dd0a9810b99e65c48b712321a47cd772
-    m_Address: B05_N2_GhostCorsair
+    m_Address: B055_N2_GhostCorsair
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -536,7 +611,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e37d884d228695d40a350d8e8cb4fca2
-    m_Address: B05_E7_Nessea
+    m_Address: B055_E7_Nessea
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -566,7 +641,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: eb48204541893b4428c8ca12e786e7e2
-    m_Address: B05_E6_Varrick
+    m_Address: B055_E6_Varrick
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -580,8 +655,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f7b9817140eb0e442945d650911efade
-    m_Address: B04_B01_DreadwakeMegalodon
+  - m_GUID: ef969990c80023740aea4a60876d5430
+    m_Address: B05_E4_Celeste
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f208449a5726aa44e82956cef1702142
+    m_Address: B05_E1_RoyalClockworkDame
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -591,12 +671,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f98c0a812ad9f624ab1d61832af47d2d
-    m_Address: B05_E4_Raven
+    m_Address: B055_E4_Raven
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fa7ca69d3b6d2b344ba3eaa93d67c200
-    m_Address: B05_E1_VoidWhale
+    m_Address: B055_E1_VoidWhale
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -1,4 +1,4 @@
-﻿fileFormatVersion: 2
+fileFormatVersion: 2
 guid: e90d6feff8eac5c438c703567b68fc1f
 TextureImporter:
   internalIDToNameTable:
@@ -118,10 +118,10 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 1024
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 29
     textureCompression: 1
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 1
     ignorePlatformSupport: 0
@@ -134,10 +134,10 @@ TextureImporter:
       name: B04_N9_RippleRayPup_0
       rect:
         serializedVersion: 2
-        x: 231
-        y: 339
-        width: 21
-        height: 21
+        x: 326
+        y: 428
+        width: 26
+        height: 25
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -156,10 +156,10 @@ TextureImporter:
       name: B04_N9_RippleRayPup_1
       rect:
         serializedVersion: 2
-        x: 242
-        y: 327
-        width: 13
-        height: 10
+        x: 340
+        y: 412
+        width: 16
+        height: 13
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -178,10 +178,10 @@ TextureImporter:
       name: B04_N9_RippleRayPup_2
       rect:
         serializedVersion: 2
-        x: 195
-        y: 46
-        width: 412
-        height: 274
+        x: 281
+        y: 58
+        width: 519
+        height: 345
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -200,10 +200,10 @@ TextureImporter:
       name: B04_N9_RippleRayPup_3
       rect:
         serializedVersion: 2
-        x: 257
-        y: 313
-        width: 8
-        height: 8
+        x: 359
+        y: 395
+        width: 10
+        height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -222,10 +222,10 @@ TextureImporter:
       name: B04_N9_RippleRayPup_4
       rect:
         serializedVersion: 2
-        x: 263
-        y: 10
-        width: 268
-        height: 46
+        x: 367
+        y: 13
+        width: 337
+        height: 57
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -244,10 +244,10 @@ TextureImporter:
       name: B04_N9_RippleRayPup_5
       rect:
         serializedVersion: 2
-        x: 582
-        y: 48
-        width: 12
-        height: 13
+        x: 769
+        y: 61
+        width: 14
+        height: 16
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -266,10 +266,10 @@ TextureImporter:
       name: B04_N9_RippleRayPup_6
       rect:
         serializedVersion: 2
-        x: 539
-        y: 23
-        width: 9
-        height: 7
+        x: 715
+        y: 29
+        width: 10
+        height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
