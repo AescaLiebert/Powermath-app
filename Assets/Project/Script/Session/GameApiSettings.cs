@@ -71,25 +71,12 @@ namespace PowerMath.Session
         [SerializeField] private string authenticationSceneName = "AuthenticationScene";
         [SerializeField] private string mainMenuSceneName = "MainMenuScene";
 
-#if UNITY_EDITOR
-        [Header("Editor Play Mode")]
-        [Tooltip(
-            "Use the sample-student login and player data in Play Mode. " +
-            "This setting and implementation are compiled out of player builds."
-        )]
-        [SerializeField] private bool useEditorSampleStudent = true;
-#endif
-
         public int RequestTimeoutSeconds => requestTimeoutSeconds;
         public string VersionManifestUrl => versionManifestUrl;
         public bool EnableVersionCheck => enableVersionCheck;
         public string BootstrapSceneName => bootstrapSceneName;
         public string AuthenticationSceneName => authenticationSceneName;
         public string MainMenuSceneName => mainMenuSceneName;
-
-#if UNITY_EDITOR
-        public bool UseEditorSampleStudent => useEditorSampleStudent;
-#endif
 
         public int LevelCollectionCount => levelCollections == null
             ? 0

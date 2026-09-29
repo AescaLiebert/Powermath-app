@@ -1,0 +1,152 @@
+id,sprite,name,TH-name,HP,Type,enemy action,Biome
+B1-N01,,Frost Slime,สไลม์หวานเย็น,30,Normal,5,1
+B1-N02,,Flame Slime,สไลม์เร่าร้อน,30,Normal,5,1
+B1-N03,,Toxin Slime,สไลม์บอระเพ็ด,30,Normal,5,1
+B1-N04,,King Puru Slime,ราชา ปุรุ,30,Normal,5,1
+B1-N05,,Fighter Goblin,ก๊อบลินขาลุย,30,Normal,5,1
+B1-N06,,Archer Goblin,ก๊อบลินศรพเนจร,30,Normal,5,1
+B1-N07,,Moss Golem,โกเลม,30,Normal,5,1
+B1-N08,,Iron Golem,โกเลมชาวบ้าน,30,Normal,5,1
+B1-N09,,Horn Rabbit,กระต่ายเขาขวิด,30,Normal,5,1
+B1-N10,,Angry Shroom,เห็ดหัวร้อน,30,Normal,5,1
+B1-E01,,Berserk Goblin,ก๊อบลินคลั่งศึก,45,Elite,4,1
+B1-E02,,Guard Goblin,ก๊อบลินโล่พิทักษ์,45,Elite,4,1
+B1-E03,,King Puru Puru,จักรพรรดิ ปุรุปุรุ,45,Elite,4,1
+B1-E04,,Whoppie Shroom,เห็ดพิศวง วูปปี้,45,Elite,4,1
+B1-E05,,Horn Rabbit Mage,จอมเวทกระต่ายเขาขวิด,45,Elite,4,1
+B1-B01,,Iron Golem Automaton,ชิ้นส่วนนอกรีต ออโตมาตัน,100,Boss,2,1
+B2-N01,,Moss bud Puru,ปุรุยอดอ่อน,35,Normal,5,2
+B2-N02,,Leaf puff Wisp,ภูตปุยพฤกษา,35,Normal,5,2
+B2-N03,,Root staff Hexer,หมอผีพฤกษา,35,Normal,5,2
+B2-N04,,Canopteryx Drake,มังกรปีกเวหา,35,Normal,5,2
+B2-N05,,Mosscrest Wyrmling,มังกรหงอนเขียว,35,Normal,5,2
+B2-N06,,Dewbelly Drake,มังกรหยาดน้ำค้าง,35,Normal,5,2
+B2-N07,,Lanterncap,เห็ดหัวกระสุน,35,Normal,5,2
+B2-N08,,Veilcap,เห็ดสไปต์SPD,35,Normal,5,2
+B2-N09,,Shellcap Strider,เห็ดกระดองขายาว,35,Normal,5,2
+B2-N10,,Vinehorn Wyrmling,มังกรเขาเถาวัลย์,35,Normal,5,2
+B2-E01,,Verdra Drake,มังกรเขียวมรกต,50,Elite,4,2
+B2-E02,,Flarepetal Warden,องครักษ์บุปผาเพลิง,50,Elite,4,2
+B2-E03,,Shellcap Warden,องครักษ์เห็ดเกราะศิลา,50,Elite,4,2
+B2-E04,,Vinehorn Evo,สุดยอดมังกรเขาเถาวัลย์รัดตรึง,50,Elite,4,2
+B2-E05,,Mosscrest Evo,สุดยอดมังกรหงอนพฤกษา,50,Elite,4,2
+B2-B01,,Sylvazure Empyrean,เทพมังกรพฤกษา ซิลเวอร์วูฟล์,125,Boss,2,2
+B3-N01,,Grumblepot Sprout,เด็กมวยขี้บ่น,42,Normal,5,3
+B3-N10,,Cindercap Knocker,นักเลงกางเกงขาโจ๋,42,Normal,5,3
+B3-N03,,Bramblemaw Pup,ลูกหมากรามเฉือน,42,Normal,5,3
+B3-N04,,Peekaboo Sackling,จ๊ะเอ๋!? กระสอบต่อยได้นะ,42,Normal,5,3
+B3-N05,,Wisp wing Moffle,จันทรา มอฟเฟิล,42,Normal,5,3
+B3-N06,,Glowhorn Mole,ตุ่นเขาไฟฉาย LED,42,Normal,5,3
+B3-N07,,Prismtail Gecko,จิ้งจกหางปริซึมรุ้งๆ,42,Normal,5,3
+B3-N08,,Shard Reaper,ยมทูตเเย้มวิญญาณ,42,Normal,5,3
+B3-N09,,Wispling,ภูตวิญญาณ ดุ๊กดิ๊ก เซเล่,42,Normal,5,3
+B3-N10,,Moonroot Sprig,รากจันทรา,42,Normal,5,3
+B3-E03,,Moonveil Moffle,เเย้มจันทรา มอฟเฟิล,60,Elite,4,3
+B3-E05,,Grumblepot Elder,ลุงของเด็กมวยขี้บ่น,60,Elite,4,3
+B3-E03,,Ceberus Pup,หมาป่าเซอร์เบอรัส,60,Elite,4,3
+B3-E04,,Wispveil,ภูตม่านวิญญาณ เซเล่,60,Elite,4,3
+B3-E05,,Shardveil Reaper,ยมทูตลัคนาจันทรา,60,Elite,4,3
+B3-B01,,Eclipse Moffleir Sovereign,เจิสจรัญคราสจันทรา มอฟฟิออร์,200,Boss,2,3
+B4-N01,,Deckhand Cutlass,ลูกเรือฝึกงานดาบ คัตลาส,47,Normal,5,4
+B4-N02,,Barrel Bomber,มือระเบิดถัง บอมเบอร์,47,Normal,5,4
+B4-N03,,"Sling Scout, Kini",หน่วยหนังสติ๊กดีดเปรี้ยง คินิ,47,Normal,5,4
+B4-N04,,"Colle, The Treasure Hunter ",นักล่าสมบัติ โคเล่,47,Normal,5,4
+B4-N05,,"Flint, The Treasure Hunter ",นักล่าสมบัติ ฟินต์,47,Normal,5,4
+B4-N06,,Puffboom Fish,ปักเป้าบวมน้ำ,47,Normal,5,4
+B4-N07,,Bluegem Angelfish,ปลาประกายเทวดา,47,Normal,5,4
+B4-N08,,Frostfang Minnow,ปลาเขี้ยวน้ำแข็งกัด,47,Normal,5,4
+B4-N09,,Sparkfin Eel,ปลาไหลครีบสปาร์คช็อต,47,Normal,5,4
+B4-N10,,Voltcoil Eel,ปลาไหลขดลวดไฟฟ้าแรงสูง,47,Normal,5,4
+B4-N11,,RippleRay Pup,ลูกกระเบนคลื่นน้ำ,47,Normal,5,4
+B4-N12,,Bubblecap Jelly,แมงกะพรุนฟองน้ำ,47,Normal,5,4
+B4-E04,,Coralblade Marlin,ปลากระโทงดาบปะการัง,65,Elite,4,4
+B4-E04,,Tempest Manta,กระเบนราหูพายุคลั่ง,65,Elite,4,4
+B4-E04,,"Captain Tide-hook, Araphaska",กัปตันง้าวตะขอ อาราปลาสก้า,65,Elite,4,4
+B4-E04,,Breakwater Orca,วาฬเพชฌฆาต,65,Elite,4,4
+B4-E05,,Riptide Mako,ฉลามทะเลวน มาโก้,65,Elite,4,4
+B4-B01,,Dreadwake Megalodon,ฉลามมัจจุราช เมกาโลดอน,250,Boss,2,4
+B5-N01,,Hydro Blob,สไลม์น้ำบรรพการ,67,Normal,5,5
+B5-N02,,Bubblefin,ปลาครีบฟองน้ำ,67,Normal,5,5
+B5-N03,,Hydro Floater,ทุ่นวารีเวหา,67,Normal,5,5
+B5-N10,,Hydro Wisp,ภูตละอองฝน,67,Normal,5,5
+B5-N05,,Clockwork Hound,สุนัขจักรกล,67,Normal,5,5
+B5-N06,,Clockwork Lancer,พลหอกจักรกล,67,Normal,5,5
+B5-N07,,Pressure Automaton,เเรงผลัก ออโตมาตัน,67,Normal,5,5
+B5-N08,,Valve Crab,ปูเกราะ ออโตมาตัน,67,Normal,5,5
+B5-N09,,Aqua Courier,ผู้ส่งสาร ออโตมาตัน,67,Normal,5,5
+B5-N10,,Clockwork Butler,พ่อบ้านจักรกล,67,Normal,5,5
+B5-E01,,Royal Clockwork Dame,มาดามสตรีเหล็กเเห่ง อความารีน,125,Elite,4,5
+B5-E02,,Hydro Titan,ไททันอสูรน้ำวน,125,Elite,4,5
+B5-E03,,Clockwork Pas de Deux,ระบำฟันเฟืองคู่ ปาเดเดอ,125,Elite,4,5
+B5-E04,,"Gentle Women, Celeste",สุภาพสตรีสีคราม เซเลสเต้,125,Elite,4,5
+B5-E05,,"Luciean'or, Hydro Dragon Arbiter",มังกรตุลาการ ลูเซียสออร์,125,Elite,4,5
+B5-B01,,"Nihilist, Hydro Deity The Tragic Performer",ไนฮิฮิส มหาเทพวารี ผู้ร่ายระบำเเห่งโศกนาฏกรรม,700,Boss,2,5
+B6-N01,,Bone Mask,ลูกเรือหน้ากากกะโหลก,100,Normal,5,6
+B6-N02,,Ghost Corsair,กะลาสีเรือผีสิง,100,Normal,5,6
+B6-N03,,Abyss Shark,ฉลามเเห่งหุบเหวอเวจี,100,Normal,5,6
+B6-N04,,Angler,ปลาแองเกลอร์,100,Normal,5,6
+B6-N05,,Abyss Jelly,แมงกะพรุนเเห่งหุบเหวอเวจี,100,Normal,5,6
+B6-N06,,Viperfish,เขี้ยวปีศาจไวเปอร์,100,Normal,5,6
+B6-N07,,Gloom Jelly,แมงกะพรุนทมิฬทรราช,100,Normal,5,6
+B6-N08,,Nautilus,อสูรหอยงวงช้างดึกดำบรรพ์,100,Normal,5,6
+B6-N09,,IronCrab,ปูเกราะเหล็กอเวจี,100,Normal,5,6
+B6-N10,,ChestMaw,หีบสมบัติกินคน,100,Normal,5,6
+B6-N11,,Mirelle,พรายพยาบาท มิเรลล์,275,Normal,5,6
+B6-N12,,Coraline,พรายคนตาย คอราลีน,275,Normal,5,6
+B6-E01,,Void Whale,วาฬทมิฬสุญญากาศ,275,Elite,4,6
+B6-E02,,Dread Angler,เดอะแองเกลอร์,275,Elite,4,6
+B6-E03,,Sea Serpent,อสรพิษมหาสมุทร ซีเซอร์เพน,275,Elite,4,6
+B6-E04,,Kraken,อสุรกายคราเคนใต้บาดาล,275,Elite,4,6
+B6-E05,,Raven,ทมิฬมัจจุราช เรเวน,275,Elite,4,6
+B6-E06,,Varrick,วาร์ริค กัปตันวิญญาณแค้น,275,Elite,4,6
+B6-E07,,Nessea,เนสซี,275,Elite,4,6
+B6-B01,,Leviathan,มหาเทพอสูร ลีเวียธาน,1250,Boss,2,6
+B7-N01,,,,200,Normal,5,7
+B7-N02,,,,200,Normal,5,7
+B7-N03,,,,200,Normal,5,7
+B7-N04,,,,200,Normal,5,7
+B7-N05,,,,200,Normal,5,7
+B7-N06,,,,200,Normal,5,7
+B7-N07,,,,200,Normal,5,7
+B7-N08,,,,200,Normal,5,7
+B7-N09,,,,200,Normal,5,7
+B7-N10,,,,200,Normal,5,7
+B7-E01,,,,570,Elite,4,7
+B7-E02,,,,570,Elite,4,7
+B7-E03,,,,570,Elite,4,7
+B7-E04,,,,570,Elite,4,7
+B7-E05,,,,570,Elite,4,7
+B7-B01,,,,2500,Boss,2,7
+B8-N01,,Jade blade,เด็กฝึก เพลงกระบี่หยก,500,Normal,5,8
+B8-N02,,Red blade,เด็กฝึก เพลงกระบี่สีชาด,500,Normal,5,8
+B8-N03,,Sky spear,เด็กฝึก เพลงทวนเวหาทะลวง,500,Normal,5,8
+B8-N04,,"YuiWei, The Wanderer",จอมยุทธ์พเนจร อวี่เหวย,500,Normal,5,8
+B8-N05,,Dragon Yaksha,เกล็ดมังกรคลั่ง ยักษา,500,Normal,5,8
+B8-N06,,Flame Lion,ราชสีห์เพลิง,500,Normal,5,8
+B8-N07,,Geo Tiger,พยัคฆ์ศิลา,500,Normal,5,8
+B8-N08,,Soul Lantern,โคมเพลิงปราณสังหาร,500,Normal,5,8
+B8-N09,,Geo Deer,กวางศึกศิลา,500,Normal,5,8
+B8-N10,,Ninetail,จิ้งจอกเก้าหาง,500,Normal,5,8
+B8-E01,,Phoenix Sage,ปรมาจารย์วิหคเพลิงสะท้านภพ,1500,Elite,4,8
+B8-E02,,Golden Dragon,พญามังกรทองศึกเก้าชั้นฟ้า,1500,Elite,4,8
+B8-E03,,Winged Qilin,กิเลนศึกเวหาเหยียบเมฆา,1500,Elite,4,8
+B8-E04,,Qilin Maiden,จอมยุทธ์หญิงกิเลนหยกขาว,1500,Elite,4,8
+B8-E05,,Crane Sage,ปรมาจารย์หมัดกระเรียนขาวสยบหล้า,1500,Elite,4,8
+B8-B01,,Fox Empress,จักรพรรดินีจิ้งจอกเก้าหางสยบยุทธภพ,5000,Boss,2,8
+B9-N01,,Closed Angelic,เทวทูตปิดเนตร,800,Normal,5,9
+B9-N02,,Unicorn,ยูนิคอร์นเขาประกาย,800,Normal,5,9
+B9-N03,,Lumie,ภูตแสงจิ๋ว ลูมี่,800,Normal,5,9
+B9-N04,,Veil priest,นักบวชม่านศักดิ์สิทธิ์,800,Normal,5,9
+B9-N05,,Six Gaze,เทวทูตหกเนตร,800,Normal,5,9
+B9-N06,,Halo wisp,ภูตละอองแสงฮาโล,800,Normal,5,9
+B9-N07,,Wing tome,คัมภีร์ปีกสวรรค์,800,Normal,5,9
+B9-N08,,Ring eye,วงแหวนร้อยเนตร,800,Normal,5,9
+B9-N09,,Gold Gaze,เนตรทองคำส่องหล้า,800,Normal,5,9
+B9-N10,,Void bloom,บุปผาสุญญากาศ,800,Normal,5,9
+B9-N11,,Nightmane,อาชาแผงคอราตรี,800,Normal,5,9
+B9-E01,,Rapier Seraph,เซราฟดาบเรียวเรเปียร์,3000,Elite,4,9
+B9-E02,,Halodoll,ตุ๊กตาอาคมวงแหวนเทวา,3000,Elite,4,9
+B9-E03,,Rift Saint,นักบุญฉีกมิติสวรรค์,3000,Elite,4,9
+B9-E04,,Black Nova,แบล็กโนวาดาราดับ,3000,Elite,4,9
+B9-E05,,Veil Seraph,เซราฟม่านมนตราเทวา,3000,Elite,4,9
+B9-B01,,Astral Judgement,ทัณฑ์ดาราสวรรค์พิพากษา,10000,Boss,2,9

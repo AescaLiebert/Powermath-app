@@ -99,6 +99,8 @@ namespace PowerMath.PlayerData
             public int prestige;
             public bool firstStage200Reached;
             public long firstStage200ReachedAtUnixSeconds;
+            public bool finalStageReached;
+            public long finalStageReachedAtUnixSeconds;
             public long totalDamage;
             public long legacyAtkBonusBasisPoints;
             public long leaderboardSnapshotAtUnixSeconds;

@@ -26,3 +26,21 @@ GDD references: `@tag:core-loop`, `@tag:combat-attempt`, `@tag:question-data`, `
 
 - Pass: during ten consecutive lethal attempts, no consumed action reappears, no duplicate Stage advance occurs, and the next encounter begins after only the longest overlapping defeat feedback path rather than the sum of every path.
 - If the clear still feels slow, measure the longest remaining actor or reward routine before changing authored timing values; do not delay authoritative resolution or saving to extend presentation.
+
+## Enemy catalog edits and silent startup failure (2026-09-29)
+
+- `LocalRunEncounterEngine_RestoresAfterEnemyCooldownChange` covers lowered,
+  unchanged, increased, and exhausted saved cooldowns. Restoration must preserve
+  stage, HP, and hearts; a valid ready encounter must still accept and resolve an attempt.
+- In a disposable test save, save a boss encounter with remaining/max cooldown
+  3/3, lower that EnemyDefinition maximum to 2, then reload. The encounter must
+  restore with cooldown 2/2 and the saved HP/hearts, without resetting the run.
+- Force an exception during `InitializeRuntimeCore` in a development test, then
+  reload with valid question catalogs. Expect a full `Combat startup failed`
+  Console error with stage, phase, encounter, and exception stack. The catalog
+  loader must not redeliver the failure as a second catalog callback.
+- A `main-menu-bootstrap` gate release alone is not a pass: verify the combat
+  runtime initialized, actors bound, and a question attempt can start.
+- Current-account Editor smoke test remains pending. The standalone reproduction
+  verifies the failure mechanisms; it does not establish which exception affected
+  the reported account.

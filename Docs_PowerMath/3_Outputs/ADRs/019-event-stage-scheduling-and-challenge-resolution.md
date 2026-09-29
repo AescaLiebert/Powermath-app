@@ -66,6 +66,16 @@ ADR-009 implemented fixed Event bindings, an implicit Challenge-only definition,
 
 Accepted by the project owner with `lgtm` on 2026-09-14. The approved choices are an independent Event definition, fixed bindings inside the block cap, and a separate per-Rank Challenge FIFO. The owner clarified later on 2026-09-14 that physical Challenge Rank documents are centralized in `GameApiSettings` and all Challenge Events share those FIFO pools.
 
+## Owner Clarification — Encounter Luck Quota (2026-09-29)
+
+The project owner clarified that Encounter Luck is a block quota, superseding the earlier one-guaranteed-plus-one-bonus rule:
+
+- Add Stage Map Encounter Luck and account-wide pet Encounter Luck, then cap the total at 500%.
+- Every complete 100% guarantees one generated Challenge Event per 20-Stage block.
+- The remainder is a single bonus roll for one additional generated Challenge Event. For example, 210% gives two guarantees plus a 10% chance for a third; 250% gives two guarantees plus a 50% chance for a third.
+- Authored fixed Challenge Events use slots in the same quota. Protected Stages remain excluded from generated selection.
+- When restoring a run, preserve already reached Event Stages and refresh unvisited schedule entries under this quota.
+
 ## Related
 
 - ADR-005: Atomic Academic Progression and Question Catalog Boundary

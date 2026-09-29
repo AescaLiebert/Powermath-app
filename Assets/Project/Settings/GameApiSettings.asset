@@ -40,4 +40,3 @@ MonoBehaviour:
   bootstrapSceneName: BootstrapScene
   authenticationSceneName: AuthenticationScene
   mainMenuSceneName: MainMenuScene
-  useEditorSampleStudent: 0

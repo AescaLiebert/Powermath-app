@@ -228,6 +228,7 @@ namespace PowerMath.UI.MainMenu
             // disabled state if bootstrap exits through a fallback path.
             _safeArea.SetEnabled(true);
             _transitionLayer.EnableInClassList("is-transition-blocking", locked);
+            _transitionLayer.style.display = locked ? DisplayStyle.Flex : DisplayStyle.None;
             _transitionLayer.pickingMode = locked
                 ? PickingMode.Position
                 : PickingMode.Ignore;

@@ -133,7 +133,8 @@ namespace PowerMath.PlayerData
                     currentStage = 1,
                     highestStage = 1,
                     activeRank = "Silver",
-                    firstStage200Reached = false
+                    firstStage200Reached = false,
+                    finalStageReached = false
                 };
             }
 

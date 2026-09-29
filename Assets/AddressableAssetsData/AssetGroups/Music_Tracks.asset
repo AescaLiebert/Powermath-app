@@ -65,6 +65,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8402d15422a9dab4a9cca9b3066c0201
+    m_Address: OST_B6_Boss
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 85e18707dca261649b73615ad96ebccc
     m_Address: OST_B5-Boss
     m_ReadOnly: 0

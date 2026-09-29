@@ -6,7 +6,7 @@ namespace PowerMath.UI.MainMenu
 {
     public readonly struct MainMenuViewModel
     {
-        private const int FinalStage = StageId.Final;
+        private static int FinalStage => StageId.Final;
 
         public MainMenuViewModel(
             string displayName,

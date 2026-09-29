@@ -17,6 +17,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private readonly VisualElement _combatLayer;
         private readonly VisualElement _enemyCard;
         private readonly Label _stageLabel;
+        private int _lastStageValue = -1;
         private readonly ProgressBar _stageProgress;
         private readonly Label _enemyName;
         private readonly Label _enemyNameShadow;
@@ -361,6 +362,13 @@ namespace PowerMath.Gameplay.Combat.Unity
             _enemyName.text = enemyName;
             if (_enemyNameShadow != null)
                 _enemyNameShadow.text = enemyName;
+        }
+
+        public void RefreshLocalizedStageLabel()
+        {
+            if (_lastStageValue > 0)
+                _stageLabel.text = PowerMath.Localization.LocalizationService.Get(
+                    "menu.stageNumber", _lastStageValue);
         }
 
         public IEnumerator PlayBiomeTransition(CombatSnapshot destination)
@@ -748,7 +756,9 @@ namespace PowerMath.Gameplay.Combat.Unity
 
         private void RenderEncounterHeader(CombatSnapshot snapshot)
         {
-            _stageLabel.text = $"STAGE {snapshot.Stage.Value}";
+            _lastStageValue = snapshot.Stage.Value;
+            _stageLabel.text = PowerMath.Localization.LocalizationService.Get(
+                "menu.stageNumber", _lastStageValue);
             if (_stageProgress != null)
                 _stageProgress.value = snapshot.Stage.Value / (float)StageId.Final * 100f;
             _biomeLabel.text = snapshot.BiomeTitle.ToUpperInvariant();

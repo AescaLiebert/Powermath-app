@@ -9,7 +9,8 @@
     "PowerMath.UI.Core",
     "Unity.TextMeshPro",
     "PowerMath.Diagnostics",
-    "PowerMath.Audio"
+    "PowerMath.Audio",
+    "PowerMath.Localization"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

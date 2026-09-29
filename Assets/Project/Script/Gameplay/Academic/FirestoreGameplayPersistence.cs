@@ -138,6 +138,10 @@ namespace PowerMath.Gameplay.Academic
             _player.progression.highestStage = Math.Max(
                 _player.progression.highestStage,
                 request.Snapshot.Combat.Stage.Value);
+            _player.progression.finalStageReachedAtUnixSeconds =
+                _store.LastFinalStageReachedAtUnixSeconds;
+            _player.progression.finalStageReached =
+                _player.progression.finalStageReachedAtUnixSeconds > 0;
             _player.progression.firstStage200ReachedAtUnixSeconds =
                 _store.LastFirstStage200ReachedAtUnixSeconds;
             _player.progression.firstStage200Reached =

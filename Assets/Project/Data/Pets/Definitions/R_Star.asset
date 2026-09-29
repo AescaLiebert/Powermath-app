@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   petId: star
   displayName: Star
+  thaiDisplayName: ดาวน้อย
   icon: {fileID: 21300000, guid: 98f6622c895f6d44598afedede788a11, type: 3}
   previewSprite: {fileID: 21300000, guid: 98f6622c895f6d44598afedede788a11, type: 3}
   iconAddressableKey: 

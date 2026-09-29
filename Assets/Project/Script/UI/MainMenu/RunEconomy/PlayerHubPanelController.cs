@@ -92,7 +92,8 @@ namespace PowerMath.UI.MainMenu
             _panelHost.PanelClosed += OnPanelClosed;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
-            _view.OpenButton.tooltip = "Player Hub";
+            LocalizationService.Changed += OnLocaleChanged;
+            _view.OpenButton.tooltip = LocalizationService.Get("menu.hub");
             HideInitially();
             OnPlayerChanged(_player);
         }
@@ -101,6 +102,7 @@ namespace PowerMath.UI.MainMenu
         {
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
+            LocalizationService.Changed -= OnLocaleChanged;
             _view.OpenRequested -= Open;
             _view.CloseRequested -= Close;
             _view.UpgradeRequested -= Upgrade;
@@ -136,8 +138,7 @@ namespace PowerMath.UI.MainMenu
             {
                 _view.OpenButton.SetEnabled(true);
                 _view.OpenButton.pickingMode = PickingMode.Position;
-                _view.OpenButton.tooltip =
-                    "Unlocks after reaching Stage 31 or completing a run settlement.";
+                _view.OpenButton.tooltip = LocalizationService.Get("menu.hubUnlockHint");
                 _view.OpenButton.AddToClassList("is-feature-locked");
                 _view.LockOverlay?.RemoveFromClassList("is-hidden");
                 if (_view.LockOverlay != null)
@@ -148,7 +149,7 @@ namespace PowerMath.UI.MainMenu
             {
                 _view.OpenButton.SetEnabled(safe && !_busy);
                 _view.OpenButton.pickingMode = PickingMode.Position;
-                _view.OpenButton.tooltip = "Player Hub";
+                _view.OpenButton.tooltip = LocalizationService.Get("menu.hub");
                 _view.OpenButton.RemoveFromClassList("is-feature-locked");
                 _view.LockOverlay?.AddToClassList("is-hidden");
                 if (_view.LockOverlay != null)
@@ -166,12 +167,17 @@ namespace PowerMath.UI.MainMenu
                 Render();
         }
 
+        private void OnLocaleChanged()
+        {
+            OnPlayerChanged(_player);
+        }
+
         private void Open()
         {
             if (!PlayerMenuUnlockPolicy.IsHubAndGachaUnlocked(_player))
             {
                 StatusMessageService.ShowWarning(
-                    "Reach Stage 31 or complete a run settlement to unlock Player Hub.");
+                    LocalizationService.Get("menu.hubUnlockHint"));
                 return;
             }
 
@@ -231,6 +237,7 @@ namespace PowerMath.UI.MainMenu
             _view.HidePetPreview();
             _view.Modal.style.display = DisplayStyle.None;
             _view.Modal.style.visibility = Visibility.Hidden;
+            _view.Modal.style.opacity = 0f;
             _view.Modal.EnableInClassList("is-hidden", true);
         }
 
@@ -256,6 +263,7 @@ namespace PowerMath.UI.MainMenu
             _view.HidePetPreview();
             _view.Modal.style.display = DisplayStyle.None;
             _view.Modal.style.visibility = Visibility.Hidden;
+            _view.Modal.style.opacity = 0f;
             _view.Modal.EnableInClassList("is-hidden", true);
         }
 
@@ -292,20 +300,24 @@ namespace PowerMath.UI.MainMenu
         private void RenderStats(PlayerStatProjection stats)
         {
             RenderSummary(stats);
-            _view.EffectiveAttack.text = $"{stats.EffectiveAttack:N0} ATK";
+            _view.EffectiveAttack.text = LocalizationService.Get(
+                "menu.hubEffectiveAttack", stats.EffectiveAttack);
             if (stats.HasConfiguredPetStats)
             {
                 string petText = stats.PetMultiplierPercent > 0d
-                    ? $"  -  PET +{stats.PetFlatAttack:N0} / ×{1d + stats.PetMultiplierPercent / 100d:0.##}"
-                    : $"  -  PET +{stats.PetFlatAttack:N0}";
-                _view.AttackBreakdown.text = $"WEAPON {stats.Weapon.Attack:N0}{petText}";
+                    ? LocalizationService.Get("menu.hubPetBreakdownMultiplier",
+                        stats.PetFlatAttack, 1d + stats.PetMultiplierPercent / 100d)
+                    : LocalizationService.Get("menu.hubPetBreakdown", stats.PetFlatAttack);
+                _view.AttackBreakdown.text = LocalizationService.Get(
+                    "menu.hubWeaponBreakdown", stats.Weapon.Attack) + petText;
             }
             else
             {
-                _view.AttackBreakdown.text = $"WEAPON {stats.Weapon.Attack:N0}";
+                _view.AttackBreakdown.text = LocalizationService.Get(
+                    "menu.hubWeaponBreakdown", stats.Weapon.Attack);
             }
-            _view.LegacyBonus.text =
-                $"REBIRTH +{stats.LegacyBasisPoints / 100d:0.0}%  -  +{stats.LegacyBonusAttack:N0} ATK";
+            _view.LegacyBonus.text = LocalizationService.Get("menu.hubLegacyBonus",
+                stats.LegacyBasisPoints / 100d, stats.LegacyBonusAttack);
             _view.PetStatus.text = string.Empty;
 
             double additionalAtkPercent = Math.Max(0d, (stats.LegacyBasisPoints / 100d) + stats.PetMultiplierPercent);
@@ -342,12 +354,13 @@ namespace PowerMath.UI.MainMenu
             WeaponAscensionStats current = projection.Weapon;
             WeaponAscensionCatalogDefinition.Tier tier =
                 _weaponCatalog?.Resolve(current.Level);
-            string currentName = tier?.displayName ?? "Sword";
+            string currentName = tier?.GetDisplayName(LocalizationService.Locale) ??
+                LocalizationService.Get("menu.sword");
             _view.SetWeaponPresentation(tier);
             _view.WeaponName.text = currentName.ToUpperInvariant();
-            _view.WeaponName.tooltip = $"Global weapon level {current.Level}";
-            _view.WeaponCurrent.text =
-                $"ATK {current.Attack:N0}\nCR +{current.CriticalRatePercent}%   CD +{current.CriticalDamagePercent}%";
+            _view.WeaponName.tooltip = LocalizationService.Get("menu.weaponLevel", current.Level);
+            _view.WeaponCurrent.text = LocalizationService.Get("menu.weaponStats",
+                current.Attack, current.CriticalRatePercent, current.CriticalDamagePercent);
 
             int maxLevel = MaximumWeaponLevel;
             int levelsPerTier = _weaponCatalog?.LevelsPerTier ??
@@ -382,11 +395,11 @@ namespace PowerMath.UI.MainMenu
                 _view.WeaponNext.text = PowerMath.Localization.LocalizationService.Get("menu.maxPower");
                 _view.WeaponCost.text = PowerMath.Localization.LocalizationService.Get("menu.noAscension");
                 _view.UpgradeButton.text = PowerMath.Localization.LocalizationService.Get("menu.maxLevel");
-                _view.LevelTransition.text = "MAX";
-                _view.AscendSubtitle.text = "MAXIMUM FORM AWAKENED";
-                _view.NextAttack.text = "MAX";
-                _view.NextCritRate.text = "MAX";
-                _view.NextCritDamage.text = "MAX";
+                _view.LevelTransition.text = LocalizationService.Get("menu.maxShort");
+                _view.AscendSubtitle.text = LocalizationService.Get("menu.maximumFormAwakened");
+                _view.NextAttack.text = LocalizationService.Get("menu.maxShort");
+                _view.NextCritRate.text = LocalizationService.Get("menu.maxShort");
+                _view.NextCritDamage.text = LocalizationService.Get("menu.maxShort");
                 _view.UpgradeButton.SetEnabled(false);
                 UpdateStatRowVisibility(current.CriticalRatePercent > 0, current.CriticalDamagePercent > 0);
                 return;
@@ -399,9 +412,10 @@ namespace PowerMath.UI.MainMenu
             long cost = WeaponAscensionPolicy.GetNextCost(current.Level, maxLevel);
             WeaponAscensionCatalogDefinition.Tier nextTier =
                 _weaponCatalog?.Resolve(next.Level);
-            string nextName = nextTier?.displayName ?? currentName;
-            _view.WeaponNext.text =
-                $"{nextName.ToUpperInvariant()}  LV.{next.Level}\nATK {next.Attack:N0}   CR +{next.CriticalRatePercent}%   CD +{next.CriticalDamagePercent}%";
+            string nextName = nextTier?.GetDisplayName(LocalizationService.Locale) ?? currentName;
+            _view.WeaponNext.text = LocalizationService.Get("menu.weaponNextStats",
+                nextName.ToUpperInvariant(), next.Level, next.Attack,
+                next.CriticalRatePercent, next.CriticalDamagePercent);
             _view.NextAttack.text = next.Attack.ToString("N0", CultureInfo.InvariantCulture);
             _view.NextCritRate.text = $"{next.CriticalRatePercent:0.##}%";
             _view.NextCritDamage.text = $"{next.CriticalDamagePercent:0.##}%";
@@ -409,12 +423,13 @@ namespace PowerMath.UI.MainMenu
             bool awakensNextForm = _weaponCatalog != null
                 ? _weaponCatalog.IsMilestoneAwakening(next.Level)
                 : next.Level > 0 && next.Level % levelsPerTier == 0;
-            _view.LevelTransition.text = $"Lv.{current.Level} → Lv.{next.Level}";
+            _view.LevelTransition.text = LocalizationService.Get(
+                "menu.levelTransition", current.Level, next.Level);
             _view.AscendSubtitle.text = awakensNextForm
-                ? $"AWAKEN {nextName.ToUpperInvariant()}"
-                : "POWER UP CURRENT FORM";
+                ? LocalizationService.Get("menu.awakenWeapon", nextName.ToUpperInvariant())
+                : LocalizationService.Get("menu.powerUpCurrentForm");
             _view.WeaponCost.text = cost.ToString("N0", CultureInfo.InvariantCulture);
-            _view.UpgradeButton.text = "Upgrade";
+            _view.UpgradeButton.text = LocalizationService.Get("menu.upgrade");
             _view.UpgradeButton.SetEnabled(CanMutate(out _));
 
             bool showCritRate = current.CriticalRatePercent > 0 || next.CriticalRatePercent > 0;
@@ -543,17 +558,17 @@ namespace PowerMath.UI.MainMenu
             reason = string.Empty;
             if (_busy)
             {
-                reason = "Saving your last choice…";
+                reason = LocalizationService.Get("menu.savingChoice");
                 return false;
             }
             if (!string.IsNullOrEmpty(_player.activeRun?.committedAttemptId))
             {
-                reason = "Finish the current question first.";
+                reason = LocalizationService.Get("menu.finishQuestionFirst");
                 return false;
             }
             if (string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal))
             {
-                reason = "Finish run settlement first.";
+                reason = LocalizationService.Get("menu.finishSettlementFirst");
                 return false;
             }
             return true;
@@ -578,7 +593,7 @@ namespace PowerMath.UI.MainMenu
             long coins = _player.wallet?.powerCoins ?? 0;
             if (coins < cost)
             {
-                string message = $"Need {(cost - coins):N0} more Power Coins.";
+                string message = LocalizationService.Get("menu.needMorePowerCoins", cost - coins);
                 Warn(message);
                 _feedback.PlayInsufficient();
                 return;
@@ -592,7 +607,7 @@ namespace PowerMath.UI.MainMenu
         {
             if (_weaponStore == null)
             {
-                Warn("Weapon ascension is not available in offline mode.");
+                Warn(LocalizationService.Get("menu.ascensionOffline"));
                 _feedback.PlayInsufficient();
                 yield break;
             }
@@ -626,10 +641,13 @@ namespace PowerMath.UI.MainMenu
                 !ReferenceEquals(previousTier, newTier);
             Render();
             SetSemanticState("is-success");
-            _feedback.PlayWeaponSuccess(milestone, newTier?.displayName);
-            string name = newTier?.displayName ?? "Sword";
+            _feedback.PlayWeaponSuccess(milestone,
+                newTier?.GetDisplayName(LocalizationService.Locale));
+            string name = newTier?.GetDisplayName(LocalizationService.Locale) ??
+                LocalizationService.Get("menu.sword");
             StatusMessageService.ShowSuccess(
-                $"{name} reached Lv.{stats.Level} — ATK {stats.Attack:N0}",
+                LocalizationService.Get("menu.weaponReachedLevel", name,
+                    stats.Level, stats.Attack),
                 milestone ? 3400 : 2200);
             TutorialWeaponAscendSucceeded?.Invoke();
         }
@@ -661,7 +679,7 @@ namespace PowerMath.UI.MainMenu
             }
             if (_petEquipStore == null)
             {
-                Warn("Pet equipment is unavailable right now.");
+                Warn(LocalizationService.Get("menu.petEquipUnavailable"));
                 _feedback.PlayPetFailure();
                 return;
             }
@@ -673,7 +691,7 @@ namespace PowerMath.UI.MainMenu
                 !inventory.TryGetOwned(petId, out _))
             {
                 Warn(string.IsNullOrEmpty(error)
-                    ? "Only owned pets can be equipped."
+                    ? LocalizationService.Get("menu.onlyOwnedPets")
                     : error);
                 _feedback.PlayPetFailure();
                 return;
@@ -764,7 +782,9 @@ namespace PowerMath.UI.MainMenu
         {
             SetSemanticState("is-error");
             StatusMessageService.ShowWarning(
-                string.IsNullOrWhiteSpace(message) ? "Action unavailable." : message);
+                string.IsNullOrWhiteSpace(message)
+                    ? LocalizationService.Get("menu.actionUnavailable")
+                    : message);
         }
 
         private void SetStatus(string message)

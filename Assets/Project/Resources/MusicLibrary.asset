@@ -58,6 +58,24 @@ MonoBehaviour:
       addressableKey: OST_B6-Theme
       volumeScale: 0.6
       loop: 1
+  - biomeId: biome-7
+    track:
+      clip: {fileID: 8300000, guid: 0c6db9cecdf964c4ea480addf637ea11, type: 3}
+      addressableKey: OST_B6-Theme
+      volumeScale: 0.6
+      loop: 1
+  - biomeId: biome-8
+    track:
+      clip: {fileID: 8300000, guid: bc1a13fc7a050d94586b1260903bb9c0, type: 3}
+      addressableKey: OST_B8-Theme
+      volumeScale: 0.6
+      loop: 1
+  - biomeId: biome-9
+    track:
+      clip: {fileID: 8300000, guid: 0c6db9cecdf964c4ea480addf637ea11, type: 3}
+      addressableKey: OST_B6-Theme
+      volumeScale: 0.6
+      loop: 1
   defaultCrossfadeDuration: 1.2
   bossInterruptDuration: 0.8
   duckVolumeFactor: 0.1

@@ -72,7 +72,7 @@ namespace PowerMath.PlayerData
                 progression.lastSnapshotWeightedScore = weighted;
             }
 
-            string signature = $"{player.revision}|{profile.displayName}|{profile.characterId}|{profile.iconId}|{loadout.avatarId}|{loadout.petId}|{loadout.weaponId}|{weaponLevel}|{currentStage}|{highestStage}|{wallet.silver}|{wallet.gold}|{wallet.diamond}|{weighted}|{progression.totalDamage}|{progression.prestige}|{progression.firstStage200ReachedAtUnixSeconds}|{snapshotAtUnixSeconds}";
+            string signature = $"{player.revision}|{profile.displayName}|{profile.characterId}|{profile.iconId}|{loadout.avatarId}|{loadout.petId}|{loadout.weaponId}|{weaponLevel}|{currentStage}|{highestStage}|{wallet.silver}|{wallet.gold}|{wallet.diamond}|{weighted}|{progression.totalDamage}|{progression.prestige}|{progression.firstStage200ReachedAtUnixSeconds}|{progression.finalStageReachedAtUnixSeconds}|{snapshotAtUnixSeconds}";
             if (!force && s_lastPublishedSignatures.TryGetValue(publicId, out string lastSig) &&
                 string.Equals(lastSig, signature, StringComparison.Ordinal))
             {
@@ -100,6 +100,8 @@ namespace PowerMath.PlayerData
             builder.AddInteger(Join(root, "prestige"), Math.Max(0, progression.prestige));
             builder.AddInteger(Join(root, "firstStage200ReachedAtUnixSeconds"),
                 Math.Max(0, progression.firstStage200ReachedAtUnixSeconds));
+            builder.AddInteger(Join(root, "finalStageReachedAtUnixSeconds"),
+                Math.Max(0, progression.finalStageReachedAtUnixSeconds));
             builder.AddInteger(Join(root, "snapshotAtUnixSeconds"), snapshotAtUnixSeconds);
             FirestorePatchPlan plan = builder.Build();
 

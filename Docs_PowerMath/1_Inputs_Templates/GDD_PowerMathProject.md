@@ -608,11 +608,10 @@ The Waypoint System is an earned quality-of-life feature designed to let experie
 4. **Biome Selection:** Tapping an eligible unlocked Biome landmark on the map warps the player directly to that Biome's opening Stage (e.g., Biome 2 → Stage 31, Biome 3 → Stage 61, etc.).
 5. **World Level Scaling:** The target Stage immediately initializes with its authentic World Level (`WorldLevel = ceil(Stage / 5)`). Enemies scale their durability and cooldowns using standard formulas for that World Level; no weakened monsters appear in higher biomes.
 6. **Single-Use Availability:** The Cat Witch Girl's Waypoint offer is **one-time per run**. Once the player accepts a teleport, the Waypoint option becomes unavailable for the remainder of that run. It becomes available again only after a fresh Rebirth or Death reset back to Stage 1.
-7. **Teleport Settlement Reward Penalty (Anti-Spam / Anti-Exploit):**
-   - If the player teleports during an active run (via the Cat Witch Girl Waypoint or Admin Teleport), `activeRun.wasTeleported` is marked true.
-   - When that run settles (via voluntary Rebirth or Death), all settlement rewards (both Legacy ATK bonus and Power Coins) are scaled down to **10%** (`TeleportPenaltyMultiplier = 0.10`).
-   - For example, if a player teleports to Stage 180, normal Legacy ATK bonus would be $0.5\% \times 180 = 90\%$ ($9,000$ basis points); under the teleport penalty, they receive only $(0.5\% \times 180) \times 0.1 = 9\%$ ($900$ basis points), and Power Coins are similarly reduced to 10%.
-   - This prevents players from exploiting teleports to spam meta-progression rewards without earning them through continuous run progression.
+7. **Teleport Settlement Reward Policy:**
+   - If the player teleports during an active run (via Admin Teleport or future Waypoint), `activeRun.wasTeleported` is marked true.
+   - Because stage teleportation is currently an admin/developer tool only, settlement rewards (both Legacy ATK bonus and Power Coins) are maintained at **100%** (`TeleportPenaltyMultiplier = 1.0`). Admin testing can thus verify endgame progression, settlement flow, and economy without receiving diminished rewards.
+   - If public in-game waypoint teleportation is introduced in the future, anti-exploit scaling can be re-evaluated.
    - Upon settlement, the newly initialized Stage 1 run resets `wasTeleported = false`.
 
 
@@ -700,20 +699,22 @@ An Event is a separate encounter family that can replace only an eligible Normal
 
 #### Challenge Scheduling
 
-The run is divided into ten sequential 20-Stage blocks. For each block, the server selects and saves:
-
-1. one guaranteed Challenge Monster at a random eligible Normal Candidate Stage; and
-2. at most one additional Challenge Monster from the remaining eligible Normal Candidate Stages after a single bonus roll.
+The run is divided into sequential 20-Stage blocks. Encounter Luck determines how many Challenge Monster Events are scheduled in each block:
 
 ```text
-EffectiveBonusEventChance = clamp(
-    encounter_chance_event × PetEncounterChanceMultiplier,
+TotalEncounterLuck = clamp(
+    StageMapEncounterLuck + AccountWidePetEncounterLuck,
     0%,
-    100%
+    500%
 )
+
+GuaranteedEventsPerBlock = floor(TotalEncounterLuck / 100%)
+BonusEventChance = TotalEncounterLuck % 100%
 ```
 
-`PetEncounterChanceMultiplier` comes only from the account-wide pet collection and defaults to `×1.0`. Protected Mini-Boss, Big-Boss, and Final-Boss Stages are excluded before selection. The complete block schedule is authoritative and saved so refresh/reconnect cannot reroll an Event or exceed the one-to-two-per-block limit.
+Each complete 100% guarantees one Challenge Monster at a random eligible Normal Candidate Stage. The remainder is one deterministic bonus roll for one additional Challenge Monster: 250% means two guaranteed Events and a 50% chance for a third; 210% means two guaranteed Events and a 10% chance for a third. No block can receive more than five Events from this Luck schedule. Authored fixed Challenge Events occupy slots in that block's Luck quota. Protected Mini-Boss, Big-Boss, and Final-Boss Stages are excluded before generated selection. The complete block schedule is authoritative and saved so refresh/reconnect cannot reroll an Event. Restored runs retain already reached Events and refresh unvisited schedule entries under the current Luck rule.
+
+Account-wide pet Encounter Luck is added to the Stage Map Encounter Luck before the 500% cap. Pet collection stats default to 0% additional Luck.
 
 Each Event Definition contains at minimum:
 

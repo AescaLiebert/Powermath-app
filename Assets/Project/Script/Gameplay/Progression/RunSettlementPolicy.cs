@@ -51,7 +51,7 @@ namespace PowerMath.Gameplay.Progression
     {
         public const int MinimumRebirthStage = 31;
         public const int DefaultBonusBasisPoints = 10000;
-        public const double TeleportPenaltyMultiplier = 0.10d;
+        public const double TeleportPenaltyMultiplier = 1.0d;
 
         public static bool CanSettle(PlayerSnapshot player, RunSettlementType type, out string reason)
         {

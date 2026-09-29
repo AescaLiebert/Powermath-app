@@ -363,9 +363,12 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             }
             _summary.text = (_player.profile?.displayName ?? "Student") + "\n" +
                 (_player.profile?.gradeBand ?? "Grade") + " - " + (progress.activeRank ?? "Silver") + " Rank";
+            long finalStageReachedAt = progress.finalStageReachedAtUnixSeconds > 0
+                ? progress.finalStageReachedAtUnixSeconds
+                : progress.firstStage200ReachedAtUnixSeconds;
             _adventure.text = "ADVENTURE\nCurrent Stage  " + progress.currentStage +
                 "\nBest Stage  " + progress.highestStage + "\nPrestige / Honor  " + progress.prestige +
-                "\nFirst Stage 200  " + FormatTimestamp(progress.firstStage200ReachedAtUnixSeconds) +
+                "\nFinal Stage  " + FormatTimestamp(finalStageReachedAt) +
                 "\nTotal Damage  " + progress.totalDamage.ToString("N0");
             _economy.text = "RANK CURRENCY\nSilver  " + wallet.silver.ToString("N0") +
                 "\nGold  " + wallet.gold.ToString("N0") + "\nDiamond  " + wallet.diamond.ToString("N0") +

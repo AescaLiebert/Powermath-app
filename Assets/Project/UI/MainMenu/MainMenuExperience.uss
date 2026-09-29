@@ -35,6 +35,7 @@
 }
 
 .main-menu-transition-layer.is-bootstrap-active .main-menu-transition-cover {
+    background-color: rgb(13, 49, 94);
     opacity: 1;
 }
 

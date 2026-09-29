@@ -114,7 +114,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         private void ValidateAuthoring()
         {
             if (string.IsNullOrWhiteSpace(catalogVersion)) throw new InvalidOperationException("Stage Map catalogVersion is required.");
-            if (biomes == null || biomes.Length != 7) throw new InvalidOperationException("Stage Map requires exactly seven biomes.");
+            if (biomes == null || biomes.Length == 0) throw new InvalidOperationException("Stage Map requires at least one biome.");
             int expectedFirst = 1;
             var ids = new HashSet<string>(StringComparer.Ordinal);
             for (int i = 0; i < biomes.Length; i++)
@@ -149,7 +149,6 @@ namespace PowerMath.Gameplay.Combat.Unity
 
             // Validate fixed stage bindings.
             var usedStages = new HashSet<int>();
-            int fixedChallengeCountPerBlock = 0; // reused per block below
             foreach (FixedStageBinding binding in fixedStages ?? Array.Empty<FixedStageBinding>())
             {
                 if (binding == null) throw new InvalidOperationException("Fixed stage binding cannot be null.");

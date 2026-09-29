@@ -9,6 +9,7 @@ namespace PowerMath.Gameplay.Pets
         [Header("Identity")]
         [SerializeField] private string petId = string.Empty;
         [SerializeField] private string displayName = string.Empty;
+        [SerializeField] private string thaiDisplayName = string.Empty;
 
         [Header("Presentation")]
         [SerializeField] private Sprite icon;
@@ -51,9 +52,15 @@ namespace PowerMath.Gameplay.Pets
         [SerializeField] private PetEncounterFilter passiveEncounterFilter =
             PetEncounterFilter.Any;
         [TextArea(2, 4)] [SerializeField] private string passiveDescription = string.Empty;
+        [TextArea(2, 4)] [SerializeField] private string thaiPassiveDescription = string.Empty;
 
         public string PetId => petId?.Trim() ?? string.Empty;
         public string DisplayName => displayName?.Trim() ?? string.Empty;
+        public string GetDisplayName(string locale) =>
+            string.Equals(locale, "th", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(thaiDisplayName)
+                ? thaiDisplayName.Trim()
+                : DisplayName;
         public Sprite Icon => icon;
         public Sprite PreviewSprite => previewSprite != null ? previewSprite : icon;
         public string IconAddressableKey => !string.IsNullOrWhiteSpace(iconAddressableKey)
@@ -81,6 +88,11 @@ namespace PowerMath.Gameplay.Pets
         public PetPassiveResetScope PassiveResetScope => passiveResetScope;
         public PetEncounterFilter PassiveEncounterFilter => passiveEncounterFilter;
         public string PassiveDescription => passiveDescription ?? string.Empty;
+        public string GetPassiveDescription(string locale) =>
+            string.Equals(locale, "th", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(thaiPassiveDescription)
+                ? thaiPassiveDescription.Trim()
+                : PassiveDescription;
 
         /// <summary>Backwards-compatible: Total flat ATK contribution.</summary>
         public int AttackBonus => playerAttackBonus > 0 ? playerAttackBonus : petAttackBonus;

@@ -31,6 +31,8 @@ namespace PowerMath.Tests.EditMode
             Assert.That(json, Contains.Substring("\"silver\":{\"integerValue\":\"0\"}"));
             Assert.That(json, Contains.Substring("\"inventory\":{\"arrayValue\":{\"values\":[]}}"));
             Assert.That(json, Contains.Substring("\"phase\":{\"stringValue\":\"opening\"}"));
+            Assert.That(json, Contains.Substring("\"finalStageReached\":{\"booleanValue\":false}"));
+            Assert.That(json, Contains.Substring("\"firstStage200Reached\":{\"booleanValue\":false}"));
             Assert.That(json, Contains.Substring("\"tutorial\":{\"mapValue\""));
         }
 

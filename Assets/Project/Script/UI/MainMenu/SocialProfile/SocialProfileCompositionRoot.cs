@@ -65,10 +65,6 @@ namespace PowerMath.UI.MainMenu.SocialProfile
             GameApiSettings settings,
             PlayerSnapshot player)
         {
-#if UNITY_EDITOR
-            if (settings != null && settings.UseEditorSampleStudent)
-                return;
-#endif
             var publisher = new FirestoreLeaderboardProjectionPublisher(settings);
             StartCoroutine(publisher.Publish(
                 player,

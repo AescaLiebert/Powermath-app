@@ -21,6 +21,7 @@ namespace PowerMath.Gameplay.Academic
         private readonly ProfileActivityTracker _activity;
         private int _highestStage;
         public long LastFirstStage200ReachedAtUnixSeconds { get; private set; }
+        public long LastFinalStageReachedAtUnixSeconds { get; private set; }
 
         public FirestoreAcademicProgressionStore(
             GameApiSettings settings,
@@ -38,6 +39,11 @@ namespace PowerMath.Gameplay.Academic
             LastFirstStage200ReachedAtUnixSeconds = player.progression == null
                 ? 0
                 : player.progression.firstStage200ReachedAtUnixSeconds;
+            LastFinalStageReachedAtUnixSeconds = player.progression == null
+                ? 0
+                : (player.progression.finalStageReachedAtUnixSeconds > 0
+                    ? player.progression.finalStageReachedAtUnixSeconds
+                    : player.progression.firstStage200ReachedAtUnixSeconds);
             player.activeRun = player.activeRun ?? new PlayerSnapshot.ActiveRunData();
             if (string.IsNullOrWhiteSpace(player.activeRun.runId))
                 player.activeRun.runId = Guid.NewGuid().ToString("N");
@@ -102,10 +108,12 @@ namespace PowerMath.Gameplay.Academic
                 failed?.Invoke("Player progression changed while saving; reload before continuing.");
                 yield break;
             }
-            if (request.Snapshot.Combat.Stage.Value >= 200 &&
-                LastFirstStage200ReachedAtUnixSeconds <= 0 && serverSeconds <= 0)
+            bool reachedFinal = request.Snapshot.Combat.Stage.Value >= StageId.Final ||
+                                request.Snapshot.Combat.Phase == CombatPhase.RunComplete;
+            if (reachedFinal &&
+                LastFinalStageReachedAtUnixSeconds <= 0 && serverSeconds <= 0)
             {
-                failed?.Invoke("Could not verify the Stage 200 milestone time.");
+                failed?.Invoke("Could not verify the Final Stage milestone time.");
                 yield break;
             }
             FirestorePatchPlan plan = BuildPlan(request, nextRevision, serverSeconds);
@@ -138,6 +146,8 @@ namespace PowerMath.Gameplay.Academic
             _highestStage = Math.Max(
                 _highestStage,
                 request.Snapshot.Combat.Stage.Value);
+            if (reachedFinal && LastFinalStageReachedAtUnixSeconds <= 0)
+                LastFinalStageReachedAtUnixSeconds = serverSeconds;
             if (_highestStage >= 200 && LastFirstStage200ReachedAtUnixSeconds <= 0)
                 LastFirstStage200ReachedAtUnixSeconds = serverSeconds;
             long committedPlaySeconds = _activity == null ? 0 : _activity.PendingWholeSeconds;
@@ -251,8 +261,15 @@ namespace PowerMath.Gameplay.Academic
             builder.AddInteger(
                 Join(root, "progression", "highestStage"),
                 Math.Max(_highestStage, combat.Stage.Value));
+            long finalStageAt = LastFinalStageReachedAtUnixSeconds;
+            if (finalStageAt <= 0 && (combat.Stage.Value >= StageId.Final || combat.Phase == CombatPhase.RunComplete))
+                finalStageAt = serverSeconds;
+            builder.AddBoolean(Join(root, "progression", "finalStageReached"), finalStageAt > 0);
+            builder.AddInteger(Join(root, "progression", "finalStageReachedAtUnixSeconds"), finalStageAt);
+
             long stage200At = LastFirstStage200ReachedAtUnixSeconds;
             if (stage200At <= 0 && combat.Stage.Value >= 200) stage200At = serverSeconds;
+            if (stage200At <= 0 && finalStageAt > 0) stage200At = finalStageAt;
             builder.AddBoolean(Join(root, "progression", "firstStage200Reached"), stage200At > 0);
             builder.AddInteger(Join(root, "progression", "firstStage200ReachedAtUnixSeconds"), stage200At);
             long nextTotalDamage = _player.progression == null ? 0 : _player.progression.totalDamage;

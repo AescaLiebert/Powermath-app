@@ -37,7 +37,7 @@ namespace PowerMath.UI.MainMenu
         [Tooltip("Seven-biome Stage Map. A complete development map is used until assigned.")]
         [SerializeField] private StageMapDefinition stageMapDefinition;
 
-        [Tooltip("Development simulation and answer-window settings.")]
+        [Tooltip("Live combat defaults, answer-window timing, and accessibility settings.")]
         [SerializeField] private CombatRuntimeSettingsDefinition runtimeSettings;
 
         [Tooltip("Optional explicit enemy texture. The existing scene monster image is used when empty.")]
@@ -215,14 +215,7 @@ namespace PowerMath.UI.MainMenu
             PowerMath.Localization.LocalizationService.Changed += OnLocaleChanged;
 
             GameApiSettings settings = GetComponent<MainMenuPresenter>()?.ApiSettings;
-#if UNITY_EDITOR
-            if (settings != null && settings.UseEditorSampleStudent)
-                InitializeSimulation(sessionStore.Snapshot);
-            else
-                InitializeLive(sessionStore.Snapshot, settings);
-#else
             InitializeLive(sessionStore.Snapshot, settings);
-#endif
         }
 
         private void OnDisable()
@@ -414,34 +407,6 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
-        private void InitializeSimulation(PlayerSnapshot snapshot)
-        {
-            bool catalogLoaded = TryLoadDevelopmentCatalog(out QuestionCatalog catalog);
-            if (!catalogLoaded)
-            {
-                SetUnavailable(
-                    "Development question catalog is invalid. See the Unity Console."
-                );
-                return;
-            }
-
-            GameApiSettings settings = GetComponent<MainMenuPresenter>()?.ApiSettings;
-            FirestoreAcademicProgressionStore progressionStore =
-                settings != null
-                    ? TryCreateProgressionStore(settings, snapshot)
-                    : null;
-
-            InitializeRuntime(
-                snapshot,
-                catalog,
-                BuildDevelopmentEventQuestions(catalog),
-                new SimulationQuestionPresentation(),
-                progressionStore,
-                startupNotice: string.Empty,
-                isolateQuestionFallback: false
-            );
-        }
-
         private void InitializeLive(PlayerSnapshot snapshot, GameApiSettings settings)
         {
             if (settings == null)
@@ -521,14 +486,18 @@ namespace PowerMath.UI.MainMenu
                 ? maximumStartupWaitSeconds
                 : Mathf.Max(1f, settings.RequestTimeoutSeconds);
             float deadline = Mathf.Min(maximumStartupWaitSeconds, configuredTimeout);
-            float elapsed = 0f;
-            while (elapsed < deadline)
+
+            // The coroutine may be started during scene integration. Begin the
+            // network deadline on the first usable frame so a long scene load
+            // cannot force the offline catalog before its callback can run.
+            yield return null;
+            double deadlineAt = Time.realtimeSinceStartupAsDouble + deadline;
+            while (Time.realtimeSinceStartupAsDouble < deadlineAt)
             {
                 if (loadGeneration != _questionCatalogLoadGeneration ||
                     _questionCatalogLoadCompleted)
                     yield break;
 
-                elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
 
@@ -617,6 +586,31 @@ namespace PowerMath.UI.MainMenu
             string startupNotice = "",
             bool isolateQuestionFallback = false)
         {
+            try
+            {
+                InitializeRuntimeCore(snapshot, catalog, eventQuestions,
+                    questionPresentation, progressionStore, resolvedMap,
+                    startupNotice, isolateQuestionFallback);
+            }
+            catch (Exception exception)
+            {
+                PowerMath.Diagnostics.AppLog.Exception("Combat", exception,
+                    $"Combat startup failed at saved Stage {snapshot?.activeRun?.currentStage}, " +
+                    $"phase '{snapshot?.activeRun?.phase}', encounter '{snapshot?.activeRun?.encounterId}'");
+                SetUnavailable("Combat could not initialize. See the Console for the startup error.");
+            }
+        }
+
+        private void InitializeRuntimeCore(
+            PlayerSnapshot snapshot,
+            QuestionCatalog catalog,
+            EventQuestionCatalog eventQuestions,
+            IQuestionPresentation questionPresentation,
+            FirestoreAcademicProgressionStore progressionStore,
+            StageMapData resolvedMap,
+            string startupNotice,
+            bool isolateQuestionFallback)
+        {
 
             if (snapshot.progression == null ||
                 !AcademicRank.TryParseExact(
@@ -645,13 +639,15 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
 
-            int startingStage = ResolveStartingStage(snapshot);
             if (resolvedMap == null && !TryResolveStageMap(out resolvedMap, out string mapError))
             {
                 SetUnavailable(mapError);
                 return;
             }
-            int seed = runtimeSettings == null ? 1337 : runtimeSettings.RandomSeed;
+            int startingStage = ResolveStartingStage(
+                snapshot,
+                resolvedMap.FinalStage);
+            int seed = Guid.NewGuid().GetHashCode();
             int maximumHearts = runtimeSettings == null
                 ? 3
                 : runtimeSettings.MaximumHearts;
@@ -728,15 +724,17 @@ namespace PowerMath.UI.MainMenu
                         snapshot.activeRun,
                         resolvedMap,
                         out restoredSchedule);
-                bool staleStageOneMultiplier = hasRestoredSchedule &&
-                    startingStage == StageId.First &&
-                    restoredSchedule.PetMultiplierBasisPoints != petEventMultiplier;
-                eventSchedule = hasRestoredSchedule && !staleStageOneMultiplier
-                    ? restoredSchedule
-                    : EventScheduleGenerator.Create(
-                        runId,
+                EventScheduleSnapshot refreshedSchedule = EventScheduleGenerator.Create(
+                    runId,
+                    resolvedMap,
+                    petEventMultiplier);
+                eventSchedule = hasRestoredSchedule
+                    ? EventScheduleRefreshPolicy.PreserveReachedStages(
                         resolvedMap,
-                        petEventMultiplier);
+                        restoredSchedule,
+                        refreshedSchedule,
+                        new StageId(startingStage))
+                    : refreshedSchedule;
             }
             catch (System.Exception exception) when (
                 exception is System.ArgumentException ||
@@ -948,6 +946,11 @@ namespace PowerMath.UI.MainMenu
             _runtimeBaseWeaponAttack = baseWeaponAttack;
             _runtimeCriticalRate = criticalRate;
             _runtimeCriticalDamagePercent = criticalDamage;
+            CombatSnapshot initializedCombat = engine.Snapshot;
+            PowerMath.Diagnostics.AppLog.Info(
+                "Combat",
+                $"Runtime initialized: Stage={initializedCombat.Stage.Value}, Phase={initializedCombat.Phase}, " +
+                $"Encounter='{initializedCombat.EnemyId}', Map='{resolvedMap.CatalogVersion}', FinalStage={resolvedMap.FinalStage}.");
 
             if (pendingPresentation != null &&
                 engine.Snapshot.Phase != CombatPhase.PresentingResult &&
@@ -1134,7 +1137,6 @@ namespace PowerMath.UI.MainMenu
             if (pendingPresentation != null)
             {
                 _presenter.RecoverPendingPresentation();
-                transition?.NotifyRecoveryReady();
             }
             else if (!string.IsNullOrWhiteSpace(startupNotice))
                 _view.SetResult(startupNotice, true);
@@ -1178,8 +1180,11 @@ namespace PowerMath.UI.MainMenu
                 }
             }
 
-            if (pendingPresentation == null)
-                transition?.NotifySessionReady();
+            transition?.NotifySessionReady();
+            if (_enemySpriteLoadRoutine == null)
+            {
+                transition?.NotifyPresentationReady();
+            }
         }
 
         private void SetUnavailable(string playerMessage)
@@ -1189,8 +1194,9 @@ namespace PowerMath.UI.MainMenu
                 $"Combat Lobby unavailable: {playerMessage}");
             StatusMessageService.ShowError(playerMessage);
             _view.SetUnavailable(playerMessage);
-            GetComponent<MainMenuTransitionController>()?
-                .NotifyRecoveryReady();
+            MainMenuTransitionController transition = GetComponent<MainMenuTransitionController>();
+            transition?.NotifyPresentationReady();
+            transition?.NotifyRecoveryReady();
         }
 
         private void InitializeTutorial(
@@ -1668,6 +1674,7 @@ namespace PowerMath.UI.MainMenu
         {
             bool reducedMotion = runtimeSettings != null && runtimeSettings.ReducedMotion;
             MainMenuTransitionController transition = GetComponent<MainMenuTransitionController>();
+            bool resetAlpha = transition == null || !transition.IsPlaying;
             Vector2? playerRest = transition != null ? transition.PlayerRestPosition : (Vector2?)null;
             Vector2? enemyRest = transition != null ? transition.EnemyRestPosition : (Vector2?)null;
 
@@ -1694,7 +1701,8 @@ namespace PowerMath.UI.MainMenu
                     PowerMath.Gameplay.Combat.Presentation.PresentationActor.Player,
                     reducedMotion,
                     combatJuiceProfile,
-                    playerRest);
+                    playerRest,
+                    resetAlpha);
                 _playerActor.ConfigureInteractionEligibility(() =>
                 {
                     if (_interactionGate == null) return true;
@@ -1723,7 +1731,8 @@ namespace PowerMath.UI.MainMenu
                     PowerMath.Gameplay.Combat.Presentation.PresentationActor.Enemy,
                     reducedMotion,
                     combatJuiceProfile,
-                    enemyRest);
+                    enemyRest,
+                    resetAlpha);
                 _enemyActor.ConfigureInteractionEligibility(() =>
                 {
                     if (_interactionGate == null) return true;
@@ -2224,6 +2233,10 @@ namespace PowerMath.UI.MainMenu
                     {
                         ApplyEnemySprite(fallback, isBigBoss, kind, customProfile);
                     }
+                    else
+                    {
+                        GetComponent<MainMenuTransitionController>()?.NotifyPresentationReady();
+                    }
                 }
             }
         }
@@ -2238,6 +2251,7 @@ namespace PowerMath.UI.MainMenu
                 _sceneEnemy.overrideSprite = sprite;
                 _sceneEnemy.gameObject.SetActive(true);
             }
+            GetComponent<MainMenuTransitionController>()?.NotifyPresentationReady();
         }
 
         private IEnumerator LoadAddressableEnemySpriteRoutine(string key, bool isBigBoss, StageEncounterKind kind, PowerMath.Audio.IEnemySfxProfile customProfile)
@@ -2273,6 +2287,10 @@ namespace PowerMath.UI.MainMenu
             {
                 ApplyEnemySprite(fallback, isBigBoss, kind, customProfile);
             }
+            else
+            {
+                GetComponent<MainMenuTransitionController>()?.NotifyPresentationReady();
+            }
             _enemySpriteLoadRoutine = null;
         }
 
@@ -2292,6 +2310,7 @@ namespace PowerMath.UI.MainMenu
         private void OnLocaleChanged()
         {
             _view?.RefreshLocalizedEnemyName();
+            _view?.RefreshLocalizedStageLabel();
         }
 
         private Sprite ResolveFallbackEnemySprite()
@@ -2311,7 +2330,9 @@ namespace PowerMath.UI.MainMenu
                 return enemyDefinition.EnemySprite;
             return _sceneEnemy?.overrideSprite;
         }
-        private static int ResolveStartingStage(PlayerSnapshot snapshot)
+        private static int ResolveStartingStage(
+            PlayerSnapshot snapshot,
+            int finalStage)
         {
             int stage = 1;
             if (snapshot.activeRun != null && snapshot.activeRun.currentStage > 0)
@@ -2324,7 +2345,10 @@ namespace PowerMath.UI.MainMenu
                 stage = snapshot.progression.currentStage;
             }
 
-            return Mathf.Clamp(stage, StageId.First, StageId.Final);
+            return Mathf.Clamp(
+                stage,
+                StageId.First,
+                Mathf.Clamp(finalStage, StageId.First, StageId.Final));
         }
 
         private static RankQuestionInventorySnapshot ToInventorySnapshot(

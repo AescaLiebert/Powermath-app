@@ -122,8 +122,13 @@ namespace PowerMath.Gameplay.Combat
             if (!_selection.IsEvent)
             {
                 var definition = ToEnemyDefinition(_selection);
+                // Enemy imports can lower the cooldown while an older encounter
+                // is saved. Keep its HP and progress, but fit the remaining turns
+                // to the currently authored maximum before validating EnemyState.
+                int remainingCooldown = Math.Min(
+                    restored.EnemyRemainingCooldown, definition.MaximumCooldown);
                 _enemy = new EnemyState(definition, restored.EnemyMaximumHp,
-                    restored.EnemyCurrentHp, restored.EnemyRemainingCooldown);
+                    restored.EnemyCurrentHp, remainingCooldown);
             }
         }
 

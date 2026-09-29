@@ -85,7 +85,8 @@ namespace PowerMath.Gameplay.Combat.Unity
             PresentationActor actor,
             bool reducedMotion,
             CombatJuiceProfileDefinition profile = null,
-            Vector2? restPosition = null)
+            Vector2? restPosition = null,
+            bool resetAlpha = true)
         {
             if (actor != PresentationActor.Player &&
                 actor != PresentationActor.Pet &&
@@ -104,9 +105,9 @@ namespace PowerMath.Gameplay.Combat.Unity
             if (_graphic != null)
             {
                 _graphic.raycastTarget = true;
-                _authoredColor = _graphic.color;
-                if (_authoredColor.a <= 0.01f)
-                    _authoredColor = new Color(_authoredColor.r, _authoredColor.g, _authoredColor.b, 1f);
+                _authoredColor = new Color(_graphic.color.r, _graphic.color.g, _graphic.color.b, 1f);
+                _graphic.color = _authoredColor;
+
                 if (_graphic is Image img && idleSprite == null && img.sprite != null)
                     idleSprite = img.sprite;
             }
@@ -120,7 +121,7 @@ namespace PowerMath.Gameplay.Combat.Unity
             DamageTextAnchor = new RectTransformCombatAnchor(
                 _rectTransform, fctNormalizedAnchor, fctOffset);
             gameObject.SetActive(true);
-            _canvasGroup.alpha = 1f;
+            if (resetAlpha && _canvasGroup != null) _canvasGroup.alpha = 1f;
             State = ActorVisualState.Idle;
             UpdateSprite();
         }

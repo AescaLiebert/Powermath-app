@@ -674,10 +674,54 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(encounter215.Kind, Is.EqualTo(StageEncounterKind.FinalBoss));
         }
 
-        [TestCase(0, 1)]
-        [TestCase(10000, 2)]
-        [TestCase(20000, 3)]
-        [TestCase(40000, 5)]
+        [Test]
+        public void StageMapData_SupportsFlexibleBiomeCountWithoutChangingGlobalStageLimit()
+        {
+            var normals = new[]
+            {
+                new MonsterData("b1-m1", "Goblin", StageEncounterKind.NormalMonster, "b1", 2, 50, 10000)
+            };
+            var bosses1 = new Dictionary<int, MonsterData>
+            {
+                { 15, new MonsterData("b1-boss", "Boss 1", StageEncounterKind.BigBoss, "b1", 2, 100, 10000) }
+            };
+            var bosses2 = new Dictionary<int, MonsterData>
+            {
+                { 30, new MonsterData("b2-boss", "Boss 2", StageEncounterKind.BigBoss, "b2", 2, 200, 10000) }
+            };
+            var bosses3 = new Dictionary<int, MonsterData>
+            {
+                { 50, new MonsterData("b3-final", "Final Boss", StageEncounterKind.FinalBoss, "b3", 2, 500, 10000) }
+            };
+
+            var biomes = new List<BiomeData>
+            {
+                new BiomeData("b1", "Biome 1", 1, 15, normals, bosses1),
+                new BiomeData("b2", "Biome 2", 16, 30, normals, bosses2),
+                new BiomeData("b3", "Biome 3", 31, 50, normals, bosses3)
+            };
+
+            var map = new StageMapData(
+                catalogVersion: "flexible-test-v1",
+                growthBasisPoints: 10000,
+                variationBasisPoints: 500,
+                biomes: biomes,
+                fixedEvents: new Dictionary<int, EventData>());
+
+            Assert.That(map.Biomes.Count, Is.EqualTo(3));
+            Assert.That(map.FinalStage, Is.EqualTo(50));
+            Assert.That(StageId.Final, Is.EqualTo(280));
+
+            var resolver = new StageEncounterResolver(map);
+            Assert.That(resolver.Resolve("run1", new StageId(15)).Kind, Is.EqualTo(StageEncounterKind.BigBoss));
+            Assert.That(resolver.Resolve("run1", new StageId(30)).Kind, Is.EqualTo(StageEncounterKind.BigBoss));
+            Assert.That(resolver.Resolve("run1", new StageId(50)).Kind, Is.EqualTo(StageEncounterKind.FinalBoss));
+        }
+
+        [TestCase(0, 0)]
+        [TestCase(10000, 1)]
+        [TestCase(20000, 2)]
+        [TestCase(40000, 4)]
         [TestCase(50000, 5)]
         public void EventSchedule_ScalesWithEncounterLuckAndCapsAtFive(
             int chanceBasisPoints,
@@ -704,10 +748,10 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(schedule.GeneratedStages.All(value =>
                 !StageClassificationPolicy.IsProtected(new StageId(value))), Is.True);
             for (int start = StageId.First;
-                 start <= StageId.Final;
+                 start <= map.FinalStage;
                  start += EventScheduleGenerator.StagesPerBlock)
             {
-                int end = Math.Min(StageId.Final,
+                int end = Math.Min(map.FinalStage,
                     start + EventScheduleGenerator.StagesPerBlock - 1);
                 int fixedCount = map.FixedEventStages.Count(value =>
                     value >= start && value <= end &&
@@ -716,7 +760,7 @@ namespace PowerMath.Gameplay.Combat.Tests
                 int generatedCount = schedule.GeneratedStages.Count(value =>
                     value >= start && value <= end);
                 Assert.That(fixedCount + generatedCount,
-                    Is.EqualTo(expectedPerBlock), $"Block {start}-{end}");
+                    Is.EqualTo(Math.Max(fixedCount, expectedPerBlock)), $"Block {start}-{end}");
             }
         }
 
@@ -738,15 +782,15 @@ namespace PowerMath.Gameplay.Combat.Tests
                 "luck-250-test", map, 35000);
 
             for (int start = StageId.First;
-                 start <= StageId.Final;
+                 start <= map.FinalStage;
                  start += EventScheduleGenerator.StagesPerBlock)
             {
-                int end = Math.Min(StageId.Final,
+                int end = Math.Min(map.FinalStage,
                     start + EventScheduleGenerator.StagesPerBlock - 1);
                 int generatedCount = schedule.GeneratedStages.Count(value =>
                     value >= start && value <= end);
-                // 1 guaranteed base + 2 guaranteed luck = 3 minimum; with 50% chance of 4th
-                Assert.That(generatedCount, Is.InRange(3, 4), $"Block {start}-{end}");
+                // 2 guarantees; the 50% bonus roll can schedule a third.
+                Assert.That(generatedCount, Is.InRange(2, 3), $"Block {start}-{end}");
             }
         }
 
@@ -1359,6 +1403,42 @@ namespace PowerMath.Gameplay.Combat.Tests
             Assert.That(engine.Snapshot.StageAttackCount, Is.EqualTo(2));
             Assert.That(engine.Snapshot.BigBossesDefeated, Is.EqualTo(1));
             Assert.That(engine.Snapshot.PendingPetFollowUpDamage, Is.EqualTo(15));
+        }
+
+        [TestCase(2, 3, 2)] // Imported EnemySO lowered the saved maximum of 3.
+        [TestCase(3, 2, 2)] // Unchanged content preserves a partially spent cooldown.
+        [TestCase(5, 3, 3)] // Increasing the maximum must not reset remaining turns.
+        [TestCase(2, 0, 0)] // Preserve an already exhausted cooldown.
+        public void LocalRunEncounterEngine_RestoresAfterEnemyCooldownChange(
+            int authoredCooldown, int savedRemainingCooldown, int expectedRemainingCooldown)
+        {
+            var boss = new MonsterData("boss", "Boss", StageEncounterKind.BigBoss,
+                "biome-1", authoredCooldown, 100);
+            var normal = new MonsterData("normal", "Normal", StageEncounterKind.NormalMonster,
+                "biome-1", 3, 20);
+            var biome = new BiomeData("biome-1", "Biome", 1, 30,
+                new[] { normal }, new Dictionary<int, MonsterData> { { 30, boss } });
+            var map = new StageMapData("restore-test", 2000, 700, new[] { biome }, null);
+            var saved = new CombatSnapshot(
+                new StageId(30), boss.Id, boss.Name, 75, 120, savedRemainingCooldown, 3,
+                2, 3, CombatPhase.EnemyReady, false, biome.Id, biome.Title, boss.Kind, "", 0);
+
+            var engine = new LocalRunEncounterEngine(saved, "restore-test",
+                new StageEncounterResolver(map), new MinimumRandomSource(),
+                new PlayerCombatStats(10, 0d, 50d));
+
+            Assert.That(engine.Snapshot.EnemyRemainingCooldown, Is.EqualTo(expectedRemainingCooldown));
+            Assert.That(engine.Snapshot.EnemyMaximumCooldown, Is.EqualTo(authoredCooldown));
+            Assert.That(engine.Snapshot.EnemyCurrentHp, Is.EqualTo(75));
+            Assert.That(engine.Snapshot.EnemyMaximumHp, Is.EqualTo(120));
+            Assert.That(engine.Snapshot.PlayerCurrentHearts, Is.EqualTo(2));
+            Assert.That(engine.Snapshot.Stage.Value, Is.EqualTo(30));
+            Assert.That(engine.Snapshot.Phase, Is.EqualTo(CombatPhase.EnemyReady));
+            if (expectedRemainingCooldown > 0)
+            {
+                Assert.That(engine.CommitAttempt().Phase, Is.EqualTo(CombatPhase.Committed));
+                Assert.DoesNotThrow(() => engine.ResolveIncorrect(false));
+            }
         }
 
         private static ActivePetPassiveSet Passives(

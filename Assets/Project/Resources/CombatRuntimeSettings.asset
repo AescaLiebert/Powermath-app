@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e1b130fdcc203748a05eb99085db4fb, type: 3}
   m_Name: CombatRuntimeSettings
   m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.CombatRuntimeSettingsDefinition
-  randomSeed: 1337
   criticalRate: 0
   criticalDamagePercent: 50
   baseWeaponAttack: 20

@@ -321,8 +321,10 @@ namespace PowerMath.UI.MainMenu
         private readonly Button _detailsClose;
         private readonly Button _historyButton;
         private readonly VisualElement _detailsDrawer;
+        private readonly VisualElement _detailsCard;
         private readonly VisualElement _inspectPopup;
         private readonly Image _inspectIcon;
+        private readonly VisualElement _inspectStatIcon;
         private readonly Label _inspectName;
         private readonly Label _inspectRarity;
         private readonly Label _inspectAttack;
@@ -377,6 +379,7 @@ namespace PowerMath.UI.MainMenu
         private bool _busy;
         private bool _committed;
         private PetGachaReceipt _presentationReceipt;
+        private string _inspectedPetId;
         private bool _hasPresentationReceipt;
         private PresentationState _presentationState;
         private int _revealIndex;
@@ -431,8 +434,10 @@ namespace PowerMath.UI.MainMenu
             _detailsClose = root.Q<Button>("pet-gacha-details-close");
             _historyButton = root.Q<Button>("pet-gacha-history");
             _detailsDrawer = root.Q<VisualElement>("pet-gacha-details-drawer");
+            _detailsCard = _detailsDrawer?.Q<VisualElement>(className: "pet-gacha-details-card");
             _inspectPopup = root.Q<VisualElement>("pet-gacha-inspect-popup");
             _inspectIcon = root.Q<Image>("pet-gacha-inspect-icon");
+            _inspectStatIcon = _inspectPopup?.Q<VisualElement>("Icon_ATK");
             _inspectName = root.Q<Label>("pet-gacha-inspect-name");
             _inspectRarity = root.Q<Label>("pet-gacha-inspect-rarity");
             _inspectAttack = root.Q<Label>("pet-gacha-inspect-attack");
@@ -507,14 +512,17 @@ namespace PowerMath.UI.MainMenu
             _panelHost.PanelClosed += OnPanelClosed;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
+            LocalizationService.Changed += OnLocaleChanged;
 
-            _open.tooltip = "Pet Gacha";
+            _open.tooltip = LocalizationService.Get("menu.pets");
             if (_historyButton != null)
-                _historyButton.tooltip = "Summon history is coming soon.";
-            if (_pull10 != null && !_multiPullAvailable)
+                _historyButton.tooltip = LocalizationService.Get("menu.summonHistorySoon");
+            if (_pull10 != null)
             {
-                _pull10.SetEnabled(false);
-                _pull10.tooltip = "10x summon is locked in this hub release.";
+                if (!_multiPullAvailable) _pull10.SetEnabled(false);
+                _pull10.tooltip = LocalizationService.Get(_multiPullAvailable
+                    ? "menu.summonTenPets"
+                    : "menu.multiSummonLocked");
             }
             _modal.EnableInClassList("is-reduced-motion", _reducedMotion);
             CloseImmediate();
@@ -525,6 +533,7 @@ namespace PowerMath.UI.MainMenu
         {
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
+            LocalizationService.Changed -= OnLocaleChanged;
             _panelHost.PanelClosed -= OnPanelClosed;
             _open.clicked -= BeginOpenSequence;
             _close.clicked -= Close;
@@ -564,6 +573,31 @@ namespace PowerMath.UI.MainMenu
                 RenderPreview();
         }
 
+        private void OnLocaleChanged()
+        {
+            RefreshAvailability();
+            if (_historyButton != null)
+                _historyButton.tooltip = LocalizationService.Get("menu.summonHistorySoon");
+            if (_pull10 != null)
+                _pull10.tooltip = LocalizationService.Get(_multiPullAvailable
+                    ? "menu.summonTenPets"
+                    : "menu.multiSummonLocked");
+            if (_modal.resolvedStyle.display != DisplayStyle.None && !_busy && !_committed)
+                RenderPreview();
+            if (_inspectPopup != null &&
+                _inspectPopup.style.display == DisplayStyle.Flex &&
+                _definition != null &&
+                !string.IsNullOrEmpty(_inspectedPetId) &&
+                _definition.TryResolvePet(_inspectedPetId, out PetDefinition pet, out _))
+            {
+                _inspectName.text = pet.GetDisplayName(LocalizationService.Locale).ToUpperInvariant();
+                _inspectAttack.text = FormatPetStat(pet);
+                if (_inspectPassiveDescription != null)
+                    _inspectPassiveDescription.text = pet.GetPassiveDescription(
+                        LocalizationService.Locale);
+            }
+        }
+
         private void OnPanelClosed(MainMenuPanelId panelId)
         {
             if (panelId != MainMenuPanelId.PetGacha) return;
@@ -586,7 +620,7 @@ namespace PowerMath.UI.MainMenu
             {
                 _open.SetEnabled(true);
                 _open.pickingMode = PickingMode.Position;
-                _open.tooltip = "Unlocks after reaching Stage 31 or completing a run settlement.";
+                _open.tooltip = LocalizationService.Get("menu.hubUnlockHint");
                 _open.AddToClassList("is-feature-locked");
                 _lockOverlay?.RemoveFromClassList("is-hidden");
                 if (_lockOverlay != null) _lockOverlay.style.display = DisplayStyle.Flex;
@@ -610,10 +644,10 @@ namespace PowerMath.UI.MainMenu
             _open.SetEnabled(IsConfigured && safe && !_busy && !_opening);
             _open.tooltip = IsConfigured
                 ? safe
-                    ? "Spend Power Coins on transparent 1x or 10x pet pulls."
-                    : "Finish run settlement first."
+                    ? LocalizationService.Get("menu.gachaOpenHint")
+                    : LocalizationService.Get("menu.finishSettlementFirst")
                 : string.IsNullOrEmpty(_unavailableReason)
-                    ? "Pet Gacha content is not configured."
+                    ? LocalizationService.Get("menu.gachaNotConfigured")
                     : _unavailableReason;
         }
 
@@ -622,7 +656,7 @@ namespace PowerMath.UI.MainMenu
             if (!PlayerMenuUnlockPolicy.IsHubAndGachaUnlocked(_player))
             {
                 StatusMessageService.ShowWarning(
-                    "Reach Stage 31 or complete a run settlement to unlock Pet Gacha.");
+                    LocalizationService.Get("menu.hubUnlockHint"));
                 return;
             }
             if (!IsConfigured || _busy || _opening ||
@@ -821,10 +855,12 @@ namespace PowerMath.UI.MainMenu
             _modal.EnableInClassList("is-hidden", true);
             _modal.style.display = DisplayStyle.None;
             _modal.style.visibility = Visibility.Hidden;
+            _modal.style.opacity = 0f;
             SetFullScreenBackgroundVisible(false);
             SetMainMenuExitProgress(0f);
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
+            _result.style.opacity = 0f;
             _transition.style.display = DisplayStyle.None;
             HideDetails();
             _pendingTransactionId = string.Empty;
@@ -855,24 +891,23 @@ namespace PowerMath.UI.MainMenu
                 _multiPullLabel.text = $"x{PetGachaTransactionPolicy.MultiPullCount}";
             if (_multiPullCost != null) _multiPullCost.text = multiCost.ToString("N0");
             if (_cost != null)
-                _cost.text = $"1x: {singleCost:N0} PC  |  10x: {multiCost:N0} PC";
+                _cost.text = LocalizationService.Get("menu.gachaCostSummary", singleCost, multiCost);
             if (_projectedBalance != null)
             {
                 _projectedBalance.text = coins >= singleCost
-                    ? $"AFTER PULL: {coins - singleCost:N0} PC"
-                    : $"NEED {singleCost - coins:N0} MORE";
+                    ? LocalizationService.Get("menu.afterPull", coins - singleCost)
+                    : LocalizationService.Get("menu.needMoreCoins", singleCost - coins);
             }
 
-            _catalogStatus.text = $"PET COLLECTION - CATALOG {_catalog.Version}";
+            _catalogStatus.text = LocalizationService.Get("menu.petCollectionCatalog", _catalog.Version);
             bool isFirst = IsFirstGachaPull;
             int ssrPity = Math.Max(0, _player.economy?.petGachaPullsSinceSsr ?? 0);
             int srPity = Math.Max(0, _player.economy?.petGachaPullsSinceSr ?? 0);
-            _warning.text = isFirst
-                ? "FIRST PULL GUARANTEE: SSR Sapphire! " +
-                  $"SR guarantee: {srPity}/10. SSR pity: {ssrPity}/90 (Soft pity after 74 pulls, +6%/pull). " +
-                  "Tap a pet to inspect it. Duplicates increase collection count."
-                : $"SR guarantee: {srPity}/10. SSR pity: {ssrPity}/90 (Soft pity after 74 pulls, +6%/pull). " +
-                  "Tap a pet to inspect it. Duplicates increase collection count.";
+            _warning.text = (isFirst
+                ? LocalizationService.Get("menu.firstPullGuarantee") + " "
+                : string.Empty) +
+                LocalizationService.Get("menu.gachaPity", srPity, ssrPity) + " " +
+                LocalizationService.Get("menu.gachaInspectHelp");
             RenderOdds(GetOwnedPetIds());
 
             bool canPull = CanPull(out string reason);
@@ -886,12 +921,14 @@ namespace PowerMath.UI.MainMenu
 
             if (_pull1 != null)
             {
-                if (_singlePullLabel == null) _pull1.text = $"1x PULL ({singleCost:N0})";
+                if (_singlePullLabel == null)
+                    _pull1.text = LocalizationService.Get("menu.pullWithCost", 1, singleCost);
                 _pull1.SetEnabled(true);
             }
             if (_pull10 != null)
             {
-                if (_multiPullLabel == null) _pull10.text = $"10x PULL ({multiCost:N0})";
+                if (_multiPullLabel == null)
+                    _pull10.text = LocalizationService.Get("menu.pullWithCost", 10, multiCost);
                 _pull10.SetEnabled(_multiPullAvailable);
             }
 
@@ -941,7 +978,12 @@ namespace PowerMath.UI.MainMenu
                     if (_definition != null)
                         _definition.TryResolvePet(pet.Id, out definition, out _);
 
-                    var card = new Button { userData = pet.Id, tooltip = $"Inspect {pet.DisplayName}" };
+                    string petName = definition?.GetDisplayName(LocalizationService.Locale) ?? pet.DisplayName;
+                    var card = new Button
+                    {
+                        userData = pet.Id,
+                        tooltip = LocalizationService.Get("menu.inspectPet", petName)
+                    };
                     card.AddToClassList("pet-gacha-pet-card");
                     card.AddToClassList("pet-gacha-pet-card--" + GetRarityClassSuffix(tier));
                     var icon = new Image { scaleMode = ScaleMode.ScaleToFit };
@@ -955,9 +997,10 @@ namespace PowerMath.UI.MainMenu
                     var rarityLabel = new Label(new string('★', starCount));
                     rarityLabel.AddToClassList("pet-gacha-pet-card-rarity");
                     rarityLabel.style.color = GetCollectionRarityColor(tier);
-                    var nameLabel = new Label(pet.DisplayName);
+                    var nameLabel = new Label(petName);
                     nameLabel.AddToClassList("pet-gacha-pet-card-name");
-                    var probability = new Label($"{FormatPercent(chance.GetPercent())} chance");
+                    var probability = new Label(LocalizationService.Get(
+                        "menu.petChance", FormatPercent(chance.GetPercent())));
                     probability.AddToClassList("pet-gacha-pet-card-chance");
 
                     card.Add(icon);
@@ -985,18 +1028,23 @@ namespace PowerMath.UI.MainMenu
                     petId, out PetDefinition pet, out PetGachaCatalogDefinition.RarityContent rarity))
                 return;
 
-            _inspectName.text = pet.DisplayName.ToUpperInvariant();
+            _inspectedPetId = petId;
+
+            _inspectName.text = pet.GetDisplayName(LocalizationService.Locale).ToUpperInvariant();
             _inspectRarity.text = new string('★', Mathf.Clamp(rarity.showcaseStarCount, 1, 5));
             _inspectRarity.style.color = GetCollectionRarityColor(
                 ResolveRarityTier(rarity.rarityId, pet.PetId));
             _inspectAttack.text = FormatPetStat(pet);
+            SetInspectStatIcon(pet);
             bool hasPassive = pet.PassiveType != PetPassiveEffectType.None &&
                               !string.IsNullOrWhiteSpace(pet.PassiveDescription);
             if (_inspectPassive != null) _inspectPassive.style.display = hasPassive
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
             if (_inspectPassiveDescription != null)
-                _inspectPassiveDescription.text = hasPassive ? pet.PassiveDescription.Trim() : string.Empty;
+                _inspectPassiveDescription.text = hasPassive
+                    ? pet.GetPassiveDescription(LocalizationService.Locale)
+                    : string.Empty;
             if (_inspectIcon != null)
             {
                 _inspectIcon.scaleMode = ScaleMode.ScaleToFit;
@@ -1018,6 +1066,7 @@ namespace PowerMath.UI.MainMenu
 
         private void HidePetInspect()
         {
+            _inspectedPetId = null;
             if (_inspectPopup == null || _inspectPopup.style.display == DisplayStyle.None) return;
             _inspectPopup.RemoveFromClassList("is-open");
             int delay = _reducedMotion ? 0 : 240;
@@ -1042,16 +1091,48 @@ namespace PowerMath.UI.MainMenu
 
         private static string FormatPetStat(PetDefinition pet)
         {
-            if (pet.PlayerAttackBonus > 0) return $"+{pet.PlayerAttackBonus} ATK";
-            if (pet.PlayerAttackMultiplierPercent > 0f) return $"+{pet.PlayerAttackMultiplierPercent:0.#}% ATK";
-            if (pet.PetAttackBonus > 0) return $"+{pet.PetAttackBonus} Pet ATK";
-            if (pet.PetAttackMultiplierPercent > 0f) return $"+{pet.PetAttackMultiplierPercent:0.#}% Pet ATK";
-            if (pet.CritRatePercent > 0f) return $"+{pet.CritRatePercent:0.#}% Crit Rate";
-            if (pet.CritDamagePercent > 0f) return $"+{pet.CritDamagePercent:0.#}% Crit Damage";
-            if (pet.EncounterLuckPercent > 0f) return $"+{pet.EncounterLuckPercent:0.#}% Encounter Chance";
-            if (pet.PowerCoinBonusPercent > 0f) return $"+{pet.PowerCoinBonusPercent:0.#}% Power Coins";
-            if (pet.PlayerHeartUnit > 0) return $"+{pet.PlayerHeartUnit} Heart";
-            return "Collection Pet";
+            if (pet.PlayerAttackBonus > 0) return LocalizationService.Get("menu.petStatPlayerAttack", pet.PlayerAttackBonus);
+            if (pet.PlayerAttackMultiplierPercent > 0f) return LocalizationService.Get("menu.petStatPlayerAttackPercent", pet.PlayerAttackMultiplierPercent);
+            if (pet.PetAttackBonus > 0) return LocalizationService.Get("menu.petStatPetAttack", pet.PetAttackBonus);
+            if (pet.PetAttackMultiplierPercent > 0f) return LocalizationService.Get("menu.petStatPetAttackPercent", pet.PetAttackMultiplierPercent);
+            if (pet.CritRatePercent > 0f) return LocalizationService.Get("menu.petStatCritRate", pet.CritRatePercent);
+            if (pet.CritDamagePercent > 0f) return LocalizationService.Get("menu.petStatCritDamage", pet.CritDamagePercent);
+            if (pet.EncounterLuckPercent > 0f) return LocalizationService.Get("menu.petStatEncounterLuck", pet.EncounterLuckPercent);
+            if (pet.PowerCoinBonusPercent > 0f) return LocalizationService.Get("menu.petStatPowerCoins", pet.PowerCoinBonusPercent);
+            if (pet.PlayerHeartUnit > 0) return LocalizationService.Get("menu.petStatHeart", pet.PlayerHeartUnit);
+            return LocalizationService.Get("menu.collectionPet");
+        }
+
+        private void SetInspectStatIcon(PetDefinition pet)
+        {
+            if (_inspectStatIcon == null) return;
+
+            _inspectStatIcon.EnableInClassList("player-hub-icon-atk", false);
+            _inspectStatIcon.EnableInClassList("player-hub-icon-pet", false);
+            _inspectStatIcon.EnableInClassList("player-hub-icon-cr", false);
+            _inspectStatIcon.EnableInClassList("player-hub-icon-cd", false);
+            _inspectStatIcon.EnableInClassList("player-hub-icon-luck", false);
+            _inspectStatIcon.EnableInClassList("player-hub-icon-coin", false);
+            _inspectStatIcon.EnableInClassList("player-hub-icon-heart", false);
+
+            string iconClass = null;
+            if (pet.PlayerAttackBonus > 0 || pet.PlayerAttackMultiplierPercent > 0f)
+                iconClass = "player-hub-icon-atk";
+            else if (pet.PetAttackBonus > 0 || pet.PetAttackMultiplierPercent > 0f)
+                iconClass = "player-hub-icon-pet";
+            else if (pet.CritRatePercent > 0f)
+                iconClass = "player-hub-icon-cr";
+            else if (pet.CritDamagePercent > 0f)
+                iconClass = "player-hub-icon-cd";
+            else if (pet.EncounterLuckPercent > 0f)
+                iconClass = "player-hub-icon-luck";
+            else if (pet.PowerCoinBonusPercent > 0f)
+                iconClass = "player-hub-icon-coin";
+            else if (pet.PlayerHeartUnit > 0)
+                iconClass = "player-hub-icon-heart";
+
+            if (!string.IsNullOrEmpty(iconClass))
+                _inspectStatIcon.AddToClassList(iconClass);
         }
 
         private static void SetPetImage(Image image, PetDefinition pet, bool usePreview)
@@ -1086,7 +1167,8 @@ namespace PowerMath.UI.MainMenu
         {
             if (!_multiPullAvailable)
             {
-                StatusMessageService.ShowWarning("10x summon is locked in this hub release.");
+                StatusMessageService.ShowWarning(
+                    LocalizationService.Get("menu.multiSummonLocked"));
                 _status.text = string.Empty;
                 Play(_definition?.ErrorClip);
                 return;
@@ -1098,8 +1180,19 @@ namespace PowerMath.UI.MainMenu
         {
             if (_detailsDrawer == null || _busy || _committed) return;
             _detailsDrawer.RemoveFromClassList("is-hidden");
+            _detailsDrawer.AddToClassList("is-open");
             _detailsDrawer.style.display = DisplayStyle.Flex;
+            _detailsDrawer.style.visibility = Visibility.Visible;
+            _detailsDrawer.style.opacity = 1f;
+            _detailsDrawer.pickingMode = PickingMode.Position;
             _detailsDrawer.SetEnabled(true);
+            if (_detailsCard != null)
+            {
+                _detailsCard.style.display = DisplayStyle.Flex;
+                _detailsCard.style.visibility = Visibility.Visible;
+                _detailsCard.style.opacity = 1f;
+                _detailsCard.style.translate = new Translate(0f, 0f, 0f);
+            }
             int sequence = unchecked(++_detailsAnimationSequenceId);
             _detailsDrawer.schedule.Execute(() =>
             {
@@ -1116,6 +1209,14 @@ namespace PowerMath.UI.MainMenu
             HidePetInspect();
             _detailsDrawer.SetEnabled(false);
             _detailsDrawer.RemoveFromClassList("is-open");
+            _detailsDrawer.style.opacity = 0f;
+            _detailsDrawer.style.visibility = Visibility.Hidden;
+            _detailsDrawer.pickingMode = PickingMode.Ignore;
+            if (_detailsCard != null)
+            {
+                _detailsCard.style.opacity = 0f;
+                _detailsCard.style.translate = new Translate(0f, 24f, 0f);
+            }
             int sequence = unchecked(++_detailsAnimationSequenceId);
             _detailsDrawer.schedule.Execute(() =>
             {
@@ -1133,12 +1234,21 @@ namespace PowerMath.UI.MainMenu
             _detailsDrawer.RemoveFromClassList("is-open");
             _detailsDrawer.AddToClassList("is-hidden");
             _detailsDrawer.style.display = DisplayStyle.None;
+            _detailsDrawer.style.visibility = Visibility.Hidden;
+            _detailsDrawer.style.opacity = 0f;
+            _detailsDrawer.pickingMode = PickingMode.Ignore;
+            if (_detailsCard != null)
+            {
+                _detailsCard.style.opacity = 0f;
+                _detailsCard.style.translate = new Translate(0f, 24f, 0f);
+            }
             _detailsDrawer.SetEnabled(false);
         }
 
         private void ShowHistoryUnavailable()
         {
-            StatusMessageService.ShowInfo("Summon history is coming soon.");
+            StatusMessageService.ShowInfo(
+                LocalizationService.Get("menu.summonHistorySoon"));
             _status.text = string.Empty;
         }
 
@@ -1157,7 +1267,7 @@ namespace PowerMath.UI.MainMenu
             if (coins < totalCost)
             {
                 StatusMessageService.ShowWarning(
-                    $"Summon failed: you need {totalCost - coins:N0} more Power Coins.");
+                    LocalizationService.Get("menu.summonNeedCoins", totalCost - coins));
                 _status.text = string.Empty;
                 RenderPreview();
                 Play(_definition?.ErrorClip);
@@ -1166,20 +1276,20 @@ namespace PowerMath.UI.MainMenu
             if (_confirmationTitle != null)
             {
                 _confirmationTitle.text = _selectedPullCount > 1
-                    ? $"CONFIRM {_selectedPullCount}x PULL"
-                    : "CONFIRM 1x PULL";
+                    ? LocalizationService.Get("menu.confirmPullCount", _selectedPullCount)
+                    : LocalizationService.Get("menu.confirmPullCount", 1);
             }
             bool isFirst = IsFirstGachaPull;
             _confirmationSummary.text =
-                $"Spend {totalCost:N0} Power Coins for {_selectedPullCount} pull{(_selectedPullCount > 1 ? "s" : "")}?\n" +
-                $"Balance: {coins:N0} -> {coins - totalCost:N0}\n" +
+                LocalizationService.Get("menu.confirmSpend", totalCost, _selectedPullCount) + "\n" +
+                LocalizationService.Get("menu.balanceChange", coins, coins - totalCost) + "\n" +
                 (isFirst
-                    ? "★ FIRST PULL BONUS: Guaranteed SSR Sapphire!\n"
+                    ? LocalizationService.Get("menu.firstPullBonus") + "\n"
                     : string.Empty) +
                 (_selectedPullCount == PetGachaTransactionPolicy.MultiPullCount
-                    ? "Guarantees at least one SR or SSR. SSR is guaranteed by pull 90.\n"
+                    ? LocalizationService.Get("menu.multiPullGuarantee") + "\n"
                     : string.Empty) +
-                "Duplicates will stack by count in your pet inventory.";
+                LocalizationService.Get("menu.duplicateStackHelp");
             _confirmation.style.display = DisplayStyle.Flex;
             _result.style.display = DisplayStyle.None;
             _confirmation.Focus();
@@ -1214,23 +1324,23 @@ namespace PowerMath.UI.MainMenu
             if (!IsConfigured)
             {
                 reason = string.IsNullOrEmpty(_unavailableReason)
-                    ? "Pet Gacha content is unavailable."
+                    ? LocalizationService.Get("menu.gachaNotConfigured")
                     : _unavailableReason;
                 return false;
             }
             if (_busy)
             {
-                reason = "Saving the current pull...";
+                reason = LocalizationService.Get("menu.savingPull");
                 return false;
             }
             if (!string.IsNullOrEmpty(_player.activeRun?.committedAttemptId))
             {
-                reason = "Finish the current question before pulling.";
+                reason = LocalizationService.Get("menu.finishQuestionBeforePull");
                 return false;
             }
             if (string.Equals(_player.activeRun?.phase, "RunDefeat", StringComparison.Ordinal))
             {
-                reason = "Finish run settlement before pulling.";
+                reason = LocalizationService.Get("menu.finishSettlementBeforePull");
                 return false;
             }
             return true;
@@ -1261,8 +1371,7 @@ namespace PowerMath.UI.MainMenu
             _pull1?.SetEnabled(false);
             _pull10?.SetEnabled(false);
             _status.text = string.Empty;
-            _confirmationSummary.text =
-                "Saving this pull…\nYour result will appear after the transaction is accepted.";
+            _confirmationSummary.text = LocalizationService.Get("menu.savingPullResult");
             SetSemanticState("is-busy");
             Play(_definition?.CommitClip);
 
@@ -1364,10 +1473,10 @@ namespace PowerMath.UI.MainMenu
             RarityTier highest = GetHighestRarity(receipt);
             ApplyRarityClass(_transition, highest);
             _transitionHeadline.text = highest == RarityTier.Ssr
-                ? "A GOLDEN CALL ANSWERS"
+                ? LocalizationService.Get("menu.goldenCall")
                 : highest == RarityTier.Sr
-                    ? "A RARE CALL RESONATES"
-                    : "THE CALL RESONATES";
+                    ? LocalizationService.Get("menu.rareCall")
+                    : LocalizationService.Get("menu.callResonates");
             ResetTransitionPhases();
             if (_wishSky == null)
             {
@@ -1458,7 +1567,8 @@ namespace PowerMath.UI.MainMenu
             int anticipation = _reducedMotion ? 0 :
                 tier == RarityTier.Ssr ? 300 : tier == RarityTier.Sr ? 140 : 0;
             ApplyRarityClass(_reveal, tier);
-            _revealProgress.text = $"REVEAL {index + 1} / {_presentationReceipt.Results.Count}";
+            _revealProgress.text = LocalizationService.Get(
+                "menu.revealProgress", index + 1, _presentationReceipt.Results.Count);
             RenderReveal(roll, _presentationReceipt.ResultingPowerCoins);
             _reveal.Focus();
             if (index == 0)
@@ -1547,16 +1657,18 @@ namespace PowerMath.UI.MainMenu
         private void RenderReveal(PetGachaResult roll, long resultingPowerCoins)
         {
             if (_resultBalance != null)
-                _resultBalance.text = $"POWER COINS: {resultingPowerCoins:N0}";
+                _resultBalance.text = LocalizationService.Get("menu.resultPowerCoins", resultingPowerCoins);
             if (_resultState != null)
-                _resultState.text = roll.WasNew ? "NEW ✦" : "DUPLICATE";
+                _resultState.text = LocalizationService.Get(
+                    roll.WasNew ? "menu.newResult" : "menu.duplicateResult");
 
             if (_definition != null && _definition.TryResolvePet(
                     roll.PetId,
                     out PetDefinition pet,
                     out PetGachaCatalogDefinition.RarityContent rarity))
             {
-                if (_resultName != null) _resultName.text = pet.DisplayName.ToUpperInvariant();
+                if (_resultName != null)
+                    _resultName.text = pet.GetDisplayName(LocalizationService.Locale).ToUpperInvariant();
                 if (_resultRarity != null)
                 {
                     _resultRarity.text = GetRarityLabel(ResolveRarityTier(roll.RarityId, roll.PetId));
@@ -1768,7 +1880,8 @@ namespace PowerMath.UI.MainMenu
                 card.Add(glow);
             }
 
-            var badge = new Label(roll.WasNew ? "NEW!" : "DUPE");
+            var badge = new Label(LocalizationService.Get(
+                roll.WasNew ? "menu.newBadge" : "menu.dupeBadge"));
             badge.AddToClassList("pet-gacha-multi-card-badge");
             badge.AddToClassList(roll.WasNew
                 ? "pet-gacha-badge--new"
@@ -1788,7 +1901,7 @@ namespace PowerMath.UI.MainMenu
                     out PetDefinition pet,
                     out PetGachaCatalogDefinition.RarityContent rarity))
             {
-                name.text = pet.DisplayName;
+                name.text = pet.GetDisplayName(LocalizationService.Locale);
                 if (pet.Icon != null)
                 {
                     icon.sprite = pet.Icon;

@@ -54,6 +54,8 @@ namespace PowerMath.Session
             AddInteger(builder, root, gameData, new[] { "progression", "prestige" }, 0);
             AddBoolean(builder, root, gameData, new[] { "progression", "firstStage200Reached" }, false);
             AddInteger(builder, root, gameData, new[] { "progression", "firstStage200ReachedAtUnixSeconds" }, 0);
+            AddBoolean(builder, root, gameData, new[] { "progression", "finalStageReached" }, false);
+            AddInteger(builder, root, gameData, new[] { "progression", "finalStageReachedAtUnixSeconds" }, 0);
             AddInteger(builder, root, gameData, new[] { "progression", "totalDamage" }, 0);
             AddInteger(builder, root, gameData, new[] { "progression", "legacyAtkBonusBasisPoints" }, 0);
             AddInteger(builder, root, gameData, new[] { "progression", "leaderboardSnapshotAtUnixSeconds" }, 0);

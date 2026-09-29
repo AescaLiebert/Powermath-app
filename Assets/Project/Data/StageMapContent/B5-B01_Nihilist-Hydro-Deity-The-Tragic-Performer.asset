@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e13a1c9d31959844b9b3ac3e62ae18d7, type: 3}
+  m_Name: B5-B01_Nihilist-Hydro-Deity-The-Tragic-Performer
+  m_EditorClassIdentifier: PowerMath.Gameplay.Combat.Unity::PowerMath.Gameplay.Combat.Unity.EnemyDefinition
+  enemyId: B5-B01
+  displayName: Nihilist, Hydro Deity The Tragic Performer
+  thaiDisplayName: "\u0E21\u0E2B\u0E32\u0E40\u0E17\u0E1E\u0E27\u0E32\u0E23\u0E35
+    \u0E1C\u0E39\u0E49\u0E23\u0E48\u0E32\u0E22\u0E23\u0E30\u0E1A\u0E33\u0E40\u0E40\u0E2B\u0E48\u0E07\u0E42\u0E28\u0E01\u0E19\u0E32\u0E0F\u0E01\u0E23\u0E23\u0E21,
+    \u0E44\u0E19\u0E2E\u0E34\u0E2E\u0E34\u0E2A"
+  biomeId: biome-5
+  encounterKind: 2
+  baseHp: 700
+  maximumCooldown: 2
+  hpMultiplierBasisPoints: 20000
+  enemySprite: {fileID: 21300000, guid: 3f9d3e9dd9b5edf46ae796740408b098, type: 3}
+  addressableKey: 
+  customBattleMusic:
+    clip: {fileID: 8300000, guid: 85e18707dca261649b73615ad96ebccc, type: 3}
+    addressableKey: 
+    volumeScale: 1
+    loop: 1
+  customAppearSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customHurtSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customAttackSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}
+  customDieSfx:
+    clips: []
+    volumeScale: 1
+    pitchRange: {x: 0.96, y: 1.04}

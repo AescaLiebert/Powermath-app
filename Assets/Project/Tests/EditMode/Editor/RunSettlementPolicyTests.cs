@@ -136,7 +136,7 @@ namespace PowerMath.Tests.EditMode
         }
 
         [Test]
-        public void Calculate_WhenTeleportedToStage180_ScalesRewardsToTenPercent()
+        public void Calculate_WhenTeleportedToStage180_GrantsFullRewards()
         {
             PlayerSnapshot player = CreatePlayer(stage: 180);
             player.activeRun.wasTeleported = true;
@@ -146,13 +146,11 @@ namespace PowerMath.Tests.EditMode
             RunSettlementAward teleportAward = RunSettlementPolicy.Calculate(
                 player, RunSettlementType.Rebirth);
 
-            // Normal: 180 * 50 = 9000 basis points (90%).
-            // Teleport penalty: 9000 * 0.10 = 900 basis points (9%).
+            // Teleport penalty removed for admin tool convenience: 100% of rewards (multiplier = 1.0).
             Assert.That(normalAward.LegacyBasisPoints, Is.EqualTo(9000));
-            Assert.That(teleportAward.LegacyBasisPoints, Is.EqualTo(900));
+            Assert.That(teleportAward.LegacyBasisPoints, Is.EqualTo(9000));
             Assert.That(teleportAward.WasTeleported, Is.True);
-            Assert.That(teleportAward.PowerCoins, Is.EqualTo(
-                (long)Math.Round(normalAward.PowerCoins * 0.10d, MidpointRounding.AwayFromZero)));
+            Assert.That(teleportAward.PowerCoins, Is.EqualTo(normalAward.PowerCoins));
         }
 
         [Test]

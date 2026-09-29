@@ -251,7 +251,7 @@ namespace PowerMath.UI.MainMenu
         {
             int revision = ++_milestoneRevision;
             _view.MilestoneName.text = string.IsNullOrWhiteSpace(milestoneName)
-                ? "NEW WEAPON FORM"
+                ? PowerMath.Localization.LocalizationService.Get("menu.newWeapon")
                 : milestoneName.ToUpperInvariant();
             _view.Milestone.EnableInClassList("is-visible", true);
             _view.Milestone.schedule.Execute(() =>

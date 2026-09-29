@@ -93,8 +93,15 @@ namespace PowerMath.Gameplay.Academic
 
             foreach (string catalogId in catalogIds)
                 documents.Add(catalogId, questions);
-            try { Complete(generation, completed, new EventQuestionCatalog(documents), string.Empty); }
-            catch (Exception exception) { Complete(generation, completed, null, exception.Message); }
+            EventQuestionCatalog catalog = null;
+            string catalogError = string.Empty;
+            try { catalog = new EventQuestionCatalog(documents); }
+            catch (Exception exception) { catalogError = exception.Message; }
+
+            // The consumer initializes gameplay. Its exceptions must reach the
+            // caller instead of being mistaken for catalog validation failures
+            // and delivered a second time to an already completed callback.
+            Complete(generation, completed, catalog, catalogError);
         }
 
         private static readonly string[] IdFieldCandidates =

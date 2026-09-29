@@ -19,8 +19,14 @@ namespace PowerMath.Localization
             _root.Query<TextElement>().ForEach(element =>
             {
                 foreach (string name in element.GetClasses())
-                    if (name.StartsWith("loc-"))
+                    if (name.StartsWith("loc-") && !name.StartsWith("loc-tip-"))
                     { element.text = LocalizationService.Get(name.Substring(4)); break; }
+            });
+            _root.Query<VisualElement>().ForEach(element =>
+            {
+                foreach (string name in element.GetClasses())
+                    if (name.StartsWith("loc-tip-"))
+                    { element.tooltip = LocalizationService.Get(name.Substring(8)); break; }
             });
         }
         private void OnDestroy() => LocalizationService.Changed -= Refresh;

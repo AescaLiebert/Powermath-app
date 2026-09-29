@@ -14,6 +14,7 @@ namespace PowerMath.Gameplay.Progression
             [Min(0)] public int unlockLevel;
             public string localizedDisplayNameKey;
             public string displayName = "Sword";
+            public string thaiDisplayName = string.Empty;
             public Sprite icon;
             [Tooltip("Optional Addressables key for icon streaming.")]
             public string iconAddressableKey;
@@ -24,6 +25,12 @@ namespace PowerMath.Gameplay.Progression
             public string IconAddressableKey => !string.IsNullOrWhiteSpace(iconAddressableKey)
                 ? iconAddressableKey
                 : (icon != null && icon.texture != null ? icon.texture.name : (icon != null ? icon.name.Replace("_0", "") : tierId));
+
+            public string GetDisplayName(string locale) =>
+                string.Equals(locale, "th", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrWhiteSpace(thaiDisplayName)
+                    ? thaiDisplayName.Trim()
+                    : displayName;
         }
 
         public const int DefaultLevelsPerTier = 5;

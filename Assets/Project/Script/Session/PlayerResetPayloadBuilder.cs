@@ -51,6 +51,8 @@ namespace PowerMath.Session
             builder.AddInteger(Join(root, "progression", "prestige"), 0);
             builder.AddBoolean(Join(root, "progression", "firstStage200Reached"), false);
             builder.AddInteger(Join(root, "progression", "firstStage200ReachedAtUnixSeconds"), 0);
+            builder.AddBoolean(Join(root, "progression", "finalStageReached"), false);
+            builder.AddInteger(Join(root, "progression", "finalStageReachedAtUnixSeconds"), 0);
             builder.AddInteger(Join(root, "progression", "totalDamage"), 0);
             builder.AddInteger(Join(root, "progression", "legacyAtkBonusBasisPoints"), 0);
             builder.AddInteger(Join(root, "progression", "leaderboardSnapshotAtUnixSeconds"), 0);

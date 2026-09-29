@@ -15,7 +15,7 @@ namespace PowerMath.Editor.Tools
     public sealed class EnemyDatabaseImporter : EditorWindow
     {
         public const string DefaultCsvPath = "Assets/Project/Data/EnemyDatabase.csv";
-        public const string DefaultOutputFolder = "Assets/Project/Resources/StageMapContent";
+        public const string DefaultOutputFolder = "Assets/Project/Data/StageMapContent";
         public const string DefaultGoogleSheetUrl =
             "https://docs.google.com/spreadsheets/d/1DdH5ZZzZDkbMSatpaPaAByNsSjLQiWEXfv5AbWwlj18/export?format=csv&gid=1801810648";
 
@@ -143,8 +143,8 @@ namespace PowerMath.Editor.Tools
                 AssetDatabase.Refresh();
             }
 
-            // Index all existing EnemyDefinition assets in StageMapContent
-            string[] guids = AssetDatabase.FindAssets("t:EnemyDefinition", new[] { DefaultOutputFolder });
+            // Index all existing EnemyDefinition assets in project
+            string[] guids = AssetDatabase.FindAssets("t:EnemyDefinition");
             var existingAssets = new List<ExistingAssetEntry>();
 
             foreach (string guid in guids)
@@ -293,9 +293,9 @@ namespace PowerMath.Editor.Tools
             }
 
             // 4. Biome template match (e.g. Biome02_Normal, Biome02_MiniBoss, Biome02_BigBoss, FinalBoss)
-            if (row.BiomeNumber >= 1 && row.BiomeNumber <= 7)
+            if (row.BiomeNumber >= 1)
             {
-                if (row.EncounterKind == StageEncounterKind.FinalBoss || (row.BiomeNumber == 7 && row.EncounterKind == StageEncounterKind.BigBoss))
+                if (row.EncounterKind == StageEncounterKind.FinalBoss)
                 {
                     var finalBoss = unclaimed.FirstOrDefault(x => x.FileName.Equals("FinalBoss", StringComparison.OrdinalIgnoreCase));
                     if (finalBoss != null) return finalBoss;
@@ -353,8 +353,8 @@ namespace PowerMath.Editor.Tools
 
         private static void UpdateBiomeDefinitions(Dictionary<int, List<EnemyDefinition>> normalMonstersByBiome, UpsertResult result)
         {
-            // Load all enemy definitions in folder to locate bosses and minibosses
-            string[] guids = AssetDatabase.FindAssets("t:EnemyDefinition", new[] { DefaultOutputFolder });
+            // Load all enemy definitions to locate bosses and minibosses
+            string[] guids = AssetDatabase.FindAssets("t:EnemyDefinition");
             var allEnemies = new List<EnemyDefinition>();
             foreach (string guid in guids)
             {
@@ -362,11 +362,25 @@ namespace PowerMath.Editor.Tools
                 if (enemy != null) allEnemies.Add(enemy);
             }
 
-            for (int biomeNum = 1; biomeNum <= 7; biomeNum++)
+            // Find all BiomeDefinition assets, sorted by FirstStage
+            string[] biomeGuids = AssetDatabase.FindAssets("t:BiomeDefinition");
+            var allBiomes = new List<BiomeDefinition>();
+            foreach (string guid in biomeGuids)
             {
-                string biomePath = $"{DefaultOutputFolder}/Biome{biomeNum:D2}.asset";
-                var biome = AssetDatabase.LoadAssetAtPath<BiomeDefinition>(biomePath);
-                if (biome == null) continue;
+                var biomeAsset = AssetDatabase.LoadAssetAtPath<BiomeDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (biomeAsset != null) allBiomes.Add(biomeAsset);
+            }
+            allBiomes.Sort((a, b) => a.FirstStage.CompareTo(b.FirstStage));
+
+            for (int i = 0; i < allBiomes.Count; i++)
+            {
+                BiomeDefinition biome = allBiomes[i];
+                int biomeNum = i + 1;
+                if (!string.IsNullOrEmpty(biome.BiomeId) && biome.BiomeId.StartsWith("biome-", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(biome.BiomeId.Substring(6), out int parsedNum))
+                        biomeNum = parsedNum;
+                }
 
                 var so = new SerializedObject(biome);
 
@@ -391,38 +405,34 @@ namespace PowerMath.Editor.Tools
                 if (normalProp != null && normalProp.isArray)
                 {
                     normalProp.ClearArray();
-                    for (int i = 0; i < monsters.Count; i++)
+                    for (int m = 0; m < monsters.Count; m++)
                     {
-                        normalProp.InsertArrayElementAtIndex(i);
-                        normalProp.GetArrayElementAtIndex(i).objectReferenceValue = monsters[i];
+                        normalProp.InsertArrayElementAtIndex(m);
+                        normalProp.GetArrayElementAtIndex(m).objectReferenceValue = monsters[m];
                     }
                 }
 
                 // 2. Populate Boss Bindings for protected stages
                 string bNumStr = biomeNum.ToString();
-                var miniBoss = allEnemies.FirstOrDefault(e =>
+                var biomeEnemies = allEnemies.Where(e =>
                     e != null &&
-                    e.BiomeId == $"biome-{biomeNum}" &&
+                    string.Equals(e.BiomeId, $"biome-{biomeNum}", StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(e => e.EnemyId, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+
+                var miniBoss = biomeEnemies.FirstOrDefault(e =>
                     e.EncounterKind == StageEncounterKind.MiniBoss &&
                     e.EnemyId.StartsWith($"B{bNumStr}-E", StringComparison.OrdinalIgnoreCase))
-                    ?? allEnemies.FirstOrDefault(e =>
-                        e != null &&
-                        e.BiomeId == $"biome-{biomeNum}" &&
-                        e.EncounterKind == StageEncounterKind.MiniBoss);
+                    ?? biomeEnemies.FirstOrDefault(e => e.EncounterKind == StageEncounterKind.MiniBoss);
 
-                var bigBoss = allEnemies.FirstOrDefault(e =>
-                    e != null &&
-                    e.BiomeId == $"biome-{biomeNum}" &&
-                    (e.EncounterKind == StageEncounterKind.BigBoss || e.EncounterKind == StageEncounterKind.FinalBoss) &&
+                var bigBoss = biomeEnemies.FirstOrDefault(e =>
+                    e.EncounterKind == StageEncounterKind.BigBoss &&
                     e.EnemyId.StartsWith($"B{bNumStr}-B01", StringComparison.OrdinalIgnoreCase))
-                    ?? allEnemies.FirstOrDefault(e =>
-                        e != null &&
-                        e.BiomeId == $"biome-{biomeNum}" &&
-                        (e.EncounterKind == StageEncounterKind.BigBoss || e.EncounterKind == StageEncounterKind.FinalBoss));
+                    ?? biomeEnemies.FirstOrDefault(e => e.EncounterKind == StageEncounterKind.BigBoss);
 
-                var finalBoss = allEnemies.FirstOrDefault(e =>
-                    e != null &&
-                    e.EncounterKind == StageEncounterKind.FinalBoss) ?? bigBoss;
+                var finalBoss = biomeEnemies.FirstOrDefault(e =>
+                    e.EncounterKind == StageEncounterKind.FinalBoss &&
+                    e.EnemyId.StartsWith($"B{bNumStr}-B01", StringComparison.OrdinalIgnoreCase));
 
                 var bossBindingsProp = so.FindProperty("bossBindings");
                 if (bossBindingsProp != null && bossBindingsProp.isArray)
@@ -433,7 +443,7 @@ namespace PowerMath.Editor.Tools
                     {
                         var stageId = new StageId(stage);
                         if (!StageClassificationPolicy.IsProtected(stageId)) continue;
-                        bool isFinalBiome = biome.BiomeId == "biome-7" || biome.LastStage == StageId.Final;
+                        bool isFinalBiome = (i == allBiomes.Count - 1);
                         StageEncounterKind requiredKind = StageClassificationPolicy.Classify(stageId, biome.LastStage, isFinalBiome);
 
                         EnemyDefinition selectedBoss = null;
@@ -457,7 +467,7 @@ namespace PowerMath.Editor.Tools
 
                 so.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(biome);
-                result.Logs.Add($"[BIOME LINK] Updated 'Biome{biomeNum:D2}.asset' with {monsters.Count} normal monsters and valid boss bindings.");
+                result.Logs.Add($"[BIOME LINK] Updated '{biome.name}.asset' with {monsters.Count} normal monsters and valid boss bindings.");
             }
         }
 
@@ -507,14 +517,7 @@ namespace PowerMath.Editor.Tools
                 }
                 else if (typeStr.IndexOf("boss", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    if (biomeNum == 7 && id.IndexOf("B01", StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        kind = StageEncounterKind.FinalBoss;
-                    }
-                    else
-                    {
-                        kind = StageEncounterKind.BigBoss;
-                    }
+                    kind = StageEncounterKind.BigBoss;
                 }
 
                 list.Add(new EnemyCsvRow
@@ -530,6 +533,17 @@ namespace PowerMath.Editor.Tools
                     BiomeNumber = biomeNum,
                     BiomeId = $"biome-{biomeNum}"
                 });
+            }
+
+            // The final boss belongs to the highest biome represented by this CSV.
+            // Do not keep the former Biome 7 special case after the stage map grows.
+            int finalBiomeNumber = list.Count == 0 ? 0 : list.Max(row => row.BiomeNumber);
+            foreach (EnemyCsvRow row in list)
+            {
+                if (row.Id.EndsWith("-B01", StringComparison.OrdinalIgnoreCase))
+                    row.EncounterKind = row.BiomeNumber == finalBiomeNumber
+                        ? StageEncounterKind.FinalBoss
+                        : StageEncounterKind.BigBoss;
             }
 
             return list;

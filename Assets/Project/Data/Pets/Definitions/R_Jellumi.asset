@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   petId: jellumi
   displayName: Jellumi
+  thaiDisplayName: เจลลูมิ
   icon: {fileID: 21300000, guid: 31a7b5667f224be44b8dcd9fd20c2546, type: 3}
   previewSprite: {fileID: 21300000, guid: 31a7b5667f224be44b8dcd9fd20c2546, type: 3}
   iconAddressableKey: 

@@ -12,6 +12,7 @@ namespace PowerMath.UI.MainMenu
         bool IsPlaying { get; }
         void NotifySessionReady();
         void NotifyRecoveryReady();
+        void NotifyPresentationReady();
         void CancelAndApplyFinalState();
     }
 
@@ -49,6 +50,8 @@ namespace PowerMath.UI.MainMenu
         private Vector2 _enemyFinalPosition;
         private bool _bootstrapPlayed;
         private bool _sessionReady;
+        private bool _recoveryReady;
+        private bool _presentationReady;
         private int _generation;
         private IInteractionLock _bootstrapLock;
 
@@ -85,6 +88,7 @@ namespace PowerMath.UI.MainMenu
             }
 
             CacheAuthoredCanvasState();
+            PrepareCanvasEntrance(IsReducedMotion());
             _view.PrepareBootstrap(IsReducedMotion());
             MainMenuInteractionGateProvider gateProvider =
                 GetComponent<MainMenuInteractionGateProvider>();
@@ -99,17 +103,28 @@ namespace PowerMath.UI.MainMenu
 
         private void Start()
         {
+            if (_recoveryReady)
+                CancelAndApplyFinalState();
+            else
+                TryStartBootstrap();
+
             StartCoroutine(EnforceTransitionStartupSafety());
         }
 
         private IEnumerator EnforceTransitionStartupSafety()
         {
-            const float safetyTimeoutSeconds = 6f;
-            float elapsed = 0f;
-            while (elapsed < safetyTimeoutSeconds)
+            const float safetyTimeoutSeconds = 8f;
+
+            // Start the safety window on the first usable frame. This coroutine
+            // can be created while Unity is still integrating MainMenuScene; in
+            // that case the current unscaledDeltaTime includes the whole scene
+            // load and would otherwise expire the watchdog immediately.
+            yield return null;
+            double deadline = Time.realtimeSinceStartupAsDouble +
+                safetyTimeoutSeconds;
+            while (Time.realtimeSinceStartupAsDouble < deadline)
             {
                 if (_bootstrapPlayed && _activeRoutine == null) yield break;
-                elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
 
@@ -129,20 +144,39 @@ namespace PowerMath.UI.MainMenu
 
         public void NotifySessionReady()
         {
-            if (_bootstrapPlayed || !isActiveAndEnabled || _view == null)
+            _sessionReady = true;
+            TryStartBootstrap();
+        }
+
+        private void TryStartBootstrap()
+        {
+            if (_bootstrapPlayed || _recoveryReady ||
+                !isActiveAndEnabled || _view == null)
                 return;
 
-            _sessionReady = true;
             _bootstrapPlayed = true;
             StartTransition(PlayBootstrap(++_generation));
         }
 
         public void NotifyRecoveryReady()
         {
-            if (!isActiveAndEnabled || _view == null) return;
             _sessionReady = true;
+            _presentationReady = true;
+            if (!isActiveAndEnabled || _view == null) return;
+            if (_activeRoutine != null)
+            {
+                // Bootstrap animation is already in flight. Allow it to finish cleanly
+                // without cutting the routine mid-frame.
+                return;
+            }
+            _recoveryReady = true;
             _bootstrapPlayed = true;
             CancelAndApplyFinalState();
+        }
+
+        public void NotifyPresentationReady()
+        {
+            _presentationReady = true;
         }
 
         public void CancelAndApplyFinalState()
@@ -165,8 +199,6 @@ namespace PowerMath.UI.MainMenu
             CancelActiveTweens();
             if (_activeRoutine != null)
                 StopCoroutine(_activeRoutine);
-            ApplyCanvasFinalState();
-            _view.ApplyFinalState();
             _activeRoutine = StartCoroutine(routine);
         }
 
@@ -179,6 +211,15 @@ namespace PowerMath.UI.MainMenu
                 _view.PrepareBootstrap(reduced);
                 PrepareCanvasEntrance(reduced);
                 yield return null;
+
+                float presentationDeadline = Time.unscaledTime + 4.0f;
+                while ((!_presentationReady || !_sessionReady) && Time.unscaledTime < presentationDeadline)
+                {
+                    if (!IsCurrent(generation)) yield break;
+                    yield return null;
+                }
+
+                if (!IsCurrent(generation)) yield break;
                 yield return WaitUnscaled(settings.InitialSettleSeconds, generation);
 
                 if (!IsCurrent(generation)) yield break;
@@ -189,6 +230,7 @@ namespace PowerMath.UI.MainMenu
                 StartCoroutine(RunAndSignal(
                     AnimateCanvasEntrance(generation),
                     () => actorsComplete = true));
+
                 yield return WaitUnscaled(settings.TitleEntrySeconds, generation);
                 yield return WaitUnscaled(settings.TitleHoldSeconds, generation);
 
@@ -196,7 +238,6 @@ namespace PowerMath.UI.MainMenu
                 _view.HideBattleTitle();
                 yield return WaitUnscaled(settings.TitleExitSeconds, generation);
 
-                if (!IsCurrent(generation)) yield break;
                 while (!actorsComplete)
                 {
                     if (!IsCurrent(generation)) yield break;
@@ -438,9 +479,19 @@ namespace PowerMath.UI.MainMenu
             }
 
             if (playerArt != null)
+            {
                 _playerFinalPosition = playerArt.anchoredPosition;
+                if (playerCanvasGroup == null)
+                    playerCanvasGroup = playerArt.GetComponent<CanvasGroup>() ?? playerArt.gameObject.AddComponent<CanvasGroup>();
+                EnsureGraphicOpaque(playerArt);
+            }
             if (enemyArt != null)
+            {
                 _enemyFinalPosition = enemyArt.anchoredPosition;
+                if (enemyCanvasGroup == null)
+                    enemyCanvasGroup = enemyArt.GetComponent<CanvasGroup>() ?? enemyArt.gameObject.AddComponent<CanvasGroup>();
+                EnsureGraphicOpaque(enemyArt);
+            }
         }
 
         private void ApplyCanvasFinalState()
@@ -451,6 +502,8 @@ namespace PowerMath.UI.MainMenu
                 enemyArt.anchoredPosition = _enemyFinalPosition;
             SetCanvasAlpha(playerCanvasGroup, playerArt, 1f);
             SetCanvasAlpha(enemyCanvasGroup, enemyArt, 1f);
+            EnsureGraphicOpaque(playerArt);
+            EnsureGraphicOpaque(enemyArt);
         }
 
         private static void SetCanvasAlpha(
@@ -464,11 +517,34 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
 
+            if (target != null)
+            {
+                CanvasGroup targetGroup = target.GetComponent<CanvasGroup>();
+                if (targetGroup != null)
+                {
+                    targetGroup.alpha = alpha;
+                    return;
+                }
+            }
+
             if (target != null && target.TryGetComponent(out UnityEngine.UI.Graphic graphic))
             {
                 Color color = graphic.color;
                 color.a = alpha;
                 graphic.color = color;
+            }
+        }
+
+        private static void EnsureGraphicOpaque(RectTransform target)
+        {
+            if (target != null && target.TryGetComponent(out UnityEngine.UI.Graphic graphic))
+            {
+                if (graphic.color.a < 1f)
+                {
+                    Color color = graphic.color;
+                    color.a = 1f;
+                    graphic.color = color;
+                }
             }
         }
 

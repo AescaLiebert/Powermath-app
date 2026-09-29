@@ -33,15 +33,6 @@ namespace PowerMath.Session
                 yield break;
             }
 
-#if UNITY_EDITOR
-            if (_settings != null && _settings.UseEditorSampleStudent)
-            {
-                ResetEditorMockData();
-                onSuccess?.Invoke();
-                yield break;
-            }
-#endif
-
             if (_settings == null)
             {
                 onFailure?.Invoke("Firebase settings are not configured.");
@@ -204,90 +195,5 @@ namespace PowerMath.Session
             return true;
         }
 
-#if UNITY_EDITOR
-        private void ResetEditorMockData()
-        {
-            if (_player == null) return;
-            _player.revision = 0;
-            _player.onboarding = new PlayerSnapshot.OnboardingData
-            {
-                version = 1,
-                phase = "opening",
-                openingCheckpointId = string.Empty,
-                selectedCharacterId = string.Empty,
-                completionOperationId = string.Empty,
-                legacyPlayer = false
-            };
-            _player.tutorial = new PlayerSnapshot.TutorialData
-            {
-                version = 1,
-                checkpointId = string.Empty
-            };
-            _player.tutorialEntries = Array.Empty<PlayerSnapshot.TutorialEntryData>();
-            if (_player.profile != null)
-            {
-                _player.profile.publicPlayerId = Guid.NewGuid().ToString("N");
-                _player.profile.displayNameChangedAtUnixSeconds = 0;
-            }
-            if (_player.progression != null)
-            {
-                _player.progression.currentStage = 1;
-                _player.progression.highestStage = 1;
-                _player.progression.activeRank = "Silver";
-                _player.progression.rankProgress = 0;
-                _player.progression.prestige = 0;
-                _player.progression.firstStage200Reached = false;
-                _player.progression.firstStage200ReachedAtUnixSeconds = 0;
-                _player.progression.totalDamage = 0;
-                _player.progression.legacyAtkBonusBasisPoints = 0;
-                _player.progression.leaderboardSnapshotAtUnixSeconds = 0;
-                _player.progression.lastSnapshotHighestStage = 0;
-                _player.progression.lastSnapshotWeightedScore = 0;
-            }
-            if (_player.wallet != null)
-            {
-                _player.wallet.silver = 0;
-                _player.wallet.gold = 0;
-                _player.wallet.diamond = 0;
-                _player.wallet.powerCoins = 0;
-            }
-            _player.inventory = Array.Empty<PlayerSnapshot.InventoryItemData>();
-            if (_player.loadout != null)
-            {
-                _player.loadout.petId = string.Empty;
-                _player.loadout.weaponId = string.Empty;
-                _player.loadout.avatarId = string.Empty;
-            }
-            if (_player.activeRun != null)
-            {
-                _player.activeRun = new PlayerSnapshot.ActiveRunData
-                {
-                    runId = Guid.NewGuid().ToString("N"),
-                    currentStage = 1,
-                    encounterKind = "NormalMonster",
-                    phase = "EnemyReady",
-                    bonusMultiplierBasisPoints = 10000,
-                    petEventMultiplierBasisPoints = 10000,
-                    eventScheduleStages = Array.Empty<int>(),
-                    challengeQuestions = new PlayerSnapshot.ChallengeQuestionSequenceData()
-                };
-            }
-            if (_player.academic != null)
-            {
-                _player.academic.auditScore = 0;
-                _player.academic.auditResolvedCount = 0;
-                _player.academic.auditCorrectCount = 0;
-            }
-            if (_player.analytics != null)
-            {
-                _player.analytics.totalQuestionsResolved = 0;
-                _player.analytics.totalCorrect = 0;
-                _player.analytics.totalIncorrect = 0;
-                _player.analytics.totalTimeout = 0;
-                _player.analytics.totalAbandoned = 0;
-                _player.analytics.totalPlaySeconds = 0;
-            }
-        }
-#endif
     }
 }

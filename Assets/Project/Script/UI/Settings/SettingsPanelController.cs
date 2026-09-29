@@ -116,17 +116,9 @@ namespace PowerMath.UI.Settings
             _adminLeaderboard = new PowerMath.UI.MainMenu.SocialProfile.AdminLeaderboardPanelController(
                 root, host, apiSettings, player);
             _tuning = player == null ? null : new FirestoreAdminTuningService(apiSettings, player);
-#if UNITY_EDITOR
-            _authenticationService = apiSettings == null
-                ? null
-                : apiSettings.UseEditorSampleStudent
-                    ? (IAuthenticationService)new EditorMockAuthenticationService()
-                    : new DirectFirestoreAuthenticationService(apiSettings);
-#else
             _authenticationService = apiSettings == null
                 ? null
                 : new DirectFirestoreAuthenticationService(apiSettings);
-#endif
         }
 
         public bool IsValid => _open != null && _modal != null && _close != null &&

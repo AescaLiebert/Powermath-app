@@ -68,6 +68,10 @@ Simulation selection is compile/build guarded. If a non-development build reques
 5. Validate simulation and fail-closed modes.
 6. Add a remote gateway only after separate backend/authority approval.
 
+## Owner Clarification — Firebase Editor Runtime (2026-09-29)
+
+The project owner retired the Editor sample-student account because Editor Play Mode now uses a real Firebase test account. Editor authentication, bootstrap, lifecycle commands, reset, and leaderboard publication use the same Direct Firestore services as player builds. The fixed development RNG seed is removed from `CombatRuntimeSettingsDefinition`; the runtime creates a fresh seed when it initializes the combat random stream. The separate offline question presentation fallback is not changed by this clarification.
+
 ## Related
 
 - `Docs_PowerMath/3_Outputs/ADRs/003-direct-firestore-prototype-authentication.md`

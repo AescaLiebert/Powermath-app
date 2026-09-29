@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
+using PowerMath.Localization;
 using PowerMath.UI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -254,6 +255,8 @@ namespace PowerMath.UI.MainMenu
                     {
                         OwnedPetEntry entry = inventory.Entries[i];
                         Button tile = (Button)_petGrid[i];
+                        tile.tooltip = entry.Definition.GetDisplayName(
+                            LocalizationService.Locale);
                         tile.EnableInClassList("is-equipped", entry.IsEquipped);
                         bool isPending = string.Equals(pendingPetId, entry.Definition.PetId, StringComparison.Ordinal);
                         tile.EnableInClassList("is-pending", isPending);
@@ -282,7 +285,7 @@ namespace PowerMath.UI.MainMenu
                 var tile = new Button
                 {
                     name = "PetSlot",
-                    tooltip = entry.Definition.DisplayName,
+                    tooltip = entry.Definition.GetDisplayName(LocalizationService.Locale),
                     userData = entry.Definition.PetId
                 };
                 tile.AddToClassList("player-hub-pet-tile");
@@ -372,7 +375,7 @@ namespace PowerMath.UI.MainMenu
             PetPreviewRarity.text = BuildRarityStars(entry);
             PetPreviewRarity.tooltip = entry.RarityName;
             PetPreviewRarity.style.color = entry.RarityColor;
-            string nameText = definition.DisplayName.ToUpperInvariant();
+            string nameText = definition.GetDisplayName(LocalizationService.Locale).ToUpperInvariant();
             if (entry.Count > 1) nameText += $"  (x{entry.Count})";
             PetPreviewName.text = nameText;
             PetPreviewStatKind statKind = ResolvePetStat(definition);
@@ -390,7 +393,7 @@ namespace PowerMath.UI.MainMenu
                 ? FormatPassiveName(definition)
                 : string.Empty;
             PetPreviewPassiveDescription.text = hasPassive
-                ? definition.PassiveDescription.Trim()
+                ? definition.GetPassiveDescription(LocalizationService.Locale)
                 : string.Empty;
             PetPreviewPassiveDescription.style.display = hasPassive &&
                 !string.IsNullOrWhiteSpace(definition.PassiveDescription)
@@ -601,7 +604,9 @@ namespace PowerMath.UI.MainMenu
         private static string FormatPassiveName(PetDefinition definition)
         {
             if (definition.PassiveType == PetPassiveEffectType.None)
-                return "COLLECTION BONUS";
+                return LocalizationService.Get("menu.collectionBonus");
+            if (LocalizationService.Locale == "th")
+                return LocalizationService.Get("menu.passive");
             string raw = definition.PassiveType.ToString();
             var label = new StringBuilder(raw.Length + 8);
             for (int index = 0; index < raw.Length; index++)

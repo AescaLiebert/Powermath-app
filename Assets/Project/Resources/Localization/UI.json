@@ -567,8 +567,8 @@
     },
     {
       "key": "menu.lockedFeatureUpdate",
-      "en": "Wait for 1.3 Update (27/09/26) sorry!",
-      "th": "รออัปเดต 1.3 (27/09/26) ขออภัยด้วยนะ!"
+      "en": "Wait for 1.3 Update (31/09/26) sorry!",
+      "th": "รออัปเดต 1.3 (31/09/26) ขออภัยด้วยนะ!"
     },
     {
       "key": "menu.saveName",
@@ -1216,11 +1216,6 @@
       "th": "พาวเวอร์"
     },
     {
-      "key": "tutorial.advance",
-      "en": "Continue",
-      "th": "ต่อไป"
-    },
-    {
       "key": "tutorial.updateRequired",
       "en": "This tutorial requires a newer game version.",
       "th": "บทสอนนี้ต้องใช้เกมเวอร์ชันใหม่กว่า"
@@ -1469,6 +1464,541 @@
       "key": "tutorial.onFirstRebirth.final",
       "en": "Feeling more ready now? Then let's get back out there, adventurer!",
       "th": "พร้อมกว่าเดิมแล้วใช่ไหม? งั้นกลับไปลุยกันต่อเลย นักผจญภัย!"
+    },
+    {
+      "key": "menu.stageNumber",
+      "en": "STAGE {0}",
+      "th": "ด่าน {0}"
+    },
+    {
+      "key": "menu.hubUnlockHint",
+      "en": "Unlocks after reaching Stage 31 or completing a run settlement.",
+      "th": "ปลดล็อกเมื่อถึงด่าน 31 หรือจบรอบการเล่น"
+    },
+    {
+      "key": "menu.currentWeapon",
+      "en": "CURRENT WEAPON",
+      "th": "อาวุธปัจจุบัน"
+    },
+    {
+      "key": "menu.statAttack",
+      "en": "Attack",
+      "th": "พลังโจมตี"
+    },
+    {
+      "key": "menu.statCritRate",
+      "en": "Crit Rate",
+      "th": "อัตราคริติคอล"
+    },
+    {
+      "key": "menu.statCritDamage",
+      "en": "Crit Damage",
+      "th": "ความเสียหายคริติคอล"
+    },
+    {
+      "key": "menu.passive",
+      "en": "PASSIVE",
+      "th": "ความสามารถพิเศษ"
+    },
+    {
+      "key": "menu.milestoneAwakened",
+      "en": "MILESTONE AWAKENED",
+      "th": "ปลุกพลังขั้นใหม่แล้ว"
+    },
+    {
+      "key": "menu.weaponTab",
+      "en": "Weapon",
+      "th": "อาวุธ"
+    },
+    {
+      "key": "menu.petsTab",
+      "en": "Pets",
+      "th": "สัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.previousPets",
+      "en": "Previous pets",
+      "th": "สัตว์เลี้ยงก่อนหน้า"
+    },
+    {
+      "key": "menu.nextPets",
+      "en": "Next pets",
+      "th": "สัตว์เลี้ยงถัดไป"
+    },
+    {
+      "key": "menu.closeHub",
+      "en": "Close Player Hub",
+      "th": "ปิดข้อมูลผู้เล่น"
+    },
+    {
+      "key": "menu.equippedPet",
+      "en": "Equipped pet",
+      "th": "สัตว์เลี้ยงที่ใช้อยู่"
+    },
+    {
+      "key": "menu.equippedWeapon",
+      "en": "Equipped weapon",
+      "th": "อาวุธที่ใช้อยู่"
+    },
+    {
+      "key": "menu.collectionBonus",
+      "en": "COLLECTION BONUS",
+      "th": "โบนัสสะสม"
+    },
+    {
+      "key": "menu.sword",
+      "en": "Sword",
+      "th": "ดาบ"
+    },
+    {
+      "key": "menu.weaponLevel",
+      "en": "Global weapon level {0}",
+      "th": "ระดับอาวุธรวม {0}"
+    },
+    {
+      "key": "menu.maximumFormAwakened",
+      "en": "MAXIMUM FORM AWAKENED",
+      "th": "ปลุกพลังรูปแบบสูงสุดแล้ว"
+    },
+    {
+      "key": "menu.awakenWeapon",
+      "en": "AWAKEN {0}",
+      "th": "ปลุกพลัง {0}"
+    },
+    {
+      "key": "menu.powerUpCurrentForm",
+      "en": "POWER UP CURRENT FORM",
+      "th": "เพิ่มพลังรูปแบบปัจจุบัน"
+    },
+    {
+      "key": "menu.upgrade",
+      "en": "Upgrade",
+      "th": "อัปเกรด"
+    },
+    {
+      "key": "menu.gachaGuarantee",
+      "en": "3◆+ WITHIN 10",
+      "th": "รับ 3◆+ ภายใน 10 ครั้ง"
+    },
+    {
+      "key": "menu.gachaHelper",
+      "en": "Review details or history before summoning.",
+      "th": "ดูรายละเอียดหรือประวัติก่อนอัญเชิญ"
+    },
+    {
+      "key": "menu.details",
+      "en": "DETAILS",
+      "th": "รายละเอียด"
+    },
+    {
+      "key": "menu.history",
+      "en": "HISTORY",
+      "th": "ประวัติ"
+    },
+    {
+      "key": "menu.petStat",
+      "en": "PET STAT",
+      "th": "ค่าสถานะสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.skip",
+      "en": "SKIP",
+      "th": "ข้าม"
+    },
+    {
+      "key": "menu.skipAll",
+      "en": "SKIP ALL",
+      "th": "ข้ามทั้งหมด"
+    },
+    {
+      "key": "menu.tapToContinue",
+      "en": "TAP ANYWHERE TO CONTINUE",
+      "th": "แตะที่ใดก็ได้เพื่อดำเนินต่อ"
+    },
+    {
+      "key": "menu.summonResults",
+      "en": "SUMMON RESULTS",
+      "th": "ผลการอัญเชิญ"
+    },
+    {
+      "key": "menu.closeGacha",
+      "en": "Close Pet Gacha",
+      "th": "ปิดการสุ่มสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.closeDetails",
+      "en": "Close details",
+      "th": "ปิดรายละเอียด"
+    },
+    {
+      "key": "menu.closePetPreview",
+      "en": "Close pet preview",
+      "th": "ปิดตัวอย่างสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.summonTenPets",
+      "en": "Summon 10 pets",
+      "th": "อัญเชิญสัตว์เลี้ยง 10 ตัว"
+    },
+    {
+      "key": "menu.summonHistorySoon",
+      "en": "Summon history is coming soon.",
+      "th": "ประวัติการอัญเชิญจะเปิดให้ใช้เร็ว ๆ นี้"
+    },
+    {
+      "key": "menu.multiSummonLocked",
+      "en": "10x summon is locked in this hub release.",
+      "th": "การอัญเชิญ 10 ครั้งยังไม่เปิดในเวอร์ชันนี้"
+    },
+    {
+      "key": "menu.gachaOpenHint",
+      "en": "Spend Power Coins on transparent 1x or 10x pet pulls.",
+      "th": "ใช้เหรียญพลังสุ่มสัตว์เลี้ยง 1 หรือ 10 ครั้ง"
+    },
+    {
+      "key": "menu.finishSettlementFirst",
+      "en": "Finish run settlement first.",
+      "th": "จบรอบการเล่นก่อน"
+    },
+    {
+      "key": "menu.gachaNotConfigured",
+      "en": "Pet Gacha content is not configured.",
+      "th": "ยังไม่ได้ตั้งค่าข้อมูลการสุ่มสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.gachaCostSummary",
+      "en": "1x: {0:N0} PC  /  10x: {1:N0} PC",
+      "th": "1 ครั้ง: {0:N0} เหรียญ  /  10 ครั้ง: {1:N0} เหรียญ"
+    },
+    {
+      "key": "menu.afterPull",
+      "en": "AFTER PULL: {0:N0} PC",
+      "th": "หลังสุ่ม: {0:N0} เหรียญ"
+    },
+    {
+      "key": "menu.needMoreCoins",
+      "en": "NEED {0:N0} MORE",
+      "th": "ต้องการเพิ่มอีก {0:N0} เหรียญ"
+    },
+    {
+      "key": "menu.petCollectionCatalog",
+      "en": "PET COLLECTION - CATALOG {0}",
+      "th": "คอลเลกชันสัตว์เลี้ยง - ชุดข้อมูล {0}"
+    },
+    {
+      "key": "menu.firstPullGuarantee",
+      "en": "FIRST PULL GUARANTEE: SSR Sapphire!",
+      "th": "สุ่มครั้งแรกการันตี SSR แซฟไฟร์!"
+    },
+    {
+      "key": "menu.gachaPity",
+      "en": "SR guarantee: {0}/10. SSR pity: {1}/90 (Soft pity after 74 pulls, +6%/pull).",
+      "th": "การันตี SR: {0}/10 สะสม SSR: {1}/90 (เพิ่มโอกาสหลัง 74 ครั้ง ครั้งละ 6%)"
+    },
+    {
+      "key": "menu.gachaInspectHelp",
+      "en": "Tap a pet to inspect it. Duplicates increase collection count.",
+      "th": "แตะสัตว์เลี้ยงเพื่อดูรายละเอียด ตัวซ้ำจะเพิ่มจำนวนในคอลเลกชัน"
+    },
+    {
+      "key": "menu.pullWithCost",
+      "en": "{0}x PULL ({1:N0})",
+      "th": "สุ่ม {0} ครั้ง ({1:N0})"
+    },
+    {
+      "key": "menu.inspectPet",
+      "en": "Inspect {0}",
+      "th": "ดูรายละเอียด {0}"
+    },
+    {
+      "key": "menu.petChance",
+      "en": "{0} chance",
+      "th": "โอกาส {0}"
+    },
+    {
+      "key": "menu.petStatPlayerAttack",
+      "en": "+{0} ATK",
+      "th": "+{0} พลังโจมตี"
+    },
+    {
+      "key": "menu.petStatPlayerAttackPercent",
+      "en": "+{0:0.#}% ATK",
+      "th": "+{0:0.#}% พลังโจมตี"
+    },
+    {
+      "key": "menu.petStatPetAttack",
+      "en": "+{0} Pet ATK",
+      "th": "+{0} พลังโจมตีสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.petStatPetAttackPercent",
+      "en": "+{0:0.#}% Pet ATK",
+      "th": "+{0:0.#}% พลังโจมตีสัตว์เลี้ยง"
+    },
+    {
+      "key": "menu.petStatCritRate",
+      "en": "+{0:0.#}% Crit Rate",
+      "th": "+{0:0.#}% อัตราคริติคอล"
+    },
+    {
+      "key": "menu.petStatCritDamage",
+      "en": "+{0:0.#}% Crit Damage",
+      "th": "+{0:0.#}% ความเสียหายคริติคอล"
+    },
+    {
+      "key": "menu.petStatEncounterLuck",
+      "en": "+{0:0.#}% Luck",
+      "th": "+{0:0.#}% โชคลาศ"
+    },
+    {
+      "key": "menu.petStatPowerCoins",
+      "en": "+{0:0.#}% Money Bonus",
+      "th": "+{0:0.#}% อัตรารวย"
+    },
+    {
+      "key": "menu.petStatHeart",
+      "en": "+{0} Heart",
+      "th": "+{0} หัวใจ"
+    },
+    {
+      "key": "menu.collectionPet",
+      "en": "Collection Pet",
+      "th": "สัตว์เลี้ยงสะสม"
+    },
+    {
+      "key": "menu.confirmPullCount",
+      "en": "CONFIRM {0}x PULL",
+      "th": "ยืนยันสุ่ม {0} ครั้ง"
+    },
+    {
+      "key": "menu.confirmSpend",
+      "en": "Spend {0:N0} Power Coins for {1} pulls?",
+      "th": "ใช้ {0:N0} เหรียญพลังเพื่อสุ่ม {1} ครั้งหรือไม่?"
+    },
+    {
+      "key": "menu.balanceChange",
+      "en": "Balance: {0:N0} -> {1:N0}",
+      "th": "ยอดเหรียญ: {0:N0} → {1:N0}"
+    },
+    {
+      "key": "menu.firstPullBonus",
+      "en": "★ FIRST PULL BONUS: Guaranteed SSR Sapphire!",
+      "th": "★ โบนัสสุ่มครั้งแรก: การันตี SSR แซฟไฟร์!"
+    },
+    {
+      "key": "menu.multiPullGuarantee",
+      "en": "Guarantees at least one SR or SSR. SSR is guaranteed by pull 90.",
+      "th": "การันตีอย่างน้อยหนึ่งตัวระดับ SR หรือ SSR และการันตี SSR ภายใน 90 ครั้ง"
+    },
+    {
+      "key": "menu.duplicateStackHelp",
+      "en": "Duplicates will stack by count in your pet inventory.",
+      "th": "สัตว์เลี้ยงที่ซ้ำจะเพิ่มจำนวนในคลัง"
+    },
+    {
+      "key": "menu.savingPullResult",
+      "en": "Saving this pull…\nYour result will appear after the transaction is accepted.",
+      "th": "กำลังบันทึกการสุ่ม…\nผลจะปรากฏเมื่อยืนยันรายการแล้ว"
+    },
+    {
+      "key": "menu.goldenCall",
+      "en": "A GOLDEN CALL ANSWERS",
+      "th": "เสียงเรียกสีทองตอบรับ"
+    },
+    {
+      "key": "menu.rareCall",
+      "en": "A RARE CALL RESONATES",
+      "th": "เสียงเรียกหายากก้องกังวาน"
+    },
+    {
+      "key": "menu.callResonates",
+      "en": "THE CALL RESONATES",
+      "th": "เสียงเรียกก้องกังวาน"
+    },
+    {
+      "key": "menu.revealProgress",
+      "en": "REVEAL {0} / {1}",
+      "th": "เปิดเผย {0} / {1}"
+    },
+    {
+      "key": "menu.resultPowerCoins",
+      "en": "POWER COINS: {0:N0}",
+      "th": "เหรียญพลัง: {0:N0}"
+    },
+    {
+      "key": "menu.newResult",
+      "en": "NEW ✦",
+      "th": "ใหม่ ✦"
+    },
+    {
+      "key": "menu.duplicateResult",
+      "en": "DUPLICATE",
+      "th": "ซ้ำ"
+    },
+    {
+      "key": "menu.newBadge",
+      "en": "NEW!",
+      "th": "ใหม่!"
+    },
+    {
+      "key": "menu.dupeBadge",
+      "en": "DUPE",
+      "th": "ซ้ำ"
+    },
+    {
+      "key": "menu.progressSafe",
+      "en": "Your progress is safe. Let's prepare for a fresh start.",
+      "th": "บันทึกความคืบหน้าแล้ว เตรียมเริ่มต้นใหม่กัน"
+    },
+    {
+      "key": "menu.rebirthKeepsRecords",
+      "en": "Your Rank and lifetime records stay. Questions and the current audit restart.",
+      "th": "อันดับและสถิติตลอดชีพยังอยู่ คำถามและการทบทวนรอบปัจจุบันจะเริ่มใหม่"
+    },
+    {
+      "key": "menu.teleportReducedRewards",
+      "en": "Teleport active: Run settlement rewards reduced to 10%.",
+      "th": "เปิดใช้การเคลื่อนย้าย: รางวัลจบรอบเหลือ 10%"
+    },
+    {
+      "key": "menu.rebirthComplete",
+      "en": "REBIRTH COMPLETE",
+      "th": "เกิดใหม่สำเร็จ"
+    },
+    {
+      "key": "menu.restart",
+      "en": "Restart",
+      "th": "เริ่มใหม่"
+    },
+    {
+      "key": "menu.locked",
+      "en": "Locked",
+      "th": "ยังไม่ปลดล็อก"
+    },
+    {
+      "key": "menu.offline",
+      "en": "Offline",
+      "th": "ออฟไลน์"
+    },
+    {
+      "key": "menu.hubEffectiveAttack",
+      "en": "{0:N0} ATK",
+      "th": "{0:N0} พลังโจมตี"
+    },
+    {
+      "key": "menu.hubPetBreakdownMultiplier",
+      "en": "  -  PET +{0:N0} / ×{1:0.##}",
+      "th": "  -  สัตว์เลี้ยง +{0:N0} / ×{1:0.##}"
+    },
+    {
+      "key": "menu.hubPetBreakdown",
+      "en": "  -  PET +{0:N0}",
+      "th": "  -  สัตว์เลี้ยง +{0:N0}"
+    },
+    {
+      "key": "menu.hubWeaponBreakdown",
+      "en": "WEAPON {0:N0}",
+      "th": "อาวุธ {0:N0}"
+    },
+    {
+      "key": "menu.hubLegacyBonus",
+      "en": "REBIRTH +{0:0.0}%  -  +{1:N0} ATK",
+      "th": "เกิดใหม่ +{0:0.0}%  -  +{1:N0} พลังโจมตี"
+    },
+    {
+      "key": "menu.weaponStats",
+      "en": "ATK {0:N0}\nCR +{1}%   CD +{2}%",
+      "th": "พลังโจมตี {0:N0}\nอัตราคริติคอล +{1}%   ความเสียหายคริติคอล +{2}%"
+    },
+    {
+      "key": "menu.weaponNextStats",
+      "en": "{0}  LV.{1}\nATK {2:N0}   CR +{3}%   CD +{4}%",
+      "th": "{0}  ระดับ {1}\nพลังโจมตี {2:N0}   อัตราคริติคอล +{3}%   ความเสียหายคริติคอล +{4}%"
+    },
+    {
+      "key": "menu.maxShort",
+      "en": "MAX",
+      "th": "สูงสุด"
+    },
+    {
+      "key": "menu.levelTransition",
+      "en": "Lv.{0} → Lv.{1}",
+      "th": "ระดับ {0} → ระดับ {1}"
+    },
+    {
+      "key": "menu.needMorePowerCoins",
+      "en": "Need {0:N0} more Power Coins.",
+      "th": "ต้องการเหรียญพลังเพิ่มอีก {0:N0} เหรียญ"
+    },
+    {
+      "key": "menu.ascensionOffline",
+      "en": "Weapon ascension is not available in offline mode.",
+      "th": "ไม่สามารถยกระดับอาวุธในโหมดออฟไลน์"
+    },
+    {
+      "key": "menu.weaponReachedLevel",
+      "en": "{0} reached Lv.{1} — ATK {2:N0}",
+      "th": "{0} ถึงระดับ {1} — พลังโจมตี {2:N0}"
+    },
+    {
+      "key": "menu.summonNeedCoins",
+      "en": "Summon failed: you need {0:N0} more Power Coins.",
+      "th": "อัญเชิญไม่สำเร็จ: ต้องการเหรียญพลังเพิ่มอีก {0:N0} เหรียญ"
+    },
+    {
+      "key": "menu.finishQuestionBeforePull",
+      "en": "Finish the current question before pulling.",
+      "th": "ตอบคำถามปัจจุบันให้เสร็จก่อนสุ่ม"
+    },
+    {
+      "key": "menu.finishSettlementBeforePull",
+      "en": "Finish run settlement before pulling.",
+      "th": "จบรอบการเล่นก่อนสุ่ม"
+    },
+    {
+      "key": "menu.runDataUnavailable",
+      "en": "Player run data is unavailable.",
+      "th": "ไม่พบข้อมูลรอบการเล่นของผู้เล่น"
+    },
+    {
+      "key": "menu.finishQuestionFirst",
+      "en": "Finish the current question first.",
+      "th": "ตอบคำถามปัจจุบันให้เสร็จก่อน"
+    },
+    {
+      "key": "menu.runNotDefeated",
+      "en": "This run has not ended in defeat.",
+      "th": "รอบนี้ยังไม่จบด้วยความพ่ายแพ้"
+    },
+    {
+      "key": "menu.rebirthUnlockStage",
+      "en": "Rebirth unlocks at Stage 31.",
+      "th": "ปลดล็อกการเกิดใหม่เมื่อถึงด่าน 31"
+    },
+    {
+      "key": "menu.rebirthBetweenQuestions",
+      "en": "Rebirth is only available between questions.",
+      "th": "เกิดใหม่ได้เฉพาะช่วงระหว่างคำถาม"
+    },
+    {
+      "key": "menu.savingChoice",
+      "en": "Saving your last choice…",
+      "th": "กำลังบันทึกการเลือกของคุณ…"
+    },
+    {
+      "key": "menu.petEquipUnavailable",
+      "en": "Pet equipment is unavailable right now.",
+      "th": "ยังไม่สามารถเลือกใช้สัตว์เลี้ยงได้ในขณะนี้"
+    },
+    {
+      "key": "menu.onlyOwnedPets",
+      "en": "Only owned pets can be equipped.",
+      "th": "เลือกใช้ได้เฉพาะสัตว์เลี้ยงที่มีอยู่"
+    },
+    {
+      "key": "menu.actionUnavailable",
+      "en": "Action unavailable.",
+      "th": "ยังไม่สามารถทำรายการนี้ได้"
     }
   ]
 }

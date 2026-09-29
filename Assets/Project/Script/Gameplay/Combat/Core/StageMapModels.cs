@@ -76,7 +76,8 @@ namespace PowerMath.Gameplay.Combat
         {
             if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(title))
                 throw new ArgumentException("Biome identity is required.");
-            if (firstStage < StageId.First || lastStage > StageId.Final || firstStage > lastStage)
+            if (firstStage < StageId.First || lastStage > StageId.Final ||
+                firstStage > lastStage)
                 throw new ArgumentOutOfRangeException(nameof(firstStage));
             if (normalMonsters == null || normalMonsters.Count == 0)
                 throw new ArgumentException("Each biome needs normal monsters.");
@@ -124,7 +125,8 @@ namespace PowerMath.Gameplay.Combat
                 throw new ArgumentOutOfRangeException(nameof(growthBasisPoints));
             if (phase2GrowthBasisPoints < 0 || phase3GrowthBasisPoints < 0 || phase4GrowthBasisPoints < 0)
                 throw new ArgumentOutOfRangeException(nameof(phase2GrowthBasisPoints));
-            if (biomes == null || biomes.Count != 7) throw new ArgumentException("Exactly seven biomes are required.");
+            if (biomes == null || biomes.Count == 0)
+                throw new ArgumentException("At least one biome is required.");
             if (eventEncounterLuckBasisPoints < 0)
                 throw new ArgumentOutOfRangeException(nameof(eventEncounterLuckBasisPoints));
             CatalogVersion = catalogVersion.Trim();
@@ -184,6 +186,7 @@ namespace PowerMath.Gameplay.Combat
         public int VariationBasisPoints { get; }
         public int EventEncounterLuckBasisPoints { get; }
         public IReadOnlyList<BiomeData> Biomes { get; }
+        public int FinalStage => Biomes.Count > 0 ? Biomes[Biomes.Count - 1].LastStage : StageId.Final;
         public IReadOnlyList<EventData> ChanceEvents { get; }
         public BiomeData GetBiome(StageId stage) => Biomes.First(value => value.Contains(stage));
         public bool TryGetEvent(StageId stage, out EventData value) => TryGetFixedEvent(stage, out value);
@@ -266,14 +269,16 @@ namespace PowerMath.Gameplay.Combat
                 throw new InvalidOperationException("At least one chance-based Challenge Monster Event is required.");
 
             int petLuckBasisPoints = Math.Max(0, petMultiplierBasisPoints - 10000);
-            int totalLuckBasisPoints = checked(map.EventEncounterLuckBasisPoints + petLuckBasisPoints);
+            int totalLuckBasisPoints = (int)Math.Min(50000L,
+                (long)map.EventEncounterLuckBasisPoints + petLuckBasisPoints);
 
+            int maxStage = map.FinalStage;
             var generated = new List<int>();
             for (int blockStart = StageId.First;
-                 blockStart <= StageId.Final;
+                 blockStart <= maxStage;
                  blockStart += StagesPerBlock)
             {
-                int blockEnd = Math.Min(StageId.Final, blockStart + StagesPerBlock - 1);
+                int blockEnd = Math.Min(maxStage, blockStart + StagesPerBlock - 1);
                 int fixedChallengeCount = 0;
                 var eligible = new List<int>();
                 for (int stage = blockStart; stage <= blockEnd; stage++)
@@ -295,34 +300,23 @@ namespace PowerMath.Gameplay.Combat
                     throw new InvalidOperationException(
                         $"Stages {blockStart}-{blockEnd} contain more than {MaxEventsPerBlock} fixed Challenge Events.");
 
-                int blockChallengeCount = fixedChallengeCount;
-                if (blockChallengeCount == 0 && eligible.Count > 0)
-                {
-                    generated.Add(TakeStage(eligible, runId, map.CatalogVersion,
-                        blockStart, "guaranteed"));
-                    blockChallengeCount++;
-                }
-
-                int guaranteedBonus = totalLuckBasisPoints / 10000;
-                for (int i = 0; i < guaranteedBonus && blockChallengeCount < MaxEventsPerBlock && eligible.Count > 0; i++)
-                {
-                    generated.Add(TakeStage(eligible, runId, map.CatalogVersion,
-                        blockStart, $"bonus-guaranteed-{i + 1}"));
-                    blockChallengeCount++;
-                }
-
+                int targetEventCount = totalLuckBasisPoints / 10000;
                 int remainderChance = totalLuckBasisPoints % 10000;
-                if (blockChallengeCount < MaxEventsPerBlock && eligible.Count > 0 && remainderChance > 0)
+                if (remainderChance > 0 && fixedChallengeCount + eligible.Count > targetEventCount)
                 {
                     ulong roll = StableHash64.Compute(runId, map.CatalogVersion,
                         blockStart.ToString(), "event-bonus-roll") % 10000UL;
                     if (roll < (ulong)remainderChance)
-                    {
-                        generated.Add(TakeStage(eligible, runId, map.CatalogVersion,
-                            blockStart, "bonus"));
-                        blockChallengeCount++;
-                    }
+                        targetEventCount++;
                 }
+
+                targetEventCount = Math.Min(targetEventCount, MaxEventsPerBlock);
+                int generatedEventCount = Math.Min(
+                    eligible.Count,
+                    Math.Max(0, targetEventCount - fixedChallengeCount));
+                for (int i = 0; i < generatedEventCount; i++)
+                    generated.Add(TakeStage(eligible, runId, map.CatalogVersion,
+                        blockStart, $"luck-guarantee-{i + 1}"));
             }
 
             // EventId remains a valid pool anchor for persisted v1 schedules.
@@ -364,28 +358,24 @@ namespace PowerMath.Gameplay.Combat
                 throw new InvalidOperationException(
                     "Event schedules must use the active Stage Map catalog.");
 
+            int maxStage = map.FinalStage;
             var merged = new List<int>();
             for (int blockStart = StageId.First;
-                 blockStart <= StageId.Final;
+                 blockStart <= maxStage;
                  blockStart += EventScheduleGenerator.StagesPerBlock)
             {
                 int blockEnd = Math.Min(
-                    StageId.Final,
+                    maxStage,
                     blockStart + EventScheduleGenerator.StagesPerBlock - 1);
-                int fixedCount = map.FixedEventStages.Count(stage =>
-                    stage >= blockStart && stage <= blockEnd &&
-                    map.TryGetFixedEvent(new StageId(stage), out EventData fixedEvent) &&
-                    fixedEvent.Type == EventStageType.ChallengeMonster);
-                int capacity = Math.Max(0, EventScheduleGenerator.MaxEventsPerBlock - fixedCount);
-
+                int targetGeneratedCount = refreshed.GeneratedStages.Count(stage =>
+                    stage >= blockStart && stage <= blockEnd);
                 int[] preserved = current.GeneratedStages
                     .Where(stage => stage >= blockStart && stage <= blockEnd &&
                         stage <= currentStage.Value)
                     .OrderBy(stage => stage)
-                    .Take(capacity)
                     .ToArray();
                 merged.AddRange(preserved);
-                capacity -= preserved.Length;
+                int capacity = Math.Max(0, targetGeneratedCount - preserved.Length);
                 if (capacity <= 0) continue;
 
                 merged.AddRange(refreshed.GeneratedStages

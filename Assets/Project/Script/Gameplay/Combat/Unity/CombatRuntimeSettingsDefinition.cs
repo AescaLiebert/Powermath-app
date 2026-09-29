@@ -7,8 +7,7 @@ namespace PowerMath.Gameplay.Combat.Unity
         menuName = "PowerMath/Combat/Runtime Settings")]
     public sealed class CombatRuntimeSettingsDefinition : ScriptableObject
     {
-        [Header("Development Simulation")]
-        [SerializeField] private int randomSeed = 1337;
+        [Header("Combat Defaults")]
         [Range(0f, 1f)]
         [SerializeField] private float criticalRate = 0.2f;
         [Min(0f)]
@@ -31,7 +30,6 @@ namespace PowerMath.Gameplay.Combat.Unity
         [Header("Accessibility")]
         [SerializeField] private bool reducedMotion;
 
-        public int RandomSeed => randomSeed;
         public double CriticalRate => criticalRate;
         public double CriticalDamagePercent => criticalDamagePercent;
         public int MaximumHearts => maximumHearts;
@@ -41,19 +39,5 @@ namespace PowerMath.Gameplay.Combat.Unity
         public double AnswerSeconds => answerSeconds;
         public bool ReducedMotion => reducedMotion;
 
-#if UNITY_EDITOR
-        public void ConfigurePrototype(int seed)
-        {
-            randomSeed = seed;
-            criticalRate = 0.2f;
-            criticalDamagePercent = 50f;
-            maximumHearts = 3;
-            baseWeaponAttack = 5;
-            maximumAnswerLength = 6;
-            preparationSeconds = 1f;
-            answerSeconds = 10f;
-            reducedMotion = false;
-        }
-#endif
     }
 }

@@ -45,18 +45,7 @@ namespace PowerMath.UI.Authentication
                 return;
             }
 
-#if UNITY_EDITOR
-            if (apiSettings.UseEditorSampleStudent)
-            {
-                _authenticationService = new EditorMockAuthenticationService();
-            }
-            else
-            {
-                _authenticationService = new DirectFirestoreAuthenticationService(apiSettings);
-            }
-#else
             _authenticationService = new DirectFirestoreAuthenticationService(apiSettings);
-#endif
             PowerMath.Audio.MusicController.Instance.PlayLoginMusic();
 
             if (DirectFirestoreCredentialStore.TryGet(out var saved) && saved.Remembered)

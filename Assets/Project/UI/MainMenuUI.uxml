@@ -28,7 +28,7 @@
         <ui:VisualElement name="main-menu-notification" picking-mode="Ignore" class="main-menu-notification" style="flex-direction: column; bottom: auto; top: 50px;">
             <ui:Label name="main-menu-notification-text" text="" picking-mode="Ignore" class="main-menu-notification__text"/>
         </ui:VisualElement>
-        <ui:VisualElement name="main-menu-transition-layer" picking-mode="Ignore" class="main-menu-transition-layer">
+        <ui:VisualElement name="main-menu-transition-layer" picking-mode="Position" class="main-menu-transition-layer is-transition-blocking is-bootstrap-active" style="display: flex;">
             <ui:VisualElement name="main-menu-transition-cover" picking-mode="Ignore" class="main-menu-transition-cover"/>
             <ui:VisualElement name="transition-square-0" picking-mode="Ignore" class="battle-transition-square battle-transition-square--0"/>
             <ui:VisualElement name="transition-square-1" picking-mode="Ignore" class="battle-transition-square battle-transition-square--1"/>

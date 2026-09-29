@@ -96,13 +96,7 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
 
-#if UNITY_EDITOR
-            _authenticationService = apiSettings.UseEditorSampleStudent
-                ? (IAuthenticationService)new EditorMockAuthenticationService()
-                : new DirectFirestoreAuthenticationService(apiSettings);
-#else
             _authenticationService = new DirectFirestoreAuthenticationService(apiSettings);
-#endif
         }
 
         private void OnDisable()

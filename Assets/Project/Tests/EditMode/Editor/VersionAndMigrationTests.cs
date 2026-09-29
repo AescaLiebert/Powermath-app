@@ -161,6 +161,8 @@ namespace PowerMath.Tests.EditMode
             Assert.That(snapshot.profile.displayName, Is.EqualTo("student_test"));
             Assert.That(snapshot.progression, Is.Not.Null);
             Assert.That(snapshot.progression.currentStage, Is.EqualTo(1));
+            Assert.That(snapshot.progression.firstStage200Reached, Is.False);
+            Assert.That(snapshot.progression.finalStageReached, Is.False);
             Assert.That(snapshot.wallet, Is.Not.Null);
             Assert.That(snapshot.wallet.silver, Is.EqualTo(0));
 

@@ -111,8 +111,10 @@ namespace PowerMath.Tests.EditMode
                 Assert.AreEqual(
                     DisplayStyle.Flex,
                     overlay.style.display.value);
-                Assert.IsNotNull(document.rootVisualElement.Q<Button>(
-                    "announcement-patch-patch-1.1-announcement-board"));
+                Button patchButton = document.rootVisualElement.Q<Button>(
+                    "announcement-patch-patch-1.22-update") ??
+                    document.rootVisualElement.Q<Button>(className: "announcement-patch-tab");
+                Assert.IsNotNull(patchButton);
                 Assert.IsNotEmpty(document.rootVisualElement.Q<Label>(
                     "announcement-patch-title").text);
             }

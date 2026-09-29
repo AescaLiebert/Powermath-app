@@ -88,6 +88,53 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
         }
 
         [Test]
+        public void Initialize_WhenGraphicAlphaIsFractional_ForcesAuthoredAlphaToOpaque()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image));
+            try
+            {
+                var image = go.GetComponent<Image>();
+                image.color = new Color(1f, 1f, 1f, 0.67f);
+
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, false);
+
+                Assert.That(controller.AuthoredColor.a, Is.EqualTo(1f));
+                Assert.That(controller.CurrentColor.a, Is.EqualTo(1f));
+
+                controller.RestoreAuthoredPose(resetAlpha: true);
+                Assert.That(controller.CurrentColor.a, Is.EqualTo(1f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void Initialize_WhenResetAlphaIsFalse_PreservesCanvasGroupAlpha()
+        {
+            var go = new GameObject("TestActor", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
+            try
+            {
+                var cg = go.GetComponent<CanvasGroup>();
+                cg.alpha = 0.35f;
+
+                var controller = go.AddComponent<ActorPresentationController>();
+                controller.Initialize(PresentationActor.Player, false, resetAlpha: false);
+
+                Assert.That(cg.alpha, Is.EqualTo(0.35f).Within(0.001f));
+
+                controller.RestoreAuthoredPose(resetAlpha: true);
+                Assert.That(cg.alpha, Is.EqualTo(1f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
         public void CombatJuiceProfile_ExposesHitFlashProperties()
         {
             var profile = ScriptableObject.CreateInstance<CombatJuiceProfileDefinition>();

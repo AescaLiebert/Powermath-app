@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   petId: blazehorn
   displayName: Blazehorn
+  thaiDisplayName: เขาเพลิง
   icon: {fileID: 21300000, guid: 80bd17ff3325c0a4ba2f62bd6d7b082a, type: 3}
   previewSprite: {fileID: 21300000, guid: 80bd17ff3325c0a4ba2f62bd6d7b082a, type: 3}
   iconAddressableKey: 

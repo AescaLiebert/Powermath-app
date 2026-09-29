@@ -28,9 +28,6 @@ namespace PowerMath.PlayerLifecycle
         {
 
             Commands = new ReleaseCheckedLifecycleCommands(settings, new DirectFirestoreLifecycleCommands(settings));
-#if UNITY_EDITOR
-            if (settings.UseEditorSampleStudent) Commands = new EditorLifecycleCommands();
-#endif
         }
 
         private void OnEnable() => SceneManager.sceneLoaded += OnSceneLoaded;

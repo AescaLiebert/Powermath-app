@@ -5,6 +5,7 @@ using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Combat.Presentation;
 using PowerMath.Gameplay.Combat.Unity;
 using PowerMath.PlayerData;
+using PowerMath.Localization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -114,6 +115,7 @@ namespace PowerMath.UI.MainMenu
             _continue.clicked += AcknowledgeAndReload;
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed += OnPlayerChanged;
+            LocalizationService.Changed += OnLocaleChanged;
             if (_interactionGate != null)
                 _interactionGate.Changed += OnInteractionGateChanged;
             PowerMath.Audio.UiSfxAudioBinder.Bind(_modal);
@@ -132,6 +134,7 @@ namespace PowerMath.UI.MainMenu
         {
             if (PlayerSessionStore.Instance != null)
                 PlayerSessionStore.Instance.Changed -= OnPlayerChanged;
+            LocalizationService.Changed -= OnLocaleChanged;
             if (_interactionGate != null)
                 _interactionGate.Changed -= OnInteractionGateChanged;
             _rebirth.clicked -= OpenRebirth;
@@ -170,8 +173,49 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
 
-            RenderPreview(_pendingPreview, "RUN ENDED");
+            RenderPreview(_pendingPreview, LocalizationService.Get("menu.runEnded"));
             _status.text = PowerMath.Localization.LocalizationService.Get("menu.waitingDefeat");
+        }
+
+        private void OnLocaleChanged()
+        {
+            if (_panelHost.OpenPanel != MainMenuPanelId.Rebirth || _busy)
+                return;
+            if (_player.lastRunSettlement != null &&
+                HasPendingSettlementPresentation(_player))
+            {
+                RunSettlementType savedType = string.Equals(
+                    _player.lastRunSettlement.type, "Death",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? RunSettlementType.Death
+                    : RunSettlementType.Rebirth;
+                RenderSavedSettlement(_player.lastRunSettlement, savedType);
+                _status.text = LocalizationService.Get("menu.resultRecovered");
+                return;
+            }
+            if (_pendingSettlement.HasValue && _pendingPreview.Award.StageReached > 0)
+            {
+                RenderPreview(_pendingPreview, LocalizationService.Get(
+                    _pendingSettlement == RunSettlementType.Death
+                        ? "menu.runEnded"
+                        : "menu.rebirthTitle"));
+                if (_pendingSettlement == RunSettlementType.Death)
+                {
+                    SetConfirmText("Restart");
+                    _status.text = LocalizationService.Get("menu.progressSafe");
+                }
+                else if (RunSettlementPolicy.CanSettle(_player,
+                    RunSettlementType.Rebirth, out string reason))
+                {
+                    SetConfirmText("Rebirth");
+                    _status.text = LocalizationService.Get("menu.rebirthKeepsRecords");
+                }
+                else
+                {
+                    SetConfirmText("Locked");
+                    _status.text = LocalizeSettlementReason(reason);
+                }
+            }
         }
 
         public void NotifyDeathPresentationCompleted()
@@ -197,8 +241,8 @@ namespace PowerMath.UI.MainMenu
             // menu. It cannot wait for the player-menu Rebirth unlock.
             if (!Show(true, false, true)) return;
             SetSemanticState();
-            RenderPreview(_pendingPreview, "RUN ENDED");
-            _status.text = "Your progress is safe. Let's prepare for a fresh start.";
+            RenderPreview(_pendingPreview, LocalizationService.Get("menu.runEnded"));
+            _status.text = LocalizationService.Get("menu.progressSafe");
             SetConfirmText("Restart");
             SetControls(true);
             TutorialPanelOpened?.Invoke(true);
@@ -245,6 +289,7 @@ namespace PowerMath.UI.MainMenu
 
         private void OpenRebirth()
         {
+
             if (_interactionGate != null &&
                 (!_interactionGate.IsAllowed(InteractionScope.Navigation) ||
                  !_interactionGate.IsAllowed(InteractionScope.Lobby)))
@@ -272,17 +317,17 @@ namespace PowerMath.UI.MainMenu
                 return;
             }
             SetSemanticState();
-            RenderPreview(_pendingPreview, "REBIRTH");
+            RenderPreview(_pendingPreview, LocalizationService.Get("menu.rebirthTitle"));
             bool canSettle = RunSettlementPolicy.CanSettle(_player, RunSettlementType.Rebirth, out string reason);
             if (canSettle)
             {
                 _status.text =
-                    "Your Rank and lifetime records stay. Questions and the current audit restart.";
+                    LocalizationService.Get("menu.rebirthKeepsRecords");
                 SetConfirmText("Rebirth");
             }
             else
             {
-                _status.text = reason;
+                _status.text = LocalizeSettlementReason(reason);
                 SetConfirmText("Locked");
             }
             _confirm.SetEnabled(canSettle);
@@ -357,9 +402,9 @@ namespace PowerMath.UI.MainMenu
                 ? $"{preview.ResultingCoins:N0}<size=24>(+{preview.Award.PowerCoinBonusPercent:0.##}%)</size>"
                 : preview.ResultingCoins.ToString("N0");
             UpdateProgressBar(preview.Award.StageReached);
-            if (preview.Award.WasTeleported)
+            if (preview.Award.WasTeleported && RunSettlementPolicy.TeleportPenaltyMultiplier < 1.0d)
             {
-                _status.text = "Teleport active: Run settlement rewards reduced to 10%.";
+                _status.text = LocalizationService.Get("menu.teleportReducedRewards");
             }
         }
 
@@ -369,7 +414,7 @@ namespace PowerMath.UI.MainMenu
             if (_pendingSettlement == RunSettlementType.Rebirth &&
                 !RunSettlementPolicy.CanSettle(_player, RunSettlementType.Rebirth, out string reason))
             {
-                _status.text = reason;
+                _status.text = LocalizeSettlementReason(reason);
                 _confirm.SetEnabled(false);
                 return;
             }
@@ -676,8 +721,8 @@ namespace PowerMath.UI.MainMenu
             RunSettlementType type)
         {
             _title.text = type == RunSettlementType.Death
-                ? "RUN ENDED"
-                : "REBIRTH COMPLETE";
+                ? LocalizationService.Get("menu.runEnded")
+                : LocalizationService.Get("menu.rebirthComplete");
             long resultingLegacy = checked(
                 value.sourceLegacyAtkBasisPoints + value.legacyAtkBasisPointsGranted);
             _attackBefore.text = FormatAttack(
@@ -842,7 +887,30 @@ namespace PowerMath.UI.MainMenu
 
         private void SetConfirmText(string value)
         {
-            _confirmLabel.text = value;
+            string key = value switch
+            {
+                "Restart" => "menu.restart",
+                "Rebirth" => "menu.rebirth",
+                "Locked" => "menu.locked",
+                "Offline" => "menu.offline",
+                "Retry" => "common.retry",
+                _ => null
+            };
+            _confirmLabel.text = key == null ? value : LocalizationService.Get(key);
+        }
+
+        private static string LocalizeSettlementReason(string reason)
+        {
+            string key = reason switch
+            {
+                "Player run data is unavailable." => "menu.runDataUnavailable",
+                "Finish the current question first." => "menu.finishQuestionFirst",
+                "This run has not ended in defeat." => "menu.runNotDefeated",
+                "Rebirth unlocks at Stage 31." => "menu.rebirthUnlockStage",
+                "Rebirth is only available between questions." => "menu.rebirthBetweenQuestions",
+                _ => null
+            };
+            return key == null ? reason : LocalizationService.Get(key);
         }
 
         private static T Require<T>(VisualElement root, string name)

@@ -139,6 +139,12 @@ namespace PowerMath.UI.Settings
                 {
                     builder.AddInteger(Join(root, "progression", "highestStage"), targetStage);
                 }
+                if (targetStage >= StageId.Final && (_player?.progression == null || !_player.progression.finalStageReached))
+                {
+                    builder.AddBoolean(Join(root, "progression", "finalStageReached"), true);
+                    long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    builder.AddInteger(Join(root, "progression", "finalStageReachedAtUnixSeconds"), now);
+                }
                 if (targetStage >= 200 && (_player?.progression == null || !_player.progression.firstStage200Reached))
                 {
                     builder.AddBoolean(Join(root, "progression", "firstStage200Reached"), true);

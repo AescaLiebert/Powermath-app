@@ -22,32 +22,32 @@ MonoBehaviour:
   mapLandmarkSprite: {fileID: 0}
   normalizedMapPosition: {x: 0.6666667, y: 0.42}
   normalMonsters:
-  - {fileID: 11400000, guid: 9d8fba1f5ba578741bc87d5e0c9f039a, type: 2}
-  - {fileID: 11400000, guid: f22640940fdfeea458010b6395da556f, type: 2}
-  - {fileID: 11400000, guid: 08c8394c6f9045140b03c1f763471d44, type: 2}
-  - {fileID: 11400000, guid: 7b3a87ab4ec5ac047a8aa930b71c20b5, type: 2}
-  - {fileID: 11400000, guid: 5778a53a19f56fd47ba5ab0dc8beeefa, type: 2}
-  - {fileID: 11400000, guid: 3418efa76f5981a4791d6d0b93785996, type: 2}
-  - {fileID: 11400000, guid: e292d9b0e8b7abd44be26f1378aa5692, type: 2}
-  - {fileID: 11400000, guid: 4e5d2b08d03e81e419341b57f8e77dad, type: 2}
-  - {fileID: 11400000, guid: d540334502e626b419c02a66243e03c3, type: 2}
-  - {fileID: 11400000, guid: 58a4b9f7be2e46149a23d27b085600d2, type: 2}
-  - {fileID: 11400000, guid: 1dae96c6e05e1c44dbb5c9fe044bb7f2, type: 2}
-  - {fileID: 11400000, guid: a7c19bfb800d9dc4da3357e7ce913d7b, type: 2}
+  - {fileID: 11400000, guid: e15a6ea275b38f946bc02d17b6fa6abb, type: 2}
+  - {fileID: 11400000, guid: d12dd64d7c966eb40a8d35688f96a472, type: 2}
+  - {fileID: 11400000, guid: 23240ff0553aa164c94f313752e1f948, type: 2}
+  - {fileID: 11400000, guid: 9383f5a7151970d4eb1bffadf8309bce, type: 2}
+  - {fileID: 11400000, guid: 87284324b7590ec43813b4452b36437f, type: 2}
+  - {fileID: 11400000, guid: a3d7354a35b6d564d943d75dc042599e, type: 2}
+  - {fileID: 11400000, guid: 83c0b0280a2a174409763b0c1b14c0d7, type: 2}
+  - {fileID: 11400000, guid: 11fac05c31d7a0f4792975a2fbf79988, type: 2}
+  - {fileID: 11400000, guid: 1f1abd72cbaf34d4baa7ced0d514e17a, type: 2}
+  - {fileID: 11400000, guid: ca0cea69744137c47b7d5446f358c940, type: 2}
+  - {fileID: 11400000, guid: 64fbd340c29632f4e932204ae4b1af29, type: 2}
+  - {fileID: 11400000, guid: bb6aa7120b745764b93e920d187136bf, type: 2}
   bossBindings:
   - stage: 155
-    monster: {fileID: 11400000, guid: 20d77aa831f4ac84fb11c415912666fc, type: 2}
+    monster: {fileID: 11400000, guid: 684ab8ffcc84a374bacd8992fc190fee, type: 2}
   - stage: 160
-    monster: {fileID: 11400000, guid: 4d462a6897310a14eb7ee4ba66051ffb, type: 2}
+    monster: {fileID: 11400000, guid: 5a886fde4234a6747b43e5956c0e8e4d, type: 2}
   - stage: 165
-    monster: {fileID: 11400000, guid: af056a130e42c4c419c02d8db9080a20, type: 2}
+    monster: {fileID: 11400000, guid: a071343829145b94dbc29aa8b61d1c3e, type: 2}
   - stage: 170
-    monster: {fileID: 11400000, guid: c29b8241faa1dee468af3bc9d649de34, type: 2}
+    monster: {fileID: 11400000, guid: dff78f771801b1e478a64f651f04bc93, type: 2}
   - stage: 175
-    monster: {fileID: 11400000, guid: 6bf835a844b663e47b2dfc7f8de41618, type: 2}
+    monster: {fileID: 11400000, guid: 77f3f274239722a4a8e0c7d678d11764, type: 2}
   - stage: 180
-    monster: {fileID: 11400000, guid: 2443a894137205649afda51e96c3ee9f, type: 2}
+    monster: {fileID: 11400000, guid: e2dddb5132488364a956fddeca855dc9, type: 2}
   - stage: 185
-    monster: {fileID: 11400000, guid: 0c9760c6dcf44364da6c507ecd54d331, type: 2}
+    monster: {fileID: 11400000, guid: d8b5bd2f762d17e4f915c1f5524a5f06, type: 2}
   - stage: 190
-    monster: {fileID: 11400000, guid: 11fcfc8e06142834b85f409a0815ea56, type: 2}
+    monster: {fileID: 11400000, guid: f823d03446a1e4e4895bedb7d6595f34, type: 2}

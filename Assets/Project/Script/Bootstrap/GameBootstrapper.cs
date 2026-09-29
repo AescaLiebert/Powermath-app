@@ -61,13 +61,7 @@ namespace PowerMath.Bootstrap
                 return;
             }
 
-#if UNITY_EDITOR
-            _bootstrapService = apiSettings.UseEditorSampleStudent
-                ? (IPlayerBootstrapService)new EditorMockPlayerBootstrapService()
-                : new DirectFirestorePlayerBootstrapService(apiSettings);
-#else
             _bootstrapService = new DirectFirestorePlayerBootstrapService(apiSettings);
-#endif
             PowerMath.PlayerLifecycle.PlayerLifecycleRuntime.Configure(apiSettings);
             BeginBootstrap();
         }
@@ -85,15 +79,6 @@ namespace PowerMath.Bootstrap
             }
 
             _isBootstrapping = true;
-
-#if UNITY_EDITOR
-            if (apiSettings.UseEditorSampleStudent)
-            {
-                _view.Render(BootstrapState.CheckingSession);
-                StartCoroutine(FetchPlayer());
-                return;
-            }
-#endif
 
             if (apiSettings.EnableVersionCheck && string.IsNullOrWhiteSpace(apiSettings.VersionManifestUrl))
             {

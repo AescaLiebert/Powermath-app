@@ -368,6 +368,10 @@ namespace PowerMath.Session
                     prestige = ReadInt(progression, "prestige"),
                     firstStage200Reached = ReadBool(progression, "firstStage200Reached"),
                     firstStage200ReachedAtUnixSeconds = ReadLong(progression, "firstStage200ReachedAtUnixSeconds"),
+                    finalStageReached = ReadBool(progression, "finalStageReached") || ReadBool(progression, "firstStage200Reached"),
+                    finalStageReachedAtUnixSeconds = ReadLong(progression, "finalStageReachedAtUnixSeconds") > 0
+                        ? ReadLong(progression, "finalStageReachedAtUnixSeconds")
+                        : ReadLong(progression, "firstStage200ReachedAtUnixSeconds"),
                     totalDamage = ReadLong(progression, "totalDamage"),
                     legacyAtkBonusBasisPoints = ReadLong(progression, "legacyAtkBonusBasisPoints"),
                     leaderboardSnapshotAtUnixSeconds = ReadLong(progression, "leaderboardSnapshotAtUnixSeconds"),
