@@ -33,6 +33,10 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             "Assets/Project/UI/MainMenu/PlayerHubPanel.uss";
         private const string MainMenuExperienceStyle =
             "Assets/Project/UI/MainMenu/MainMenuExperience.uss";
+        private const string PetGachaUxml =
+            "Assets/Project/UI/MainMenu/PetGachaPanel.uxml";
+        private const string PetGachaPanelControllerScript =
+            "Assets/Project/Script/UI/MainMenu/RunEconomy/PetGachaPanelController.cs";
 
         [Test]
         public void AuthenticationAsset_PreservesLoginContract()
@@ -545,6 +549,35 @@ namespace PowerMath.Gameplay.Combat.Unity.Tests
             Assert.That(style, Does.Contain("--figma-shadow-inset: 1"));
             Assert.That(style, Does.Contain("--loadout-slot-fill-0"));
             Assert.That(style, Does.Contain("--figma-gradient-stop-1: 0.58"));
+        }
+
+        [Test]
+        public void PetGachaAsset_PreservesRevealAndResultStructureContract()
+        {
+            VisualElement root = Clone(PetGachaUxml);
+
+            Require<VisualElement>(root, "pet-gacha-modal");
+            VisualElement result = Require<VisualElement>(root, "pet-gacha-result");
+            VisualElement reveal = Require<VisualElement>(result, "pet-gacha-reveal");
+            VisualElement results = Require<VisualElement>(result, "pet-gacha-results");
+            Require<VisualElement>(results, "pet-gacha-results-grid");
+            Require<Button>(results, "pet-gacha-results-continue");
+            Require<Button>(reveal, "pet-gacha-reveal-skip");
+
+            Assert.That(result.style.opacity.value, Is.EqualTo(1f), "Pet gacha result container must default to opacity 1.");
+            Assert.That(result.ClassListContains("is-hidden"), Is.True, "Pet gacha result overlay must be marked is-hidden by default.");
+            Assert.That(results.ClassListContains("is-hidden"), Is.True, "Pet gacha results subpanel must be marked is-hidden by default.");
+        }
+
+        [Test]
+        public void PetGachaController_EnforcesResultOpacityLifecycleContract()
+        {
+            string source = File.ReadAllText(PetGachaPanelControllerScript);
+
+            Assert.That(source, Does.Not.Contain("_result.style.opacity = 0f;"),
+                "Pet gacha result container must not latch inline opacity to 0 on close/reset.");
+            Assert.That(source, Does.Contain("_result.style.opacity = 1f;"),
+                "Pet gacha result container must restore opacity to 1 upon presentation.");
         }
 
         private static VisualElement Clone(string path)

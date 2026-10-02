@@ -3,6 +3,7 @@ using System.Reflection;
 using NUnit.Framework;
 using PowerMath.Gameplay.Pets;
 using PowerMath.Gameplay.Progression;
+using PowerMath.Localization;
 using PowerMath.PlayerData;
 using PowerMath.UI.MainMenu;
 using UnityEngine;
@@ -448,6 +449,79 @@ namespace PowerMath.Tests.EditMode
             Assert.That(profile, Is.Not.Null);
             Assert.That(profile.PreviewEntranceSeconds, Is.GreaterThan(0.05f));
             Assert.That(profile.PreviewEntranceSeconds, Is.EqualTo(0.28f).Within(0.01f));
+        }
+
+        [Test]
+        public void PlayerHubView_FormatPetStat_IncludesLocalizedStatLabel()
+        {
+            string originalLocale = LocalizationService.Locale;
+            try
+            {
+                // Test in Thai
+                LocalizationService.SetLocale("th");
+
+                var atkPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(atkPet, "playerAttackBonus", 10);
+                Assert.That(PlayerHubView.FormatPetStat(atkPet, 1), Is.EqualTo("+10 พลังโจมตี"));
+                Assert.That(PlayerHubView.FormatPetStat(atkPet, 2), Is.EqualTo("+20 พลังโจมตี"));
+
+                var atkMultPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(atkMultPet, "playerAttackMultiplierPercent", 15f);
+                Assert.That(PlayerHubView.FormatPetStat(atkMultPet, 1), Is.EqualTo("+15% พลังโจมตี"));
+
+                var petAtkPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(petAtkPet, "petAttackBonus", 50);
+                Assert.That(PlayerHubView.FormatPetStat(petAtkPet, 1), Is.EqualTo("+50 พลังโจมตีสัตว์เลี้ยง"));
+
+                var crPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(crPet, "critRatePercent", 5f);
+                Assert.That(PlayerHubView.FormatPetStat(crPet, 1), Is.EqualTo("+5% อัตราคริติคอล"));
+
+                var cdPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(cdPet, "critDamagePercent", 20f);
+                Assert.That(PlayerHubView.FormatPetStat(cdPet, 1), Is.EqualTo("+20% ความเสียหายคริติคอล"));
+
+                var luckPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(luckPet, "encounterLuckPercent", 5f);
+                Assert.That(PlayerHubView.FormatPetStat(luckPet, 1), Is.EqualTo("+5% โชคลาศ"));
+
+                var coinPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(coinPet, "powerCoinBonusPercent", 10f);
+                Assert.That(PlayerHubView.FormatPetStat(coinPet, 1), Is.EqualTo("+10% อัตรารวย"));
+
+                var heartPet = ScriptableObject.CreateInstance<PetDefinition>();
+                SetPrivate(heartPet, "playerHeartUnit", 1);
+                Assert.That(PlayerHubView.FormatPetStat(heartPet, 1), Is.EqualTo("+1 หัวใจ"));
+
+                var emptyPet = ScriptableObject.CreateInstance<PetDefinition>();
+                Assert.That(PlayerHubView.FormatPetStat(emptyPet, 1), Is.EqualTo("สัตว์เลี้ยงสะสม"));
+
+                // Test in English
+                LocalizationService.SetLocale("en");
+                Assert.That(PlayerHubView.FormatPetStat(atkPet, 1), Is.EqualTo("+10 ATK"));
+                Assert.That(PlayerHubView.FormatPetStat(atkMultPet, 1), Is.EqualTo("+15% ATK"));
+                Assert.That(PlayerHubView.FormatPetStat(petAtkPet, 1), Is.EqualTo("+50 Pet ATK"));
+                Assert.That(PlayerHubView.FormatPetStat(crPet, 1), Is.EqualTo("+5% Crit Rate"));
+                Assert.That(PlayerHubView.FormatPetStat(cdPet, 1), Is.EqualTo("+20% Crit Damage"));
+                Assert.That(PlayerHubView.FormatPetStat(luckPet, 1), Is.EqualTo("+5% Luck"));
+                Assert.That(PlayerHubView.FormatPetStat(coinPet, 1), Is.EqualTo("+10% Money Bonus"));
+                Assert.That(PlayerHubView.FormatPetStat(heartPet, 1), Is.EqualTo("+1 Heart"));
+                Assert.That(PlayerHubView.FormatPetStat(emptyPet, 1), Is.EqualTo("Collection Pet"));
+
+                UnityEngine.Object.DestroyImmediate(atkPet);
+                UnityEngine.Object.DestroyImmediate(atkMultPet);
+                UnityEngine.Object.DestroyImmediate(petAtkPet);
+                UnityEngine.Object.DestroyImmediate(crPet);
+                UnityEngine.Object.DestroyImmediate(cdPet);
+                UnityEngine.Object.DestroyImmediate(luckPet);
+                UnityEngine.Object.DestroyImmediate(coinPet);
+                UnityEngine.Object.DestroyImmediate(heartPet);
+                UnityEngine.Object.DestroyImmediate(emptyPet);
+            }
+            finally
+            {
+                LocalizationService.SetLocale(originalLocale);
+            }
         }
 
         private static PlayerSnapshot CreatePlayer(bool owned, bool equipped)

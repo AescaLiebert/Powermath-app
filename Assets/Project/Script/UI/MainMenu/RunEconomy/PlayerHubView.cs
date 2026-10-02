@@ -501,7 +501,7 @@ namespace PowerMath.UI.MainMenu
             return new string('★', count);
         }
 
-        private enum PetPreviewStatKind
+        public enum PetPreviewStatKind
         {
             None,
             PlayerAttack,
@@ -513,8 +513,9 @@ namespace PowerMath.UI.MainMenu
             PlayerHearts
         }
 
-        private static PetPreviewStatKind ResolvePetStat(PetDefinition definition)
+        public static PetPreviewStatKind ResolvePetStat(PetDefinition definition)
         {
+            if (definition == null) return PetPreviewStatKind.None;
             if (definition.PlayerAttackBonus > 0 || definition.PlayerAttackMultiplierPercent > 0f)
                 return PetPreviewStatKind.PlayerAttack;
             if (definition.PetAttackBonus > 0 || definition.PetAttackMultiplierPercent > 0f)
@@ -536,6 +537,7 @@ namespace PowerMath.UI.MainMenu
             PetPreviewStatIcon.EnableInClassList("player-hub-icon-luck", false);
             PetPreviewStatIcon.EnableInClassList("player-hub-icon-coin", false);
             PetPreviewStatIcon.EnableInClassList("player-hub-icon-heart", false);
+            PetPreviewStatIcon.style.display = statKind == PetPreviewStatKind.None ? DisplayStyle.None : DisplayStyle.Flex;
             switch (statKind)
             {
                 case PetPreviewStatKind.PlayerAttack:
@@ -562,36 +564,56 @@ namespace PowerMath.UI.MainMenu
             }
         }
 
-        private static string FormatPetStat(
+        public static string FormatPetStat(PetDefinition definition, int count = 1)
+        {
+            return FormatPetStat(definition, count, ResolvePetStat(definition));
+        }
+
+        public static string FormatPetStat(
             PetDefinition definition,
             int count,
             PetPreviewStatKind statKind)
         {
+            if (definition == null) return string.Empty;
+
             int safeCount = Mathf.Max(1, count);
             switch (statKind)
             {
                 case PetPreviewStatKind.PlayerAttack:
                     int flat = definition.PlayerAttackBonus * safeCount;
                     float multiplier = definition.PlayerAttackMultiplierPercent * safeCount;
-                    if (flat > 0 && multiplier > 0f) return $"+{flat:N0} (+{multiplier:0.##}%)";
-                    return flat > 0 ? $"+{flat:N0}" : $"+{multiplier:0.##}%";
+                    if (flat > 0 && multiplier > 0f)
+                        return $"{LocalizationService.Get("menu.petStatPlayerAttack", flat)} (+{multiplier:0.#}%)";
+                    if (flat > 0)
+                        return LocalizationService.Get("menu.petStatPlayerAttack", flat);
+                    return LocalizationService.Get("menu.petStatPlayerAttackPercent", multiplier);
+
                 case PetPreviewStatKind.PetAttack:
                     int petFlat = definition.PetAttackBonus * safeCount;
                     float petMultiplier = definition.PetAttackMultiplierPercent * safeCount;
-                    if (petFlat > 0 && petMultiplier > 0f) return $"+{petFlat:N0} (+{petMultiplier:0.##}%)";
-                    return petFlat > 0 ? $"+{petFlat:N0}" : $"+{petMultiplier:0.##}%";
+                    if (petFlat > 0 && petMultiplier > 0f)
+                        return $"{LocalizationService.Get("menu.petStatPetAttack", petFlat)} (+{petMultiplier:0.#}%)";
+                    if (petFlat > 0)
+                        return LocalizationService.Get("menu.petStatPetAttack", petFlat);
+                    return LocalizationService.Get("menu.petStatPetAttackPercent", petMultiplier);
+
                 case PetPreviewStatKind.CritRate:
-                    return $"+{definition.CritRatePercent * safeCount:0.##}%";
+                    return LocalizationService.Get("menu.petStatCritRate", definition.CritRatePercent * safeCount);
+
                 case PetPreviewStatKind.CritDamage:
-                    return $"+{definition.CritDamagePercent * safeCount:0.##}%";
+                    return LocalizationService.Get("menu.petStatCritDamage", definition.CritDamagePercent * safeCount);
+
                 case PetPreviewStatKind.EncounterLuck:
-                    return $"+{definition.EncounterLuckPercent * safeCount:0.##}%";
+                    return LocalizationService.Get("menu.petStatEncounterLuck", definition.EncounterLuckPercent * safeCount);
+
                 case PetPreviewStatKind.PowerCoinBonus:
-                    return $"+{definition.PowerCoinBonusPercent * safeCount:0.##}%";
+                    return LocalizationService.Get("menu.petStatPowerCoins", definition.PowerCoinBonusPercent * safeCount);
+
                 case PetPreviewStatKind.PlayerHearts:
-                    return $"+{definition.PlayerHeartUnit * safeCount:N0}";
+                    return LocalizationService.Get("menu.petStatHeart", definition.PlayerHeartUnit * safeCount);
+
                 default:
-                    return string.Empty;
+                    return LocalizationService.Get("menu.collectionPet");
             }
         }
 

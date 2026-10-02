@@ -762,7 +762,9 @@ namespace PowerMath.UI.MainMenu
             InvalidateAnimationSequence();
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
+            _result.AddToClassList("is-hidden");
             _transition.style.display = DisplayStyle.None;
+            _transition.AddToClassList("is-hidden");
             HideDetailsImmediate();
             _status.text = string.Empty;
             _committed = false;
@@ -860,8 +862,10 @@ namespace PowerMath.UI.MainMenu
             SetMainMenuExitProgress(0f);
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
-            _result.style.opacity = 0f;
+            _result.style.opacity = 1f;
+            _result.AddToClassList("is-hidden");
             _transition.style.display = DisplayStyle.None;
+            _transition.AddToClassList("is-hidden");
             HideDetails();
             _pendingTransactionId = string.Empty;
             _committed = false;
@@ -1091,16 +1095,7 @@ namespace PowerMath.UI.MainMenu
 
         private static string FormatPetStat(PetDefinition pet)
         {
-            if (pet.PlayerAttackBonus > 0) return LocalizationService.Get("menu.petStatPlayerAttack", pet.PlayerAttackBonus);
-            if (pet.PlayerAttackMultiplierPercent > 0f) return LocalizationService.Get("menu.petStatPlayerAttackPercent", pet.PlayerAttackMultiplierPercent);
-            if (pet.PetAttackBonus > 0) return LocalizationService.Get("menu.petStatPetAttack", pet.PetAttackBonus);
-            if (pet.PetAttackMultiplierPercent > 0f) return LocalizationService.Get("menu.petStatPetAttackPercent", pet.PetAttackMultiplierPercent);
-            if (pet.CritRatePercent > 0f) return LocalizationService.Get("menu.petStatCritRate", pet.CritRatePercent);
-            if (pet.CritDamagePercent > 0f) return LocalizationService.Get("menu.petStatCritDamage", pet.CritDamagePercent);
-            if (pet.EncounterLuckPercent > 0f) return LocalizationService.Get("menu.petStatEncounterLuck", pet.EncounterLuckPercent);
-            if (pet.PowerCoinBonusPercent > 0f) return LocalizationService.Get("menu.petStatPowerCoins", pet.PowerCoinBonusPercent);
-            if (pet.PlayerHeartUnit > 0) return LocalizationService.Get("menu.petStatHeart", pet.PlayerHeartUnit);
-            return LocalizationService.Get("menu.collectionPet");
+            return PlayerHubView.FormatPetStat(pet, 1);
         }
 
         private void SetInspectStatIcon(PetDefinition pet)
@@ -1292,6 +1287,7 @@ namespace PowerMath.UI.MainMenu
                 LocalizationService.Get("menu.duplicateStackHelp");
             _confirmation.style.display = DisplayStyle.Flex;
             _result.style.display = DisplayStyle.None;
+            _result.AddToClassList("is-hidden");
             _confirmation.Focus();
             _confirm.text = PowerMath.Localization.LocalizationService.Get("menu.confirmPull");
             _confirm.SetEnabled(true);
@@ -1465,6 +1461,7 @@ namespace PowerMath.UI.MainMenu
             _close.SetEnabled(false);
             _confirmation.style.display = DisplayStyle.None;
             _result.style.display = DisplayStyle.None;
+            _result.AddToClassList("is-hidden");
             _transition.style.display = DisplayStyle.Flex;
             _transition.RemoveFromClassList("is-hidden");
             _transition.Focus();
@@ -1539,8 +1536,10 @@ namespace PowerMath.UI.MainMenu
             _transition.style.display = DisplayStyle.None;
             _transition.AddToClassList("is-hidden");
             _result.style.display = DisplayStyle.Flex;
+            _result.style.opacity = 1f;
             _result.RemoveFromClassList("is-hidden");
             _reveal.style.display = DisplayStyle.Flex;
+            _reveal.RemoveFromClassList("is-hidden");
             _results.style.display = DisplayStyle.None;
             _results.AddToClassList("is-hidden");
             _presentationState = PresentationState.Reveal;
@@ -1559,6 +1558,13 @@ namespace PowerMath.UI.MainMenu
             InvalidateAnimationSequence();
             _presentationState = PresentationState.Reveal;
             _revealIndex = index;
+            _result.style.display = DisplayStyle.Flex;
+            _result.style.opacity = 1f;
+            _result.RemoveFromClassList("is-hidden");
+            _reveal.style.display = DisplayStyle.Flex;
+            _reveal.RemoveFromClassList("is-hidden");
+            _results.style.display = DisplayStyle.None;
+            _results.AddToClassList("is-hidden");
             ResetRevealPhases();
             PetGachaResult roll = _presentationReceipt.Results[index];
             RarityTier tier = ResolveRarityTier(roll.RarityId, roll.PetId);
@@ -1754,7 +1760,11 @@ namespace PowerMath.UI.MainMenu
             if (!_hasPresentationReceipt) return;
             InvalidateAnimationSequence();
             _presentationState = PresentationState.Results;
+            _result.style.display = DisplayStyle.Flex;
+            _result.style.opacity = 1f;
+            _result.RemoveFromClassList("is-hidden");
             _reveal.style.display = DisplayStyle.None;
+            _reveal.AddToClassList("is-hidden");
             _results.style.display = DisplayStyle.Flex;
             _results.RemoveFromClassList("is-hidden");
             _resultsContinue.SetEnabled(false);
@@ -1930,6 +1940,7 @@ namespace PowerMath.UI.MainMenu
             if (_busy || _committed || _presentationState != PresentationState.Results) return;
             InvalidateAnimationSequence();
             _result.style.display = DisplayStyle.None;
+            _result.AddToClassList("is-hidden");
             ResetPresentationVisuals();
             SetSemanticState();
             RenderPreview();
@@ -2024,7 +2035,11 @@ namespace PowerMath.UI.MainMenu
             ResetRevealPhases();
             _transition.style.display = DisplayStyle.None;
             _transition.AddToClassList("is-hidden");
+            _result.style.display = DisplayStyle.None;
+            _result.style.opacity = 1f;
+            _result.AddToClassList("is-hidden");
             _reveal.style.display = DisplayStyle.Flex;
+            _reveal.RemoveFromClassList("is-hidden");
             _results.style.display = DisplayStyle.None;
             _results.AddToClassList("is-hidden");
             _resultsGrid.Clear();

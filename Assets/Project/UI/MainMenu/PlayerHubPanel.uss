@@ -969,6 +969,16 @@
     flex-direction: column;
 }
 
+.player-hub-pet-stat-title {
+    min-height: 29px;
+    color: var(--ph-deep-navy);
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    white-space: normal;
+    margin-bottom: 6px;
+}
+
 .player-hub-pet-attack-row {
     width: 100%;
     height: 50px;

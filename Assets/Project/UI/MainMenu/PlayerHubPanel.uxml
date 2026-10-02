@@ -161,7 +161,7 @@
                                                     </ui:VisualElement>
                                                 </ui:VisualElement>
                                                 <ui:VisualElement name="Stat/Passive" class="player-hub-pet-stat-passive">
-                                                    <ui:Label name="player-hub-pet-preview-description" text="Pet Stat" style="font-size: 30px;"/>
+                                                    <ui:Label name="player-hub-pet-preview-stat-title" text="PET STAT" class="loc-menu.petStat player-hub-pet-stat-title"/>
                                                     <ui:VisualElement name="Compact Stat / Attack" class="player-hub-pet-attack-row">
                                                         <ui:VisualElement name="Icon_ATK" picking-mode="Ignore" class="player-hub-compact-icon player-hub-icon-atk"/>
                                                         <ui:Label name="player-hub-pet-preview-attack" text="—" class="player-hub-pet-preview-attack"/>

@@ -98,7 +98,7 @@
                                 </ui:VisualElement>
                             </ui:VisualElement>
                             <ui:VisualElement name="Stat/Passive" class="player-hub-pet-stat-passive">
-                                <ui:Label name="pet-gacha-inspect-stat-title" text="PET STAT" style="font-size: 22px;"/>
+                                <ui:Label name="pet-gacha-inspect-stat-title" text="PET STAT" class="loc-menu.petStat player-hub-pet-stat-title"/>
                                 <ui:VisualElement name="Compact Stat / Attack" class="player-hub-pet-attack-row">
                                     <ui:VisualElement name="Icon_ATK" picking-mode="Ignore" class="player-hub-compact-icon player-hub-icon-atk"/>
                                     <ui:Label name="pet-gacha-inspect-attack" text="—" class="player-hub-pet-preview-attack"/>
